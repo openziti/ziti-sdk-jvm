@@ -1,0 +1,66 @@
+/*
+ * Copyright (c) 2019 NetFoundry, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+    id("java-library")
+    id("org.jetbrains.kotlin.jvm")
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
+
+    implementation(group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = "1.3.1")
+
+    implementation("com.squareup.retrofit2:retrofit:2.6.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.6.0")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
+
+    compile("io.jsonwebtoken:jjwt-api:0.10.7")
+    implementation("io.jsonwebtoken:jjwt-impl:0.10.7")
+    implementation("io.jsonwebtoken:jjwt-orgjson:0.10.7")
+
+    implementation(group = "org.bouncycastle", name = "bcpkix-jdk15on", version = "1.62")
+
+    implementation("com.github.ajalt:clikt:2.2.0")
+
+    testCompile(kotlin("test-junit"))
+}
+
+val gitCommit: String by rootProject.extra
+val gitBranch: String by rootProject.extra
+
+tasks {
+
+    val generatedResourcesDir = buildDir.resolve("generated-resources/main")
+
+    val versionProps by registering(WriteProperties::class) {
+        outputFile = generatedResourcesDir.resolve("io/netfoundry/ziti/util/ziti-version.properties")
+
+        property("version", "${project.version}")
+        property("revision", gitCommit)
+        property("branch", gitBranch)
+    }
+
+    sourceSets.main {
+        resources.srcDir(files(generatedResourcesDir).builtBy(versionProps))
+    }
+}

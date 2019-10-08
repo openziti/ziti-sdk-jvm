@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2019 NetFoundry, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.netfoundry.ziti
+
+import io.netfoundry.ziti.impl.ZitiImpl
+import kotlinx.coroutines.runBlocking
+import java.io.File
+import java.net.Socket
+
+interface ZitiContext {
+    fun dial(serviceName: String): ZitiConnection
+    fun connect(host: String, port: Int): Socket
+
+    fun stop()
+}
+
+interface ZitiConnection {
+    suspend fun sendData(data: ByteArray)
+    suspend fun readData(out: ByteArray, off: Int, len: Int): Int
+
+    fun send(data: ByteArray) = runBlocking { sendData(data) }
+    fun read(out: ByteArray, off: Int, len: Int): Int = runBlocking { readData(out, off, len) }
+}
+
+object Ziti {
+    @JvmStatic
+    fun newContext(idFile: File, pwd: CharArray): ZitiContext = ZitiImpl.loadContext(idFile, pwd, null)
+
+    @JvmStatic
+    fun newContext(fname: String, pwd: CharArray): ZitiContext = newContext(File(fname), pwd)
+}
