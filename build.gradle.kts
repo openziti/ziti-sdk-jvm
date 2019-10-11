@@ -16,12 +16,11 @@
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val zitiBuildnum by extra { System.getenv("BITBUCKET_BUILD_NUMBER") ?: "local" }
-val publishToken by extra { System.getenv("JFROG_API_KEY") }
+val zitiBuildnum by extra { System.getenv("BUILD_NUMBER") ?: "local" }
 
 plugins {
     kotlin("jvm") version "1.3.50"
-    id("io.wusa.semver-git-plugin") version "1.2.0"
+    id("io.wusa.semver-git-plugin") version "1.2.1"
 }
 
 repositories {
@@ -33,25 +32,22 @@ group = "io.netfoundry.ziti"
 
 semver {
     nextVersion = "patch"
-    snapshotSuffix = "${zitiBuildnum}<dirty>"
+    snapshotSuffix = "<count>.<sha><dirty>"
     dirtyMarker = "-dirty"
     initialVersion = "0.1.0"
 }
 
-var versionPrefix = ""
-var versionSuffix = "-${zitiBuildnum}"
-
-if (semver.info.branch.id != "master") {
-    versionPrefix = "${semver.info.branch.id}-"
-    versionSuffix = ""
+if (semver.info.branch.id == "master") {
+    version = "${semver.info.version}-${zitiBuildnum}"
+} else {
+    version = "${semver.info.branch.id}-${semver.info.version}"
 }
-version = "${versionPrefix}${semver.info.version}${versionSuffix}"
 val gitCommit by extra { semver.info.shortCommit }
 val gitBranch by extra { semver.info.branch.name }
 
 subprojects {
+    group = "io.netfoundry.ziti"
     version = rootProject.version
-    val gitCommit by extra { rootProject.semver.info.shortCommit }
 }
 
 tasks.withType<KotlinCompile>().all {

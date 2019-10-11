@@ -26,7 +26,7 @@ object ZitiProtocol {
 
     const val HEADER_LENGTH = 20
 
-    enum class Content(val id: Int) {
+    enum class ContentType(val id: Int) {
         HelloType(0),
         PingType(1),
         ResultType(2),
@@ -43,25 +43,9 @@ object ZitiProtocol {
         Bind(60790),
         Unbind(60791);
 
-        fun fromInt(i: Int): Content = values().find { id == i } ?: error("unknow content type[${i}]")
-    }
-
-    object ContentType {
-        const val HelloType: Int = 0
-        const val PingType: Int = 1
-        const val ResultType: Int = 2
-        const val LatencyType: Int = 3
-
-        //  EDGE
-        const val Connect = 60783
-        const val StateConnected = 60784
-        const val StateClosed = 60785
-        const val Data = 60786
-        const val Dial = 60787
-        const val DialSuccess = 60788
-        const val DialFailed = 60789
-        const val Bind = 60790
-        const val Unbind = 60791
+        companion object {
+            fun fromInt(i: Int): ContentType = values().find { it.id == i } ?: error("unknow content type[${i}]")
+        }
     }
 
     object Header {

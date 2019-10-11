@@ -65,7 +65,7 @@ internal object Sockets : Logged by JULogged() {
     }
 
     fun init() {
-        i { "internals initialized" }
+        d { "internals initialized" }
         Socket.setSocketImplFactory { ZitiSocketImpl() }
     }
 

@@ -34,7 +34,7 @@ internal object HTTPS : Logged by JULogged() {
         if (::useZiti.isInitialized) {
             w { "already initialized" }
         } else {
-            i { "HTTPS internals initialized" }
+            d { "HTTPS internals initialized" }
             useZiti = pred
         }
     }

@@ -26,4 +26,8 @@ object Version {
             load(inputStream)
         }
     }
+
+    val version = VersionInfo["version"]
+    val revision = VersionInfo["revision"]
+    val branch = VersionInfo["branch"]
 }

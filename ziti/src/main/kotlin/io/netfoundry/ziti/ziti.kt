@@ -17,6 +17,9 @@
 package io.netfoundry.ziti
 
 import io.netfoundry.ziti.impl.ZitiImpl
+import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.Logged
+import io.netfoundry.ziti.util.Version
 import kotlinx.coroutines.runBlocking
 import java.io.Closeable
 import java.io.File
@@ -37,7 +40,7 @@ interface ZitiConnection : Closeable {
     fun read(out: ByteArray, off: Int, len: Int): Int = runBlocking { receive(out, off, len) }
 }
 
-object Ziti {
+object Ziti : Logged by JULogged() {
     @JvmStatic
     fun newContext(idFile: File, pwd: CharArray): ZitiContext = ZitiImpl.loadContext(idFile, pwd, null)
 
@@ -46,4 +49,8 @@ object Ziti {
 
     @JvmStatic
     fun init(fname: String, pwd: CharArray, seamless: Boolean) = ZitiImpl.init(File(fname), pwd, seamless)
+
+    init {
+        i("ZitiSDK version ${Version.version} @${Version.revision}(${Version.branch})")
+    }
 }

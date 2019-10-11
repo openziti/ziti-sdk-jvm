@@ -17,6 +17,7 @@
 plugins {
     id("java-library")
     id("org.jetbrains.kotlin.jvm")
+    id("maven-publish")
 }
 
 repositories {
@@ -62,5 +63,23 @@ tasks {
 
     sourceSets.main {
         resources.srcDir(files(generatedResourcesDir).builtBy(versionProps))
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "Github Netfoundry Repo"
+            url = uri("https://maven.pkg.github.com/nf-dev")
+             credentials {
+                 username = project.findProperty("gpr.user")?.toString() ?: System.getenv("GPR_USER")
+                 password = project.findProperty("gpr.key")?.toString() ?: System.getenv("GPR_API_KEY")
+             }
+        }
+    }
+    publications {
+        register("mavenJava", MavenPublication::class) {
+            from(components["java"])
+        }
     }
 }

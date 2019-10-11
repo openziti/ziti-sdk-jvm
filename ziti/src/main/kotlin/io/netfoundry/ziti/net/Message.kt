@@ -24,7 +24,7 @@ import java.nio.channels.Channels
 import java.nio.charset.StandardCharsets
 
 class Message(
-    val content: Int,
+    val content: ContentType,
     val body: ByteArray = ByteArray(0),
     val headers: MutableMap<Int, ByteArray> = mutableMapOf()
 ) {
@@ -51,7 +51,7 @@ class Message(
                 }
             }
 
-            val ct = header.int
+            val ct = ContentType.fromInt(header.int)
             val seq = header.int
             val headersLen = header.int
             val bodyLen = header.int
@@ -95,7 +95,7 @@ class Message(
 
         val out = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN)
         out.put(ZitiProtocol.VERSION)
-        out.putInt(content)
+        out.putInt(content.id)
         out.putInt(seqNo)
         out.putInt(headersLength)
         out.putInt(body.size)

@@ -18,8 +18,6 @@ package io.netfoundry.ziti.net
 
 import io.netfoundry.ziti.Errors
 import io.netfoundry.ziti.ZitiException
-import io.netfoundry.ziti.api.NetworkSession
-import io.netfoundry.ziti.impl.ZitiContextImpl
 import io.netfoundry.ziti.impl.ZitiImpl
 import io.netfoundry.ziti.net.internal.Sockets
 import io.netfoundry.ziti.util.JULogged
@@ -39,11 +37,6 @@ internal class ZitiSocketImpl : SocketImpl(), Logged by JULogged(TAG) {
     var connected: Boolean = false
     var zitiConn: ZitiConn? = null
     val fallback = Sockets.defaultImplCons.newInstance()
-
-    fun connect(ns: NetworkSession, ctx: ZitiContextImpl) {
-        zitiConn = ctx.dial(ns) as ZitiConn
-        connected = true
-    }
 
     override fun getInputStream(): InputStream = zitiConn?.getInputStream()
         ?: Sockets.inStream.invoke(fallback) as InputStream
@@ -69,6 +62,7 @@ internal class ZitiSocketImpl : SocketImpl(), Logged by JULogged(TAG) {
         try {
             val ctx = ZitiImpl.contexts.first()
             zitiConn = ctx.dial(addr.hostName, addr.port) as ZitiConn
+            setOption(SocketOptions.SO_TIMEOUT, fallback.getOption(SocketOptions.SO_TIMEOUT))
             connected = true
         } catch (realex: Exception) {
             e(realex) { "failed to connect" }
@@ -116,7 +110,7 @@ internal class ZitiSocketImpl : SocketImpl(), Logged by JULogged(TAG) {
     override fun setOption(optID: Int, value: Any?) {
         when (optID) {
             SocketOptions.SO_TIMEOUT -> zitiConn?.apply {
-                //timeout = (value as Number).toLong()
+                timeout = (value as Number).toLong()
             }
             else -> {
                 w("unhandled option $optID is being set to $value")

@@ -21,9 +21,11 @@ import io.netfoundry.ziti.util.Logged
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.Socket
+import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.security.KeyStore
 import java.security.SecureRandom
+import java.util.concurrent.TimeoutException
 import javax.net.ssl.*
 import kotlin.math.min
 
@@ -162,10 +164,14 @@ class ZitiSSLSocket(val transport: Socket, val host: String?, val pport: Int) :
 
     inner class Input : InputStream() {
         override fun read(): Int {
-            return transport.getInputStream().read()
+            val b = byteArrayOf(1)
+            val r = read(b, 0, 1)
+            if (r < 0) return r
+            else return b[0].toInt() and 0xFF
         }
 
         override fun read(out: ByteArray, off: Int, len: Int): Int {
+            doHandshake()
             if (unwrapped.remaining() > 0) {
                 val l = min(len, unwrapped.remaining())
                 unwrapped.get(out, off, l)
@@ -173,17 +179,21 @@ class ZitiSSLSocket(val transport: Socket, val host: String?, val pport: Int) :
             }
 
             val b = ByteArray(engine.session.packetBufferSize)
-            val read = inbound.read(b)
-            if (read > 0) {
-                unwrapped.compact()
-                val res = engine.unwrap(ByteBuffer.wrap(b, 0, read), unwrapped)
-                check(res.status == SSLEngineResult.Status.OK) { "invalid status" }
-                unwrapped.flip()
-                val l = min(len, unwrapped.remaining())
-                unwrapped.get(out, off, l)
-                return l
-            } else {
-                return read
+            try {
+                val read = inbound.read(b)
+                if (read > 0) {
+                    unwrapped.compact()
+                    val res = engine.unwrap(ByteBuffer.wrap(b, 0, read), unwrapped)
+                    check(res.status == SSLEngineResult.Status.OK) { "invalid status" }
+                    unwrapped.flip()
+                    val l = min(len, unwrapped.remaining())
+                    unwrapped.get(out, off, l)
+                    return l
+                } else {
+                    return read
+                }
+            } catch (tox: TimeoutException) {
+                throw SocketTimeoutException(tox.message)
             }
         }
     }
@@ -203,6 +213,7 @@ class ZitiSSLSocket(val transport: Socket, val host: String?, val pport: Int) :
         }
 
         override fun flush() {
+            doHandshake()
             val wrapped = ByteBuffer.allocate(32 * 1024)
             buffer.flip()
             val res = engine.wrap(buffer, wrapped)

@@ -20,14 +20,15 @@ import io.netfoundry.ziti.ZitiConnection
 import io.netfoundry.ziti.api.NetworkSession
 import io.netfoundry.ziti.util.JULogged
 import io.netfoundry.ziti.util.Logged
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.receiveOrNull
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.*
 import java.net.ConnectException
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 import kotlin.text.Charsets.UTF_8
@@ -97,7 +98,7 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
         if (sync) channel.SendSynch(dataMessage) else channel.Send(dataMessage)
     }
 
-    override suspend fun receive(out: ByteArray, off: Int, len: Int): Int = coroutineScope {
+    override suspend fun receive(out: ByteArray, off: Int, len: Int): Int =
         when (state) {
             State.New -> throw IllegalStateException("not connected")
             State.Closed -> -1
@@ -111,16 +112,18 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
                 }
             }
         }
-    }
 
     private suspend fun readNext(): Int {
         if (readBuf.hasRemaining())
             return readBuf.remaining()
 
         try {
-            val m = withTimeout(timeout) {
+            val m = if (timeout > 0) withTimeout(timeout) {
                 recChan.receiveOrNull()
-            } ?: return -1
+            } else recChan.receiveOrNull()
+
+            if (m == null)
+                return -1
 
             when (m.content) {
                 ZitiProtocol.ContentType.StateClosed -> {
@@ -140,6 +143,8 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
             }
 
             return readBuf.remaining()
+        } catch (to: TimeoutCancellationException) {
+            throw TimeoutException("timeout")
         } catch (closeEx: ClosedReceiveChannelException) {
             return -1
         }
