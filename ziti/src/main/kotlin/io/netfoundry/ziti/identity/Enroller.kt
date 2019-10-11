@@ -52,7 +52,8 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
 
     enum class Method {
         ott,
-        ottca
+        ottca,
+        ca
     }
 
     val enrollmentURI = URI.create(enrollUrl)
@@ -78,7 +79,7 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
             Enroller(enrollUrl, Method.valueOf(method), Id(uid, name), controllerCA)
         }
 
-        class Cli : CliktCommand() {
+        private class Cli : CliktCommand() {
             val jwt by option(help = "Enrollment token (JWT file). Required").file().required().validate {
                 it.exists() || throw FileNotFoundException("jwt[${it.path}] not found")
             }
@@ -102,7 +103,6 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
         @JvmStatic
         fun main(args: Array<String>) = Cli().main(args)
     }
-
 
     fun enroll(cert: KeyStore.Entry?, keyStore: KeyStore, alias: String) {
 
@@ -198,7 +198,7 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
                 val certs = readCerts(conn.inputStream.reader()).toTypedArray()
                 val entry = KeyStore.PrivateKeyEntry(
                     kp.private, certs, setOf(
-                        PKCS12Attribute("2.5.29.29", controllerURI.toString())
+                        PKCS12Attribute(KeyStoreIdentity.Attributes.Controller.oid, controllerURI.toString())
                     )
                 )
 

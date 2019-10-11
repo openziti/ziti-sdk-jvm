@@ -16,6 +16,7 @@
 
 package io.netfoundry.ziti.net.internal
 
+import io.netfoundry.ziti.net.ZitiSocketImpl
 import io.netfoundry.ziti.util.JULogged
 import io.netfoundry.ziti.util.Logged
 import java.lang.reflect.Constructor
@@ -33,7 +34,9 @@ internal object Sockets : Logged by JULogged() {
 
     val baseImplCls = SocketImpl::class.java
 
-    val createMethod = baseImplCls.getDeclaredMethod("create", Boolean::class.java).apply { isAccessible = true }
+    val createMethod = baseImplCls.getDeclaredMethod("create", Boolean::class.java).apply {
+        isAccessible = true
+    }
     val connect1 = baseImplCls.getDeclaredMethod("connect", SocketAddress::class.java, Int::class.java)
         .apply { isAccessible = true }
     val inStream = baseImplCls.getDeclaredMethod("getInputStream").apply { isAccessible = true }
@@ -63,6 +66,7 @@ internal object Sockets : Logged by JULogged() {
 
     fun init() {
         i { "internals initialized" }
+        Socket.setSocketImplFactory { ZitiSocketImpl() }
     }
 
     class BypassSocket : Socket(defaultImplCons.newInstance())

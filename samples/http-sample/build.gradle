@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ziti-jvm'
-include 'ziti'
+plugins {
+    id 'java'
+}
 
+group 'io.netfoundry.ziti'
+version '0.1.0-local-dirty-local'
 
-include ':samples:sample'
-include ':samples:http-sample'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(":ziti")
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}

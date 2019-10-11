@@ -44,7 +44,9 @@ internal object HTTPS : Logged by JULogged() {
 
     init {
         try {
-            val handlerField = URL::class.java.getDeclaredField("handler").apply { isAccessible = true }
+            val handlerField = URL::class.java.getDeclaredField("handler").apply {
+                isAccessible = true
+            }
             defaultHandler = URL("https://google.com").let {
                 handlerField.get(it) as URLStreamHandler
             }
@@ -64,13 +66,11 @@ internal object HTTPS : Logged by JULogged() {
 
     class Factory : URLStreamHandlerFactory, Logged by JULogged("https-factory") {
         override fun createURLStreamHandler(protocol: String): URLStreamHandler? {
-            i { "protocol = $protocol" }
             return when (protocol) {
                 "https" -> Handler()
                 else -> null
             }
         }
-
     }
 
     class Handler : URLStreamHandler() {
@@ -83,8 +83,10 @@ internal object HTTPS : Logged by JULogged() {
             val port = if (u.port == -1) u.defaultPort else u.port
 
             return if (useZiti(u.host, port)) {
+                v { "using ZitiHttpsConnection for ${u}" }
                 ZitiHTTPSConnection(u)
             } else {
+                v { "using default HTTP connectioin for ${u}" }
                 return URL(u, "", defaultHandler).openConnection()
             }
         }

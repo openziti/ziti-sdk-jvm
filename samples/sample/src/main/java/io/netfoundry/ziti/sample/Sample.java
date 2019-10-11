@@ -21,12 +21,11 @@ import io.netfoundry.ziti.ZitiConnection;
 import io.netfoundry.ziti.ZitiContext;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 
 public class Sample {
 
     public static void main(String[] args) {
-        ZitiContext ziti = Ziti.newContext("/tmp/test.p12", "".toCharArray());
+        ZitiContext ziti = Ziti.newContext("/home/eugene/work/java.p12", "".toCharArray());
 
         ZitiConnection conn = ziti.dial("demo-weather");
 
@@ -37,7 +36,7 @@ public class Sample {
                 "Host: wttr.in\n" +
                 "User-Agent: HTTPie/1.0.2\n" +
                 "\n";
-        conn.send(req.getBytes());
+        conn.write(req.getBytes());
 
         byte[] resp = new byte[1024];
 
@@ -45,13 +44,12 @@ public class Sample {
         ByteArrayOutputStream r = new ByteArrayOutputStream();
         do {
             rc = conn.read(resp, 0, resp.length);
-            //System.out.println(String.format("read %d bytes", rc));
             if (rc > 0)
                 r.write(resp, 0, rc);
         } while (rc > 0);
 
         try {
-            System.out.println(new String(r.toString(StandardCharsets.UTF_8.name())));
+            System.out.println(new String(r.toByteArray()));
         } catch (Exception ex) {
             ex.printStackTrace();
         }

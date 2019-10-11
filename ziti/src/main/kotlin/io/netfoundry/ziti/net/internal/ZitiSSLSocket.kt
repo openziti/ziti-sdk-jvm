@@ -25,117 +25,91 @@ import java.nio.ByteBuffer
 import java.security.KeyStore
 import java.security.SecureRandom
 import javax.net.ssl.*
+import kotlin.math.min
 
-internal class ZitiSSLSocket(val transport: Socket, val host: String?, val pport: Int) :
+class ZitiSSLSocket(val transport: Socket, val host: String?, val pport: Int) :
     SSLSocket(host, pport), Logged by JULogged() {
 
-    inner class Output : OutputStream() {
-        val buffer = ByteBuffer.allocate(32 * 1024)
-        override fun write(b: Int) {
-            buffer.put(b.toByte())
-        }
+    val engine: SSLEngine
 
-        override fun write(b: ByteArray?, off: Int, len: Int) {
-            d { "writing $len bytes (${String(b!!, off, len)})" }
-            if (len + buffer.position() > buffer.capacity()) {
-                flush()
-            }
-            buffer.put(b, off, len)
-        }
+    init {
+        val ssl = SSLContext.getInstance("TLSv1.2")
+        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        tmf.init(null as KeyStore?)
+        ssl.init(null, tmf.trustManagers, SecureRandom())
 
-        override fun flush() {
-            val wrapped = ByteBuffer.allocate(32 * 1024)
-            d { "flushing" }
-            buffer.flip()
-            val res = engine.wrap(buffer, wrapped)
-            transport.getOutputStream()?.apply {
-                write(wrapped.array(), 0, wrapped.position())
-                flush()
-            }
-            buffer.clear()
-        }
+        engine = ssl.createSSLEngine(host, pport)
+        engine.useClientMode = true
     }
 
-    val output = Output()
+    private val output = Output()
     override fun getOutputStream(): OutputStream = output
 
-    inner class Input : InputStream() {
-        override fun read(): Int {
-            return transport.getInputStream().read()
-        }
-
-        override fun read(out: ByteArray?, off: Int, len: Int): Int {
-            transport.getInputStream()?.let {
-                val buffer = ByteBuffer.allocate(32 * 1024)
-                val b = ByteArray(32 * 1024)
-                val read = it.read(b)
-                if (read > 0) {
-                    buffer.put(b, 0, read)
-                    buffer.flip()
-
-                    val res = engine.unwrap(buffer, ByteBuffer.wrap(out, off, len))
-                    d {
-                        "read read=$read consumed=${res.bytesConsumed()} produced=${res.bytesProduced()}" +
-                                " (${String(out!!, off, res.bytesProduced())})"
-                    }
-                    return res.bytesProduced()
-                } else {
-                    return read
-                }
-            }
-
-            return -1
-        }
-    }
-
-    val input = Input()
+    private val inbound = transport.getInputStream()
+    private val unwrapped = ByteBuffer.allocate(engine.session.applicationBufferSize)
+    private val input = Input()
     override fun getInputStream(): InputStream = input
 
     override fun startHandshake() {
-        engine.beginHandshake()
+        doHandshake()
     }
 
     override fun getSession(): SSLSession {
+        doHandshake()
+        return engine.session
+    }
+
+    private fun doHandshake() {
+        if (engine.session.isValid)
+            return
+
+        engine.beginHandshake();
 
         val empty = ByteBuffer.wrap(ByteArray(0))
+        val output = transport.getOutputStream()
+        val input = transport.getInputStream()
 
+        val ssl_in = ByteArray(engine.session.packetBufferSize)
+        var read = 0
+        var processed = 0
+
+        v { "starting handshake status=${engine.handshakeStatus}" }
         while (engine.handshakeStatus != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
-            d { "continuing handshake status=${engine.handshakeStatus}" }
+            v { "continuing handshake status=${engine.handshakeStatus}" }
 
             when (engine.handshakeStatus) {
                 SSLEngineResult.HandshakeStatus.NEED_WRAP -> {
                     val wrapped = ByteBuffer.allocate(32 * 1024)
                     val res = engine.wrap(empty, wrapped)
-                    transport.getOutputStream().apply {
-                        write(wrapped.array(), 0, res.bytesProduced())
-                        flush()
+                    v("wrapped $res")
+                    if (res.bytesProduced() > 0) {
+                        output.apply {
+                            write(wrapped.array(), 0, res.bytesProduced())
+                            flush()
+                        }
                     }
                 }
-                SSLEngineResult.HandshakeStatus.NEED_TASK -> {
-                    engine.delegatedTask?.run()
-                }
-                SSLEngineResult.HandshakeStatus.NEED_UNWRAP -> {
-                    val unwrapped = ByteBuffer.allocate(32 * 1024)
-                    val ssl_in = ByteArray(32 * 1024)
-                    var read = 0
-                    var processed = 0
-                    var res: SSLEngineResult
-                    do {
-                        read += transport.getInputStream().read(ssl_in, read, ssl_in.size - read)
-                        if (read == -1) {
-                            break
-                        }
-                        res = engine.unwrap(ByteBuffer.wrap(ssl_in, processed, read - processed), unwrapped)
-                        processed += res.bytesConsumed()
-                    } while (res.handshakeStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP)
 
+                SSLEngineResult.HandshakeStatus.NEED_TASK -> engine.delegatedTask?.run()
+
+                SSLEngineResult.HandshakeStatus.NEED_UNWRAP -> {
+                    if (input.available() > 0 || processed == read)
+                        read += input.read(ssl_in, read, ssl_in.size - read)
+
+                    val res = engine.unwrap(ByteBuffer.wrap(ssl_in, processed, read - processed), unwrapped)
+                    check(res.status == SSLEngineResult.Status.OK) { "invalid status ${res}" }
+                    processed += res.bytesConsumed()
                 }
-                SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING -> return engine.session
-                SSLEngineResult.HandshakeStatus.FINISHED -> {
+
+                SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING -> {
                 }
+
+                else -> error("unexpected SSL handshake status")
             }
         }
-        return engine.session
+
+        unwrapped.flip()
+        v { "handshake complete: ${engine.handshakeStatus} ${unwrapped.position()}" }
     }
 
     override fun setUseClientMode(mode: Boolean) {
@@ -186,15 +160,58 @@ internal class ZitiSSLSocket(val transport: Socket, val host: String?, val pport
         engine.enableSessionCreation = flag
     }
 
-    val engine: SSLEngine
+    inner class Input : InputStream() {
+        override fun read(): Int {
+            return transport.getInputStream().read()
+        }
 
-    init {
-        val ssl = SSLContext.getInstance("TLSv1.2")
-        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-        tmf.init(null as KeyStore?)
-        ssl.init(null, tmf.trustManagers, SecureRandom())
+        override fun read(out: ByteArray, off: Int, len: Int): Int {
+            if (unwrapped.remaining() > 0) {
+                val l = min(len, unwrapped.remaining())
+                unwrapped.get(out, off, l)
+                return l
+            }
 
-        engine = ssl.createSSLEngine(host, pport)
-        engine.useClientMode = true
+            val b = ByteArray(engine.session.packetBufferSize)
+            val read = inbound.read(b)
+            if (read > 0) {
+                unwrapped.compact()
+                val res = engine.unwrap(ByteBuffer.wrap(b, 0, read), unwrapped)
+                check(res.status == SSLEngineResult.Status.OK) { "invalid status" }
+                unwrapped.flip()
+                val l = min(len, unwrapped.remaining())
+                unwrapped.get(out, off, l)
+                return l
+            } else {
+                return read
+            }
+        }
+    }
+
+    inner class Output : OutputStream() {
+        val buffer = ByteBuffer.allocate(32 * 1024)
+        override fun write(b: Int) {
+            buffer.put(b.toByte())
+        }
+
+        override fun write(b: ByteArray?, off: Int, len: Int) {
+            d { "writing $len bytes (${String(b!!, off, len)})" }
+            if (len + buffer.position() > buffer.capacity()) {
+                flush()
+            }
+            buffer.put(b, off, len)
+        }
+
+        override fun flush() {
+            val wrapped = ByteBuffer.allocate(32 * 1024)
+            buffer.flip()
+            val res = engine.wrap(buffer, wrapped)
+            check(res.status == SSLEngineResult.Status.OK)
+            transport.getOutputStream().apply {
+                write(wrapped.array(), 0, wrapped.position())
+                flush()
+            }
+            buffer.clear()
+        }
     }
 }

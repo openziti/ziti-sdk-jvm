@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ziti-jvm'
-include 'ziti'
+package io.netfoundry.ziti.net.internal
 
+import io.netfoundry.ziti.net.ZitiSocketImpl
+import java.net.Socket
 
-include ':samples:sample'
-include ':samples:http-sample'
+class ZitiSocket private constructor(internal val zitiImpl: ZitiSocketImpl) : Socket(zitiImpl) {
+
+    constructor() : this(ZitiSocketImpl())
+
+    override fun isConnected(): Boolean {
+        return zitiImpl.isConnected()
+    }
+}

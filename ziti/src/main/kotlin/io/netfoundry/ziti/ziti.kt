@@ -18,6 +18,7 @@ package io.netfoundry.ziti
 
 import io.netfoundry.ziti.impl.ZitiImpl
 import kotlinx.coroutines.runBlocking
+import java.io.Closeable
 import java.io.File
 import java.net.Socket
 
@@ -28,12 +29,12 @@ interface ZitiContext {
     fun stop()
 }
 
-interface ZitiConnection {
-    suspend fun sendData(data: ByteArray)
-    suspend fun readData(out: ByteArray, off: Int, len: Int): Int
+interface ZitiConnection : Closeable {
+    suspend fun send(data: ByteArray)
+    suspend fun receive(out: ByteArray, off: Int, len: Int): Int
 
-    fun send(data: ByteArray) = runBlocking { sendData(data) }
-    fun read(out: ByteArray, off: Int, len: Int): Int = runBlocking { readData(out, off, len) }
+    fun write(data: ByteArray) = runBlocking { send(data) }
+    fun read(out: ByteArray, off: Int, len: Int): Int = runBlocking { receive(out, off, len) }
 }
 
 object Ziti {
@@ -42,4 +43,7 @@ object Ziti {
 
     @JvmStatic
     fun newContext(fname: String, pwd: CharArray): ZitiContext = newContext(File(fname), pwd)
+
+    @JvmStatic
+    fun init(fname: String, pwd: CharArray, seamless: Boolean) = ZitiImpl.init(File(fname), pwd, seamless)
 }

@@ -22,6 +22,7 @@ import io.netfoundry.ziti.util.JULogged
 import io.netfoundry.ziti.util.Logged
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.receiveOrNull
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.*
@@ -83,7 +84,9 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
         }
     }
 
-    override suspend fun sendData(data: ByteArray) {
+    override suspend fun send(data: ByteArray) = send(data, false)
+
+    suspend fun send(data: ByteArray, sync: Boolean) {
         if (state != State.Connected) {
             throw IllegalStateException("ZitiConnection is closed")
         }
@@ -91,23 +94,23 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
         dataMessage.setHeader(ZitiProtocol.Header.ConnId, connId)
         dataMessage.setHeader(ZitiProtocol.Header.SeqHeader, seq.getAndIncrement())
 
-        channel.Send(dataMessage)
+        if (sync) channel.SendSynch(dataMessage) else channel.Send(dataMessage)
     }
 
-    override suspend fun readData(out: ByteArray, off: Int, len: Int): Int {
+    override suspend fun receive(out: ByteArray, off: Int, len: Int): Int = coroutineScope {
         when (state) {
             State.New -> throw IllegalStateException("not connected")
-            State.Closed -> return -1
+            State.Closed -> -1
             State.Connected -> {
+                val n = readNext()
+                if (n <= 0) {
+                    n
+                } else {
+                    readBuf.get(out, off, min(n, len))
+                    n - readBuf.remaining()
+                }
             }
         }
-
-        val n = readNext()
-        if (n <= 0) {
-            return n
-        }
-        readBuf.get(out, off, min(n, len))
-        return n - readBuf.remaining()
     }
 
     private suspend fun readNext(): Int {
@@ -142,8 +145,8 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
         }
     }
 
-    fun getInputStream() = input
-    fun getOutputStream() = output
+    fun getInputStream(): InputStream = input
+    fun getOutputStream(): OutputStream = output
     fun available() = input.available()
 
     override fun close() {
@@ -166,14 +169,18 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
         }
 
         override fun flush() {
-            runBlocking { sendData(buf.toByteArray()) }
+            runBlocking {
+                val data = buf.toByteArray()
+                buf.reset()
+                send(data)
+            }
         }
     }
 
     inner class Input : InputStream() {
         override fun read(): Int = runBlocking {
             val b = ByteArray(1)
-            val res = readData(b, 0, 1)
+            val res = receive(b, 0, 1)
             if (res < 0) {
                 res
             } else {
@@ -182,9 +189,31 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
         }
 
         override fun read(b: ByteArray, off: Int, len: Int): Int = runBlocking {
-            readData(b, off, len)
+            receive(b, off, len)
         }
 
-        override fun available(): Int = readBuf.remaining()
+        override fun available(): Int {
+            if (readBuf.remaining() > 0)
+                return readBuf.remaining()
+            else {
+                return recChan.poll()?.let { m ->
+                    when (m.content) {
+                        ZitiProtocol.ContentType.StateClosed -> {
+                            this@ZitiConn.close()
+                            0
+                        } // handle close
+
+                        ZitiProtocol.ContentType.Data -> {
+                            v("Data ${m.body.size} bytes")
+                            readBuf = ByteBuffer.wrap(m.body)
+                            readBuf.remaining()
+                        }
+                        else -> {
+                            error("unexpected message ${m}")
+                        }
+                    }
+                } ?: 0
+            }
+        }
     }
 }

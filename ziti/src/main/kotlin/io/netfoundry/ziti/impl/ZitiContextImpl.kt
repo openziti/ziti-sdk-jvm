@@ -90,8 +90,16 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun dial(serviceName: String): ZitiConnection {
         val ns = getNetworkSession(serviceName)
+        return dial(ns)
+    }
+
+    internal fun dial(ns: NetworkSession): ZitiConnection {
         val ch = getChannel(ns)
         return ZitiConn(ns, ch)
+    }
+
+    internal fun dial(host: String, port: Int): ZitiConnection = getNetworkSession(host, port).let {
+        ZitiConn(it, getChannel(it))
     }
 
     override fun connect(host: String, port: Int): Socket {

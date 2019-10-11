@@ -18,6 +18,9 @@ package io.netfoundry.ziti.impl
 
 import io.netfoundry.ziti.ZitiContext
 import io.netfoundry.ziti.identity.KeyStoreIdentity
+import io.netfoundry.ziti.net.dns.ZitiDNSManager
+import io.netfoundry.ziti.net.internal.HTTPS
+import io.netfoundry.ziti.net.internal.Sockets
 import java.io.File
 import java.security.KeyStore
 
@@ -41,5 +44,23 @@ internal object ZitiImpl {
         }
 
         error("no suitable key entry")
+    }
+
+    internal val contexts = mutableListOf<ZitiContextImpl>()
+    fun init(file: File, pwd: CharArray, seamless: Boolean): Unit {
+        if (seamless) {
+            initInternalNetworking()
+        }
+
+        val ctx = loadContext(file, pwd, null) as ZitiContextImpl
+        ctx.checkServicesLoaded()
+        contexts.add(ctx)
+    }
+
+    private fun initInternalNetworking() {
+        Sockets.init()
+        HTTPS.init { host, port ->
+            ZitiDNSManager.resolve(host) != null
+        }
     }
 }
