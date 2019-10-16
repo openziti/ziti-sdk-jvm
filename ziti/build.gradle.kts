@@ -70,7 +70,7 @@ publishing {
     repositories {
         maven {
             name = "Github Netfoundry Repo"
-            url = uri("https://maven.pkg.github.com/nf-dev")
+            url = uri("https://maven.pkg.github.com/nf-dev/ziti-sdk-jvm")
              credentials {
                  username = project.findProperty("gpr.user")?.toString() ?: System.getenv("GPR_USER")
                  password = project.findProperty("gpr.key")?.toString() ?: System.getenv("GPR_API_KEY")
