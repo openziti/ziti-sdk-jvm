@@ -16,6 +16,7 @@
 
 plugins {
     id("java-library")
+    id("application")
     id("org.jetbrains.kotlin.jvm")
     id("maven-publish")
 }
@@ -44,6 +45,11 @@ dependencies {
     implementation("com.github.ajalt:clikt:2.2.0")
 
     testCompile(kotlin("test-junit"))
+}
+
+application {
+    mainClassName = "io.netfoundry.ziti.identity.Enroller"
+    applicationName = "ziti-enroller"
 }
 
 val gitCommit: String by rootProject.extra
@@ -85,6 +91,9 @@ publishing {
         register("mavenJava", MavenPublication::class) {
             from(components["java"])
             artifact(sourcesJar.get())
+
+            val distZip by tasks
+            artifact(distZip)
         }
     }
 }

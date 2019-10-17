@@ -79,7 +79,7 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
             Enroller(enrollUrl, Method.valueOf(method), Id(uid, name), controllerCA)
         }
 
-        private class Cli : CliktCommand() {
+        private class Cli : CliktCommand(name = "ziti-enroller") {
             val jwt by option(help = "Enrollment token (JWT file). Required").file().required().validate {
                 it.exists() || throw FileNotFoundException("jwt[${it.path}] not found")
             }
