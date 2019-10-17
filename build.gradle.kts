@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.gradle.api.publish.maven.internal.publisher.MavenPublisher
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val zitiBuildnum by extra { System.getenv("BUILD_NUMBER") ?: "local" }
@@ -42,16 +43,22 @@ if (semver.info.branch.id == "master") {
 } else {
     version = "${semver.info.branch.id}-${semver.info.version}"
 }
+
+val gitInfo by extra { semver.info }
 val gitCommit by extra { semver.info.shortCommit }
 val gitBranch by extra { semver.info.branch.name }
 
 subprojects {
-    group = "io.netfoundry.ziti"
+    group = rootProject.group
     version = rootProject.version
-}
 
-tasks.withType<KotlinCompile>().all {
-    kotlinOptions {
-        jvmTarget = "1.8"
+    tasks.withType<KotlinCompile>().all {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+
+    tasks.withType<PublishToMavenRepository>().all {
+        onlyIf { !gitInfo.dirty }
     }
 }
