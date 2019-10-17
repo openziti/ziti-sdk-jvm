@@ -19,7 +19,7 @@ plugins {
 }
 
 group 'io.netfoundry.ziti'
-version '0.1.0-local-dirty-local'
+version '0.1.0'
 
 sourceCompatibility = 1.8
 

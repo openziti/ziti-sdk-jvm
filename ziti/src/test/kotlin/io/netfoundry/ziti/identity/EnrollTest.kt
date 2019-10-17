@@ -20,6 +20,9 @@ import io.netfoundry.ziti.api.Controller
 import io.netfoundry.ziti.api.Identity
 import io.netfoundry.ziti.util.Version
 import kotlinx.coroutines.runBlocking
+import org.bouncycastle.openssl.PEMKeyPair
+import org.bouncycastle.openssl.PEMParser
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -128,5 +131,23 @@ class EnrollTest {
         val info = Version.VersionInfo
 
         println(info)
+    }
+
+    // internal class Id(val key: String, val cert: String, val ca: String)
+    // internal class Identity(val ztAPI: String, val id: Id)
+    @Test
+    fun testLoadJsonId() {
+        val pem = "-----BEGIN EC PRIVATE KEY-----\n" +
+                "MIGkAgEBBDB/CJUK2ihxnbCOhXj7wbzOe/73h3DnKipZibT+R+/6lZkDCS9Yx7D3\n" +
+                "T4rWGi5lQ+2gBwYFK4EEACKhZANiAARB6YWLyBY/sWq4YGbxBZlmylzzsfqqGAhh\n" +
+                "G2+8DV4YjI2LLkTMO3/J3O0tFyLPuHT6sXsRmf6O4A7Y2zuwTkI7NeuWMKeHCiKM\n" +
+                "eJvXrEy/TRQiVKNb3N5BCiJuwBmuEtE=\n" +
+                "-----END EC PRIVATE KEY-----"
+
+        val parser = PEMParser(pem.reader())
+        val po = parser.readObject()
+
+        val pair = JcaPEMKeyConverter().getKeyPair(po as PEMKeyPair?)
+        println(pair)
     }
 }

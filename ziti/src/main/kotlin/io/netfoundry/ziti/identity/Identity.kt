@@ -55,7 +55,12 @@ internal class KeyStoreIdentity(private val ks: KeyStore, alias: String, pw: Cha
             init(ks, pw)
         }
         val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
-            init(ks)
+            // if we don't have CA certs in the store use system-wide trust
+            val certEntry = ks.aliases().asSequence().find { ks.isCertificateEntry(it) }
+            if (certEntry != null)
+                init(ks)
+            else
+                init(null as KeyStore?)
         }
         tm = tmf.trustManagers[0] as X509TrustManager
 

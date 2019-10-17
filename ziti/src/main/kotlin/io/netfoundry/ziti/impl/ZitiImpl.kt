@@ -16,21 +16,25 @@
 
 package io.netfoundry.ziti.impl
 
-import io.netfoundry.ziti.ZitiContext
+import com.google.gson.Gson
 import io.netfoundry.ziti.identity.KeyStoreIdentity
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
 import io.netfoundry.ziti.net.internal.HTTPS
 import io.netfoundry.ziti.net.internal.Sockets
+import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.Logged
+import io.netfoundry.ziti.util.readCerts
+import io.netfoundry.ziti.util.readKey
+import org.bouncycastle.asn1.x500.style.BCStyle
+import org.bouncycastle.jce.PrincipalUtil
 import java.io.File
 import java.security.KeyStore
+import java.security.PKCS12Attribute
 
-internal object ZitiImpl {
+internal object ZitiImpl : Logged by JULogged() {
 
-    internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContext {
-        val ks = KeyStore.getInstance("PKCS12").apply {
-            load(idFile.inputStream(), pwd)
-        }
-
+    internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContextImpl {
+        val ks = loadKeystore(idFile, pwd)
         val idName = alias ?: findIdentity(ks)
         val id = KeyStoreIdentity(ks, idName)
         return ZitiContextImpl(id, true)
@@ -62,5 +66,48 @@ internal object ZitiImpl {
         HTTPS.init { host, port ->
             ZitiDNSManager.resolve(host) != null
         }
+    }
+
+    internal class Id(val key: String, val cert: String, val ca: String?)
+    internal class Identity(val ztAPI: String, val id: Id)
+
+    internal fun loadKeystore(f: File, pwd: CharArray): KeyStore {
+        val ks = KeyStore.getInstance("PKCS12")
+        try {
+            ks.load(f.inputStream(), pwd)
+            return ks
+        } catch (ex: Exception) {
+            //w("failed to load $f as PKCS12 key store: $ex")
+        }
+
+        try {
+            val id = Gson().fromJson(f.reader(), Identity::class.java)
+            ks.load(null)
+            val certs = readCerts(id.id.cert.replace("pem:", ""))
+            val alias = PrincipalUtil.getSubjectX509Principal(certs[0]).getValues(BCStyle.CN)[0]
+
+            val key = readKey(id.id.key.replace("pem:", "").reader())
+            val keyEntry = KeyStore.PrivateKeyEntry(
+                key, certs.toTypedArray(), setOf(
+                    PKCS12Attribute(KeyStoreIdentity.Attributes.Controller.oid, id.ztAPI)
+                )
+            )
+            ks.setEntry(alias.toString(), keyEntry, KeyStore.PasswordProtection(charArrayOf()))
+
+            id.id.ca?.let {
+                val cacerts = readCerts(it.replace("pem:", ""))
+                for (ca in cacerts) {
+                    val caAlias = "${alias}-ca-${ca.serialNumber}"
+                    ks.setCertificateEntry(caAlias, ca)
+                }
+            }
+
+            return ks
+        } catch (ex: Exception) {
+            println(ex)
+            ex.printStackTrace()
+        }
+
+        throw IllegalArgumentException("unsupported format")
     }
 }

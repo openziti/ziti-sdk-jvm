@@ -16,6 +16,9 @@
 
 package io.netfoundry.ziti.util
 
+import org.bouncycastle.openssl.PEMKeyPair
+import org.bouncycastle.openssl.PEMParser
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
 import org.bouncycastle.operator.ContentSigner
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder
 import org.bouncycastle.util.io.pem.PemReader
@@ -74,6 +77,12 @@ fun readCerts(pemInput: Reader) = PemReader(pemInput).use { reader ->
         .filter { it.type == "CERTIFICATE" }
         .map { cf.generateCertificate(it.content.inputStream()) as X509Certificate }
         .toList()
+}
+
+fun readKey(input: Reader): PrivateKey {
+    val parser = PEMParser(input)
+    val po = parser.readObject() as PEMKeyPair
+    return JcaPEMKeyConverter().getKeyPair(po).private
 }
 
 internal class PrivateKeySigner(val key: PrivateKey, val sigAlg: String) : ContentSigner {
