@@ -71,11 +71,14 @@ val sourcesJar by tasks.registering(Jar::class) {
     from(sourceSets.main.get().allSource)
 }
 
+val repo: String by extra {
+    rootProject.properties["publish.repo"]?.toString() ?: "file://${buildDir}/maven-repo"
+}
 publishing {
     repositories {
         maven {
             name = "BuildRepo"
-            url = uri("file://${buildDir}/maven-repo")
+            url = uri(repo)
         }
     }
     publications {
