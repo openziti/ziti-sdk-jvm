@@ -66,20 +66,22 @@ tasks {
     }
 }
 
+val sourcesJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
+
 publishing {
     repositories {
         maven {
-            name = "Github Netfoundry Repo"
-            url = uri("https://maven.pkg.github.com/nf-dev/ziti-sdk-jvm")
-             credentials {
-                 username = project.findProperty("gpr.user")?.toString() ?: System.getenv("GPR_USER")
-                 password = project.findProperty("gpr.key")?.toString() ?: System.getenv("GPR_API_KEY")
-             }
+            name = "BuildRepo"
+            url = uri("file://${buildDir}/maven-repo")
         }
     }
     publications {
         register("mavenJava", MavenPublication::class) {
             from(components["java"])
+            artifact(sourcesJar.get())
         }
     }
 }
