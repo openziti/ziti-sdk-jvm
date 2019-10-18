@@ -18,8 +18,6 @@ package io.netfoundry.ziti.impl
 
 import com.google.gson.Gson
 import io.netfoundry.ziti.identity.KeyStoreIdentity
-import io.netfoundry.ziti.net.dns.ZitiDNSManager
-import io.netfoundry.ziti.net.internal.HTTPS
 import io.netfoundry.ziti.net.internal.Sockets
 import io.netfoundry.ziti.util.JULogged
 import io.netfoundry.ziti.util.Logged
@@ -63,9 +61,12 @@ internal object ZitiImpl : Logged by JULogged() {
 
     private fun initInternalNetworking() {
         Sockets.init()
+        /*
         HTTPS.init { host, port ->
             ZitiDNSManager.resolve(host) != null
         }
+
+         */
     }
 
     internal class Id(val key: String, val cert: String, val ca: String?)

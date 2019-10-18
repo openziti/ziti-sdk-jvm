@@ -17,12 +17,9 @@
 package io.netfoundry.ziti.sample.http;
 
 import io.netfoundry.ziti.Ziti;
-import io.netfoundry.ziti.net.internal.ZitiSSLSocket;
 
-import javax.net.ssl.SSLSocket;
 import java.io.ByteArrayOutputStream;
 import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.net.URL;
 
 public class HttpSample {
@@ -34,8 +31,6 @@ public class HttpSample {
 
             URL url = new URL(args[1]);
 
-            runRawSSL(url);
-
             runHttp(url);
 
         } catch (Exception ex) {
@@ -43,37 +38,7 @@ public class HttpSample {
         }
     }
 
-    static void runRawSSL(URL url) throws Exception {
-        String host = url.getHost();
-        int port = url.getPort() != -1 ? url.getPort() : url.getDefaultPort();
-
-        Socket transport = new Socket(host, port);
-
-        SSLSocket ssl = new ZitiSSLSocket(transport, host, port);
-        String req = String.format("GET %s HTTP/1.1\nAccept: */*\nAccept-Encoding: gzip, deflate\nConnection: close\nHost: %s\nUser-Agent: HTTPie/1.0.2\n\n",
-                url.getPath(), host);
-
-        ssl.getOutputStream().write(req.getBytes());
-        ssl.getOutputStream().flush();
-
-        int rc = 0;
-        byte[] resp = new byte[1024];
-        ByteArrayOutputStream r = new ByteArrayOutputStream();
-        do {
-            rc = ssl.getInputStream().read(resp, 0, resp.length);
-            if (rc >= 0)
-                r.write(resp, 0, rc);
-        } while (rc >= 0);
-
-        try {
-            System.out.println(new String(r.toByteArray()));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-    }
-
-    static void runHttp(URL url) {
+    private static void runHttp(URL url) {
 
         try {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
