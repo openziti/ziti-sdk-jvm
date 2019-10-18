@@ -17,6 +17,7 @@
 package io.netfoundry.ziti.net
 
 import io.netfoundry.ziti.Errors
+import io.netfoundry.ziti.ZitiConnection
 import io.netfoundry.ziti.ZitiException
 import io.netfoundry.ziti.impl.ZitiImpl
 import io.netfoundry.ziti.net.internal.Sockets
@@ -25,13 +26,15 @@ import io.netfoundry.ziti.util.Logged
 import java.io.FileDescriptor
 import java.net.*
 
-internal class ZitiSocketImpl(var zitiConn: ZitiConn? = null): SocketImpl(), Logged by JULogged("ziti.socket.impl") {
+internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged by JULogged("ziti.socket.impl") {
 
     var connected: Boolean = false
     var closed: Boolean = false
     val fallback: Socket?
+    var zitiConn: ZitiConn?
 
     init {
+        zitiConn = zc as ZitiConn?
         if (zitiConn != null) {
             connected = true
             fallback = null

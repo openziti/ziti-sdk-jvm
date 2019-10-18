@@ -16,12 +16,13 @@
 
 package io.netfoundry.ziti.net.internal
 
+import io.netfoundry.ziti.ZitiConnection
 import io.netfoundry.ziti.net.ZitiSocketImpl
 import java.net.Socket
 
-class ZitiSocket private constructor(internal val zitiImpl: ZitiSocketImpl) : Socket(zitiImpl) {
+internal class ZitiSocket private constructor(internal val zitiImpl: ZitiSocketImpl) : Socket(zitiImpl) {
 
-    constructor() : this(ZitiSocketImpl())
+    constructor(zc: ZitiConnection) : this(ZitiSocketImpl(zc))
 
     override fun isConnected(): Boolean {
         return zitiImpl.isConnected()

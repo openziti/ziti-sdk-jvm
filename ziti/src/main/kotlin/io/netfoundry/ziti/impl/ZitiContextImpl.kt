@@ -28,6 +28,7 @@ import io.netfoundry.ziti.identity.Identity
 import io.netfoundry.ziti.net.Channel
 import io.netfoundry.ziti.net.ZitiConn
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
+import io.netfoundry.ziti.net.internal.ZitiSocket
 import io.netfoundry.ziti.util.JULogged
 import io.netfoundry.ziti.util.Logged
 import kotlinx.coroutines.*
@@ -102,9 +103,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         ZitiConn(it, getChannel(it))
     }
 
-    override fun connect(host: String, port: Int): Socket {
-        TODO("not implemented")
-    }
+    override fun connect(host: String, port: Int): Socket = ZitiSocket(dial(host, port))
 
     fun initialize() {
         if (!enabled) {

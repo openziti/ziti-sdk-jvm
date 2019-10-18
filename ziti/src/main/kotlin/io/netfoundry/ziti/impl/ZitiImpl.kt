@@ -61,12 +61,6 @@ internal object ZitiImpl : Logged by JULogged() {
 
     private fun initInternalNetworking() {
         Sockets.init()
-        /*
-        HTTPS.init { host, port ->
-            ZitiDNSManager.resolve(host) != null
-        }
-
-         */
     }
 
     internal class Id(val key: String, val cert: String, val ca: String?)

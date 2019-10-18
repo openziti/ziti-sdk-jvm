@@ -17,11 +17,17 @@
 package io.netfoundry.ziti
 
 import kotlinx.coroutines.runBlocking
+import java.io.Closeable
+import java.io.InputStream
+import java.io.OutputStream
 
-interface ZitiConnection {
+interface ZitiConnection: Closeable {
     suspend fun send(data: ByteArray)
     suspend fun receive(out: ByteArray, off: Int, len: Int): Int
 
     fun write(data: ByteArray) = runBlocking { send(data) }
     fun read(out: ByteArray, off: Int, len: Int): Int = runBlocking { receive(out, off, len) }
+
+    fun getInputStream(): InputStream
+    fun getOutputStream(): OutputStream
 }

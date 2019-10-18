@@ -150,9 +150,8 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
         }
     }
 
-    fun getInputStream(): InputStream = input
-    fun getOutputStream(): OutputStream = output
-    fun available() = input.available()
+    override fun getInputStream(): InputStream = input
+    override fun getOutputStream(): OutputStream = output
 
     override fun close() {
         val closeMsg = Message(ZitiProtocol.ContentType.StateClosed).apply {
