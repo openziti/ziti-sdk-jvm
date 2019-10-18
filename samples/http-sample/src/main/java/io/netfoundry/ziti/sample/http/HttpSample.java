@@ -50,7 +50,7 @@ public class HttpSample {
             byte[] buf = new byte[1024];
             ByteArrayOutputStream resp = new ByteArrayOutputStream();
 
-            if (rc != 200) {
+            if (rc > 399) {
                 int len = conn.getErrorStream().read(buf);
                 System.err.println(String.format("%d %s\n%s", rc, conn.getResponseMessage(), new String(buf, 0, len)));
             } else {

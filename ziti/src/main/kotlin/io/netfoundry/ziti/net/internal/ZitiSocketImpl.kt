@@ -23,33 +23,35 @@ import io.netfoundry.ziti.net.internal.Sockets
 import io.netfoundry.ziti.util.JULogged
 import io.netfoundry.ziti.util.Logged
 import java.io.FileDescriptor
-import java.io.InputStream
-import java.io.OutputStream
 import java.net.*
 
-/**
- *
- * @author eugene
- * @since 9/20/18
- */
-internal class ZitiSocketImpl : SocketImpl(), Logged by JULogged(TAG) {
+internal class ZitiSocketImpl(var zitiConn: ZitiConn? = null): SocketImpl(), Logged by JULogged("ziti.socket.impl") {
 
     var connected: Boolean = false
-    var zitiConn: ZitiConn? = null
-    val fallback = Sockets.defaultImplCons.newInstance()
+    var closed: Boolean = false
+    val fallback: Socket?
 
-    override fun getInputStream(): InputStream = zitiConn?.getInputStream()
-        ?: Sockets.inStream.invoke(fallback) as InputStream
+    init {
+        if (zitiConn != null) {
+            connected = true
+            fallback = null
+        } else {
+            fallback = Sockets.BypassSocket()
+        }
+    }
+
+    override fun getInputStream() = zitiConn?.getInputStream()
+        ?: fallback?.getInputStream()
 
     override fun getOutputStream() = zitiConn?.getOutputStream()
-        ?: Sockets.outStream.invoke(fallback) as OutputStream
+        ?: fallback?.getOutputStream()
 
-    override fun available() = inputStream.available()
+    override fun available() = inputStream!!.available()
     fun isConnected() = connected
 
     override fun close() {
         zitiConn?.close()
-        Sockets.close.invoke(fallback)
+        fallback?.close()
     }
 
     override fun connect(host: String?, port: Int) = connect(InetSocketAddress(host, port), DEFAULT_TIMEOUT)
@@ -57,34 +59,33 @@ internal class ZitiSocketImpl : SocketImpl(), Logged by JULogged(TAG) {
     override fun connect(address: InetAddress?, port: Int) = connect(InetSocketAddress(address, port), DEFAULT_TIMEOUT)
 
     override fun connect(address: SocketAddress, timeout: Int) {
-        i { "connecting to $address" }
+        if (isConnected()) throw SocketException("already connected")
+        if (closed) throw SocketException("socket closed")
+
+        d { "connecting to $address" }
         val addr = address as InetSocketAddress
         try {
             val ctx = ZitiImpl.contexts.first()
             zitiConn = ctx.dial(addr.hostName, addr.port) as ZitiConn
-            setOption(SocketOptions.SO_TIMEOUT, fallback.getOption(SocketOptions.SO_TIMEOUT))
+            setOption(SocketOptions.SO_TIMEOUT, fallback?.soTimeout ?: timeout)
             connected = true
-        } catch (realex: Exception) {
-            e(realex) { "failed to connect" }
-            // val realex = unwrapException(ex)
-            if (realex is ZitiException) {
-                when (realex.code) {
-                    Errors.NotEnrolled, Errors.ServiceNotAvailable -> {
-                        d("failed to connect to $address: ${realex.message}. Trying fallback")
-                        fallbackConnect(address, timeout)
-                    }
-                    else -> throw realex
+        } catch (zex: ZitiException) {
+            when (zex.code) {
+                Errors.NotEnrolled, Errors.ServiceNotAvailable -> {
+                    w("failed to connect to $address: ${zex.message}. Trying fallback")
+                    fallbackConnect(address, timeout)
                 }
-            } else {
-                throw realex
+                else -> throw zex
             }
+        } catch (ex: Exception) {
+            e(ex) { "failed to connect" }
+            // val ex = unwrapException(ex)
+            throw ex
         }
-
     }
 
     internal fun fallbackConnect(address: SocketAddress?, timeout: Int) {
-        Sockets.connect1(fallback, address, timeout)
-        fd = Sockets.getFD(fallback) as FileDescriptor
+        fallback!!.connect(address, timeout)
         connected = true
     }
 
@@ -92,19 +93,21 @@ internal class ZitiSocketImpl : SocketImpl(), Logged by JULogged(TAG) {
         if (fd != null) {
             return fd
         }
-        val fd = Sockets.getFD.invoke(fallback) as FileDescriptor
+
+//        val fd = Sockets.getFD.invoke(fallback) as FileDescriptor
         return fd
     }
 
     override fun create(stream: Boolean) {
-        Sockets.createMethod.invoke(fallback, stream)
+
+            //Sockets.createMethod.invoke(it, stream)
     }
 
     override fun getOption(optID: Int): Any {
         return when (optID) {
-            SocketOptions.SO_TIMEOUT -> /*zitiConn?.timeout ?:*/ fallback.getOption(optID)
-            else -> fallback.getOption(optID)
-        }
+            SocketOptions.SO_TIMEOUT -> zitiConn?.timeout ?: fallback?.soTimeout
+            else -> null// fallback?.getOption(optID)
+        } ?: false
     }
 
     override fun setOption(optID: Int, value: Any?) {
@@ -119,7 +122,8 @@ internal class ZitiSocketImpl : SocketImpl(), Logged by JULogged(TAG) {
     }
 
     override fun bind(host: InetAddress?, port: Int) {
-        Sockets.bind.invoke(fallback, host, port)
+        fallback?.bind(InetSocketAddress(host, port))
+        // Sockets.bind.invoke(fallback, host, port)
     }
 
     override fun listen(backlog: Int): Unit {
@@ -135,8 +139,7 @@ internal class ZitiSocketImpl : SocketImpl(), Logged by JULogged(TAG) {
     }
 
     companion object {
-        val TAG = "ziti-socket-impl"
-        val DEFAULT_TIMEOUT = 5000
+        const val DEFAULT_TIMEOUT = 5000
     }
 
 }

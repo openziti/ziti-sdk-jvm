@@ -109,7 +109,7 @@ class Message(
     }
 
     override fun toString(): String {
-        return "ct: %h, seq: %d, repTo: %d, connId: %d, body %d bytes"
+        return "ct: %s, seq: %d, repTo: %d, connId: %d, body %d bytes"
             .format(content, seqNo, repTo, getIntHeader(ZitiProtocol.Header.ConnId), body.size)
     }
 
