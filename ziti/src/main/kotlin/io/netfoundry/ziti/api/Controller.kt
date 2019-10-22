@@ -108,20 +108,22 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
         }
     }
 
+    val clt: OkHttpClient
     init {
-        val clt = OkHttpClient.Builder().apply {
+        clt = OkHttpClient.Builder().apply {
             socketFactory(socketFactory)
             if (sslContext != null) {
                 this.sslSocketFactory(sslContext.socketFactory, trustManager)
             }
             cache(null)
             addInterceptor(SessionInterceptor())
-        }
+        }.build()
+
         val retrofit = Retrofit.Builder()
             .baseUrl(HttpUrl.get(endpoint)!!)
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(CoroutineCallAdapterFactory())
-            .client(clt.build())
+            .client(clt)
             .build()
         api = retrofit.create(API::class.java)
         errorConverter = retrofit.responseBodyConverter<Response<Unit>>(Response::class.java, emptyArray())
@@ -157,6 +159,10 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
 
     suspend fun logout() {
         api.logout().await()
+    }
+
+    fun shutdown() {
+        clt.dispatcher().executorService().shutdown()
     }
 
     internal fun createIdentity(name: String, type: String = "Device", enrollment: String = "ott"): Id {

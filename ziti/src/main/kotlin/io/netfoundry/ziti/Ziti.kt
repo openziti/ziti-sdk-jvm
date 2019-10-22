@@ -17,12 +17,9 @@
 package io.netfoundry.ziti
 
 import io.netfoundry.ziti.impl.ZitiImpl
-import io.netfoundry.ziti.util.JULogged
-import io.netfoundry.ziti.util.Logged
-import io.netfoundry.ziti.util.Version
 import java.io.File
 
-object Ziti : Logged by JULogged() {
+object Ziti {
     @JvmStatic
     fun newContext(idFile: File, pwd: CharArray): ZitiContext = ZitiImpl.loadContext(idFile, pwd, null)
 
@@ -31,8 +28,4 @@ object Ziti : Logged by JULogged() {
 
     @JvmStatic
     fun init(fname: String, pwd: CharArray, seamless: Boolean) = ZitiImpl.init(File(fname), pwd, seamless)
-
-    init {
-        i("ZitiSDK version ${Version.version} @${Version.revision}(${Version.branch})")
-    }
 }

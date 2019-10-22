@@ -21,11 +21,20 @@ import io.netfoundry.ziti.Ziti;
 import java.io.ByteArrayOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+/**
+ * Sample program to demonstrate `seamless` SDK usage.
+ */
 public class HttpSample {
 
     public static void main(String[] args) {
-
+        Logger.getLogger("").setLevel(Level.ALL);
+        for (Handler h: Logger.getLogger("").getHandlers()) {
+            h.setLevel(Level.ALL);
+        }
         try {
             Ziti.init(args[0], "".toCharArray(), true);
 

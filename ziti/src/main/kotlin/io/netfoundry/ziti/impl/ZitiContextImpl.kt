@@ -120,6 +120,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     override fun stop() {
+        controller.shutdown()
         supervisor.cancelChildren()
 
         val copy = channels.values

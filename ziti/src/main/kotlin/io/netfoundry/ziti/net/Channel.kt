@@ -147,7 +147,12 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
                         val receiver = synchronized(receivers) {
                             receivers[it]
                         }
-                        receiver?.recChan?.send(m)
+                        try {
+                            receiver?.recChan?.send(m)
+                        }
+                        catch (ex: Exception) {
+                            e(ex){"failed to dispatch"}
+                        }
                     }
                 }
             }
@@ -164,13 +169,14 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
     }
 
     @ExperimentalCoroutinesApi
-    fun rx(): ReceiveChannel<Message> = produce(this.coroutineContext) {
+    fun rx(): ReceiveChannel<Message> = produce(this.coroutineContext, 16) {
         try {
             while (true) {
                 val m = Message.readMessage(peer.getInput())
                 send(m)
             }
         } catch (ex: Exception) {
+            w{"rx() closed with $ex"}
             if (!closed.get()) {
                 e("rx(): ${ex.localizedMessage}", ex)
                 close(ex)

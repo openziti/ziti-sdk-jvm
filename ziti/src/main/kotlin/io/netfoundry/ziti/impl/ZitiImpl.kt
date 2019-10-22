@@ -19,10 +19,9 @@ package io.netfoundry.ziti.impl
 import com.google.gson.Gson
 import io.netfoundry.ziti.identity.KeyStoreIdentity
 import io.netfoundry.ziti.net.internal.Sockets
+import io.netfoundry.ziti.util.*
 import io.netfoundry.ziti.util.JULogged
 import io.netfoundry.ziti.util.Logged
-import io.netfoundry.ziti.util.readCerts
-import io.netfoundry.ziti.util.readKey
 import org.bouncycastle.asn1.x500.style.BCStyle
 import org.bouncycastle.jce.PrincipalUtil
 import java.io.File
@@ -30,6 +29,10 @@ import java.security.KeyStore
 import java.security.PKCS12Attribute
 
 internal object ZitiImpl : Logged by JULogged() {
+
+    init {
+        i("ZitiSDK version ${Version.version} @${Version.revision}(${Version.branch})")
+    }
 
     internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContextImpl {
         val ks = loadKeystore(idFile, pwd)

@@ -55,7 +55,7 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
     private val input = Input()
     private val output = Output()
 
-    val recChan = Chan<Message>()
+    val recChan = Chan<Message>(16)
 
     var timeout: Long = 5000
 
@@ -157,6 +157,7 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
         val closeMsg = Message(ZitiProtocol.ContentType.StateClosed).apply {
             setHeader(ZitiProtocol.Header.ConnId, connId)
         }
+        d("closing conn = ${this.connId}")
         runBlocking { channel.SendSynch(closeMsg) }
 
         state = State.Closed
