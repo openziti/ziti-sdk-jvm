@@ -21,7 +21,7 @@ pipeline {
         stage('Build') {
             steps {
                 rtGradleRun (
-                    tool: "./gradlew",
+                    useWrapper: true,
                     rootDir: ".",
                     buildFile: 'build.gradle',
                     tasks: 'clean build',
