@@ -33,9 +33,11 @@ import java.net.URI
 import java.security.KeyStore
 import kotlin.math.absoluteValue
 import kotlin.random.Random
+import kotlin.test.Ignore
 
 /**
  */
+@Ignore
 class EnrollTest {
 
     @Rule
