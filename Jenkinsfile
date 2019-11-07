@@ -23,7 +23,7 @@ pipeline {
                 rtGradleRun (
                     useWrapper: true,
                     rootDir: ".",
-                    buildFile: 'build.gradle',
+                    buildFile: 'build.gradle.kts',
                     tasks: 'clean build',
                     deployerId: "GRADLE_DEPLOYER",
                     resolverId: "GRADLE_RESOLVER"
