@@ -22,6 +22,7 @@ pipeline {
             steps {
                 rtGradleRun (
                     useWrapper: true,
+                    switches: "--no-daemon",
                     rootDir: ".",
                     buildFile: 'build.gradle.kts',
                     tasks: 'clean build',
