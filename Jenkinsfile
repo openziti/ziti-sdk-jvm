@@ -89,6 +89,7 @@ pipeline {
                         script {
                             def u = URLEncoder.encode(GIT_USER, "UTF-8")
                             def p = URLEncoder.encode(GIT_PASS, "UTF-8")
+                            def git_url = "${env.GIT_URL}".replace("https://", "")
                             sh "git push https://${u}:${p}@${git_url} ${new_tag}"
                         }
                     }
