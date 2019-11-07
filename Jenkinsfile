@@ -21,7 +21,7 @@ pipeline {
         stage('Build') {
             steps {
                 rtGradleRun (
-                    tool: GRADLE_TOOL, // Tool name from Jenkins configuration
+//                    tool: GRADLE_TOOL, // Tool name from Jenkins configuration
                     rootDir: ".",
                     buildFile: 'build.gradle',
                     tasks: 'clean build',
