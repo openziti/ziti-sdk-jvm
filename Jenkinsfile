@@ -13,7 +13,7 @@ pipeline {
                 rtGradleDeployer (
                     id: "GRADLE_DEPLOYER",
                     serverId: "ziti-uploads",
-                    repo: "libs-release-local",
+                    repo: "ziti-maven",
                 )
             }
         }
