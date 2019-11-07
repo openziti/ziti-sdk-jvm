@@ -21,6 +21,7 @@ pipeline {
         stage('Build') {
             steps {
                 rtGradleRun (
+                    usesPlugin: false,
                     useWrapper: true,
                     switches: "--no-daemon",
                     rootDir: ".",
