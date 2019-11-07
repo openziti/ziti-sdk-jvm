@@ -26,9 +26,16 @@ pipeline {
                     switches: "--no-daemon",
                     rootDir: ".",
                     buildFile: 'build.gradle.kts',
-                    tasks: 'clean build',
+                    tasks: 'clean build :ziti:artifactoryPublish',
                     deployerId: "GRADLE_DEPLOYER",
                     resolverId: "GRADLE_RESOLVER"
+                )
+            }
+        }
+        stage ('Publish build info') {
+            steps {
+                rtPublishBuildInfo (
+                    serverId: "ziti-uploads"
                 )
             }
         }
