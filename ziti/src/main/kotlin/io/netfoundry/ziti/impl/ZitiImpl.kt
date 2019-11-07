@@ -62,6 +62,20 @@ internal object ZitiImpl : Logged by JULogged() {
         contexts.add(ctx)
     }
 
+    fun init(ks: KeyStore, seamless: Boolean) {
+        if (seamless) {
+            initInternalNetworking()
+        }
+        for (a in ks.aliases()) {
+            if (ks.isKeyEntry(a)) {
+                val id = KeyStoreIdentity(ks, a, charArrayOf())
+                val ctx = ZitiContextImpl(id, true)
+                contexts.add(ctx)
+            }
+        }
+
+    }
+
     private fun initInternalNetworking() {
         Sockets.init()
     }

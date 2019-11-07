@@ -48,7 +48,7 @@ import java.util.*
 import javax.net.ssl.*
 import kotlin.text.Charsets.UTF_8
 
-class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: Collection<X509Certificate>) {
+class Enroller(enrollUrl: URL, val method: Method, val id: Id, val caCerts: Collection<X509Certificate>) {
 
     enum class Method {
         ott,
@@ -56,7 +56,7 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
         ca
     }
 
-    val enrollmentURI = URI.create(enrollUrl)
+    val enrollmentURI = enrollUrl.toURI()
     val controllerURI = enrollmentURI.resolve("/")
 
     data class Id(val id: String, val name: String)
@@ -68,15 +68,14 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
         fun fromJWT(jwt: String): Enroller = runBlocking(Dispatchers.IO) {
 
             val zitiJwt = ZitiJWT.fromJWT(jwt)
-            val enrollUrl = zitiJwt.enrollmentURL
-            val controllerCA = getCACerts(URL(enrollUrl), zitiJwt.serverKey)
+            val controllerCA = getCACerts(zitiJwt.controller, zitiJwt.serverKey)
 
             val method = zitiJwt.method
 
             val name = zitiJwt.name ?: "<no-name>"
             val uid = UUID.randomUUID().toString()
 
-            Enroller(enrollUrl, Method.valueOf(method), Id(uid, name), controllerCA)
+            Enroller(zitiJwt.enrollmentURL, Method.valueOf(method), Id(uid, name), controllerCA)
         }
 
         private class Cli : CliktCommand(name = "ziti-enroller") {

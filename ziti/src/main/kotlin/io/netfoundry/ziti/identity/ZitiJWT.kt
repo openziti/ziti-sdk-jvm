@@ -21,6 +21,7 @@ import io.jsonwebtoken.JwsHeader
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SigningKeyResolver
 import java.net.URI
+import java.net.URL
 import java.security.Key
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -31,13 +32,22 @@ import javax.net.ssl.X509TrustManager
 class ZitiJWT(cl: Claims, val serverKey: Key) {
     private val claims = cl
 
-    val enrollmentURL: String
-        get() = claims.get("enrollmentUrl", String::class.java)
-    val method: String
-        get() = claims.get("enrollmentMethod", String::class.java)
+    val controller: URI by lazy {
+        URI.create(claims.get("iss", String::class.java))
+    }
+
+    val token: String by lazy {
+        claims.get("jti", String::class.java)
+    }
+    val method: String by lazy {
+        claims.get("em", String::class.java)
+    }
 
     val name: String?
-        get() = claims.get("id", Map::class.java)?.get("name")?.toString()
+        get() = claims.get("sub", String::class.java)
+
+    val enrollmentURL: URL
+        get() = controller.resolve("/enroll?method=${method}&token=${token}").toURL()
 
     companion object {
         fun fromJWT(jwt: String): ZitiJWT {
@@ -69,7 +79,7 @@ class ZitiJWT(cl: Claims, val serverKey: Key) {
                 init(null, arrayOf(tm), SecureRandom())
             }
 
-            val url = URI.create(claims.get("apiBaseUrl").toString()).toURL()
+            val url = URI.create(claims.get("iss").toString()).toURL()
             val conn = url.openConnection() as HttpsURLConnection
             conn.sslSocketFactory = ssl.socketFactory
 
