@@ -82,7 +82,7 @@ internal object ZitiImpl : Logged by JULogged() {
             val id = Gson().fromJson(f.reader(), Identity::class.java)
             ks.load(null)
             val certs = readCerts(id.id.cert.replace("pem:", ""))
-            val alias = PrincipalUtil.getSubjectX509Principal(certs[0]).getValues(BCStyle.CN)[0]
+            val alias = PrincipalUtil.getSubjectX509Principal(certs[0]).getValues(BCStyle.CN)[0].toString().toLowerCase()
 
             val key = readKey(id.id.key.replace("pem:", "").reader())
             val keyEntry = KeyStore.PrivateKeyEntry(
@@ -90,7 +90,7 @@ internal object ZitiImpl : Logged by JULogged() {
                     PKCS12Attribute(KeyStoreIdentity.Attributes.Controller.oid, id.ztAPI)
                 )
             )
-            ks.setEntry(alias.toString(), keyEntry, KeyStore.PasswordProtection(charArrayOf()))
+            ks.setEntry(alias, keyEntry, KeyStore.PasswordProtection(charArrayOf()))
 
             id.id.ca?.let {
                 val cacerts = readCerts(it.replace("pem:", ""))

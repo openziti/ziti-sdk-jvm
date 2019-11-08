@@ -28,20 +28,20 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
+    compile(kotlin("stdlib-jdk8"))
+    compile(kotlin("reflect"))
 
-    implementation(group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = "1.3.1")
+    compile(group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = "1.3.1")
 
-    implementation("com.squareup.retrofit2:retrofit:2.6.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.6.0")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
+    compile("com.squareup.retrofit2:retrofit:2.6.0")
+    compile("com.squareup.retrofit2:converter-gson:2.6.0")
+    compile("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
 
     compile("io.jsonwebtoken:jjwt-api:0.10.7")
-    implementation("io.jsonwebtoken:jjwt-impl:0.10.7")
-    implementation("io.jsonwebtoken:jjwt-orgjson:0.10.7")
+    compile("io.jsonwebtoken:jjwt-impl:0.10.7")
+    compile("io.jsonwebtoken:jjwt-orgjson:0.10.7")
 
-    implementation(group = "org.bouncycastle", name = "bcpkix-jdk15on", version = "1.62")
+    compile(group = "org.bouncycastle", name = "bcpkix-jdk15on", version = "1.62")
 
     implementation("com.github.ajalt:clikt:2.2.0")
 
