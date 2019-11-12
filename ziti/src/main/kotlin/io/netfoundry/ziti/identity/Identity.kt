@@ -17,6 +17,8 @@
 package io.netfoundry.ziti.identity
 
 import io.netfoundry.ziti.util.AliasKeyManager
+import java.net.URI
+import java.net.URLDecoder
 import java.security.KeyStore
 import java.security.SecureRandom
 import javax.net.ssl.KeyManagerFactory
@@ -35,10 +37,6 @@ interface Identity {
 }
 
 internal class KeyStoreIdentity(private val ks: KeyStore, alias: String, pw: CharArray = charArrayOf()) : Identity {
-    enum class Attributes(val oid: String) {
-        Controller("2.5.29.29"),
-        Name("1.2.840.113549.1.9.20"),
-    }
 
     private val controller: String
     private val name: String
@@ -47,9 +45,11 @@ internal class KeyStoreIdentity(private val ks: KeyStore, alias: String, pw: Cha
 
     init {
         check(ks.isKeyEntry(alias)) { "alias entry is not of correct type" }
-        val entry = ks.getEntry(alias, KeyStore.PasswordProtection(pw))
-        controller = getAttr(entry, Attributes.Controller)
-        name = getAttr(entry, Attributes.Name)
+        // alias is in URI form -> ziti://controller_host:controller_port/name
+        val aliasURI = URI.create(alias)
+
+        controller = "https://${aliasURI.host}:${aliasURI.port}"
+        name = URLDecoder.decode(aliasURI.rawPath.substring(1), Charsets.UTF_8.name()) // remove leading slash and decode
 
         val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()).apply {
             init(ks, pw)
@@ -78,7 +78,4 @@ internal class KeyStoreIdentity(private val ks: KeyStore, alias: String, pw: Cha
     override fun trustManager(): X509TrustManager = tm
 
     override var sessionToken: String? = null
-
-    internal fun getAttr(entry: KeyStore.Entry, attr: Attributes): String =
-        checkNotNull(entry.attributes.find { it.name == attr.oid }?.value) { "entry is not a ziti identity: attr[${attr.name}] is missing" }
 }

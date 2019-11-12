@@ -38,6 +38,7 @@ import java.io.OutputStreamWriter
 import java.net.InetAddress
 import java.net.URI
 import java.net.URL
+import java.net.URLEncoder
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PKCS12Attribute
@@ -48,7 +49,7 @@ import java.util.*
 import javax.net.ssl.*
 import kotlin.text.Charsets.UTF_8
 
-class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: Collection<X509Certificate>) {
+class Enroller(enrollUrl: String, val method: Method, val name: String, val caCerts: Collection<X509Certificate>) {
 
     enum class Method {
         ott,
@@ -58,8 +59,6 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
 
     val enrollmentURI = URI.create(enrollUrl)
     val controllerURI = enrollmentURI.resolve("/")
-
-    data class Id(val id: String, val name: String)
 
     companion object {
         val P256 = ECGenParameterSpec("secp256r1")
@@ -73,10 +72,9 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
 
             val method = zitiJwt.method
 
-            val name = zitiJwt.name ?: "<no-name>"
-            val uid = UUID.randomUUID().toString()
+            val name = zitiJwt.name ?: UUID.randomUUID().toString()
 
-            Enroller(enrollUrl, Method.valueOf(method), Id(uid, name), controllerCA)
+            Enroller(enrollUrl, Method.valueOf(method), name, controllerCA)
         }
 
         private class Cli : CliktCommand(name = "ziti-enroller") {
@@ -104,35 +102,41 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
         fun main(args: Array<String>) = Cli().main(args)
     }
 
-    fun enroll(cert: KeyStore.Entry?, keyStore: KeyStore, alias: String) {
+    fun enroll(cert: KeyStore.Entry?, keyStore: KeyStore, name: String): String {
 
         val conn = enrollmentURI.toURL().openConnection() as HttpsURLConnection
         val ssl = getSSLContext(cert)
 
-        when (method) {
+        val pke = when (method) {
             Method.ott ->
-                enrollOtt(alias, conn, keyStore, ssl)
+                enrollOtt(name, conn, keyStore, ssl)
 
             Method.ottca ->
-                if (cert == null) throw Exception("client certificate is required for ottca enrollment")
-                else enrollOttca(alias, conn, cert, keyStore, ssl)
+                if (!(cert is KeyStore.PrivateKeyEntry)) throw Exception("client certificate is required for ottca enrollment")
+                else enrollOttca(name, conn, cert, keyStore, ssl)
 
             else -> throw UnsupportedOperationException("method $method is not supported")
         }
 
+        val alias = "ziti://${enrollmentURI.host}:${enrollmentURI.port}/${URLEncoder.encode(name, UTF_8.name())}"
+        val protect = if (keyStore.type == "PKCS12") KeyStore.PasswordProtection(charArrayOf()) else null
+
+        keyStore.setEntry(alias, pke, protect)
+
         for (ca in caCerts) {
-            val caAlias = "${alias}-ca-${ca.serialNumber}"
+            val caAlias = "ziti:${name}/${ca.serialNumber}"
             keyStore.setCertificateEntry(caAlias, ca)
         }
+        return alias
     }
 
     private fun enrollOttca(
         alias: String,
         conn: HttpsURLConnection,
-        cert: KeyStore.Entry,
+        cert: KeyStore.PrivateKeyEntry,
         keyStore: KeyStore,
         ssl: SSLContext
-    ) {
+    ): KeyStore.PrivateKeyEntry {
 
         conn.doInput = true
         conn.doOutput = true
@@ -153,14 +157,12 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
                 val msg = (errors[0] as JSONObject).get("msg")?.toString()
                 msg.let { throw IllegalArgumentException(it) }
             }
-            else -> {
-                keyStore.setEntry(alias, cert, null)
-            }
+            else -> return cert
         }
     }
 
-    private fun enrollOtt(alias: String, conn: HttpsURLConnection, keyStore: KeyStore, ssl: SSLContext) {
-        val name = X500Name("CN=${InetAddress.getLocalHost().hostName}-${System.currentTimeMillis()}")
+    private fun enrollOtt(alias: String, conn: HttpsURLConnection, keyStore: KeyStore, ssl: SSLContext): KeyStore.PrivateKeyEntry {
+        val name = X500Name("CN=${alias}")
 
         val kpg = KeyPairGenerator.getInstance("EC")
         kpg.initialize(P256)
@@ -196,13 +198,7 @@ class Enroller(enrollUrl: String, val method: Method, val id: Id, val caCerts: C
             }
             else -> {
                 val certs = readCerts(conn.inputStream.reader()).toTypedArray()
-                val entry = KeyStore.PrivateKeyEntry(
-                    kp.private, certs, setOf(
-                        PKCS12Attribute(KeyStoreIdentity.Attributes.Controller.oid, controllerURI.toString())
-                    )
-                )
-
-                keyStore.setEntry(alias, entry, KeyStore.PasswordProtection(charArrayOf()))
+                return  KeyStore.PrivateKeyEntry(kp.private, certs, emptySet())
             }
         }
     }

@@ -67,24 +67,31 @@ internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged 
 
         d { "connecting to $address" }
         val addr = address as InetSocketAddress
-        try {
-            val ctx = ZitiImpl.contexts.first()
-            zitiConn = ctx.dial(addr.hostName, addr.port) as ZitiConn
-            setOption(SocketOptions.SO_TIMEOUT, fallback?.soTimeout ?: timeout)
-            connected = true
-        } catch (zex: ZitiException) {
-            when (zex.code) {
-                Errors.NotEnrolled, Errors.ServiceNotAvailable -> {
-                    w("failed to connect to $address: ${zex.message}. Trying fallback")
-                    fallbackConnect(address, timeout)
+        for (ctx in ZitiImpl.contexts) {
+            try {
+                zitiConn = ctx.dial(addr.hostName, addr.port) as ZitiConn
+                setOption(SocketOptions.SO_TIMEOUT, fallback?.soTimeout ?: timeout)
+                connected = true
+            } catch (zex: ZitiException) {
+                when (zex.code) {
+                    Errors.NotEnrolled, Errors.ServiceNotAvailable -> {
+                        w("failed to connect to $address: ${zex.message}. Trying fallback")
+                    }
+                    else -> throw zex
                 }
-                else -> throw zex
+            } catch (ex: Exception) {
+                e(ex) { "failed to connect" }
+                // val ex = unwrapException(ex)
+                throw ex
             }
-        } catch (ex: Exception) {
-            e(ex) { "failed to connect" }
-            // val ex = unwrapException(ex)
-            throw ex
         }
+
+        if (connected) {
+            return;
+        }
+
+        fallbackConnect(address, timeout);
+        connected = true;
     }
 
     internal fun fallbackConnect(address: SocketAddress?, timeout: Int) {

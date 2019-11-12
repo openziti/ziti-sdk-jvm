@@ -18,6 +18,7 @@ package io.netfoundry.ziti
 
 import io.netfoundry.ziti.impl.ZitiImpl
 import java.io.File
+import java.security.KeyStore
 
 object Ziti {
     @JvmStatic
@@ -28,4 +29,10 @@ object Ziti {
 
     @JvmStatic
     fun init(fname: String, pwd: CharArray, seamless: Boolean) = ZitiImpl.init(File(fname), pwd, seamless)
+
+    @JvmStatic
+    fun init(ks: KeyStore, seamless: Boolean) =  ZitiImpl.init(ks, seamless)
+
+    @JvmStatic
+    fun enroll(ks: KeyStore, jwt: ByteArray, name: String) = ZitiImpl.enroll(ks, jwt, name)
 }
