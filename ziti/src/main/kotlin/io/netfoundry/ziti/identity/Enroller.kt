@@ -118,7 +118,7 @@ class Enroller(enrollUrl: String, val method: Method, val name: String, val caCe
             else -> throw UnsupportedOperationException("method $method is not supported")
         }
 
-        val alias = "ziti://${enrollmentURI.host}:${enrollmentURI.port}/${URLEncoder.encode(name, UTF_8)}"
+        val alias = "ziti://${enrollmentURI.host}:${enrollmentURI.port}/${URLEncoder.encode(name, UTF_8.name())}"
         val protect = if (keyStore.type == "PKCS12") KeyStore.PasswordProtection(charArrayOf()) else null
 
         keyStore.setEntry(alias, pke, protect)
