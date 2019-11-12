@@ -18,6 +18,7 @@ package io.netfoundry.ziti.identity
 
 import io.netfoundry.ziti.util.AliasKeyManager
 import java.net.URI
+import java.net.URLDecoder
 import java.security.KeyStore
 import java.security.SecureRandom
 import javax.net.ssl.KeyManagerFactory
@@ -48,7 +49,7 @@ internal class KeyStoreIdentity(private val ks: KeyStore, alias: String, pw: Cha
         val aliasURI = URI.create(alias)
 
         controller = "https://${aliasURI.host}:${aliasURI.port}"
-        name = aliasURI.rawPath.substring(1) // remove leading slash
+        name = URLDecoder.decode(aliasURI.rawPath.substring(1), Charsets.UTF_8) // remove leading slash and decode
 
         val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()).apply {
             init(ks, pw)

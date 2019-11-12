@@ -38,6 +38,7 @@ import java.io.OutputStreamWriter
 import java.net.InetAddress
 import java.net.URI
 import java.net.URL
+import java.net.URLEncoder
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PKCS12Attribute
@@ -117,7 +118,7 @@ class Enroller(enrollUrl: String, val method: Method, val name: String, val caCe
             else -> throw UnsupportedOperationException("method $method is not supported")
         }
 
-        val alias = "ziti://${enrollmentURI.host}:${enrollmentURI.port}/${name}"
+        val alias = "ziti://${enrollmentURI.host}:${enrollmentURI.port}/${URLEncoder.encode(name, UTF_8)}"
         val protect = if (keyStore.type == "PKCS12") KeyStore.PasswordProtection(charArrayOf()) else null
 
         keyStore.setEntry(alias, pke, protect)
