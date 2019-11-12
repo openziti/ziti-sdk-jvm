@@ -17,6 +17,7 @@
 package io.netfoundry.ziti.impl
 
 import com.google.gson.Gson
+import io.netfoundry.ziti.identity.Enroller
 import io.netfoundry.ziti.identity.KeyStoreIdentity
 import io.netfoundry.ziti.net.internal.Sockets
 import io.netfoundry.ziti.util.*
@@ -25,6 +26,7 @@ import io.netfoundry.ziti.util.Logged
 import org.bouncycastle.asn1.x500.style.BCStyle
 import org.bouncycastle.jce.PrincipalUtil
 import java.io.File
+import java.net.URI
 import java.security.KeyStore
 import java.security.PKCS12Attribute
 
@@ -34,11 +36,16 @@ internal object ZitiImpl : Logged by JULogged() {
         i("ZitiSDK version ${Version.version} @${Version.revision}(${Version.branch})")
     }
 
-    internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContextImpl {
-        val ks = loadKeystore(idFile, pwd)
+    internal fun loadContext(ks: KeyStore, alias: String?): ZitiContextImpl {
         val idName = alias ?: findIdentity(ks)
         val id = KeyStoreIdentity(ks, idName)
-        return ZitiContextImpl(id, true)
+        return ZitiContextImpl(id, true).also {
+            contexts.add(it)
+        }
+    }
+    internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContextImpl {
+        val ks = loadKeystore(idFile, pwd)
+        return loadContext(ks, alias)
     }
 
     private fun findIdentity(ks: KeyStore): String {
@@ -59,7 +66,18 @@ internal object ZitiImpl : Logged by JULogged() {
 
         val ctx = loadContext(file, pwd, null) as ZitiContextImpl
         ctx.checkServicesLoaded()
-        contexts.add(ctx)
+    }
+
+    fun init(ks: KeyStore, seamless: Boolean) {
+        if (seamless) {
+            initInternalNetworking()
+        }
+
+        for (a in ks.aliases()) {
+            if (ks.isKeyEntry(a)) {
+                loadContext(ks, a)
+            }
+        }
     }
 
     private fun initInternalNetworking() {
@@ -82,14 +100,11 @@ internal object ZitiImpl : Logged by JULogged() {
             val id = Gson().fromJson(f.reader(), Identity::class.java)
             ks.load(null)
             val certs = readCerts(id.id.cert.replace("pem:", ""))
-            val alias = PrincipalUtil.getSubjectX509Principal(certs[0]).getValues(BCStyle.CN)[0].toString().toLowerCase()
+            val ztAPI = URI.create(id.ztAPI)
+            val alias = "ziti://${ztAPI.host}:${ztAPI.port}/${f.name}"
 
             val key = readKey(id.id.key.replace("pem:", "").reader())
-            val keyEntry = KeyStore.PrivateKeyEntry(
-                key, certs.toTypedArray(), setOf(
-                    PKCS12Attribute(KeyStoreIdentity.Attributes.Controller.oid, id.ztAPI)
-                )
-            )
+            val keyEntry = KeyStore.PrivateKeyEntry(key, certs.toTypedArray(), emptySet())
             ks.setEntry(alias, keyEntry, KeyStore.PasswordProtection(charArrayOf()))
 
             id.id.ca?.let {
@@ -107,5 +122,12 @@ internal object ZitiImpl : Logged by JULogged() {
         }
 
         throw IllegalArgumentException("unsupported format")
+    }
+
+    fun enroll(ks: KeyStore, jwt: ByteArray, name: String) {
+        val enroller = Enroller.fromJWT(String(jwt))
+        val alias = enroller.enroll(null, ks, name)
+
+        loadContext(ks, alias)
     }
 }
