@@ -35,9 +35,10 @@ class ZitiJWT(cl: Claims, val serverKey: Key) {
         get() = claims.get("enrollmentUrl", String::class.java)
     val method: String
         get() = claims.get("enrollmentMethod", String::class.java)
-
-    val name: String?
-        get() = claims.get("id", Map::class.java)?.get("name")?.toString()
+    val name: String
+        get() = claims.get("sub", String::class.java)
+    val token: String
+        get() = claims.get("token", String::class.java)
 
     companion object {
         fun fromJWT(jwt: String): ZitiJWT {

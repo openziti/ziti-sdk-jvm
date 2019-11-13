@@ -69,10 +69,8 @@ class Enroller(enrollUrl: String, val method: Method, val name: String, val caCe
             val zitiJwt = ZitiJWT.fromJWT(jwt)
             val enrollUrl = zitiJwt.enrollmentURL
             val controllerCA = getCACerts(URL(enrollUrl), zitiJwt.serverKey)
-
             val method = zitiJwt.method
-
-            val name = zitiJwt.name ?: UUID.randomUUID().toString()
+            val name = zitiJwt.name
 
             Enroller(enrollUrl, Method.valueOf(method), name, controllerCA)
         }
@@ -162,7 +160,7 @@ class Enroller(enrollUrl: String, val method: Method, val name: String, val caCe
     }
 
     private fun enrollOtt(alias: String, conn: HttpsURLConnection, keyStore: KeyStore, ssl: SSLContext): KeyStore.PrivateKeyEntry {
-        val name = X500Name("CN=${alias}")
+        val name = X500Name("CN=${name}")
 
         val kpg = KeyPairGenerator.getInstance("EC")
         kpg.initialize(P256)
