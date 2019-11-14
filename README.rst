@@ -22,16 +22,21 @@ Features
 --------
 
 
+Android Support
+---------------
+
+
+
 Getting Help
 ------------
-Please use these community resources for getting help. We use GitHub [issues][sdk-issues_] for tracking bugs and feature requests and have limited bandwidth
+Please use these community resources for getting help. We use GitHub issues_ for tracking bugs and feature requests and have limited bandwidth
 to address them.
 
-- Read the [docs][ziti-docs_]
-- Participate in discussion on [Discourse][nf-discourse_]
+- Read the docs_
+- Participate in discussion on Discourse_
 
 
 
-.. _ziti-docs: https://netfoundry.github.io/ziti-doc/ziti/overview.html
-.. _nf-discourse: https://netfoundry.discourse.group/
-.. _sdk-issues: https://github.com/NetFoundry/ziti-sdk-jvm/issues
+.. _docs: https://netfoundry.github.io/ziti-doc/ziti/overview.html
+.. _Discourse: https://netfoundry.discourse.group/
+.. _issues: https://github.com/NetFoundry/ziti-sdk-jvm/issues
