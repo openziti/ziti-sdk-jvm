@@ -86,7 +86,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     init {
         controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager(), sessionToken)
         this.enabled = enabled
-        //initialize()
     }
 
     override fun dial(serviceName: String): ZitiConnection {
