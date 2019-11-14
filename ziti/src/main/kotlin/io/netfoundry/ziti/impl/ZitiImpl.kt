@@ -32,6 +32,15 @@ import java.security.PKCS12Attribute
 
 internal object ZitiImpl : Logged by JULogged() {
 
+    internal val onAndroid: Boolean by lazy {
+        try {
+            Class.forName("android.util.Log")
+            true
+        } catch (cnf: ClassNotFoundException) {
+            false
+        }
+    }
+
     init {
         i("ZitiSDK version ${Version.version} @${Version.revision}(${Version.branch})")
     }

@@ -16,6 +16,7 @@
 
 package io.netfoundry.ziti.net.internal
 
+import io.netfoundry.ziti.impl.ZitiImpl
 import io.netfoundry.ziti.net.ZitiSocketImpl
 import io.netfoundry.ziti.util.JULogged
 import io.netfoundry.ziti.util.Logged
@@ -40,6 +41,10 @@ internal object Sockets : Logged by JULogged() {
     fun init() {
         d { "internals initialized" }
         Socket.setSocketImplFactory { ZitiSocketImpl() }
+
+        if (ZitiImpl.onAndroid) {
+            HTTP.init()
+        }
     }
 
     class BypassSocket : Socket(defaultImplCons.newInstance())

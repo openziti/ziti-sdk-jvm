@@ -75,7 +75,7 @@ internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged 
             } catch (zex: ZitiException) {
                 when (zex.code) {
                     Errors.NotEnrolled, Errors.ServiceNotAvailable -> {
-                        w("failed to connect to $address: ${zex.message}. Trying fallback")
+                        w("failed to connect to $address using ctx[${ctx.name()}]: ${zex.message}. Trying fallback")
                     }
                     else -> throw zex
                 }
@@ -94,7 +94,7 @@ internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged 
         connected = true;
     }
 
-    internal fun fallbackConnect(address: SocketAddress?, timeout: Int) {
+    private fun fallbackConnect(address: SocketAddress?, timeout: Int) {
         fallback!!.connect(address, timeout)
         connected = true
     }
