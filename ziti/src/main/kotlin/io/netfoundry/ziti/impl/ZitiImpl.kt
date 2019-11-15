@@ -17,18 +17,14 @@
 package io.netfoundry.ziti.impl
 
 import com.google.gson.Gson
+import io.netfoundry.ziti.ZitiContext
 import io.netfoundry.ziti.identity.Enroller
 import io.netfoundry.ziti.identity.KeyStoreIdentity
 import io.netfoundry.ziti.net.internal.Sockets
 import io.netfoundry.ziti.util.*
-import io.netfoundry.ziti.util.JULogged
-import io.netfoundry.ziti.util.Logged
-import org.bouncycastle.asn1.x500.style.BCStyle
-import org.bouncycastle.jce.PrincipalUtil
 import java.io.File
 import java.net.URI
 import java.security.KeyStore
-import java.security.PKCS12Attribute
 
 internal object ZitiImpl : Logged by JULogged() {
 
@@ -77,15 +73,29 @@ internal object ZitiImpl : Logged by JULogged() {
         ctx.checkServicesLoaded()
     }
 
-    fun init(ks: KeyStore, seamless: Boolean) {
+    fun init(ks: KeyStore, seamless: Boolean): List<ZitiContext> {
         if (seamless) {
             initInternalNetworking()
         }
 
         for (a in ks.aliases()) {
-            if (ks.isKeyEntry(a)) {
+            if (isZitiIdentity(ks, a)) {
                 loadContext(ks, a)
             }
+        }
+
+        return contexts
+    }
+
+    private fun isZitiIdentity(ks: KeyStore, alias: String): Boolean {
+        if (!ks.isKeyEntry(alias))
+            return false
+
+        try {
+            return URI.create(alias).scheme == "ziti"
+        }
+        catch (ex: IllegalArgumentException) {
+            return false
         }
     }
 

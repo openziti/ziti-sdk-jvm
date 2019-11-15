@@ -103,6 +103,12 @@ class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int
 
         val empty = ByteBuffer.wrap(ByteArray(0))
 
+        val unwrapped = ByteBuffer.allocate(32 * 1024)
+        val ssl_in = ByteArray(32 * 1024)
+        var read = 0
+        var processed = 0
+
+
         while (engine.handshakeStatus != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
             d("continuing handshake status=${engine.handshakeStatus}")
 
@@ -120,37 +126,21 @@ class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int
                     engine.delegatedTask?.run()
                 }
                 SSLEngineResult.HandshakeStatus.NEED_UNWRAP -> {
-                    val unwrapped = ByteBuffer.allocate(32 * 1024)
-                    val ssl_in = ByteArray(32 * 1024)
-                    var read = 0
-                    var processed = 0
                     var res: SSLEngineResult
 
-                    while (engine.handshakeStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
+                    v("unwrapping bytes $processed..$read")
+                    res = engine.unwrap(ByteBuffer.wrap(ssl_in, processed, read - processed), unwrapped)
+                    v("res = $res")
+                    processed += res.bytesConsumed()
 
+                    // if there are not enough bytes to unwrap try reading and continue main loop
+                    if (res.status == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
                         val r = transport.getInputStream().read(ssl_in, read, ssl_in.size - read)
-                        if (r == -1) {
-                            break
+                        if (r > 0) {
+                            read += r
                         }
-                        read += r
 
                         v("read $r/$read")
-
-                        while (read > processed) {
-                            v("unwrapping bytes $processed..$read")
-                            res = engine.unwrap(ByteBuffer.wrap(ssl_in, processed, read - processed), unwrapped)
-                            v("res = $res")
-                            processed += res.bytesConsumed()
-
-                            if (res.status == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
-                                break
-                            }
-                        }
-                    }
-
-
-                    if (read > processed) {
-                        e("unprocessed SSL bytes")
                     }
                 }
 

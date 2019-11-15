@@ -149,7 +149,7 @@ internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged 
     }
 
     companion object {
-        const val DEFAULT_TIMEOUT = 5000
+        const val DEFAULT_TIMEOUT = 60000
     }
 
 }

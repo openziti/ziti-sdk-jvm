@@ -30,13 +30,7 @@ import java.net.HttpURLConnection
 import java.net.InetAddress
 import java.net.Socket
 import java.net.URL
-import java.security.KeyStore
-import java.security.cert.Certificate
 import javax.net.SocketFactory
-import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLSocketFactory
-import javax.net.ssl.TrustManagerFactory
-import javax.net.ssl.X509TrustManager
 
 class ZitiHTTPConnection(url: URL) :
     HttpURLConnection(url),
@@ -166,9 +160,7 @@ class ZitiHTTPConnection(url: URL) :
         val clt = OkHttpClient.Builder()
             .retryOnConnectionFailure(false)
             .socketFactory(factory)
-            .dns{ hostname ->
-                mutableListOf(ZitiDNSManager.resolve(hostname))
-            }
+            .dns { mutableListOf(ZitiDNSManager.resolve(it) ?: InetAddress.getByName(it)) }
             .build()
 
     }
