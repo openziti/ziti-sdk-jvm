@@ -187,9 +187,7 @@ class ZitiHTTPSConnection(url: URL) :
         val clt = OkHttpClient.Builder()
                 .retryOnConnectionFailure(false)
                 .sslSocketFactory(sslFactory, tm.trustManagers[0] as X509TrustManager)
-                .dns{ hostname ->
-                    mutableListOf(ZitiDNSManager.resolve(hostname))
-                }
+                .dns { mutableListOf(ZitiDNSManager.resolve(it) ?: InetAddress.getByName(it)) }
                 .build()
 
     }
