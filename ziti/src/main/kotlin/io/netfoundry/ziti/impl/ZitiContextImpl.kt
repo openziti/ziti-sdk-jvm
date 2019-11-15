@@ -29,7 +29,7 @@ import io.netfoundry.ziti.net.Channel
 import io.netfoundry.ziti.net.ZitiConn
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
 import io.netfoundry.ziti.net.internal.ZitiSocket
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import kotlinx.coroutines.*
 import java.net.InetSocketAddress
@@ -44,7 +44,7 @@ import kotlin.properties.Delegates
  *
  */
 internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : ZitiContext, Identity by id,
-    CoroutineScope, Logged by JULogged() {
+    CoroutineScope, Logged by ZitiLog() {
 
     enum class Status {
         Active,

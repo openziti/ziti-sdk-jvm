@@ -17,12 +17,12 @@
 package io.netfoundry.ziti.net.internal
 
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import java.lang.reflect.Field
 import java.net.*
 
-internal object HTTP: Logged by JULogged() {
+internal object HTTP: Logged by ZitiLog() {
 
     const val HTTP_PORT = 80
     const val HTTPS_PORT = 443

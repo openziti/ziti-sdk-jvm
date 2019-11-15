@@ -16,7 +16,7 @@
 
 package io.netfoundry.ziti.net.internal
 
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import java.io.InputStream
 import java.io.OutputStream
@@ -29,7 +29,7 @@ import javax.net.ssl.*
 
 class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int) :
     SSLSocket(host, pport),
-    Logged by JULogged("ziti-ssl-socket")
+    Logged by ZitiLog("ziti-ssl-socket")
 {
 
     inner class Output : OutputStream() {

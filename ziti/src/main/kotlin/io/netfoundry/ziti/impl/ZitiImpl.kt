@@ -26,7 +26,7 @@ import java.io.File
 import java.net.URI
 import java.security.KeyStore
 
-internal object ZitiImpl : Logged by JULogged() {
+internal object ZitiImpl : Logged by ZitiLog() {
 
     internal val onAndroid: Boolean by lazy {
         try {
