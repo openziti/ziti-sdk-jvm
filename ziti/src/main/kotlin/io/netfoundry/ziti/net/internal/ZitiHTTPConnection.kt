@@ -18,7 +18,7 @@ package io.netfoundry.ziti.net.internal
 
 import io.netfoundry.ziti.net.ZitiSocketImpl
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import okhttp3.*
 import okhttp3.internal.http.HttpMethod
@@ -34,7 +34,7 @@ import javax.net.SocketFactory
 
 class ZitiHTTPConnection(url: URL) :
     HttpURLConnection(url),
-    Logged by JULogged("ziti-http")
+    Logged by ZitiLog("ziti-http")
 {
     override fun usingProxy(): Boolean = false
 

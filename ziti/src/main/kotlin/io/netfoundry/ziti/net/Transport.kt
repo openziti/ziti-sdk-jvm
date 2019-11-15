@@ -17,7 +17,7 @@
 package io.netfoundry.ziti.net
 
 import io.netfoundry.ziti.net.internal.Sockets
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import java.io.Closeable
 import java.io.InputStream
@@ -64,7 +64,7 @@ internal interface Transport : Closeable {
         return count
     }
 
-    class TLS(host: String, port: Int, sslContext: SSLContext) : Transport, Logged by JULogged("ziti-tls") {
+    class TLS(host: String, port: Int, sslContext: SSLContext) : Transport, Logged by ZitiLog("ziti-tls") {
         val socket: SSLSocket
 
         init {

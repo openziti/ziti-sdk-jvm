@@ -18,14 +18,14 @@ package io.netfoundry.ziti.net.internal
 
 import io.netfoundry.ziti.impl.ZitiImpl
 import io.netfoundry.ziti.net.ZitiSocketImpl
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import java.lang.reflect.Constructor
 import java.net.Socket
 import java.net.SocketImpl
 import java.util.concurrent.atomic.AtomicBoolean
 
-internal object Sockets : Logged by JULogged() {
+internal object Sockets : Logged by ZitiLog() {
 
     private val initialized = AtomicBoolean(false)
 

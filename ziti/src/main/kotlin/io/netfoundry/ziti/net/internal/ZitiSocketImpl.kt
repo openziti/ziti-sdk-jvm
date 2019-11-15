@@ -21,12 +21,12 @@ import io.netfoundry.ziti.ZitiConnection
 import io.netfoundry.ziti.ZitiException
 import io.netfoundry.ziti.impl.ZitiImpl
 import io.netfoundry.ziti.net.internal.Sockets
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import java.io.FileDescriptor
 import java.net.*
 
-internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged by JULogged("ziti.socket.impl") {
+internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged by ZitiLog("ziti.socket.impl") {
 
     var connected: Boolean = false
     var closed: Boolean = false

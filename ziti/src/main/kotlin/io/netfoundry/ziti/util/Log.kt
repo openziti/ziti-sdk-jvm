@@ -55,7 +55,7 @@ internal fun getDelegate(name: String): Logged {
     }
 }
 
-internal class JULogged(name: String, private val delegate: Logged = getDelegate(name)) : Logged by delegate {
+internal class ZitiLog(name: String, private val delegate: Logged = getDelegate(name)) : Logged by delegate {
     constructor() :
             this(getCaller().split(".").last())
 
