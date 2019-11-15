@@ -18,13 +18,16 @@ package io.netfoundry.ziti.net.internal
 
 import io.netfoundry.ziti.impl.ZitiImpl
 import io.netfoundry.ziti.net.ZitiSocketImpl
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import java.lang.reflect.Constructor
 import java.net.Socket
 import java.net.SocketImpl
+import java.util.concurrent.atomic.AtomicBoolean
 
-internal object Sockets : Logged by JULogged() {
+internal object Sockets : Logged by ZitiLog() {
+
+    private val initialized = AtomicBoolean(false)
 
     val defaultImplCls: Class<out SocketImpl>
     val defaultImplCons: Constructor<out SocketImpl>
@@ -39,11 +42,13 @@ internal object Sockets : Logged by JULogged() {
     }
 
     fun init() {
-        d { "internals initialized" }
-        Socket.setSocketImplFactory { ZitiSocketImpl() }
+        if (initialized.compareAndSet(false, true)) {
+            d { "internals initialized" }
+            Socket.setSocketImplFactory { ZitiSocketImpl() }
 
-        if (ZitiImpl.onAndroid) {
-            HTTP.init()
+            if (ZitiImpl.onAndroid) {
+                HTTP.init()
+            }
         }
     }
 

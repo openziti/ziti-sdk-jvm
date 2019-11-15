@@ -17,7 +17,7 @@
 package io.netfoundry.ziti.net.internal
 
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import okhttp3.*
 import okhttp3.internal.http.HttpMethod
@@ -37,7 +37,7 @@ import javax.net.ssl.X509TrustManager
 
 class ZitiHTTPSConnection(url: URL) :
     HttpsURLConnection(url),
-    Logged by JULogged("ziti-https")
+    Logged by ZitiLog("ziti-https")
 {
     override fun usingProxy(): Boolean = false
 
@@ -187,9 +187,7 @@ class ZitiHTTPSConnection(url: URL) :
         val clt = OkHttpClient.Builder()
                 .retryOnConnectionFailure(false)
                 .sslSocketFactory(sslFactory, tm.trustManagers[0] as X509TrustManager)
-                .dns{ hostname ->
-                    mutableListOf(ZitiDNSManager.resolve(hostname))
-                }
+                .dns { mutableListOf(ZitiDNSManager.resolve(it) ?: InetAddress.getByName(it)) }
                 .build()
 
     }

@@ -18,7 +18,7 @@ package io.netfoundry.ziti.net.internal
 
 import io.netfoundry.ziti.net.ZitiSocketImpl
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import okhttp3.*
 import okhttp3.internal.http.HttpMethod
@@ -30,17 +30,11 @@ import java.net.HttpURLConnection
 import java.net.InetAddress
 import java.net.Socket
 import java.net.URL
-import java.security.KeyStore
-import java.security.cert.Certificate
 import javax.net.SocketFactory
-import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLSocketFactory
-import javax.net.ssl.TrustManagerFactory
-import javax.net.ssl.X509TrustManager
 
 class ZitiHTTPConnection(url: URL) :
     HttpURLConnection(url),
-    Logged by JULogged("ziti-http")
+    Logged by ZitiLog("ziti-http")
 {
     override fun usingProxy(): Boolean = false
 
@@ -166,9 +160,7 @@ class ZitiHTTPConnection(url: URL) :
         val clt = OkHttpClient.Builder()
             .retryOnConnectionFailure(false)
             .socketFactory(factory)
-            .dns{ hostname ->
-                mutableListOf(ZitiDNSManager.resolve(hostname))
-            }
+            .dns { mutableListOf(ZitiDNSManager.resolve(it) ?: InetAddress.getByName(it)) }
             .build()
 
     }

@@ -18,7 +18,7 @@ package io.netfoundry.ziti.net
 
 import io.netfoundry.ziti.ZitiConnection
 import io.netfoundry.ziti.api.NetworkSession
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
@@ -38,7 +38,7 @@ import kotlinx.coroutines.channels.Channel as Chan
  *
  */
 internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : ZitiConnection,
-    Closeable, Logged by JULogged("ziti-conn") {
+    Closeable, Logged by ZitiLog("ziti-conn") {
     enum class State {
         New,
         Connected,

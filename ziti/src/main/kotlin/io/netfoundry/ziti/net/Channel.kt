@@ -19,7 +19,7 @@ package io.netfoundry.ziti.net
 import io.netfoundry.ziti.Errors
 import io.netfoundry.ziti.ZitiException
 import io.netfoundry.ziti.identity.Identity
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.channels.Channel as Chan
 
-internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged by JULogged() {
+internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged by ZitiLog() {
 
     private val supervisor = SupervisorJob()
     override val coroutineContext: CoroutineContext
