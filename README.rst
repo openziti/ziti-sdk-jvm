@@ -57,6 +57,14 @@ ______
 
 Building from Source
 --------------------
+Once you check out the project from GitHub, you can build it using gradle:
+.. code-block::
+
+    ./gradlew build
+
+    # install into your local maven cache
+    ./gradlew :ziti:install
+
 
 Features
 --------
@@ -74,10 +82,11 @@ Please use these community resources for getting help. We use GitHub issues_ for
 to address them.
 
 - Read the docs_
+- Join our `Developer Community`_
 - Participate in discussion on Discourse_
 
 
-
+.. _Developer Community: https://developer.netfoundry.io
 .. _docs: https://netfoundry.github.io/ziti-doc/ziti/overview.html
 .. _Discourse: https://netfoundry.discourse.group/
 .. _issues: https://github.com/NetFoundry/ziti-sdk-jvm/issues
