@@ -12,7 +12,8 @@ Release Notes
 
 Obtaining SDK
 ------------
-The recommended way to use the Ziti SDK for Java in your project is to consume it from Maven. Register our repository and
+The recommended way to use the Ziti SDK for Java in your project is to add the dependency using your favorite build tool.
+Register our repository and
 add the SDK Maven dependency to your project.
 
 Maven
@@ -58,6 +59,7 @@ ______
 Building from Source
 --------------------
 Once you check out the project from GitHub, you can build it using gradle:
+
 .. code-block::
 
     ./gradlew build
