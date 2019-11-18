@@ -81,6 +81,11 @@ val sourcesJar by tasks.registering(Jar::class) {
 val repo: String by extra {
     rootProject.properties["publish.repo"]?.toString() ?: "file://${buildDir}/maven-repo"
 }
+
+artifacts {
+    archives(sourcesJar.get())
+}
+
 publishing {
     repositories {
         maven {
