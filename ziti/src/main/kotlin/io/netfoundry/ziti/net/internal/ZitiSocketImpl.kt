@@ -21,12 +21,12 @@ import io.netfoundry.ziti.ZitiConnection
 import io.netfoundry.ziti.ZitiException
 import io.netfoundry.ziti.impl.ZitiImpl
 import io.netfoundry.ziti.net.internal.Sockets
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import java.io.FileDescriptor
 import java.net.*
 
-internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged by JULogged("ziti.socket.impl") {
+internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged by ZitiLog("ziti.socket.impl") {
 
     var connected: Boolean = false
     var closed: Boolean = false
@@ -67,27 +67,34 @@ internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged 
 
         d { "connecting to $address" }
         val addr = address as InetSocketAddress
-        try {
-            val ctx = ZitiImpl.contexts.first()
-            zitiConn = ctx.dial(addr.hostName, addr.port) as ZitiConn
-            setOption(SocketOptions.SO_TIMEOUT, fallback?.soTimeout ?: timeout)
-            connected = true
-        } catch (zex: ZitiException) {
-            when (zex.code) {
-                Errors.NotEnrolled, Errors.ServiceNotAvailable -> {
-                    w("failed to connect to $address: ${zex.message}. Trying fallback")
-                    fallbackConnect(address, timeout)
+        for (ctx in ZitiImpl.contexts) {
+            try {
+                zitiConn = ctx.dial(addr.hostName, addr.port) as ZitiConn
+                setOption(SocketOptions.SO_TIMEOUT, fallback?.soTimeout ?: timeout)
+                connected = true
+            } catch (zex: ZitiException) {
+                when (zex.code) {
+                    Errors.NotEnrolled, Errors.ServiceNotAvailable -> {
+                        w("failed to connect to $address using ctx[${ctx.name()}]: ${zex.message}. Trying fallback")
+                    }
+                    else -> throw zex
                 }
-                else -> throw zex
+            } catch (ex: Exception) {
+                e(ex) { "failed to connect" }
+                // val ex = unwrapException(ex)
+                throw ex
             }
-        } catch (ex: Exception) {
-            e(ex) { "failed to connect" }
-            // val ex = unwrapException(ex)
-            throw ex
         }
+
+        if (connected) {
+            return;
+        }
+
+        fallbackConnect(address, timeout);
+        connected = true;
     }
 
-    internal fun fallbackConnect(address: SocketAddress?, timeout: Int) {
+    private fun fallbackConnect(address: SocketAddress?, timeout: Int) {
         fallback!!.connect(address, timeout)
         connected = true
     }
@@ -142,7 +149,7 @@ internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged 
     }
 
     companion object {
-        const val DEFAULT_TIMEOUT = 5000
+        const val DEFAULT_TIMEOUT = 60000
     }
 
 }

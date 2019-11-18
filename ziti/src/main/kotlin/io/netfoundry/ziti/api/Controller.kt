@@ -21,7 +21,7 @@ import io.netfoundry.ziti.Errors
 import io.netfoundry.ziti.ZitiException
 import io.netfoundry.ziti.getZitiError
 import io.netfoundry.ziti.net.internal.Sockets
-import io.netfoundry.ziti.util.JULogged
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
 import io.netfoundry.ziti.util.Version
 import kotlinx.coroutines.Deferred
@@ -44,7 +44,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509TrustManager, sessToken: String? = null) :
-    Logged by JULogged() {
+    Logged by ZitiLog() {
     val SdkInfo = mapOf("type" to "ziti-sdk-java") + Version.VersionInfo
 
     internal interface API {

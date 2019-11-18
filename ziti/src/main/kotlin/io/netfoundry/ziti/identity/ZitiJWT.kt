@@ -43,7 +43,7 @@ class ZitiJWT(cl: Claims, val serverKey: Key) {
         claims.get("em", String::class.java)
     }
 
-    val name: String?
+    val name: String
         get() = claims.get("sub", String::class.java)
 
     val enrollmentURL: URL

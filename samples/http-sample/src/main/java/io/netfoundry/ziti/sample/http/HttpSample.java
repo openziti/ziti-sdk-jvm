@@ -31,10 +31,6 @@ import java.util.logging.Logger;
 public class HttpSample {
 
     public static void main(String[] args) {
-        Logger.getLogger("").setLevel(Level.ALL);
-        for (Handler h: Logger.getLogger("").getHandlers()) {
-            h.setLevel(Level.ALL);
-        }
         try {
             Ziti.init(args[0], "".toCharArray(), true);
 

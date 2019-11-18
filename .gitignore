@@ -31,8 +31,9 @@ hs_err_pid*
 build/
 
 /.idea/*
+*.iml
+out/
 
 !/.idea/copyright/
 !/.idea/copyright/*
-
 
