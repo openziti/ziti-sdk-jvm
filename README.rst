@@ -70,6 +70,8 @@ Features
 --------
 - allows to develop applications that connect to services on NetFoundry Ziti Service mesh
 - strong identity support
+- transparent use -- in seamless mode connections to network resources are intercepted and 
+  routed over Ziti network for any Ziti service that identity has access to
 - written in `Kotlin <https://kotlinlang.org/>`_ with Java-friendly API
 - read more in our docs_
 
@@ -91,13 +93,14 @@ rootCA
    root CA certificates used to validate `Ziti controller <https://netfoundry.github.io/ziti-doc/ziti/manage/controller.html>`_ and
    `routers <https://netfoundry.github.io/ziti-doc/ziti/manage/router-overview.html>`_
 
-.. sidebar::
+Note:
+
    This allows enrolling and storing multiple identity keys and certificates in a single key store (pkcs#12 file).
    However, typically an application instance would only have a single enrollment or identity
 
 Android Support
 ---------------
-
+Easiest way to start developing on Android with Ziti is to create your repo from our `template project <https://github.com/NetFoundry/ziti-android-app>`_ or just look at the code for inspiration.
 
 
 Getting Help
