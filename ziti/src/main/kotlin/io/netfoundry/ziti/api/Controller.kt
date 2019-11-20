@@ -52,11 +52,11 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
         fun currentSession(): Deferred<Response<Session>>
 
         @POST("authenticate?method=password")
-        fun authenticate(@Body login: Login): Deferred<Response<SessionResponse>>
+        fun authenticate(@Body login: Login): Deferred<Response<Session>>
 
         // dummy@Body is needed to force Content-Type: application/json
         @POST("authenticate?method=cert")
-        fun authenticateCert(@Body req: ClientInfo): Deferred<Response<SessionResponse>>
+        fun authenticateCert(@Body req: ClientInfo): Deferred<Response<Session>>
 
         @DELETE("current-session")
         fun logout(): Deferred<Unit>
@@ -149,7 +149,7 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
 
             try {
                 val resp = call.await()
-                session = resp.data!!.session
+                session = resp.data!!
             } catch (ex: Exception) {
                 return convertError(ex)
             }

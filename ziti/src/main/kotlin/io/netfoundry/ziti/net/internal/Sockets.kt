@@ -23,6 +23,7 @@ import io.netfoundry.ziti.util.Logged
 import java.lang.reflect.Constructor
 import java.net.Socket
 import java.net.SocketImpl
+import java.security.PrivilegedAction
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal object Sockets : Logged by ZitiLog() {
@@ -36,9 +37,13 @@ internal object Sockets : Logged by ZitiLog() {
         val impl1 = Class.forName("java.net.SocksSocketImpl") as Class<SocketImpl>
         defaultImplCls = impl1
 
-        defaultImplCons = defaultImplCls.getDeclaredConstructor().apply {
-            isAccessible = true
-        }
+        defaultImplCons = defaultImplCls.getDeclaredConstructor()
+
+        java.security.AccessController.doPrivileged(
+            PrivilegedAction<Any> {
+                defaultImplCons.setAccessible(true)
+            })
+
     }
 
     fun init() {

@@ -25,6 +25,7 @@ import org.bouncycastle.util.io.pem.PemReader
 import java.io.OutputStream
 import java.io.Reader
 import java.net.Socket
+import java.net.URI
 import java.net.URL
 import java.nio.charset.Charset
 import java.security.*
@@ -103,9 +104,9 @@ internal class PrivateKeySigner(val key: PrivateKey, val sigAlg: String) : Conte
     override fun getSignature(): ByteArray = sig.sign()
 }
 
-internal fun getCACerts(api: URL, serverKey: Key): Collection<X509Certificate> {
-    val con = api.toURI().resolve("/.well-known/est/cacerts").toURL().openConnection() as HttpsURLConnection
-    con.sslSocketFactory = with(SSLContext.getInstance("TLS")) {
+internal fun getCACerts(api: URI, serverKey: Key): Collection<X509Certificate> {
+    val con = api.resolve("/.well-known/est/cacerts").toURL().openConnection() as HttpsURLConnection
+    con.sslSocketFactory = with(SSLContext.getInstance("TLSv1.2")) {
         init(null, arrayOf(KeyTrustManager(serverKey)), SecureRandom())
         socketFactory
     }

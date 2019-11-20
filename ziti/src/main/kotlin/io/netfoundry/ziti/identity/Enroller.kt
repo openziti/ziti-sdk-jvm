@@ -49,16 +49,13 @@ import java.util.*
 import javax.net.ssl.*
 import kotlin.text.Charsets.UTF_8
 
-class Enroller(enrollUrl: String, val method: Method, val name: String, val caCerts: Collection<X509Certificate>) {
+class Enroller(val enrollmentURL: URL, val method: Method, val name: String, val caCerts: Collection<X509Certificate>) {
 
     enum class Method {
         ott,
         ottca,
         ca
     }
-
-    val enrollmentURI = URI.create(enrollUrl)
-    val controllerURI = enrollmentURI.resolve("/")
 
     companion object {
         val P256 = ECGenParameterSpec("secp256r1")
@@ -67,12 +64,12 @@ class Enroller(enrollUrl: String, val method: Method, val name: String, val caCe
         fun fromJWT(jwt: String): Enroller = runBlocking(Dispatchers.IO) {
 
             val zitiJwt = ZitiJWT.fromJWT(jwt)
-            val enrollUrl = zitiJwt.enrollmentURL
-            val controllerCA = getCACerts(URL(enrollUrl), zitiJwt.serverKey)
+            val controllerCA = getCACerts(zitiJwt.controller, zitiJwt.serverKey)
+
             val method = zitiJwt.method
             val name = zitiJwt.name
 
-            Enroller(enrollUrl, Method.valueOf(method), name, controllerCA)
+            Enroller(zitiJwt.enrollmentURL, Method.valueOf(method), name, controllerCA)
         }
 
         private class Cli : CliktCommand(name = "ziti-enroller") {
@@ -102,7 +99,7 @@ class Enroller(enrollUrl: String, val method: Method, val name: String, val caCe
 
     fun enroll(cert: KeyStore.Entry?, keyStore: KeyStore, name: String): String {
 
-        val conn = enrollmentURI.toURL().openConnection() as HttpsURLConnection
+        val conn = enrollmentURL.openConnection() as HttpsURLConnection
         val ssl = getSSLContext(cert)
 
         val pke = when (method) {
@@ -116,7 +113,7 @@ class Enroller(enrollUrl: String, val method: Method, val name: String, val caCe
             else -> throw UnsupportedOperationException("method $method is not supported")
         }
 
-        val alias = "ziti://${enrollmentURI.host}:${enrollmentURI.port}/${URLEncoder.encode(name, UTF_8.name())}"
+        val alias = "ziti://${enrollmentURL.host}:${enrollmentURL.port}/${URLEncoder.encode(name, UTF_8.name())}"
         val protect = if (keyStore.type == "PKCS12") KeyStore.PasswordProtection(charArrayOf()) else null
 
         keyStore.setEntry(alias, pke, protect)
