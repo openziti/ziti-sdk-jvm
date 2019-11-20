@@ -19,27 +19,47 @@ package io.netfoundry.ziti.identity
 import io.netfoundry.ziti.api.Controller
 import io.netfoundry.ziti.api.Identity
 import io.netfoundry.ziti.api.Login
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.net.URI
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.util.*
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
+import kotlin.test.fail
 
 internal object ZitiTestHelper {
-    val controllerSSL = SSLContext.getInstance("TLS").apply {
+
+    val controllerSSL = SSLContext.getInstance("TLSv1.2").apply {
         init(null, arrayOf(TrustAll), SecureRandom())
     }
 
-    val objects = mutableListOf<String>()
+    private val objects = mutableListOf<String>()
     var session: String = ""
     lateinit var ctrlURI: URI
     lateinit var controller: Controller
 
-    fun init(url: String, user: String, pass: String) = runBlocking {
+    fun init() = runBlocking(Dispatchers.IO) {
+
+        val props = File(System.getProperty("ziti-test.properties")).let {
+            if (it.exists())
+                Properties().apply {
+                    load(it.inputStream())
+                }
+            else
+                fail("test properties not found")
+        }
+
+        val username = props.getProperty("username") ?: fail("need admin username")
+        val password = props.getProperty("password") ?: fail("need admin password")
+        val url = props.getProperty("controller") ?: fail("need controller")
+
         ctrlURI = URI.create(url)
         controller = Controller(ctrlURI.toURL(), controllerSSL, TrustAll)
-        val s = controller.login(Login(user, pass))
+
+        val s = controller.login(Login(username, password))
         session = s.token
     }
 
@@ -60,6 +80,9 @@ internal object ZitiTestHelper {
         objects.forEach {
             delete(it)
         }
+    }
+
+    fun cleanupSession() {
         delete("/current-session")
     }
 

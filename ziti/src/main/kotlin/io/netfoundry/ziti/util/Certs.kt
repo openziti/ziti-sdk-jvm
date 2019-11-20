@@ -106,7 +106,7 @@ internal class PrivateKeySigner(val key: PrivateKey, val sigAlg: String) : Conte
 
 internal fun getCACerts(api: URI, serverKey: Key): Collection<X509Certificate> {
     val con = api.resolve("/.well-known/est/cacerts").toURL().openConnection() as HttpsURLConnection
-    con.sslSocketFactory = with(SSLContext.getInstance("TLS")) {
+    con.sslSocketFactory = with(SSLContext.getInstance("TLSv1.2")) {
         init(null, arrayOf(KeyTrustManager(serverKey)), SecureRandom())
         socketFactory
     }

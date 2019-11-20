@@ -18,18 +18,15 @@ package io.netfoundry.ziti.identity
 
 import io.netfoundry.ziti.api.Controller
 import io.netfoundry.ziti.api.Identity
-import io.netfoundry.ziti.util.Version
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.openssl.PEMKeyPair
 import org.bouncycastle.openssl.PEMParser
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.rules.TestName
 import java.net.URI
+import java.net.URL
 import java.security.KeyStore
 import kotlin.math.absoluteValue
 import kotlin.random.Random
@@ -44,29 +41,40 @@ class EnrollTest {
     @JvmField
     val tn = TestName()
 
-    companion object {
-        val controllerURL = "https://demo.ziti.netfoundry.io:1080/"
-        val username = "admin"
-        val password = "admin"
-    }
-
+    lateinit var controllerURL: URL
 
     internal lateinit var device: Identity
     var deviceURI: String? = null
     var enrollmentJWT: String? = null
 
-    @Before
-    fun controllerInit() {
-        ZitiTestHelper.init(controllerURL, username, password)
-    }
 
     @After
     fun controllerCleanup() {
         ZitiTestHelper.cleanup()
     }
 
+    companion object {
+        @BeforeClass
+        @JvmStatic
+        fun initTest() {
+            try {
+                ZitiTestHelper.init()
+            } catch (ex: Exception) {
+                Assume.assumeNoException("set ziti-test.properties to run this test", ex)
+            }
+        }
+
+        @AfterClass
+        @JvmStatic
+        fun cleanupTest() {
+            ZitiTestHelper.cleanupSession()
+        }
+    }
+
     @Before
     fun init() {
+        controllerURL = ZitiTestHelper.ctrlURI.toURL()
+
         val device = ZitiTestHelper.createDevice(tn.methodName)
         deviceURI = device.first
         this.device = device.second
@@ -93,8 +101,10 @@ class EnrollTest {
             load(null)
         }
 
-        val alias = "test-identity"
-        enroller.enroll(null, ks, alias)
+        val name = "test-identity"
+        enroller.enroll(null, ks, name)
+
+        val alias = "ziti://${controllerURL.host}:${controllerURL.port}/$name"
 
         val deviceCheck = ZitiTestHelper.getDevice(device.id)
 
@@ -118,7 +128,7 @@ class EnrollTest {
         val identiity = KeyStoreIdentity(ks1, alias)
         //verify login with cert
 
-        assertEquals("ctrlURI URL", controllerURL, identiity.controller())
+        assertEquals("ctrlURI URL", controllerURL.toString(), identiity.controller())
         assertNotNull("Name", identiity.name())
 
         val controller =
@@ -126,30 +136,5 @@ class EnrollTest {
         val loginResp = controller.login()
         assertNotNull("login with device cert", loginResp.token)
         controller.logout()
-    }
-
-    @Test
-    fun testVersionInfo() {
-        val info = Version.VersionInfo
-
-        println(info)
-    }
-
-    // internal class Id(val key: String, val cert: String, val ca: String)
-    // internal class Identity(val ztAPI: String, val id: Id)
-    @Test
-    fun testLoadJsonId() {
-        val pem = "-----BEGIN EC PRIVATE KEY-----\n" +
-                "MIGkAgEBBDB/CJUK2ihxnbCOhXj7wbzOe/73h3DnKipZibT+R+/6lZkDCS9Yx7D3\n" +
-                "T4rWGi5lQ+2gBwYFK4EEACKhZANiAARB6YWLyBY/sWq4YGbxBZlmylzzsfqqGAhh\n" +
-                "G2+8DV4YjI2LLkTMO3/J3O0tFyLPuHT6sXsRmf6O4A7Y2zuwTkI7NeuWMKeHCiKM\n" +
-                "eJvXrEy/TRQiVKNb3N5BCiJuwBmuEtE=\n" +
-                "-----END EC PRIVATE KEY-----"
-
-        val parser = PEMParser(pem.reader())
-        val po = parser.readObject()
-
-        val pair = JcaPEMKeyConverter().getKeyPair(po as PEMKeyPair?)
-        println(pair)
     }
 }
