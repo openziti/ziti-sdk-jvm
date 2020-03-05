@@ -1,11 +1,14 @@
 pipeline {
-    agent any
+    agent {
+        docker { image 'uber/android-build-environment:latest' }
+    }
 
     stages {
         stage('Setup') {
             steps {
                 sh 'git tag --delete $(git tag -l)'
                 sh 'git fetch --verbose --tags'
+                sh 'mkdir -p ${ANDROID_HOME}/licenses'
                 rtGradleResolver (
                     id: "GRADLE_RESOLVER",
                     serverId: "ziti-uploads",
