@@ -16,6 +16,7 @@
 
 rootProject.name = 'ziti-jvm'
 include 'ziti'
+include 'ziti-android'
 
 
 include ':samples:sample'
