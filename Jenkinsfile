@@ -1,11 +1,18 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+           image 'uber/android-build-environment:latest'
+           args '-u root:root'
+        }
+    }
 
     stages {
         stage('Setup') {
             steps {
                 sh 'git tag --delete $(git tag -l)'
                 sh 'git fetch --verbose --tags'
+                sh 'mkdir -p ${ANDROID_HOME}/licenses'
+                sh 'cp -n etc/android-sdk*-license ${ANDROID_HOME}/licenses'
                 rtGradleResolver (
                     id: "GRADLE_RESOLVER",
                     serverId: "ziti-uploads",
@@ -69,7 +76,7 @@ pipeline {
                     switches: "--no-daemon",
                     rootDir: ".",
                     buildFile: 'build.gradle.kts',
-                    tasks: 'clean build :ziti:artifactoryPublish',
+                    tasks: 'clean build :ziti:artifactoryPublish :ziti-android:artifactoryPublish',
                     deployerId: "GRADLE_DEPLOYER",
                     resolverId: "GRADLE_RESOLVER"
                 )
