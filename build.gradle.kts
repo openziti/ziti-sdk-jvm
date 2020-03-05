@@ -20,12 +20,21 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val zitiBuildnum by extra { System.getenv("BUILD_NUMBER") ?: "local" }
 
 plugins {
-    kotlin("jvm") version "1.3.50"
+    kotlin("jvm") version "1.3.61"
     id("io.wusa.semver-git-plugin") version "1.2.1"
 }
-
+buildscript {
+    repositories {
+        mavenCentral()
+        google()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:3.6.1")
+    }
+}
 repositories {
     mavenCentral()
+    google()
 }
 
 
