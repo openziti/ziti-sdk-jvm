@@ -8,7 +8,6 @@ pipeline {
             steps {
                 sh 'git tag --delete $(git tag -l)'
                 sh 'git fetch --verbose --tags'
-                sh 'mkdir -p ${ANDROID_HOME}/licenses'
                 rtGradleResolver (
                     id: "GRADLE_RESOLVER",
                     serverId: "ziti-uploads",
