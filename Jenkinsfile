@@ -76,7 +76,7 @@ pipeline {
                     switches: "--no-daemon",
                     rootDir: ".",
                     buildFile: 'build.gradle.kts',
-                    tasks: 'clean build :ziti:artifactoryPublish',
+                    tasks: 'clean build :ziti:artifactoryPublish :ziti-android:artifactoryPublish',
                     deployerId: "GRADLE_DEPLOYER",
                     resolverId: "GRADLE_RESOLVER"
                 )
