@@ -2,17 +2,10 @@ package io.netfoundry.ziti.android
 
 import android.app.Activity
 import android.content.Intent
-import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 
-class EnrollmentActivity : AppCompatActivity() {
+class EnrollmentActivity : Activity() {
 
     val SELECT_ENROLLMENT_JWT = 0x1234
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_enrollment)
-    }
 
     override fun onStart() {
         super.onStart()

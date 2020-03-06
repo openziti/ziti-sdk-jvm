@@ -1,5 +1,6 @@
 package io.netfoundry.ziti.android
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -8,8 +9,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
@@ -34,7 +33,7 @@ object Ziti {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             app.getSystemService(NotificationManager::class.java)?.createNotificationChannel(
-                NotificationChannel(Ziti, "ZITI", NotificationManager.IMPORTANCE_HIGH)
+                NotificationChannel(ZitiNotificationChannel, Ziti, NotificationManager.IMPORTANCE_HIGH)
             )
         }
 
@@ -43,23 +42,31 @@ object Ziti {
 
         val ctxList = Impl.init(keyStore, seamless)
         if (ctxList.isEmpty()) {
-            val notification = NotificationCompat.Builder(app, ZitiNotificationChannel)
+            val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Notification.Builder(app, ZitiNotificationChannel)
+            } else {
+                Notification.Builder(app)
+            }
+
+            val notification = builder
                 .setSmallIcon(android.R.drawable.stat_sys_warning)
                 .setContentTitle("Ziti Status")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setPriority(Notification.PRIORITY_HIGH)
                 .setContentText("Application is not enrolled with Ziti Network")
                 .setContentIntent(
                     PendingIntent.getActivity(
                     app, 0x7171, Intent(app, EnrollmentActivity::class.java), PendingIntent.FLAG_CANCEL_CURRENT))
                 .build()
 
-            NotificationManagerCompat.from(app).notify(null, 0x2171, notification)
+            app.getSystemService(NotificationManager::class.java)?.apply {
+                notify(null, 0x2171, notification)
+            }
         }
     }
 
     fun enrollZiti(jwtUri: Uri) {
         val jwt = app.contentResolver.openInputStream(jwtUri)!!.readBytes()
-        val name = "Galaxy S8+"
+        val name = "ziti-sdk"
 
         Thread {
             try {
@@ -78,7 +85,7 @@ object Ziti {
                 Toast.makeText(app, "${str} : ${ex.localizedMessage}", LENGTH_LONG).show()
             } else {
                 Toast.makeText(app, str, LENGTH_LONG).show()
-                NotificationManagerCompat.from(app).cancel(null, 0x2171)
+                app.getSystemService(NotificationManager::class.java)?.cancel(null, 0x2171)
             }
         }
     }
