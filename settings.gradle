@@ -16,7 +16,10 @@
 
 rootProject.name = 'ziti-jvm'
 include 'ziti'
-include 'ziti-android'
+
+if (properties.buildForAndroid == "true") {
+    include 'ziti-android'
+}
 
 
 include ':samples:sample'
