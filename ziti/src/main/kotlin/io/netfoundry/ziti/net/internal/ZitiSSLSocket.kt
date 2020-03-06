@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,29 +65,37 @@ class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int
     override fun getOutputStream(): OutputStream = output
 
     inner class Input : InputStream() {
+        val sslBuffer = ByteBuffer.allocate(32 * 1024)
         override fun read(): Int {
-            return transport.getInputStream().read()
+            val buf = ByteArray(1)
+            val read = read(buf, 0, 1)
+            return if (read == 1) (buf[0].toInt() and 0xFF) else -1
         }
 
-        override fun read(out: ByteArray?, off: Int, len: Int): Int {
-            transport.getInputStream()?.let {
-                val buffer = ByteBuffer.allocate(32 * 1024)
-                val b = ByteArray(32 * 1024)
+        override fun read(out: ByteArray, off: Int, len: Int): Int {
+            val outBuffer = ByteBuffer.wrap(out, off, len)
+            return transport.getInputStream()?.let {
+                val b = ByteArray(sslBuffer.capacity() - sslBuffer.position())
                 val read = it.read(b)
+                d("read read=$read")
                 if (read > 0) {
-                    buffer.put(b, 0, read)
-                    buffer.flip()
+                    sslBuffer.put(b, 0, read)
+                    d("read read=$read sslBuf=$sslBuffer")
+                    sslBuffer.flip()
 
-                    val res = engine.unwrap(buffer, ByteBuffer.wrap(out, off, len))
-                    d{"read read=$read consumed=${res.bytesConsumed()} produced=${res.bytesProduced()} (${String(out!!, off, res.bytesProduced())})"}
-                    return res.bytesProduced()
+                    do {
+                        val res = engine.unwrap(sslBuffer, outBuffer)
+                        v("unwrap cons/prod=${res.bytesConsumed()}/${res.bytesProduced()} $sslBuffer $outBuffer")
+                    } while(res.bytesProduced() > 0 && sslBuffer.remaining() > 0)
+                    sslBuffer.compact()
+                    d("sslBuf=$sslBuffer outBuffer=$outBuffer")
+                    v(String(out, off, outBuffer.position()))
+                    outBuffer.position()
                 }
                 else {
-                    return read
+                    read
                 }
-            }
-
-            return -1
+            } ?: -1
         }
     }
 
@@ -150,6 +158,11 @@ class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int
             }
         }
         return engine.session
+    }
+
+    override fun getSoTimeout(): Int = transport.soTimeout
+    override fun setSoTimeout(timeout: Int) {
+        transport.soTimeout = timeout
     }
 
     override fun setUseClientMode(mode: Boolean) {

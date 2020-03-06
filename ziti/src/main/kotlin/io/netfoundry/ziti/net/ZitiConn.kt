@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,8 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
 
             return readBuf.remaining()
         } catch (to: TimeoutCancellationException) {
-            throw TimeoutException("timeout")
+            d("timeout[$timeout] reached $to")
+            return 0
         } catch (closeEx: ClosedReceiveChannelException) {
             return -1
         }
