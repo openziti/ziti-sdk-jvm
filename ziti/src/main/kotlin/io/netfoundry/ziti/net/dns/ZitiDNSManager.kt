@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package io.netfoundry.ziti.net.dns
 import io.netfoundry.ziti.api.Service
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -36,7 +37,7 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper {
 
     internal fun registerService(service: Service): InetSocketAddress? {
 
-        service.dns?.hostname?.let { hostname ->
+        service.dns?.hostname?.toLowerCase(Locale.getDefault())?.let { hostname ->
             val ip = host2Ip.getOrPut(hostname) {
                 nextAddr(hostname)
             }
@@ -54,14 +55,14 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper {
         return null
     }
 
-    fun unregisterService(service: Service) {
+    internal fun unregisterService(service: Service) {
         val addr = serviceId2addr.get(service.id)
         if (addr != null) {
             addr2serviceId.remove(addr)
         }
     }
 
-    override fun resolve(hostname: String): InetAddress? = host2Ip.get(hostname)
+    override fun resolve(hostname: String): InetAddress? = host2Ip.get(hostname.toLowerCase(Locale.getDefault()))
 
     override fun getServiceIdByAddr(addr: InetSocketAddress): String? = addr2serviceId.get(addr)
 
