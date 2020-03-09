@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,35 @@
 
 package io.netfoundry.ziti
 
-enum class Errors {
-    NotEnrolled,
-    ControllerUnavailable,
-    NotAuthorized,
-    GatewayUnavailable,
-    ServiceNotAvailable,
-    WTF
+
+sealed class Errors {
+    object NotEnrolled : Errors()
+    object ControllerUnavailable: Errors()
+    object NotAuthorized: Errors()
+    object EdgeRouterUnavailable: Errors()
+    object ServiceNotAvailable: Errors()
+    data class WTF(val err: String): Errors()
+
+    override fun toString(): String = javaClass.simpleName
 }
 
 private val errorMap = mapOf(
-    "NO_ROUTABLE_INGRESS_NODES" to Errors.GatewayUnavailable,
+    "NO_EDGE_ROUTERS_AVAILABLE" to Errors.EdgeRouterUnavailable,
     "INVALID_AUTHENTICATION" to Errors.NotAuthorized,
     "REQUIRES_CERT_AUTH" to Errors.NotAuthorized,
     "UNAUTHORIZED" to Errors.NotAuthorized,
     "INVALID_AUTH" to Errors.NotAuthorized
 )
 
-fun getZitiError(err: String): Errors = errorMap.getOrElse(err) { Errors.WTF }
+fun getZitiError(err: String): Errors = errorMap.getOrElse(err) { Errors.WTF(err) }
 
-class ZitiException(val code: Errors, cause: Throwable? = null) : Exception(code.name, cause) {
+class ZitiException(val code: Errors, cause: Throwable? = null) : Exception(code.toString(), cause) {
 
     override fun getLocalizedMessage(): String {
         cause?.let {
-            return code.name + ": " + it.localizedMessage
+            return code.toString() + ": " + it.localizedMessage
         }
 
-        return code.name
+        return code.toString()
     }
 }

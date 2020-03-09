@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -217,9 +217,9 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
                 }
                 return ch
             } catch (cex: ConnectException) {
-                throw ZitiException(Errors.GatewayUnavailable, cex)
+                throw ZitiException(Errors.EdgeRouterUnavailable, cex)
             } catch (ex: Throwable) {
-                throw ZitiException(Errors.WTF, ex)
+                throw ZitiException(Errors.WTF(ex.toString()), ex)
             }
         }
     }

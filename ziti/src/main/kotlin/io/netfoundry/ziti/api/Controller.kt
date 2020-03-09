@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,7 +197,7 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
         when (t) {
             is HttpException -> throw ZitiException(getZitiError(getError(t.response())))
             is IOException -> throw ZitiException(Errors.ControllerUnavailable, t)
-            else -> throw ZitiException(Errors.WTF, t)
+            else -> throw ZitiException(Errors.WTF(t.toString()), t)
         }
     }
 
