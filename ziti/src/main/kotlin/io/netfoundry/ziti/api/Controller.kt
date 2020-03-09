@@ -48,7 +48,7 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
     val SdkInfo = mapOf("type" to "ziti-sdk-java") + Version.VersionInfo
 
     internal interface API {
-        @GET("current-session")
+        @GET("current-api-session")
         fun currentSession(): Deferred<Response<Session>>
 
         @POST("authenticate?method=password")
@@ -58,7 +58,7 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
         @POST("authenticate?method=cert")
         fun authenticateCert(@Body req: ClientInfo): Deferred<Response<Session>>
 
-        @DELETE("current-session")
+        @DELETE("current-api-session")
         fun logout(): Deferred<Unit>
 
         @GET("services?limit=100")
