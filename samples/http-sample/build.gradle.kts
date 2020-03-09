@@ -15,19 +15,20 @@
  */
 
 plugins {
-    id 'java'
+    id("java")
+    id("application")
 }
-
-group 'io.netfoundry.ziti'
-version '0.1.0'
-
-sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile project(":ziti")
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile(project(":ziti"))
+    testCompile(group = "junit", name = "junit", version = "4.12")
 }
+
+application {
+    mainClassName = "io.netfoundry.ziti.sample.http.HttpSample"
+}
+
