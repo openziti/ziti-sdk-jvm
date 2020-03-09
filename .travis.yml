@@ -10,6 +10,12 @@ android:
 
 before_script:
   - java -version
+  - go version
 
 script:
-  - ./gradlew tasks
+  - ./gradlew :tagIfNeeded
+  - ./gradlew :ziti:check :ziti:assemble
+  - ./gradlew :ziti-android:check :ziti-android:assemble
+
+after_success:
+  - git push --tags

@@ -16,6 +16,8 @@
 
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.ByteArrayOutputStream
+
 
 val zitiBuildnum by extra { System.getenv("BUILD_NUMBER") ?: "local" }
 
@@ -69,5 +71,59 @@ subprojects {
 
     tasks.withType<PublishToMavenRepository>().all {
         onlyIf { !gitInfo.dirty }
+    }
+}
+
+fun Project.sh(cmd: String, vararg args: String): String {
+    val out = ByteArrayOutputStream()
+    this.exec {
+        commandLine(cmd, *args)
+        standardOutput = out
+    }
+    return out.toString()
+}
+
+tasks.register("tagIfNeeded") {
+    if (gitBranch == "master") {
+
+        doLast {
+            val zitiVer = File("version").readText().trim()
+
+            val (zitiMajor, zitiMinor, zitiPatch) = zitiVer.split(".").map { it.toInt() }
+
+            println ("${zitiMajor} -> ${zitiMinor} -> ${zitiPatch}")
+
+            val tagVer = project.sh("git", "describe", "--long")
+
+            println(tagVer)
+
+            val tagVerSplit = tagVer.split(regex = Regex("[\\.-]")).take(4)
+            val tagMajor = tagVerSplit[0].toInt()
+            val tagMinor = tagVerSplit[1].toInt()
+            val tagPatch = tagVerSplit[2].toInt()
+            val ahead = tagVerSplit[3].toInt()
+
+            if ( zitiMajor > tagMajor ||
+                (zitiMajor == tagMajor && zitiMinor > tagMinor ) ||
+                (zitiMinor == tagMajor && zitiMinor == tagMinor && zitiPatch > tagPatch) )
+            {
+                val new_tag = zitiVer
+                println("advancing tag($new_tag) based on 'version' file")
+                project.sh("git", "tag",  "-a",  new_tag, "-m", "CI tag ${new_tag}")
+            } else {
+                if (ahead == 0) {
+                    println("already has tag = ${tagMajor}.${tagMinor}.${tagPatch}")
+                    // new_tag = "${tagMajor}.${tagMinor}.${tagPatch}"
+                }
+                else {
+                    println("bumping up new tag")
+                    val new_tag = "${tagMajor}.${tagMinor}.${tagPatch + 1}"
+                    println("setting new tag = $new_tag")
+                    project.sh("git", "tag",  "-a",  new_tag, "-m", "CI tag ${new_tag}")
+
+                }
+            }
+
+        }
     }
 }
