@@ -1,0 +1,15 @@
+language: android
+os: linux
+dist: trusty
+
+android:
+  components:
+    - tools
+    - platform-tools
+    - android-29
+
+before_script:
+  - java -version
+
+script:
+  - ./gradlew tasks
