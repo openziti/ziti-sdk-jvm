@@ -4,11 +4,22 @@ dist: trusty
 
 android:
   components:
-    - tools
-    - platform-tools
+    - build-tools-29.0.4
     - android-29
   licenses:
-    - etc/android-*-license
+    - etc/android-sdk-license
+    - etc/android-sdk-preview-license
+
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
 
 before_script:
   - java -version
