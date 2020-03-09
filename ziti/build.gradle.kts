@@ -20,6 +20,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
     id("maven")
     id("maven-publish")
+    id("com.jfrog.artifactory")
 }
 
 repositories {
@@ -102,4 +103,25 @@ publishing {
             artifact(distZip)
         }
     }
+}
+
+fun Project.artifactory(configure: org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention.() -> Unit): Unit =
+    configure(project.convention.getPluginByName("artifactory"))
+
+
+artifactory {
+    setContextUrl("https://netfoundry.jfrog.io/netfoundry")
+    publish(delegateClosureOf<org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig> {
+        repository(delegateClosureOf<groovy.lang.GroovyObject> {
+            setProperty("repoKey", "ziti-maven")
+            setProperty("username", "ziti-ci")
+            setProperty("password", System.getenv("JFROG_API_KEY"))
+            setProperty("maven", true)
+        })
+        defaults(delegateClosureOf<groovy.lang.GroovyObject> {
+            invokeMethod("publications", "mavenJava")
+            setProperty("publishPom", true)
+            setProperty("publishArtifacts", true)
+        })
+    })
 }

@@ -21,10 +21,7 @@ import java.io.ByteArrayOutputStream
 
 val zitiBuildnum by extra { System.getenv("BUILD_NUMBER") ?: "local" }
 
-plugins {
-    kotlin("jvm") version "1.3.61"
-    id("io.wusa.semver-git-plugin") version "1.2.1"
-}
+
 buildscript {
     repositories {
         mavenCentral()
@@ -32,8 +29,16 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:3.6.1")
+        classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.7.2")
     }
 }
+
+plugins {
+    kotlin("jvm") version "1.3.61"
+    id("io.wusa.semver-git-plugin") version "1.2.1"
+    id("com.jfrog.artifactory") version "4.14.1"
+}
+
 repositories {
     mavenCentral()
     google()
@@ -62,6 +67,8 @@ val gitBranch by extra { semver.info.branch.name }
 subprojects {
     group = rootProject.group
     version = rootProject.version
+
+    plugins.apply("com.jfrog.artifactory")
 
     tasks.withType<KotlinCompile>().all {
         kotlinOptions {
