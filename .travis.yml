@@ -28,9 +28,9 @@ cache:
 before_script:
   - echo ${gh_ci_key} > github_deploy_key
   - chmod 600 github_deploy_key
-  - git config set user.name ziti-ci
-  - git config set user.email ziti-ci@netfoundry.io
-  - git config set core.sshCommand 'ssh -i github_deploy_key'
+  - git config user.name ziti-ci
+  - git config user.email ziti-ci@netfoundry.io
+  - git config core.sshCommand 'ssh -i github_deploy_key'
   - git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}
 
 script:
