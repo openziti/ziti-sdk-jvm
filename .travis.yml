@@ -5,7 +5,7 @@ os: linux
 dist: trusty
 
 env:
-  - BUILD_NUMBER = ${TRAVIS_BUILD_NUMBER}
+  - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
 
 android:
   components:
