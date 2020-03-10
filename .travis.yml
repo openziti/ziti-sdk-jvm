@@ -4,6 +4,9 @@ language: android
 os: linux
 dist: trusty
 
+env:
+  - BUILD_NUMBER = ${TRAVIS_BUILD_NUMBER}
+
 android:
   components:
     - build-tools-29.0.3
