@@ -1,3 +1,5 @@
+version: "~> 1.0"
+
 language: android
 os: linux
 dist: trusty
@@ -24,8 +26,12 @@ cache:
 
 
 before_script:
-  - java -version
-  - go version
+  - echo ${gh_ci_key} > github_deploy_key
+  - chmod 600 github_deploy_key
+  - git config set user.name ziti-ci
+  - git config set user.email ziti-ci@netfoundry.io
+  - git config set core.sshCommand 'ssh -i github_deploy_key'
+  - git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}
 
 script:
   - ./gradlew :tagIfNeeded
@@ -34,4 +40,4 @@ script:
   - ./gradlew :ziti:artifactoryPublish
 
 after_success:
-  - git push --tags
+  - git push --tags --verbose
