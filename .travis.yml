@@ -1,0 +1,43 @@
+version: "~> 1.0"
+
+language: android
+os: linux
+dist: trusty
+
+android:
+  components:
+    - build-tools-29.0.3
+    - android-29
+  licenses:
+    - etc/android-sdk-license
+    - etc/android-sdk-preview-license
+
+before_install:
+  - yes | sdkmanager "platforms;android-29"
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
+
+before_script:
+  - echo ${gh_ci_key} | base64 --decode > github_deploy_key
+  - chmod 600 github_deploy_key
+  - git config user.name ziti-ci
+  - git config user.email ziti-ci@netfoundry.io
+  - git config core.sshCommand 'ssh -i github_deploy_key'
+  - git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}
+
+script:
+  - ./gradlew :tagIfNeeded
+  - ./gradlew :ziti:check :ziti:assemble
+  - ./gradlew :ziti-android:check :ziti-android:assemble
+  - ./gradlew :ziti:artifactoryPublish :ziti-android:artifactoryPublish
+
+after_success:
+  - git push --tags --verbose
