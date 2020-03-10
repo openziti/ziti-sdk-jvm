@@ -37,7 +37,7 @@ script:
   - ./gradlew :tagIfNeeded
   - ./gradlew :ziti:check :ziti:assemble
   - ./gradlew :ziti-android:check :ziti-android:assemble
-  - ./gradlew :ziti:artifactoryPublish
+  - ./gradlew :ziti:artifactoryPublish :ziti-android:artifactoryPublish
 
 after_success:
   - git push --tags --verbose

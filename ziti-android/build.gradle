@@ -18,10 +18,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'maven-publish'
+apply plugin: "com.jfrog.artifactory"
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    buildToolsVersion "29.0.3"
 
     defaultConfig {
         minSdkVersion 23
@@ -69,6 +70,23 @@ publishing {
             groupId = project.group
             version = project.version
             artifact("${buildDir}/outputs/aar/${project.name}-release.aar")
+        }
+    }
+}
+
+artifactory {
+    setContextUrl("https://netfoundry.jfrog.io/netfoundry")
+    publish {
+        repository {
+            repoKey = "ziti-maven"
+            username = "ziti-ci"
+            password = System.getenv("JFROG_API_KEY")
+            maven = true
+        }
+        defaults {
+            publications("aar")
+            publishPom = true
+            publishArtifacts = true
         }
     }
 }
