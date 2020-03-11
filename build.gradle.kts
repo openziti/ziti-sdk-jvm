@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.publish.maven.internal.publisher.MavenPublisher
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.ByteArrayOutputStream
 
@@ -29,13 +28,13 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:3.6.1")
-        classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.7.2")
+        classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.14.1")
     }
 }
 
 plugins {
     kotlin("jvm") version "1.3.61"
-    id("io.wusa.semver-git-plugin") version "1.2.1"
+    id("io.wusa.semver-git-plugin") version "2.0.2"
     id("com.jfrog.artifactory") version "4.14.1"
 }
 
@@ -48,21 +47,31 @@ repositories {
 group = "io.netfoundry.ziti"
 
 semver {
-    nextVersion = "patch"
-    snapshotSuffix = "<count>.<sha><dirty>"
-    dirtyMarker = "-dirty"
+    //nextVersion = "patch"
+    snapshotSuffix = "pre"
     initialVersion = "0.1.0"
-}
-
-if (semver.info.branch.id == "master") {
-    version = "${semver.info.version}-${zitiBuildnum}"
-} else {
-    version = "${semver.info.branch.id}-${semver.info.version}"
+    branches {
+        branch {
+            regex = "master"
+            incrementer = "NO_VERSION_INCREMENTER"
+            formatter = Transformer { info -> "${info.version.major}.${info.version.minor}.${info.version.patch}-${zitiBuildnum}" }
+        }
+        branch {
+            regex = ".+"
+            incrementer = "NO_VERSION_INCREMENTER"
+            formatter = Transformer { info ->
+                val v = info.version
+                """${info.branch.id}-${v.major}.${v.minor}.${v.patch}.${v.suffix?.count ?: "0"}.${v.suffix?.sha}""" }
+        }
+    }
 }
 
 val gitInfo by extra { semver.info }
 val gitCommit by extra { semver.info.shortCommit }
 val gitBranch by extra { semver.info.branch.name }
+
+version = semver.info
+println("version = ${version}")
 
 subprojects {
     group = rootProject.group
