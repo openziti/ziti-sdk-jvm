@@ -36,26 +36,22 @@ before_script:
   - git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}
 
 stages:
-  - name: tagging
-    if: branch = master
-
   - name: test and build
 
-  - name: publish
+  - name: tag and publish
     if: branch = master and type != pull_request
 
 jobs:
   include:
-    - stage: tagging
-      script:
-        - ./gradlew :tagIfNeeded
 
     - stage: test and build
       script:
-        - ./gradlew :ziti:check :ziti:assemble
-        - ./gradlew :ziti-android:check :ziti-android:assemble
+        - ./gradlew build
+        - ./gradlew :ziti:check
+        - ./gradlew :ziti-android:check
 
-    - stage: publish
+    - stage: tag and publish
       script:
-        - ./gradlew :ziti:artifactoryPublish :ziti-android:artifactoryPublish
+        - ./gradlew :tagIfNeeded
+        - ./gradlew assemble :ziti:artifactoryPublish :ziti-android:artifactoryPublish
         - git push --tags --verbose
