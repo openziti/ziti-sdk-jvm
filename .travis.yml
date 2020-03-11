@@ -42,7 +42,7 @@ stages:
   - name: test and build
 
   - name: publish
-    if: branch = master
+    if: branch = master and type != pull_request
 
 jobs:
   include:
@@ -56,5 +56,6 @@ jobs:
         - ./gradlew :ziti-android:check :ziti-android:assemble
 
     - stage: publish
+      script:
         - ./gradlew :ziti:artifactoryPublish :ziti-android:artifactoryPublish
         - git push --tags --verbose
