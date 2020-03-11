@@ -37,12 +37,12 @@ before_script:
 
 stages:
   - name: tagging
-    if: branch == master
+    if: branch = master
 
   - name: test and build
 
   - name: publish
-    if: branch == master
+    if: branch = master
 
 jobs:
   include:
