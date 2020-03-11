@@ -53,7 +53,7 @@ semver {
     branches {
         branch {
             regex = "master"
-            incrementer = "PATCH_INCREMENTER"
+            incrementer = "NO_VERSION_INCREMENTER"
             formatter = Transformer { info -> "${info.version.major}.${info.version.minor}.${info.version.patch}-${zitiBuildnum}" }
         }
         branch {
