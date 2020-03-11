@@ -70,7 +70,7 @@ val gitInfo by extra { semver.info }
 val gitCommit by extra { semver.info.shortCommit }
 val gitBranch by extra { semver.info.branch.name }
 
-version = semver.info.version
+version = semver.info
 println("version = ${version}")
 
 subprojects {
