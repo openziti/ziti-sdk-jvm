@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.ByteArrayOutputStream
-
-
-val zitiBuildnum by extra { System.getenv("BUILD_NUMBER") ?: "local" }
-
-
 buildscript {
     repositories {
         mavenCentral()
@@ -33,7 +26,7 @@ buildscript {
 }
 
 plugins {
-    kotlin("jvm") version "1.3.61"
+    id ("org.jetbrains.kotlin.jvm") version "1.3.61"
     id("io.wusa.semver-git-plugin") version "2.0.2"
     id("com.jfrog.artifactory") version "4.14.1"
 }
@@ -43,6 +36,10 @@ repositories {
     google()
 }
 
+ext {
+    zitiBuildnum = System.getenv("BUILD_NUMBER") ?: "local"
+    zitiBaseVersion = file("version").readLines()[0].trim()
+}
 
 group = "io.netfoundry.ziti"
 
@@ -54,21 +51,23 @@ semver {
         branch {
             regex = "master"
             incrementer = "NO_VERSION_INCREMENTER"
-            formatter = Transformer { info -> "${info.version.major}.${info.version.minor}.${info.version.patch}-${zitiBuildnum}" }
+            formatter = { info -> "${info.version.major}.${info.version.minor}.${info.version.patch}-${zitiBuildnum}" }
         }
         branch {
             regex = ".+"
             incrementer = "NO_VERSION_INCREMENTER"
-            formatter = Transformer { info ->
-                val v = info.version
+            formatter = { info ->
+                def v = info.version
                 """${info.branch.id}-${v.major}.${v.minor}.${v.patch}.${v.suffix?.count ?: "0"}.${v.suffix?.sha}""" }
         }
     }
 }
 
-val gitInfo by extra { semver.info }
-val gitCommit by extra { semver.info.shortCommit }
-val gitBranch by extra { semver.info.branch.name }
+ext {
+    gitInfo = semver.info
+    gitCommit = semver.info.shortCommit
+    gitBranch = semver.info.branch.name
+}
 
 version = semver.info
 println("version = ${version}")
@@ -79,19 +78,13 @@ subprojects {
 
     plugins.apply("com.jfrog.artifactory")
 
-    tasks.withType<KotlinCompile>().all {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
-    }
-
-    tasks.withType<PublishToMavenRepository>().all {
+    tasks.withType(PublishToMavenRepository).all {
         onlyIf { !gitInfo.dirty }
     }
 }
 
-fun Project.sh(cmd: String, vararg args: String): String {
-    val out = ByteArrayOutputStream()
+def sh (cmd, ...args) {
+    def out = new ByteArrayOutputStream()
     this.exec {
         commandLine(cmd, *args)
         standardOutput = out
@@ -100,32 +93,24 @@ fun Project.sh(cmd: String, vararg args: String): String {
 }
 
 tasks.register("tagIfNeeded") {
+
     if (gitBranch == "master") {
 
         doLast {
-            val zitiVer = File("version").readText().trim()
+            def (zitiMajor, zitiMinor, zitiPatch) = zitiBaseVersion.split(/\./).collect { it.toInteger() }
 
-            val (zitiMajor, zitiMinor, zitiPatch) = zitiVer.split(".").map { it.toInt() }
-
-            println ("${zitiMajor} -> ${zitiMinor} -> ${zitiPatch}")
-
-            val tagVer = project.sh("git", "describe", "--long")
-
-            println(tagVer)
-
-            val tagVerSplit = tagVer.split(regex = Regex("[\\.-]")).take(4)
-            val tagMajor = tagVerSplit[0].toInt()
-            val tagMinor = tagVerSplit[1].toInt()
-            val tagPatch = tagVerSplit[2].toInt()
-            val ahead = tagVerSplit[3].toInt()
+            def tagMajor = semver.info.version.major
+            def tagMinor = semver.info.version.minor
+            def tagPatch = semver.info.version.patch
+            def ahead = semver.info.version.suffix?.count
 
             if ( zitiMajor > tagMajor ||
                 (zitiMajor == tagMajor && zitiMinor > tagMinor ) ||
                 (zitiMinor == tagMajor && zitiMinor == tagMinor && zitiPatch > tagPatch) )
             {
-                val new_tag = zitiVer
+                def new_tag = zitiVer
                 println("advancing tag($new_tag) based on 'version' file")
-                project.sh("git", "tag",  "-a",  new_tag, "-m", "CI tag ${new_tag}")
+                sh("git", "tag",  "-a",  new_tag, "-m", "CI tag ${new_tag}")
             } else {
                 if (ahead == 0) {
                     println("already has tag = ${tagMajor}.${tagMinor}.${tagPatch}")
@@ -133,10 +118,9 @@ tasks.register("tagIfNeeded") {
                 }
                 else {
                     println("bumping up new tag")
-                    val new_tag = "${tagMajor}.${tagMinor}.${tagPatch + 1}"
+                    def new_tag = "${tagMajor}.${tagMinor}.${tagPatch + 1}"
                     println("setting new tag = $new_tag")
-                    project.sh("git", "tag",  "-a",  new_tag, "-m", "CI tag ${new_tag}")
-
+                    sh("git", "tag",  "-a",  new_tag, "-m", "CI tag ${new_tag}")
                 }
             }
 
