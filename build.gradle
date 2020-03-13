@@ -94,7 +94,7 @@ def sh (cmd, ...args) {
 
 tasks.register("tagIfNeeded") {
 
-    if (gitBranch == "master" || true) {
+    if (gitBranch == "master") {
 
         doLast {
             def (zitiMajor, zitiMinor, zitiPatch) = zitiBaseVersion.split(/\./).collect { it.toInteger() }
