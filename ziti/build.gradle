@@ -77,21 +77,11 @@ task sourcesJar(type: Jar) {
     classifier "sources"
 }
 
-ext {
-    repo = rootProject.property("publish.repo") ?: "file://${buildDir}/maven-repo"
-}
-
 artifacts {
     archives(sourcesJar)
 }
 
 publishing {
-    repositories {
-        maven {
-            name = "BuildRepo"
-            url = uri(repo)
-        }
-    }
     publications {
         mavenJava(MavenPublication) {
             from(components["java"])
@@ -100,7 +90,6 @@ publishing {
         }
     }
 }
-
 
 artifactory {
     setContextUrl("https://netfoundry.jfrog.io/netfoundry")
