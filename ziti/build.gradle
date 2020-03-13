@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@ repositories {
 }
 
 dependencies {
-    compile(kotlin("stdlib-jdk8"))
-    compile(kotlin("reflect"))
+    compile("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.61")
+    // compile(kotlin("reflect"))
 
-    compile(group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = "1.3.1")
+    compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.1")
 
     compile("com.squareup.retrofit2:retrofit:2.6.0")
     compile("com.squareup.retrofit2:converter-gson:2.6.0")
@@ -42,11 +42,11 @@ dependencies {
     compile("io.jsonwebtoken:jjwt-impl:0.10.7")
     compile("io.jsonwebtoken:jjwt-orgjson:0.10.7")
 
-    compile(group = "org.bouncycastle", name = "bcpkix-jdk15on", version = "1.62")
+    compile("org.bouncycastle:bcpkix-jdk15on:1.62")
 
     implementation("com.github.ajalt:clikt:2.2.0")
 
-    testCompile(kotlin("test-junit"))
+    testCompile("org.jetbrains.kotlin:kotlin-test-junit:+")
 }
 
 application {
@@ -54,15 +54,13 @@ application {
     applicationName = "ziti-enroller"
 }
 
-val gitCommit: String by rootProject.extra
-val gitBranch: String by rootProject.extra
-
 tasks {
 
-    val generatedResourcesDir = buildDir.resolve("generated-resources/main")
+    def generatedResourcesDir = "${buildDir}/generated-resources/main"
 
-    val versionProps by registering(WriteProperties::class) {
-        outputFile = generatedResourcesDir.resolve("io/netfoundry/ziti/util/ziti-version.properties")
+
+    task versionProps(type: WriteProperties) {
+        outputFile = "${generatedResourcesDir}/io/netfoundry/ziti/util/ziti-version.properties"
 
         property("version", "${project.version}")
         property("revision", gitCommit)
@@ -74,17 +72,17 @@ tasks {
     }
 }
 
-val sourcesJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("sources")
-    from(sourceSets.main.get().allSource)
+task sourcesJar(type: Jar) {
+    from sourceSets.main.java.srcDirs
+    classifier "sources"
 }
 
-val repo: String by extra {
-    rootProject.properties["publish.repo"]?.toString() ?: "file://${buildDir}/maven-repo"
+ext {
+    repo = rootProject.property("publish.repo") ?: "file://${buildDir}/maven-repo"
 }
 
 artifacts {
-    archives(sourcesJar.get())
+    archives(sourcesJar)
 }
 
 publishing {
@@ -95,33 +93,28 @@ publishing {
         }
     }
     publications {
-        register("mavenJava", MavenPublication::class) {
+        mavenJava(MavenPublication) {
             from(components["java"])
-            artifact(sourcesJar.get())
-
-            val distZip by tasks
+            artifact(sourcesJar)
             artifact(distZip)
         }
     }
 }
 
-fun Project.artifactory(configure: org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention.() -> Unit): Unit =
-    configure(project.convention.getPluginByName("artifactory"))
-
 
 artifactory {
     setContextUrl("https://netfoundry.jfrog.io/netfoundry")
-    publish(delegateClosureOf<org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig> {
-        repository(delegateClosureOf<groovy.lang.GroovyObject> {
+    publish {
+        repository{
             setProperty("repoKey", "ziti-maven")
             setProperty("username", "ziti-ci")
             setProperty("password", System.getenv("JFROG_API_KEY"))
             setProperty("maven", true)
-        })
-        defaults(delegateClosureOf<groovy.lang.GroovyObject> {
-            invokeMethod("publications", "mavenJava")
-            setProperty("publishPom", true)
-            setProperty("publishArtifacts", true)
-        })
-    })
+        }
+        defaults{
+            publications("mavenJava")
+            publishPom = true
+            publishArtifacts = true
+        }
+    }
 }
