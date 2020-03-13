@@ -38,6 +38,7 @@ repositories {
 
 ext {
     zitiBuildnum = System.getenv("BUILD_NUMBER") ?: "local"
+    zitiBaseVersion = file("version").readLines()[0].trim()
 }
 
 group = "io.netfoundry.ziti"
@@ -56,7 +57,7 @@ semver {
             regex = ".+"
             incrementer = "NO_VERSION_INCREMENTER"
             formatter = { info ->
-                val v = info.version
+                def v = info.version
                 """${info.branch.id}-${v.major}.${v.minor}.${v.patch}.${v.suffix?.count ?: "0"}.${v.suffix?.sha}""" }
         }
     }
@@ -96,10 +97,7 @@ tasks.register("tagIfNeeded") {
     if (gitBranch == "master" || true) {
 
         doLast {
-
-            def zitiVer = file("version").readLines()[0].trim()
-
-            def (zitiMajor, zitiMinor, zitiPatch) = zitiVer.split(/\./).collect { it.toInteger() }
+            def (zitiMajor, zitiMinor, zitiPatch) = zitiBaseVersion.split(/\./).collect { it.toInteger() }
 
             def tagMajor = semver.info.version.major
             def tagMinor = semver.info.version.minor
