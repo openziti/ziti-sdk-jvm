@@ -209,7 +209,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         return getNetworkSession(service)
     }
 
-    /*
+    /* TODO
     fun getDialer(name: String): Dialer {
         d("[${id.name()}] trying to connect service[$name]")
         return Dialer(this, getNetworkSession(name))

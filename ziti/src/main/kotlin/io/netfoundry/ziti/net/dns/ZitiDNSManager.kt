@@ -17,16 +17,13 @@
 package io.netfoundry.ziti.net.dns
 
 import io.netfoundry.ziti.api.Service
-import io.netfoundry.ziti.util.JULoggedImpl
-import io.netfoundry.ziti.util.Logged
-import io.netfoundry.ziti.util.ZitiLog
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 
-internal object ZitiDNSManager : DNSResolver, ServiceMapper, Logged by ZitiLog() {
+internal object ZitiDNSManager : DNSResolver, ServiceMapper {
 
     private val TAG = this::class.java.simpleName
 
@@ -39,6 +36,7 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper, Logged by ZitiLog()
     internal val serviceId2addr = mutableMapOf<String, InetSocketAddress>()
 
     internal fun registerService(service: Service): InetSocketAddress? {
+
         service.dns?.hostname?.toLowerCase(Locale.getDefault())?.let { hostname ->
             val ip = host2Ip.getOrPut(hostname) {
                 nextAddr(hostname)
@@ -53,6 +51,7 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper, Logged by ZitiLog()
                 return addr
             }
         }
+
         return null
     }
 
