@@ -39,9 +39,6 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper, Logged by ZitiLog()
     internal val serviceId2addr = mutableMapOf<String, InetSocketAddress>()
 
     internal fun registerService(service: Service): InetSocketAddress? {
-
-        w("${service.config["ziti-tunneler-client.v1"]}")
-        /* TODO
         service.dns?.hostname?.toLowerCase(Locale.getDefault())?.let { hostname ->
             val ip = host2Ip.getOrPut(hostname) {
                 nextAddr(hostname)
@@ -56,7 +53,6 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper, Logged by ZitiLog()
                 return addr
             }
         }
-*/
         return null
     }
 
