@@ -209,7 +209,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         return getNetworkSession(service)
     }
 
-    /* TODO
+    /*
     fun getDialer(name: String): Dialer {
         d("[${id.name()}] trying to connect service[$name]")
         return Dialer(this, getNetworkSession(name))
@@ -223,12 +223,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         return Dialer(this, getNetworkSession(service))
     }
-     */
+    */
 
     internal val channels: MutableMap<String, Channel> = mutableMapOf()
 
     internal fun getChannel(ns: NetworkSession): Channel {
-        val addrList = ns.gateways.map { it.urls["tls"] }.filterNotNull()
+        val addrList = ns.edgeRouters.map { it.urls["tls"] }.filterNotNull()
         for (addr in addrList) {
             channels[addr]?.let { return it }
         }

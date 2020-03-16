@@ -18,7 +18,7 @@ package io.netfoundry.ziti.api
 
 import java.util.*
 
-internal data class ClientInfo(val sdkInfo: Map<*, *>, val envInfo: Map<*, *>)
+internal data class ClientInfo(val sdkInfo: Map<*, *>, val envInfo: Map<*, *>, val configTypes: Array<String>)
 
 internal class Response<T>(val meta: Meta, val data: T?, val error: Error?)
 internal class Error(val code: String, val msg: String)
@@ -31,10 +31,22 @@ internal class Session(val token: String, val identity: Identity?)
 internal class SessionResponse(val session: Session)
 
 internal class ServiceDNS(val hostname: String, val port: Int)
-internal class Service(var id: String, var name: String?, var dns: ServiceDNS?)
+internal class Service(var id: String, var name: String?, var config: Map<String,*>) {
+    val dns: ServiceDNS?
+        get() {
+            val cfg = config[InterceptConfig] as Map<String, *>?
+
+            val host = cfg?.get("hostname")?.toString()
+            val port = cfg?.get("port") as Number?
+
+            return if (host != null && port != null)
+                ServiceDNS(host, port.toInt())
+            else null
+        }
+}
 
 internal class Gateway(val name: String, val hostname: String, val urls: Map<String, String>)
-internal class NetworkSession(val id: String, val token: String, val gateways: Array<Gateway>)
+internal class NetworkSession(val id: String, val token: String, val edgeRouters: Array<Gateway>)
 
 internal class OneTimeToken(val token: String, val jwt: String, val issuedAt: Date)
 internal class Enrollment(val ott: OneTimeToken)
@@ -44,3 +56,5 @@ internal class EnrollmentType(val ott: Boolean)
 internal class CreateIdentity(val name: String, val type: String, enrollmentType: String) {
     val enrollment = EnrollmentType(enrollmentType.equals("ott"))
 }
+
+const val InterceptConfig = "ziti-tunneler-client.v1"
