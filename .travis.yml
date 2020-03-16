@@ -27,7 +27,6 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
-
 before_script:
   - echo ${gh_ci_key} | base64 --decode > github_deploy_key
   - chmod 600 github_deploy_key
@@ -36,11 +35,23 @@ before_script:
   - git config core.sshCommand 'ssh -i github_deploy_key'
   - git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}
 
-script:
-  - ./gradlew :tagIfNeeded
-  - ./gradlew :ziti:check :ziti:assemble
-  - ./gradlew :ziti-android:check :ziti-android:assemble
-  - ./gradlew :ziti:artifactoryPublish :ziti-android:artifactoryPublish
+stages:
+  - name: test and build
 
-after_success:
-  - git push --tags --verbose
+  - name: tag and publish
+    if: branch = master and type != pull_request
+
+jobs:
+  include:
+
+    - stage: test and build
+      script:
+        - ./gradlew build
+        - ./gradlew :ziti:check
+        - ./gradlew :ziti-android:check
+
+    - stage: tag and publish
+      script:
+        - ./gradlew :tagIfNeeded
+        - ./gradlew assemble :ziti:artifactoryPublish :ziti-android:artifactoryPublish
+        - git push --tags --verbose
