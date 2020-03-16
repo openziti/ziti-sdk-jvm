@@ -48,17 +48,16 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
     val SdkInfo = mapOf("type" to "ziti-sdk-java") + Version.VersionInfo
 
     internal interface API {
-        @GET("current-session")
+        @GET("current-api-session")
         fun currentSession(): Deferred<Response<Session>>
 
         @POST("authenticate?method=password")
         fun authenticate(@Body login: Login): Deferred<Response<Session>>
 
-        // dummy@Body is needed to force Content-Type: application/json
         @POST("authenticate?method=cert")
         fun authenticateCert(@Body req: ClientInfo): Deferred<Response<Session>>
 
-        @DELETE("current-session")
+        @DELETE("current-api-session")
         fun logout(): Deferred<Unit>
 
         @GET("services?limit=100")
@@ -70,7 +69,7 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
         @GET("identities/{id}")
         fun getIdentity(@Path("id") id: String): Call<Response<Identity>>
 
-        @POST("network-sessions")
+        @POST("sessions")
         fun createNetworkSession(@Body req: NetSessionReq): Deferred<Response<NetworkSession>>
 
         @DELETE("{p}")
@@ -229,11 +228,13 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
     }
 
     private fun getClientInfo(): ClientInfo = ClientInfo(
-        SdkInfo, mapOf(
+        sdkInfo = SdkInfo,
+        envInfo = mapOf(
             "os" to System.getProperty("os.name"),
             "osRelease" to System.getProperty("java.vm.version"),
             "osVersion" to System.getProperty("os.version"),
             "arch" to System.getProperty("os.arch")
-        )
+        ),
+        configTypes = arrayOf(InterceptConfig)
     )
 }
