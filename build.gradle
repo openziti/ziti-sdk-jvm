@@ -108,7 +108,7 @@ tasks.register("tagIfNeeded") {
                 (zitiMajor == tagMajor && zitiMinor > tagMinor ) ||
                 (zitiMinor == tagMajor && zitiMinor == tagMinor && zitiPatch > tagPatch) )
             {
-                def new_tag = zitiVer
+                def new_tag = "${zitiMajor}.${zitiMinor}.${zitiPatch}"
                 println("advancing tag($new_tag) based on 'version' file")
                 sh("git", "tag",  "-a",  new_tag, "-m", "CI tag ${new_tag}")
             } else {
