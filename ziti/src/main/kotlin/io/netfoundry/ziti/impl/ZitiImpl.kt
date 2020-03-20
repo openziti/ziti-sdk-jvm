@@ -69,7 +69,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
             initInternalNetworking()
         }
 
-        val ctx = loadContext(file, pwd, null) as ZitiContextImpl
+        val ctx = loadContext(file, pwd, null)
         ctx.checkServicesLoaded()
     }
 

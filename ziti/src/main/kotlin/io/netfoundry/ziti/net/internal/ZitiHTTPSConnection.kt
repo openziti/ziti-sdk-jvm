@@ -70,12 +70,12 @@ class ZitiHTTPSConnection(url: URL) :
         }
     }
 
-    override fun setRequestProperty(key: String?, value: String?) {
+    override fun setRequestProperty(key: String, value: String) {
         super.setRequestProperty(key, value)
         req.header(key, value)
     }
 
-    override fun addRequestProperty(key: String?, value: String?) {
+    override fun addRequestProperty(key: String, value: String) {
         super.addRequestProperty(key, value)
         req.addHeader(key, value)
     }
@@ -96,7 +96,7 @@ class ZitiHTTPSConnection(url: URL) :
         return execute().message()
     }
 
-    override fun getHeaderField(name: String?): String? {
+    override fun getHeaderField(name: String): String? {
         return execute().header(name)
     }
 
