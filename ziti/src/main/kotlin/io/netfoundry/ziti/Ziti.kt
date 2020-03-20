@@ -19,6 +19,8 @@ package io.netfoundry.ziti
 import io.netfoundry.ziti.impl.ZitiImpl
 import io.netfoundry.ziti.net.ZitiSSLSocketFactory
 import io.netfoundry.ziti.net.ZitiSocketFactory
+import io.netfoundry.ziti.net.dns.DNSResolver
+import io.netfoundry.ziti.net.dns.ZitiDNSManager
 import java.io.File
 import java.security.KeyStore
 import javax.net.SocketFactory
@@ -45,4 +47,7 @@ object Ziti {
 
     @JvmStatic
     fun getSSLSocketFactory(): SSLSocketFactory = ZitiSSLSocketFactory()
+
+    @JvmStatic
+    fun getDNSResolver(): DNSResolver = ZitiDNSManager
 }
