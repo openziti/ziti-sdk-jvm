@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package io.netfoundry.ziti.net.internal
 
+import io.netfoundry.ziti.net.ZitiSSLSocketFactory
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
 import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
@@ -147,37 +148,7 @@ class ZitiHTTPSConnection(url: URL) :
     var response: Response? = null
 
     companion object {
-        val sslFactory = object : SSLSocketFactory() {
-            override fun createSocket(s: Socket?, host: String?, port: Int, autoClose: Boolean): Socket {
-                s ?: throw IllegalArgumentException("transport socket == null")
-                val addr = ZitiDNSManager.resolve(host!!)
-                return ZitiSSLSocket(s, addr!!, port)
-            }
-
-            override fun createSocket(host: String?, port: Int): Socket {
-                error("not implemented")
-            }
-
-            override fun createSocket(host: String?, port: Int, localHost: InetAddress?, localPort: Int): Socket {
-                error("not implemented")
-            }
-
-            override fun createSocket(host: InetAddress?, port: Int): Socket {
-                error("not implemented")
-            }
-
-            override fun createSocket(address: InetAddress?, port: Int, localAddress: InetAddress?, localPort: Int): Socket {
-                error("not implemented")
-            }
-
-            override fun getSupportedCipherSuites(): Array<String> {
-                return (SSLSocketFactory.getDefault() as SSLSocketFactory).supportedCipherSuites
-            }
-
-            override fun getDefaultCipherSuites(): Array<String> {
-                return (SSLSocketFactory.getDefault() as SSLSocketFactory).defaultCipherSuites
-            }
-        }
+        private val sslFactory = ZitiSSLSocketFactory()
 
         val tm = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
             val ks = KeyStore.getInstance(KeyStore.getDefaultType())
