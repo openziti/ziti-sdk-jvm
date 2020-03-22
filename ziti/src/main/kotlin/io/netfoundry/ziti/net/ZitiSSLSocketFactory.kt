@@ -18,7 +18,8 @@ package io.netfoundry.ziti.net
 
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
 import io.netfoundry.ziti.net.internal.ZitiSSLSocket
-import java.lang.NullPointerException
+import io.netfoundry.ziti.util.Logged
+import io.netfoundry.ziti.util.ZitiLog
 import java.net.InetAddress
 import java.net.Socket
 import java.security.KeyStore
@@ -29,7 +30,7 @@ import javax.net.ssl.X509TrustManager
 /**
  *
  */
-class ZitiSSLSocketFactory: SSLSocketFactory() {
+class ZitiSSLSocketFactory: SSLSocketFactory(), Logged by ZitiLog() {
     val TrustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).let {
         it.init(null as KeyStore?)
         it.trustManagers[0] as X509TrustManager
@@ -42,9 +43,16 @@ class ZitiSSLSocketFactory: SSLSocketFactory() {
     }
 
     override fun createSocket(s: Socket?, host: String, port: Int, autoClose: Boolean): Socket {
-        checkNotNull(s){"transport socket == null"}
-        val addr = ZitiDNSManager.resolve(host) ?: InetAddress.getByName(host)
-        return ZitiSSLSocket(s, addr!!, port)
+
+        try {
+            checkNotNull(s) { "transport socket == null" }
+            val addr = ZitiDNSManager.resolve(host) ?: InetAddress.getByName(host)
+            d("resolved $host => $addr")
+            return ZitiSSLSocket(s, addr!!, port)
+        } catch (ex: Exception) {
+            e(ex.localizedMessage, ex)
+            throw ex
+        }
     }
 
     override fun createSocket(host: String?, port: Int): Socket {

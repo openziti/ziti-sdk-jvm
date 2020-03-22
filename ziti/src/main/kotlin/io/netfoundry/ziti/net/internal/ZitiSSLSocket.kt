@@ -16,8 +16,8 @@
 
 package io.netfoundry.ziti.net.internal
 
-import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
+import io.netfoundry.ziti.util.ZitiLog
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.InetAddress
@@ -28,7 +28,7 @@ import java.security.SecureRandom
 import javax.net.ssl.*
 
 class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int) :
-    SSLSocket(host, pport),
+    SSLSocket(),
     Logged by ZitiLog("ziti-ssl-socket")
 {
 

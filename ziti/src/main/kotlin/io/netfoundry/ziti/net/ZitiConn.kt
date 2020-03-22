@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package io.netfoundry.ziti.net
 
 import io.netfoundry.ziti.ZitiConnection
 import io.netfoundry.ziti.api.NetworkSession
-import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
+import io.netfoundry.ziti.util.ZitiLog
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.receiveOrNull
@@ -28,7 +28,6 @@ import kotlinx.coroutines.withTimeout
 import java.io.*
 import java.net.ConnectException
 import java.nio.ByteBuffer
-import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 import kotlin.text.Charsets.UTF_8
@@ -67,7 +66,7 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
     internal fun startSession(ns: NetworkSession) {
         val connectMsg = Message(ZitiProtocol.ContentType.Connect, ns.token.toByteArray(UTF_8))
         connectMsg.setHeader(ZitiProtocol.Header.ConnId, connId)
-
+        d("starting network connection ${ns.id}/$connId")
         val reply = runBlocking { channel.SendAndWait(connectMsg) }
         when (reply.content) {
             ZitiProtocol.ContentType.StateConnected -> {
@@ -76,7 +75,9 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
             }
             ZitiProtocol.ContentType.StateClosed -> {
                 state = State.Closed
-                throw ConnectException(reply.body.toString(UTF_8))
+                val err = reply.body.toString(UTF_8)
+                w("connection rejected: ${err}")
+                throw ConnectException(err)
             }
             else -> {
                 state = State.Closed
