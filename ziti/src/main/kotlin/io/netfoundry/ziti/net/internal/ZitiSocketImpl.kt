@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import io.netfoundry.ziti.ZitiConnection
 import io.netfoundry.ziti.ZitiException
 import io.netfoundry.ziti.impl.ZitiImpl
 import io.netfoundry.ziti.net.internal.Sockets
-import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
+import io.netfoundry.ziti.util.ZitiLog
 import java.io.FileDescriptor
 import java.net.*
 
@@ -70,7 +70,6 @@ internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged 
         for (ctx in ZitiImpl.contexts) {
             try {
                 zitiConn = ctx.dial(addr.hostName, addr.port) as ZitiConn
-                setOption(SocketOptions.SO_TIMEOUT, fallback?.soTimeout ?: timeout)
                 connected = true
             } catch (zex: ZitiException) {
                 when (zex.code) {

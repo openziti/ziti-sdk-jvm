@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package io.netfoundry.ziti.net.internal
 
+import io.netfoundry.ziti.net.ZitiSocketFactory
 import io.netfoundry.ziti.net.ZitiSocketImpl
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
 import io.netfoundry.ziti.util.ZitiLog
@@ -66,12 +67,12 @@ class ZitiHTTPConnection(url: URL) :
         }
     }
 
-    override fun setRequestProperty(key: String?, value: String?) {
+    override fun setRequestProperty(key: String, value: String) {
         super.setRequestProperty(key, value)
         req.header(key, value)
     }
 
-    override fun addRequestProperty(key: String?, value: String?) {
+    override fun addRequestProperty(key: String, value: String) {
         super.addRequestProperty(key, value)
         req.addHeader(key, value)
     }
@@ -92,7 +93,7 @@ class ZitiHTTPConnection(url: URL) :
         return execute().message()
     }
 
-    override fun getHeaderField(name: String?): String? {
+    override fun getHeaderField(name: String): String? {
         return execute().header(name)
     }
 
@@ -137,25 +138,7 @@ class ZitiHTTPConnection(url: URL) :
 
     companion object {
 
-        val factory = object : SocketFactory(){
-            override fun createSocket(): Socket = ZitiSocket(ZitiSocketImpl())
-
-            override fun createSocket(p0: String?, p1: Int): Socket {
-                error("not implemented")
-            }
-
-            override fun createSocket(p0: String?, p1: Int, p2: InetAddress?, p3: Int): Socket {
-                error("not implemented")
-            }
-
-            override fun createSocket(p0: InetAddress?, p1: Int): Socket {
-                error("not implemented")
-            }
-
-            override fun createSocket(p0: InetAddress?, p1: Int, p2: InetAddress?, p3: Int): Socket {
-                error("not implemented")
-            }
-        }
+        private val factory = ZitiSocketFactory()
 
         val clt = OkHttpClient.Builder()
             .retryOnConnectionFailure(false)

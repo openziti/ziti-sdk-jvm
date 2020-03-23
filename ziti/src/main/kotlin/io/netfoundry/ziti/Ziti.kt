@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,14 @@
 package io.netfoundry.ziti
 
 import io.netfoundry.ziti.impl.ZitiImpl
+import io.netfoundry.ziti.net.ZitiSSLSocketFactory
+import io.netfoundry.ziti.net.ZitiSocketFactory
+import io.netfoundry.ziti.net.dns.DNSResolver
+import io.netfoundry.ziti.net.dns.ZitiDNSManager
 import java.io.File
 import java.security.KeyStore
+import javax.net.SocketFactory
+import javax.net.ssl.SSLSocketFactory
 
 object Ziti {
     @JvmStatic
@@ -35,4 +41,13 @@ object Ziti {
 
     @JvmStatic
     fun enroll(ks: KeyStore, jwt: ByteArray, name: String) = ZitiImpl.enroll(ks, jwt, name)
+
+    @JvmStatic
+    fun getSocketFactory(): SocketFactory = ZitiSocketFactory()
+
+    @JvmStatic
+    fun getSSLSocketFactory(): SSLSocketFactory = ZitiSSLSocketFactory()
+
+    @JvmStatic
+    fun getDNSResolver(): DNSResolver = ZitiDNSManager
 }

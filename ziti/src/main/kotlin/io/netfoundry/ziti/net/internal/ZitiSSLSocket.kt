@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package io.netfoundry.ziti.net.internal
 
-import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
+import io.netfoundry.ziti.util.ZitiLog
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.InetAddress
@@ -28,7 +28,7 @@ import java.security.SecureRandom
 import javax.net.ssl.*
 
 class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int) :
-    SSLSocket(host, pport),
+    SSLSocket(),
     Logged by ZitiLog("ziti-ssl-socket")
 {
 
@@ -39,7 +39,7 @@ class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int
         }
 
         override fun write(b: ByteArray, off: Int, len: Int) {
-            d{"writing $len bytes (${String(b, off, len)})"}
+            d{"writing $len bytes"}
             if (len + buffer.position() > buffer.capacity()) {
                 flush()
             }
@@ -66,6 +66,8 @@ class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int
 
     inner class Input : InputStream() {
         val sslBuffer = ByteBuffer.allocate(32 * 1024)
+        val input = transport.getInputStream()
+
         override fun read(): Int {
             val buf = ByteArray(1)
             val read = read(buf, 0, 1)
@@ -74,28 +76,27 @@ class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int
 
         override fun read(out: ByteArray, off: Int, len: Int): Int {
             val outBuffer = ByteBuffer.wrap(out, off, len)
-            return transport.getInputStream()?.let {
-                val b = ByteArray(sslBuffer.capacity() - sslBuffer.position())
-                val read = it.read(b)
-                d("read read=$read")
-                if (read > 0) {
-                    sslBuffer.put(b, 0, read)
-                    d("read read=$read sslBuf=$sslBuffer")
-                    sslBuffer.flip()
+            sslBuffer.compact()
+            val b = ByteArray(sslBuffer.remaining())
+            val read = input.read(b)
+            d("read read=$read sslBuf=$sslBuffer")
+            if (read > 0) {
+                sslBuffer.put(b, 0, read)
+                d("read read=$read sslBuf=$sslBuffer")
+                sslBuffer.flip()
 
-                    do {
-                        val res = engine.unwrap(sslBuffer, outBuffer)
-                        v("unwrap cons/prod=${res.bytesConsumed()}/${res.bytesProduced()} $sslBuffer $outBuffer")
-                    } while(res.bytesProduced() > 0 && sslBuffer.remaining() > 0)
-                    sslBuffer.compact()
-                    d("sslBuf=$sslBuffer outBuffer=$outBuffer")
-                    v(String(out, off, outBuffer.position()))
-                    outBuffer.position()
+                while(sslBuffer.remaining() > 0 && outBuffer.remaining() > 0) {
+                    val res = engine.unwrap(sslBuffer, outBuffer)
+                    v("unwrap cons/prod=${res.bytesConsumed()}/${res.bytesProduced()} $sslBuffer $outBuffer")
+                    if (res.bytesProduced() == 0)
+                        break
                 }
-                else {
-                    read
-                }
-            } ?: -1
+                d("sslBuf=$sslBuffer outBuffer=$outBuffer")
+                return outBuffer.position()
+            }
+            else {
+                return read
+            }
         }
     }
 

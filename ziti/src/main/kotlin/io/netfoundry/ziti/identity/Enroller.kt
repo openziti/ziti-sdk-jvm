@@ -21,9 +21,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.file
-import io.netfoundry.ziti.util.PrivateKeySigner
-import io.netfoundry.ziti.util.getCACerts
-import io.netfoundry.ziti.util.readCerts
+import io.netfoundry.ziti.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.x500.X500Name
@@ -36,20 +34,22 @@ import java.io.ByteArrayOutputStream
 import java.io.FileNotFoundException
 import java.io.OutputStreamWriter
 import java.net.InetAddress
-import java.net.URI
 import java.net.URL
 import java.net.URLEncoder
 import java.security.KeyPairGenerator
 import java.security.KeyStore
-import java.security.PKCS12Attribute
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.security.spec.ECGenParameterSpec
-import java.util.*
 import javax.net.ssl.*
 import kotlin.text.Charsets.UTF_8
 
-class Enroller(val enrollmentURL: URL, val method: Method, val name: String, val caCerts: Collection<X509Certificate>) {
+class Enroller(
+    val enrollmentURL: URL,
+    val method: Method,
+    val name: String,
+    val caCerts: Collection<X509Certificate>
+) : Logged by ZitiLog("ziti-enroler") {
 
     enum class Method {
         ott,
@@ -57,14 +57,17 @@ class Enroller(val enrollmentURL: URL, val method: Method, val name: String, val
         ca
     }
 
-    companion object {
+    companion object : Logged by ZitiLog("ziti-enroller") {
         val P256 = ECGenParameterSpec("secp256r1")
 
         @JvmStatic
         fun fromJWT(jwt: String): Enroller = runBlocking(Dispatchers.IO) {
 
             val zitiJwt = ZitiJWT.fromJWT(jwt)
+            d("enrolling ctrl[${zitiJwt.controller}] name[${zitiJwt.name}] method[${zitiJwt.method}]")
+
             val controllerCA = getCACerts(zitiJwt.controller, zitiJwt.serverKey)
+            d("received ${controllerCA.size} certificates")
 
             val method = zitiJwt.method
             val name = zitiJwt.name
@@ -156,7 +159,12 @@ class Enroller(val enrollmentURL: URL, val method: Method, val name: String, val
         }
     }
 
-    private fun enrollOtt(alias: String, conn: HttpsURLConnection, keyStore: KeyStore, ssl: SSLContext): KeyStore.PrivateKeyEntry {
+    private fun enrollOtt(
+        alias: String,
+        conn: HttpsURLConnection,
+        keyStore: KeyStore,
+        ssl: SSLContext
+    ): KeyStore.PrivateKeyEntry {
         val name = X500Name("CN=${name}")
 
         val kpg = KeyPairGenerator.getInstance("EC")
@@ -193,7 +201,7 @@ class Enroller(val enrollmentURL: URL, val method: Method, val name: String, val
             }
             else -> {
                 val certs = readCerts(conn.inputStream.reader()).toTypedArray()
-                return  KeyStore.PrivateKeyEntry(kp.private, certs, emptySet())
+                return KeyStore.PrivateKeyEntry(kp.private, certs)
             }
         }
     }
@@ -211,7 +219,7 @@ class Enroller(val enrollmentURL: URL, val method: Method, val name: String, val
 
         if (!caCerts.isEmpty()) {
             caCerts.forEach {
-                ks.setCertificateEntry("ca-${it.subjectX500Principal}", it)
+                ks.setCertificateEntry("ca-${it.serialNumber}", it)
             }
 
             val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {

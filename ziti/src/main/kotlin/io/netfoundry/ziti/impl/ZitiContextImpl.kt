@@ -166,8 +166,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     fun logout() = runBlocking { controller.logout() }
 
     fun checkServicesLoaded() = runBlocking {
-        withTimeout(5000) {
-            servicesLoaded.await()
+        try {
+            withTimeout(30_000) {
+                servicesLoaded.await()
+            }
+        } catch (tex: TimeoutCancellationException) {
+            e("failed to load services: $tex")
         }
     }
 
