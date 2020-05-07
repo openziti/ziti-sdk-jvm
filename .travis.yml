@@ -3,7 +3,11 @@ version: "~> 1.0"
 language: android
 os: linux
 dist: trusty
-jdk: oraclejdk8
+
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
 
 env:
   - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
