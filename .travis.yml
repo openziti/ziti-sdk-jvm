@@ -22,11 +22,8 @@ before_install:
   - sudo apt-get update
   - sudo apt install openjdk-8-jdk
   - sudo update-java-alternatives --set java-1.8.0-openjdk-amd64
-  - java -version
-  - javac -version
-  - /bin/which javac
-  - ls -l /usr/bin/javac
-  - ls -l /etc/alternatives/javac
+  - ls -l /usr/bin/java*
+  - ls -l /etc/alternatives/ja*
   - echo "org.gradle.java.home=/usr/lib/jvm/java-1.8.0-openjdk-amd64" >> $HOME/.gradle/gradle.properties
   - cat $HOME/.gradle/gradle.properties
 
