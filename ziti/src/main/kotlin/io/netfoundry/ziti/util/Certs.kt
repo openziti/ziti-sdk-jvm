@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import java.io.OutputStream
 import java.io.Reader
 import java.net.Socket
 import java.net.URI
-import java.net.URL
 import java.nio.charset.Charset
 import java.security.*
 import java.security.cert.CertificateException
@@ -46,7 +45,10 @@ internal class KeyTrustManager(val key: Key) : X509TrustManager {
     override fun checkClientTrusted(p0: Array<out X509Certificate>, p1: String) = TODO("not used")
 }
 
-internal class AliasKeyManager(val alias: String, delegate: KeyManager) : X509KeyManager {
+/**
+ * [KeyManager] that narrows key store to a single identity
+ */
+internal class AliasKeyManager(val alias: String, delegate: KeyManager) : X509ExtendedKeyManager() {
     val x509 = delegate as X509KeyManager
     override fun getClientAliases(keyType: String?, issuers: Array<out Principal>?): Array<String> = arrayOf(alias)
 
@@ -60,7 +62,12 @@ internal class AliasKeyManager(val alias: String, delegate: KeyManager) : X509Ke
 
     override fun getPrivateKey(alias: String?): PrivateKey? = x509.getPrivateKey(alias)
 
-    override fun chooseClientAlias(keyType: Array<out String>?, issuers: Array<out Principal>?, socket: Socket?) = alias
+    override
+    fun chooseEngineClientAlias(keyType: Array<out String>?, issuers: Array<out Principal>?, engine: SSLEngine?) =
+        alias
+
+    override
+    fun chooseClientAlias(keyType: Array<out String>?, issuers: Array<out Principal>?, socket: Socket?) = alias
 
     companion object {
         fun from(alias: String, kms: Array<KeyManager>): Array<X509KeyManager> =

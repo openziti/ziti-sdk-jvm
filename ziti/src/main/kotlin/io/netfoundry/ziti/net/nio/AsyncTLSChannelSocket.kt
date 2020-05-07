@@ -80,9 +80,12 @@ class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, 
     override fun getEnableSessionCreation() = asyncTls.engine.enableSessionCreation
     override fun getApplicationProtocol() = asyncTls.engine.handshakeApplicationProtocol
 
+    override fun getUseClientMode(): Boolean = true
+    override fun setUseClientMode(mode: Boolean) {
+        require(mode){"only client mode is supported"}
+    }
+
     /////////// Server Socket methods //////////////
-    override fun getUseClientMode(): Boolean = false // ("Not yet implemented")
-    override fun setUseClientMode(mode: Boolean): Unit = error("Not yet implemented")
     override fun getNeedClientAuth(): Boolean = false
     override fun setNeedClientAuth(need: Boolean): Unit = error("Not yet implemented")
     override fun getWantClientAuth(): Boolean = false

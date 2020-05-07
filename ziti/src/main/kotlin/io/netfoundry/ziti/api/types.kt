@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ internal class Meta(val location: String?)
 internal class Id(val id: String)
 internal class NetSessionReq(val serviceId: String)
 
+class ControllerVersion(val buildDate: String, val revision: String, val runtimeVersion: String, val version: String)
 internal class Login(val username: String, val password: String)
 internal class Session(val token: String, val identity: Identity?)
 internal class SessionResponse(val session: Session)

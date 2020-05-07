@@ -126,7 +126,6 @@ internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImp
 
                     try {
                         val read = rf.get()
-                        println("read $read bytes input=$input")
                         if (read == -1) {
                             return -1
                         }
