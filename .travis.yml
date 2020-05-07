@@ -25,6 +25,8 @@ before_install:
   - java -version
   - javac -version
   - /bin/which javac
+  - ls -l /usr/bin/javac
+  - echo "org.gradle.java.home=/usr/lib/jvm/java-8-openjdk-amd64" >> $HOME/.gradle/gradle.properties
   - cat $HOME/.gradle/gradle.properties
 
 before_cache:
