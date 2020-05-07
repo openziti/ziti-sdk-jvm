@@ -25,6 +25,7 @@ before_install:
   - java -version
   - javac -version
   - /bin/which javac
+  - cat $HOME/.gradle/gradle.properties
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
