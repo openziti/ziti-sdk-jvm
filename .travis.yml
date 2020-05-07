@@ -3,7 +3,7 @@ version: "~> 1.0"
 language: android
 os: linux
 dist: trusty
-jdk: openjdk8
+jdk: openjdk11
 
 env:
   - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
