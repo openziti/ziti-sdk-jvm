@@ -22,13 +22,12 @@ before_install:
   - sudo apt-get update
   - sudo apt install openjdk-8-jdk
   - sudo update-java-alternatives --set java-1.8.0-openjdk-amd64
-  - update-java-alternatives --list
   - java -version
   - javac -version
   - /bin/which javac
   - ls -l /usr/bin/javac
   - ls -l /etc/alternatives/javac
-  - echo "org.gradle.java.home=/usr/lib/jvm/java-8-openjdk-amd64" >> $HOME/.gradle/gradle.properties
+  - echo "org.gradle.java.home=/usr/lib/jvm/java-1.8.0-openjdk-amd64" >> $HOME/.gradle/gradle.properties
   - cat $HOME/.gradle/gradle.properties
 
 before_cache:
@@ -59,6 +58,7 @@ jobs:
 
     - stage: test and build
       script:
+        - export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
         - ./gradlew build
         - ./gradlew :ziti:check
         - ./gradlew :ziti-android:check
