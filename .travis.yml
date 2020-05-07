@@ -4,11 +4,6 @@ language: android
 os: linux
 dist: trusty
 
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
-
 env:
   - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
 
@@ -22,6 +17,10 @@ android:
 
 before_install:
   - yes | sdkmanager "platforms;android-29"
+  - sudo add-apt-repository ppa:openjdk-r/ppa
+  - sudo apt-get update
+  - sudo apt install openjdk-8-jdk
+  - sudo update-java-alternatives --list
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
