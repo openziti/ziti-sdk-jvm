@@ -71,4 +71,17 @@ class ControllerTest {
         assertNotNull(s)
         assertNotNull(s.token)
     }
+
+    @Test
+    fun testGetSession() {
+        runBlocking {
+            val s = ctrl.login()
+            val services = ctrl.getServices()
+            Assume.assumeTrue(!services.isEmpty())
+
+            val session = ctrl.createNetSession(services[0])
+
+            println(session)
+        }
+    }
 }

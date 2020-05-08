@@ -16,7 +16,6 @@
 
 package io.netfoundry.ziti.net.nio
 
-import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.isA
 import org.hamcrest.CoreMatchers.startsWith
 import org.junit.After
@@ -135,7 +134,7 @@ User-Agent: HTTPie/1.0.2
         resp.flip()
 
         val lines = StandardCharsets.UTF_8.decode(resp).toString().reader().readLines()
-        assertThat(lines[0], CoreMatchers.startsWith("HTTP/1.1"))
+        assertThat(lines[0], startsWith("HTTP/1.1"))
     }
 
 }
