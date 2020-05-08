@@ -9,7 +9,7 @@ env:
 
 before_install:
   - wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
-  - mkdir $HOME/android_sdk
+  - mkdir -p $HOME/android_sdk
   - unzip /tmp/android-sdk.zip -d $HOME/android_sdk
 
 before_cache:
