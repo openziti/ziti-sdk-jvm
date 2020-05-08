@@ -6,6 +6,7 @@ dist: bionic
 
 env:
   - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
+  - ANDROID_SDK_ROOT=$HOME/android_sdk
 
 before_install:
   - wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
