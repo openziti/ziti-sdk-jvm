@@ -39,6 +39,7 @@ class AsyncTLSChannel(
 ) : AsynchronousSocketChannel(provider), Logged by ZitiLog("async-tls") {
 
     companion object {
+        const val SSL_BUFFER_SIZE = 32 * 1024
         fun open(group: AsynchronousChannelGroup? = null) = Provider.openAsynchronousSocketChannel(group)
     }
 
@@ -87,8 +88,8 @@ class AsyncTLSChannel(
     internal val transport: AsynchronousSocketChannel
     internal lateinit var engine: SSLEngine
 
-    private val sslbuf = ByteBuffer.allocate(32 * 1024)
-    private val plnbuf = ByteBuffer.allocate(32 * 1024).apply { flip() }
+    private val sslbuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
+    private val plnbuf = ByteBuffer.allocate(SSL_BUFFER_SIZE).apply { flip() }
 
     init {
         state = State.initial
@@ -131,7 +132,7 @@ class AsyncTLSChannel(
         state = State.connecting
         transport.connect(remote, res, object : CompletionHandler<Void, CompletableFuture<Void>>{
             override fun completed(result: Void?, f: CompletableFuture<Void>) {
-                startHandshake(f);
+                startHandshake(f)
             }
 
             override fun failed(exc: Throwable?, f: CompletableFuture<Void>) {
@@ -139,7 +140,7 @@ class AsyncTLSChannel(
             }
         })
 
-        return res;
+        return res
     }
 
     override fun getLocalAddress(): SocketAddress = transport.localAddress
@@ -187,7 +188,7 @@ class AsyncTLSChannel(
         try {
             var consumed = 0L
             var produced = 0
-            val sslbuf = ByteBuffer.allocate(32 * 1024)
+            val sslbuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
 
             loop@
             for (b in srcs) {
@@ -312,7 +313,7 @@ class AsyncTLSChannel(
         if ((offset < 0) || (length < 0) || (offset > _dsts.size - length)) {
             throw IndexOutOfBoundsException()
         }
-        val dsts = _dsts.sliceArray(offset until offset + length);
+        val dsts = _dsts.sliceArray(offset until offset + length)
         if (plnbuf.hasRemaining()) {
             handler.completed(plnbuf.transfer(dsts), attachment)
             return
@@ -387,7 +388,7 @@ class AsyncTLSChannel(
             state = State.handshaking
             engine.useClientMode = true
             engine.beginHandshake()
-            continueHandshake(Handhaker(handshake, ByteBuffer.allocate(32 * 1024)))
+            continueHandshake(Handhaker(handshake, ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)))
         }
     }
 
@@ -416,14 +417,14 @@ class AsyncTLSChannel(
         try {
             when (engine.handshakeStatus) {
                 SSLEngineResult.HandshakeStatus.NEED_WRAP -> {
-                    val wrapped = ByteBuffer.allocate(32 * 1024)
+                    val wrapped = ByteBuffer.allocate(SSL_BUFFER_SIZE)
                     val res = engine.wrap(ByteBuffer.allocate(0), wrapped)
                     wrapped.flip()
                     hsWrite(wrapped, hs)
                 }
 
                 SSLEngineResult.HandshakeStatus.NEED_UNWRAP -> {
-                    val output = ByteBuffer.allocate(32 * 1024)
+                    val output = ByteBuffer.allocate(SSL_BUFFER_SIZE)
                     while (hs.input.hasRemaining() && engine.handshakeStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
                         val res = engine.unwrap(hs.input, output)
                         if (res.bytesProduced() > 0) {
@@ -431,7 +432,7 @@ class AsyncTLSChannel(
                             return
                         }
                         if (res.status == BUFFER_UNDERFLOW) {
-                            break;
+                            break
                         }
                     }
 
@@ -450,7 +451,7 @@ class AsyncTLSChannel(
                                     if (res.bytesProduced() > 0) {
                                         hsWrite(output, r)
                                     } else {
-                                        continueHandshake(hs);
+                                        continueHandshake(hs)
                                     }
                                 } catch (sslex: SSLException) {
                                     r.result.completeExceptionally(sslex)
@@ -477,7 +478,7 @@ class AsyncTLSChannel(
                     hs.result.complete(engine.session)
                 }
 
-                else -> TODO()
+                else -> error("should not be here")
             }
         } catch (ex: Exception) {
             ex.printStackTrace()

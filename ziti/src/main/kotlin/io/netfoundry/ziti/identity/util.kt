@@ -16,6 +16,7 @@
 
 package io.netfoundry.ziti.identity
 
+import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.readCerts
 import io.netfoundry.ziti.util.readKey
 import org.bouncycastle.asn1.x500.X500Name
@@ -63,6 +64,7 @@ internal fun keystoreFromConfig(id: IdentityConfig): KeyStore {
 }
 
 internal fun loadKeystore(f: File, pwd: CharArray): KeyStore {
+    val log = ZitiLog()
     val ks = KeyStore.getInstance("PKCS12")
     try {
         ks.load(f.inputStream(), pwd)
@@ -75,8 +77,7 @@ internal fun loadKeystore(f: File, pwd: CharArray): KeyStore {
         val id = IdentityConfig.load(f)
         return keystoreFromConfig(id)
     } catch (ex: Exception) {
-        println(ex)
-        ex.printStackTrace()
+        log.w("failed to load identity config: ${ex.localizedMessage}")
     }
 
     throw IllegalArgumentException("unsupported format")
