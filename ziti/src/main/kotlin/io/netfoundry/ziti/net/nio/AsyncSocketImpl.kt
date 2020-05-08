@@ -22,10 +22,7 @@ import java.net.*
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
-import java.nio.channels.InterruptedByTimeoutException
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 
@@ -34,6 +31,8 @@ import kotlin.math.min
  */
 internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImpl() {
     internal lateinit var channel: AsynchronousSocketChannel
+
+    internal val inputLock = Semaphore(1)
     internal val input = ByteBuffer.allocate(32 * 1024).apply {
         flip()
     }
@@ -96,47 +95,50 @@ internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImp
 
             override fun read(b: ByteArray, off: Int, len: Int): Int {
                 synchronized(input) {
+                    inputLock.acquire() // protects async read operation
                     val count = min(len, input.remaining())
                     if (count > 0) {
                         input.get(b, off, count)
+                        inputLock.release()
                         return count
                     }
 
                     input.compact()
                     val rf = CompletableFuture<Int>()
                     val to = getOption(SocketOptions.SO_TIMEOUT) as Number
-                    channel.read(input, to.toLong(),
-                        TimeUnit.MILLISECONDS, rf, object :
-                            CompletionHandler<Int, CompletableFuture<Int>> {
-                        override fun completed(result: Int, f: CompletableFuture<Int>){
-                            f.complete(result)
-                        }
-                        override fun failed(exc: Throwable, f: CompletableFuture<Int>) {
-                            if (exc is InterruptedByTimeoutException) {
-                                f.completeExceptionally(
-                                    SocketTimeoutException(
-                                        exc.message
-                                    )
-                                )
-                            } else {
-                                f.completeExceptionally(exc)
+                    channel.read(input, 0, TimeUnit.MILLISECONDS, rf,
+                        object : CompletionHandler<Int, CompletableFuture<Int>> {
+
+                            override fun completed(result: Int, f: CompletableFuture<Int>) {
+                                if (!f.isDone) {
+                                    f.complete(result)
+                                }
+                                input.flip()
+                                inputLock.release()
                             }
-                        }
-                    })
+
+                            override fun failed(exc: Throwable, f: CompletableFuture<Int>) {
+                                if (!f.isDone) {
+                                    f.completeExceptionally(exc)
+                                }
+                                inputLock.release()
+                            }
+                        })
 
                     try {
-                        val read = rf.get()
+                        val read = rf.get(to.toLong(), TimeUnit.MILLISECONDS)
                         if (read == -1) {
                             return -1
                         }
 
-                        input.flip()
                         val count1 = min(len, input.remaining())
                         input.get(b, off, count1)
                         return count1
-                    } catch (exex: ExecutionException) {
-                        exex.cause?.let { throw it }
-                        throw exex
+                    } catch (toex: TimeoutException) {
+                        throw SocketTimeoutException(toex.message)
+                    } catch (exx: ExecutionException) {
+                        exx.cause?.let { throw it }
+                        throw exx
                     }
                 }
             }

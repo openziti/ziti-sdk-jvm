@@ -72,6 +72,7 @@ class AsyncTLSChannel(
     }
 
     constructor(ch: AsynchronousSocketChannel, ssl: SSLContext) : this(ch, ssl, Provider)
+    constructor(ssl: SSLContext): this(AsynchronousSocketChannel.open(),ssl)
 
     enum class State {
         initial,

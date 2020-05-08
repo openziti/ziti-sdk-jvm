@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,21 @@
 
 package io.netfoundry.ziti.net
 
-import io.netfoundry.ziti.net.internal.Sockets
-import io.netfoundry.ziti.util.ZitiLog
+import io.netfoundry.ziti.net.nio.AsyncTLSChannel
 import io.netfoundry.ziti.util.Logged
+import io.netfoundry.ziti.util.ZitiLog
 import java.io.Closeable
-import java.io.InputStream
-import java.io.OutputStream
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.URI
-import java.security.cert.Certificate
+import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousSocketChannel
+import java.nio.channels.CompletionHandler
 import javax.net.ssl.SSLContext
-import javax.net.ssl.SSLSocket
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 internal interface Transport : Closeable {
 
@@ -38,49 +41,57 @@ internal interface Transport : Closeable {
         }
     }
 
-    fun getPeerCerts(): Array<out Certificate>?
-    fun getInput(): InputStream
-    fun getOutput(): OutputStream
     fun isClosed(): Boolean
 
-    fun write(buf: ByteArray) {
-        getOutput().apply {
-            write(buf)
-            flush()
-        }
-    }
+    suspend fun write(buf: ByteBuffer)
+    suspend fun read(buf: ByteBuffer, full: Boolean = true)
 
-    fun read(buf: ByteArray): Int {
-        val input = getInput()
-        var count = 0
-        while (count < buf.size) {
-            val read = input.read(buf, count, buf.size - count)
-            if (read < 0)
-                return read
-
-            count += read
-        }
-
-        return count
+    private abstract class ContinuationHandler<V,R>: CompletionHandler<V,Continuation<R>> {
+        override fun failed(exc: Throwable, cont: Continuation<R>) = cont.resumeWithException(exc)
     }
 
     class TLS(host: String, port: Int, sslContext: SSLContext) : Transport, Logged by ZitiLog("ziti-tls") {
-        val socket: SSLSocket
+        val socket: AsynchronousSocketChannel
 
         init {
             d { "connecting to $host:$port on t[${Thread.currentThread().name}" }
-            val s = Sockets.BypassSocket()
-            s.connect(InetSocketAddress(InetAddress.getByName(host), port))
-            socket = sslContext.socketFactory.createSocket(s, host, port, true) as SSLSocket
-            socket.addHandshakeCompletedListener { e -> d { "handshake completed to ${e.socket.remoteSocketAddress}" } }
-            socket.startHandshake()
+            socket = AsyncTLSChannel(sslContext)
+            socket.connect(InetSocketAddress(InetAddress.getByName(host), port)).get()
         }
 
-        override fun getInput() = socket.inputStream
-        override fun getOutput() = socket.outputStream
-        override fun close() = socket.close()
-        override fun isClosed() = socket.isClosed
-        override fun getPeerCerts() = socket.session.peerCertificates
+        override suspend fun write(buf: ByteBuffer):Unit = suspendCoroutine {
+            val h = object : ContinuationHandler<Int,Unit>() {
+                override fun completed(result: Int, c: Continuation<Unit>) {
+                    if (buf.hasRemaining()) {
+                        socket.write(buf, c, this)
+                    } else {
+                        c.resume(Unit)
+                    }
+                }
+            }
+
+            socket.write(buf, it, h)
+        }
+
+        override suspend fun read(buf: ByteBuffer, full: Boolean):Unit = suspendCoroutine {
+            val h = object : ContinuationHandler<Int, Unit>() {
+                override fun completed(result: Int, c: Continuation<Unit>) {
+                    if (buf.hasRemaining() && full) {
+                        socket.read(buf, c, this)
+                    } else {
+                        c.resume(Unit)
+                    }
+                }
+            }
+
+            socket.read(buf, it, h)
+        }
+
+        override fun close() {
+            socket.close()
+        }
+
+        override fun isClosed(): Boolean = !socket.isOpen
     }
 
 }

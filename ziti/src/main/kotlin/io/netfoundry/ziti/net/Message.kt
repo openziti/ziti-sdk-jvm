@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,8 @@
 package io.netfoundry.ziti.net
 
 import io.netfoundry.ziti.net.ZitiProtocol.ContentType
-import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.channels.Channels
 import java.nio.charset.StandardCharsets
 
 class Message(
@@ -36,13 +34,13 @@ class Message(
             return Message(ContentType.HelloType, token.toByteArray())
         }
 
-        fun readMessage(ins: InputStream): Message {
-            val input = Channels.newChannel(ins)
-            val header = ByteBuffer.allocate(ZitiProtocol.HEADER_LENGTH).order(ByteOrder.LITTLE_ENDIAN).apply {
-                val read = input.read(this)
-                check(read >= capacity()) { "could not read complete message header, read=$read expected=${capacity()}" }
-                flip()
-            }
+        internal suspend
+        fun readMessage(input: Transport): Message {
+            val header = ByteBuffer.allocate(ZitiProtocol.HEADER_LENGTH).order(ByteOrder.LITTLE_ENDIAN)
+
+            input.read(header)
+            check(!header.hasRemaining()) { "could not read complete message header, read=${header.position()} expected=${header.capacity()}" }
+            header.flip()
 
             ByteArray(ZitiProtocol.VERSION.size).apply {
                 header.get(this)
@@ -56,18 +54,15 @@ class Message(
             val headersLen = header.int
             val bodyLen = header.int
 
-            val headers = ByteBuffer.allocate(headersLen).order(ByteOrder.LITTLE_ENDIAN).let {
-                check(input.read(it) >= it.capacity()) { "failed to read headers data" }
-                it.flip()
-                parseHeaders(it)
-            }
+            val headersBuf = ByteBuffer.allocate(headersLen).order(ByteOrder.LITTLE_ENDIAN)
+            input.read(headersBuf)
+            check(!headersBuf.hasRemaining()) { "failed to read headers data" }
+            headersBuf.flip()
+            val headers = parseHeaders(headersBuf)
 
-            val body = ByteArray(bodyLen).apply {
-                val buffer = ByteBuffer.wrap(this)
-                var read = 0
-                while (read < bodyLen) {
-                    read = read + input.read(buffer)
-                }
+            val body = ByteArray(bodyLen)
+            if (bodyLen > 0) {
+                input.read(ByteBuffer.wrap(body))
             }
 
             return Message(ct, body, headers).apply {
@@ -75,8 +70,6 @@ class Message(
                 repTo = getIntHeader(ZitiProtocol.Header.ReplyFor) ?: -1
             }
         }
-
-        fun readMessage(buf: ByteArray): Message = readMessage(buf.inputStream())
 
         fun parseHeaders(buf: ByteBuffer) = mutableMapOf<Int, ByteArray>().apply {
             while (buf.remaining() >= 8) {
@@ -89,7 +82,7 @@ class Message(
         }
     }
 
-    fun toBytes(): ByteArray {
+    internal suspend fun write(t: Transport) {
         val headersLength = headers.map { (_, v) -> v.size + 8 }.fold(0) { l, r -> l + r }
         val size = ZitiProtocol.HEADER_LENGTH + body.size + headersLength
 
@@ -105,7 +98,9 @@ class Message(
             out.put(it.value)
         }
         out.put(body)
-        return out.array()
+        out.flip()
+
+        t.write(out)
     }
 
     override fun toString(): String {
