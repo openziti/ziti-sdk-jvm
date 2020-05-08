@@ -10,7 +10,7 @@ env:
 before_install:
   - wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
   - mkdir -p $HOME/android_sdk
-  - unzip /tmp/android-sdk.zip -d $HOME/android_sdk
+  - unzip -o /tmp/android-sdk.zip -d $HOME/android_sdk
   - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --licenses
   - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "platforms;android-29"
   - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "build-tools;29.0.3"
