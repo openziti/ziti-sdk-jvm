@@ -26,6 +26,7 @@ import java.nio.channels.*
 import java.nio.channels.spi.AsynchronousChannelProvider
 import java.util.concurrent.*
 import javax.net.ssl.*
+import javax.net.ssl.SSLEngineResult.Status.*
 
 /**
  * Implementation TLS stream conforming to [AsynchronousSocketChannel].
@@ -159,24 +160,10 @@ class AsyncTLSChannel(
         attachment: A,
         handler: CompletionHandler<Int, in A>
     ) {
-        checkState(State.connected)
-
-        val sslbuf = ByteBuffer.allocate(32 * 1024)
-        val res = engine.wrap(src, sslbuf)
-        if (res.status == SSLEngineResult.Status.OK) {
-            sslbuf.flip()
-            transport.write(sslbuf, timeout, unit, attachment, object: CompletionHandler<Int, A>{
-                override fun completed(result: Int, att: A?) {
-                    handler.completed(res.bytesConsumed(), att)
-                }
-
-                override fun failed(exc: Throwable, att: A?) {
-                    handler.failed(exc, att)
-                }
-            })
-        } else {
-            handler.failed(SSLException("engine error: ${res.status}"), attachment)
-        }
+        write(arrayOf(src), 0, 1, timeout, unit, attachment, object : CompletionHandler<Long, A>{
+            override fun completed(result: Long, a: A) = handler.completed(result.toInt(), a)
+            override fun failed(exc: Throwable, a: A) = handler.failed(exc, a)
+        })
     }
 
     override fun write(src: ByteBuffer): Future<Int> = CompletableFuture<Int>().also {
@@ -184,7 +171,7 @@ class AsyncTLSChannel(
     }
 
     override fun <A : Any?> write(
-        srcs: Array<out ByteBuffer>?,
+        _srcs: Array<out ByteBuffer>,
         offset: Int,
         length: Int,
         timeout: Long,
@@ -192,8 +179,62 @@ class AsyncTLSChannel(
         attachment: A,
         handler: CompletionHandler<Long, in A>?
     ) {
+        requireNotNull(handler){"handler is required"}
+        checkState(State.connected)
 
-        TODO("Not yet implemented")
+        val srcs = _srcs.slice(offset until offset + length)
+        try {
+            var consumed = 0L
+            var produced = 0
+            val sslbuf = ByteBuffer.allocate(32 * 1024)
+
+            loop@
+            for (b in srcs) {
+                while(b.hasRemaining()) {
+                    val res = engine.wrap(b, sslbuf)
+                    when(res.status) {
+                        BUFFER_UNDERFLOW, BUFFER_OVERFLOW -> break@loop // buffer full
+                        CLOSED -> {
+                            handler.completed(-1, attachment)
+                            return
+                        }
+                        OK -> {
+                            consumed += res.bytesConsumed()
+                            produced += res.bytesProduced()
+                        }
+                        else -> error("can't be here")
+                    }
+                }
+            }
+
+            if (consumed > 0) {
+                sslbuf.flip()
+                assert(produced == sslbuf.remaining())
+                val wh = object : CompletionHandler<Int, A> {
+                    val sslbytes = produced
+                    val cltbytes = consumed
+                    override fun completed(result: Int, a: A) {
+                        if (result == -1) {
+                            handler.completed(-1, a)
+                        }
+                        else if (result < sslbytes) { // write again
+                            transport.write(sslbuf, timeout, unit, a, this)
+                        }
+                        else {
+                            handler.completed(cltbytes, a)
+                        }
+                    }
+
+                    override fun failed(exc: Throwable, a: A) = handler.failed(exc, a)
+                }
+                transport.write(sslbuf, timeout, unit, attachment, wh)
+            } else {
+                handler.completed(0, attachment)
+            }
+
+        } catch (ex: SSLException) {
+            handler.failed(ex, attachment)
+        }
     }
 
     override fun isOpen(): Boolean = (state != State.closed)
@@ -293,16 +334,16 @@ class AsyncTLSChannel(
                             val res = engine.unwrap(sslbuf, plnbuf)
                             t{"$res"}
                             when(res.status) {
-                                SSLEngineResult.Status.CLOSED -> {
+                                CLOSED -> {
                                     transport.shutdownInput()
                                     handler.completed(-1, attachment)
                                 }
 
-                                SSLEngineResult.Status.BUFFER_UNDERFLOW,
-                                SSLEngineResult.Status.BUFFER_OVERFLOW ->
+                                BUFFER_UNDERFLOW,
+                                BUFFER_OVERFLOW ->
                                     enough = true // need to read more, or flush data to client
 
-                                SSLEngineResult.Status.OK ->
+                                OK ->
                                     produced += res.bytesProduced()
                             }
                         } catch (ex: SSLException) {
@@ -388,7 +429,7 @@ class AsyncTLSChannel(
                             hsWrite(output, hs)
                             return
                         }
-                        if (res.status == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
+                        if (res.status == BUFFER_UNDERFLOW) {
                             break;
                         }
                     }

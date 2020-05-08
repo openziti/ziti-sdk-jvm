@@ -18,6 +18,7 @@ package io.netfoundry.ziti.net.nio
 
 import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.isA
+import org.hamcrest.CoreMatchers.startsWith
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Rule
@@ -27,10 +28,12 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLException
+import kotlin.random.Random
 
 class AsyncTLSChannelTest {
 
@@ -75,6 +78,39 @@ class AsyncTLSChannelTest {
         thrown.expectCause(isA(SSLException::class.java))
         ch = AsyncTLSChannel.open()
         ch.connect(InetSocketAddress("httpbin.org", 80)).get(1, TimeUnit.SECONDS)
+    }
+
+    @Test
+    fun testMultiBufferWrite() {
+        val payload = ByteBuffer.allocate(1024)
+        Random.nextBytes(payload.array())
+
+        val req = """POST /post HTTP/1.1
+Accept: */*
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Host: httpbin.org
+User-Agent: HTTPie/1.0.2
+Content-Length: ${payload.remaining()}
+
+"""
+        val wb = arrayOf(StandardCharsets.US_ASCII.encode(req), payload)
+        val writeTotal = wb.fold(0L){ c, b -> c + b.remaining() }
+        ch = AsyncTLSChannel.open()
+        ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+
+        val wf = CompletableFuture<Long>()
+        ch.write(wb, 0, 2, 1, TimeUnit.SECONDS, wf, AsyncTLSChannel.FutureHandler())
+        val wc = wf.get(2, TimeUnit.SECONDS)
+        assertEquals(writeTotal, wc)
+
+        val rb = ByteBuffer.allocate(10 * 1024)
+        ch.read(rb).get(2, TimeUnit.SECONDS)
+        rb.flip()
+
+        val resp = StandardCharsets.UTF_8.decode(rb).toString().reader().readLines()
+        assertThat(resp.first(), startsWith("HTTP/1.1 200 OK"))
+
     }
 
     fun verifyConnection(ch: AsynchronousSocketChannel) {
