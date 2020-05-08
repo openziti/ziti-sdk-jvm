@@ -278,6 +278,7 @@ class AsyncTLSChannel(
 
         val readHandler = object : CompletionHandler<Int, A> {
             override fun completed(result: Int, attachment: A) {
+                t{"read $result bytes: ssl=$sslbuf"}
                 if (result == -1) {
                     handler.completed(-1, attachment)
                 } else {
@@ -285,20 +286,31 @@ class AsyncTLSChannel(
                     plnbuf.compact()
 
                     var produced = 0
-                    while (sslbuf.hasRemaining()) {
-                        val res = engine.unwrap(sslbuf, plnbuf)
+                    var enough = false
+                    while (sslbuf.hasRemaining() && !enough) {
+                        t{"sslbuf = $sslbuf plnbuf = $plnbuf"}
+                        try {
+                            val res = engine.unwrap(sslbuf, plnbuf)
+                            t{"$res"}
+                            when(res.status) {
+                                SSLEngineResult.Status.CLOSED -> {
+                                    transport.shutdownInput()
+                                    handler.completed(-1, attachment)
+                                }
 
-                        if (res.status == SSLEngineResult.Status.CLOSED) {
-                            transport.shutdownInput()
-                            handler.completed(-1, attachment)
+                                SSLEngineResult.Status.BUFFER_UNDERFLOW,
+                                SSLEngineResult.Status.BUFFER_OVERFLOW ->
+                                    enough = true // need to read more, or flush data to client
+
+                                SSLEngineResult.Status.OK ->
+                                    produced += res.bytesProduced()
+                            }
+                        } catch (ex: SSLException) {
+                            handler.failed(ex, attachment)
                             return
                         }
-                        if (res.status != SSLEngineResult.Status.OK) {
-                            handler.failed(SSLException("ssl error: ${res.status}"), attachment)
-                            return
-                        }
-                        produced += res.bytesProduced()
                     }
+
                     sslbuf.compact()
                     if (produced > 0) {
                         plnbuf.flip()

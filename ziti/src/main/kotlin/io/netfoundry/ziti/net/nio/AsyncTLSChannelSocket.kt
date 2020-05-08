@@ -78,7 +78,7 @@ class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, 
     }
 
     override fun getEnableSessionCreation() = asyncTls.engine.enableSessionCreation
-    override fun getApplicationProtocol() = asyncTls.engine.handshakeApplicationProtocol
+    override fun getApplicationProtocol() = null
 
     override fun getUseClientMode(): Boolean = true
     override fun setUseClientMode(mode: Boolean) {
