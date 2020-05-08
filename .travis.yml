@@ -16,6 +16,7 @@ before_install:
   - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --list
   - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "platforms;android-29"
   - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "build-tools;29.0.3"
+  - echo "sdk.dir=$HOME/android_sdk" >> local.properties
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -44,9 +45,8 @@ jobs:
   include:
 
     - stage: test and build
-
       script:
-        - export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+        - env
         - ./gradlew build
         - ./gradlew :ziti:check
         - ./gradlew :ziti-android:check
