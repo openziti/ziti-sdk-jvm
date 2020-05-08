@@ -28,6 +28,11 @@ dependencies {
     testImplementation "junit:junit:4.12"
 }
 
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 application {
     mainClassName = "io.netfoundry.ziti.sample.Sample"
 }

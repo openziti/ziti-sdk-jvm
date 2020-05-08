@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,27 @@ import java.io.ByteArrayOutputStream;
 public class Sample {
 
     public static void main(String[] args) {
-        ZitiContext ziti = Ziti.newContext("/home/eugene/work/java.p12", "".toCharArray());
 
-        ZitiConnection conn = ziti.dial("demo-weather");
+        // usage: sample <config> <service> [host-header]
+
+        if (args.length < 2) {
+            System.out.println("Usage: Sample <config> <service> [host-header]");
+            System.exit(1);
+        }
+
+        String config = args[0];
+        String service = args[1];
+        String hostHeader = args.length > 2 ? String.format("Host: %s\n", args[2]) : "";
+
+        ZitiContext ziti = Ziti.newContext(config, "".toCharArray());
+
+        ZitiConnection conn = ziti.dial(service);
 
         String req = "GET / HTTP/1.1\n" +
                 "Accept: */*\n" +
                 "Accept-Encoding: gzip, deflate\n" +
                 "Connection: close\n" +
-                "Host: wttr.in\n" +
+                hostHeader +
                 "User-Agent: HTTPie/1.0.2\n" +
                 "\n";
         conn.write(req.getBytes());
