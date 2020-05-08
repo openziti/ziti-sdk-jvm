@@ -6,17 +6,11 @@ dist: bionic
 
 env:
   - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
-  - ANDROID_SDK_ROOT=$HOME/android_sdk
 
 before_install:
   - wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
   - mkdir $HOME/android_sdk
   - unzip /tmp/android-sdk.zip -d $HOME/android_sdk
-  - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --licenses
-  - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --list
-  - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "platforms;android-29"
-  - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "build-tools;29.0.3"
-  - echo "sdk.dir=$HOME/android_sdk" >> local.properties
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -24,10 +18,15 @@ before_cache:
 
 cache:
   directories:
+    - $HOME/android_sdk
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
 before_script:
+  - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --licenses
+  - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "platforms;android-29"
+  - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "build-tools;29.0.3"
+  - echo "sdk.dir=$HOME/android_sdk" >> local.properties
   - echo ${gh_ci_key} | base64 --decode > github_deploy_key
   - chmod 600 github_deploy_key
   - git config user.name ziti-ci
