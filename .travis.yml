@@ -13,8 +13,8 @@ before_install:
   - unzip /tmp/android-sdk.zip -d $HOME/android_sdk
   - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --licenses
   - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --list
-  - echo $JAVA_HOME
-  - yes | sdkmanager "platforms;android-29"
+  - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "platforms;android-29"
+  - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "build-tools;29.0.3"
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
