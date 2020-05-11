@@ -21,6 +21,7 @@ import io.netfoundry.ziti.util.ZitiLog
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.net.SocketOption
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.channels.*
 import java.nio.channels.spi.AsynchronousChannelProvider
@@ -67,10 +68,7 @@ class AsyncTLSChannel(
         override fun openAsynchronousChannelGroup(executor: ExecutorService?, initialSize: Int): AsynchronousChannelGroup = Group(this)
     }
 
-    class FutureHandler<A>: CompletionHandler<A, CompletableFuture<A>> {
-        override fun completed(result: A, f: CompletableFuture<A>) { f.complete(result) }
-        override fun failed(exc: Throwable, f: CompletableFuture<A>) { f.completeExceptionally(exc) }
-    }
+
 
     constructor(ch: AsynchronousSocketChannel, ssl: SSLContext) : this(ch, ssl, Provider)
     constructor(ssl: SSLContext): this(AsynchronousSocketChannel.open(),ssl)
@@ -89,7 +87,7 @@ class AsyncTLSChannel(
     internal lateinit var engine: SSLEngine
 
     private val sslbuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
-    private val plnbuf = ByteBuffer.allocate(SSL_BUFFER_SIZE).apply { flip() }
+    private val plnbuf = ByteBuffer.allocate(SSL_BUFFER_SIZE).apply { (this as Buffer).flip() }
 
     init {
         state = State.initial
