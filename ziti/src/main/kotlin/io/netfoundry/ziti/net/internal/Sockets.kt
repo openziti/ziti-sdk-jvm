@@ -32,7 +32,7 @@ internal object Sockets : Logged by ZitiLog() {
 
     val defaultImplCls: Class<out SocketImpl>
     val defaultImplCons: Constructor<out SocketImpl>
-    val defaultImplConsArgs: Array<Any?>
+    lateinit var defaultImplConsArgs: Array<Any?>
 
     init {
         val impl1 = Class.forName("java.net.SocksSocketImpl") as Class<SocketImpl>
