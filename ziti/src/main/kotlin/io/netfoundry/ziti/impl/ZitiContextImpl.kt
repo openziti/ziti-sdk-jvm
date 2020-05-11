@@ -20,21 +20,20 @@ import io.netfoundry.ziti.Errors
 import io.netfoundry.ziti.ZitiConnection
 import io.netfoundry.ziti.ZitiContext
 import io.netfoundry.ziti.ZitiException
-import io.netfoundry.ziti.api.Controller
-import io.netfoundry.ziti.api.NetworkSession
-import io.netfoundry.ziti.api.Service
-import io.netfoundry.ziti.api.Session
+import io.netfoundry.ziti.api.*
 import io.netfoundry.ziti.identity.Identity
 import io.netfoundry.ziti.net.Channel
 import io.netfoundry.ziti.net.ZitiConn
+import io.netfoundry.ziti.net.ZitiSocketChannel
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
 import io.netfoundry.ziti.net.internal.ZitiSocket
-import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
+import io.netfoundry.ziti.util.ZitiLog
 import kotlinx.coroutines.*
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URI
+import java.nio.channels.AsynchronousSocketChannel
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
@@ -81,7 +80,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         d { "${d.name}: [$old] => [$new]" }
     }
 
-    private val networkSessions = ConcurrentHashMap<String, NetworkSession>()
+    data class SessionKey (val serviceId: String, val type: SessionType)
+    private val networkSessions = ConcurrentHashMap<SessionKey, NetworkSession>()
 
     init {
         controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager(), sessionToken)
@@ -89,7 +89,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     override fun dial(serviceName: String): ZitiConnection {
-        val ns = getNetworkSession(serviceName)
+        val ns = getNetworkSession(serviceName, SessionType.Dial)
         return dial(ns)
     }
 
@@ -175,32 +175,36 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal fun getNetworkSession(service: Service): NetworkSession = runBlocking {
+    internal fun getNetworkSession(service: Service, st: SessionType): NetworkSession = runBlocking {
         d("getNetworkSession(${service.name})")
 
         enabled || throw ZitiException(Errors.ServiceNotAvailable)
 
         checkServicesLoaded()
 
-        networkSessions.getOrPut(service.id) {
-            val netSession = controller.createNetSession(service)
+        networkSessions.getOrPut(SessionKey(service.id, st)) {
+            val netSession = controller.createNetSession(service, st)
             d("received net session[${netSession.id}] for service[${service.name}]")
             netSession
         }
     }
 
-    internal fun getNetworkSessionByID(servId: String): NetworkSession {
+    internal fun getNetworkSessionByID(servId: String, st: SessionType): NetworkSession {
         checkServicesLoaded()
 
-        val service = servicesById.get(servId) ?: throw ZitiException(Errors.ServiceNotAvailable)
-        return getNetworkSession(service)
+        servicesById.get(servId)?.let {
+            if (it.permissions.contains(st))
+                return getNetworkSession(it, st)
+        }
+
+        throw ZitiException(Errors.ServiceNotAvailable)
     }
 
-    internal fun getNetworkSession(name: String): NetworkSession {
+    internal fun getNetworkSession(name: String, st: SessionType): NetworkSession {
         checkServicesLoaded()
 
         val service = servicesByName.get(name) ?: throw ZitiException(Errors.ServiceNotAvailable)
-        return getNetworkSession(service)
+        return getNetworkSession(service, st)
 
     }
 
@@ -210,24 +214,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         val service = servicesByName.values.find {
             it.dns?.hostname == host && it.dns?.port == port
         } ?: throw ZitiException(Errors.ServiceNotAvailable)
-        return getNetworkSession(service)
+        return getNetworkSession(service, SessionType.Dial)
     }
-
-    /* TODO
-    fun getDialer(name: String): Dialer {
-        d("[${id.name()}] trying to connect service[$name]")
-        return Dialer(this, getNetworkSession(name))
-    }
-
-    fun getDialerById(id: String): Dialer =
-            Dialer(this, getNetworkSessionByID(id))
-
-    fun getDialer(addr: InetSocketAddress): Dialer {
-        val service = servicesByAddr.get(addr) ?: throw ZitiException(Errors.ServiceNotAvailable)
-
-        return Dialer(this, getNetworkSession(service))
-    }
-    */
 
     internal val channels: MutableMap<String, Channel> = mutableMapOf()
 
@@ -268,12 +256,13 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 ZitiDNSManager.unregisterService(it)
             }
 
-            networkSessions.remove(rid)
+            networkSessions.remove(SessionKey(rid, SessionType.Dial))
+            networkSessions.remove(SessionKey(rid, SessionType.Bind))
         }
 
         // update
         for (s in services) {
-            servicesByName.put(s.name!!, s)
+            servicesByName.put(s.name, s)
             servicesById.put(s.id, s)
 
             ZitiDNSManager.registerService(s)?.let { addr ->
@@ -286,5 +275,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         if (!servicesLoaded.isCompleted)
             servicesLoaded.complete(Unit)
+    }
+
+    override fun open(): AsynchronousSocketChannel {
+        return ZitiSocketChannel(this)
     }
 }

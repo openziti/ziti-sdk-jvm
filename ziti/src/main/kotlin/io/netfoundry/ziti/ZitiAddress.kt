@@ -16,13 +16,6 @@
 
 package io.netfoundry.ziti
 
-import java.net.Socket
-import java.nio.channels.AsynchronousSocketChannel
+import java.net.SocketAddress
 
-interface ZitiContext {
-    fun open(): AsynchronousSocketChannel
-    fun dial(serviceName: String): ZitiConnection
-    fun connect(host: String, port: Int): Socket
-
-    fun stop()
-}
+class ZitiAddress(val service: String): SocketAddress()
