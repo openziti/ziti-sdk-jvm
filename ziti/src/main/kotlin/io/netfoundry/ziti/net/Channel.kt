@@ -37,6 +37,10 @@ import kotlinx.coroutines.channels.Channel as Chan
 
 internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged by ZitiLog() {
 
+    internal interface MessageReceiver {
+        suspend fun receive(msg: Message)
+    }
+
     private val supervisor = SupervisorJob()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + supervisor
@@ -48,9 +52,9 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
     private val synchers = ConcurrentHashMap<Int, CompletableDeferred<Unit>>()
 
     private val receiverSeq = AtomicInteger(0)
-    private val receivers = mutableMapOf<Int, ZitiConn>()
+    private val receivers = mutableMapOf<Int, MessageReceiver>()
 
-    internal fun registerReceiver(rec: ZitiConn): Int {
+    internal fun registerReceiver(rec: MessageReceiver): Int {
         val id = receiverSeq.incrementAndGet()
         synchronized(receivers) {
             receivers[id] = rec
@@ -148,7 +152,7 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
                             receivers[it]
                         }
                         try {
-                            receiver?.recChan?.send(m)
+                            receiver?.receive(m)
                         }
                         catch (ex: Exception) {
                             e(ex){"failed to dispatch"}
