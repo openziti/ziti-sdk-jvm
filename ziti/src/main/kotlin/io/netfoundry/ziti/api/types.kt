@@ -16,6 +16,8 @@
 
 package io.netfoundry.ziti.api
 
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import java.util.*
 
 internal data class ClientInfo(val sdkInfo: Map<*, *>, val envInfo: Map<*, *>, val configTypes: Array<String>)
@@ -31,28 +33,26 @@ internal enum class SessionType {
 }
 internal class NetSessionReq(val serviceId: String, val type: SessionType = SessionType.Dial)
 
-class ControllerVersion(val buildDate: String, val revision: String, val runtimeVersion: String, val version: String)
+data class ControllerVersion(val buildDate: String, val revision: String, val runtimeVersion: String, val version: String)
 internal class Login(val username: String, val password: String)
 internal class Session(val token: String, val identity: Identity?)
-internal class SessionResponse(val session: Session)
 
-internal class ServiceDNS(val hostname: String, val port: Int)
-internal class Service(var id: String, var name: String?, var config: Map<String,*>) {
-    val dns: ServiceDNS?
-        get() {
-            val cfg = config[InterceptConfig] as Map<String, *>?
+internal data class ServiceDNS(val hostname: String, val port: Int)
+data class Service internal constructor(
+    val id: String, val name: String,
+    internal val permissions: Set<SessionType>,
+    internal val config: Map<String,JsonObject>) {
 
-            val host = cfg?.get("hostname")?.toString()
-            val port = cfg?.get("port") as Number?
+    internal val dns: ServiceDNS?
+        get() = getConfig(InterceptConfig, ServiceDNS::class.java)
 
-            return if (host != null && port != null)
-                ServiceDNS(host, port.toInt())
-            else null
-        }
+    fun <C> getConfig(configType: String, cls: Class<out C>): C? {
+        return Gson().fromJson(config[configType],cls)
+    }
 }
 
-internal class Gateway(val name: String, val hostname: String, val urls: Map<String, String>)
-internal class NetworkSession(val id: String, val token: String, val edgeRouters: Array<Gateway>)
+internal data class EdgeRouter(val name: String, val hostname: String, val urls: Map<String, String>)
+internal data class NetworkSession(val id: String, val token: String, val edgeRouters: Array<EdgeRouter>)
 
 internal class OneTimeToken(val token: String, val jwt: String, val issuedAt: Date)
 internal class Enrollment(val ott: OneTimeToken)
