@@ -21,9 +21,11 @@ import io.netfoundry.ziti.Errors
 import io.netfoundry.ziti.ZitiException
 import io.netfoundry.ziti.getZitiError
 import io.netfoundry.ziti.net.internal.Sockets
-import io.netfoundry.ziti.util.ZitiLog
+import io.netfoundry.ziti.net.nio.AsychChannelSocket
+import io.netfoundry.ziti.net.nio.AsyncTLSSocketFactory
 import io.netfoundry.ziti.util.Logged
 import io.netfoundry.ziti.util.Version
+import io.netfoundry.ziti.util.ZitiLog
 import kotlinx.coroutines.Deferred
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
@@ -43,11 +45,14 @@ import javax.net.SocketFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
-class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509TrustManager, sessToken: String? = null) :
+class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustManager, sessToken: String? = null) :
     Logged by ZitiLog() {
     val SdkInfo = mapOf("type" to "ziti-sdk-java") + Version.VersionInfo
 
     internal interface API {
+        @GET("version")
+        fun version(): Deferred<Response<ControllerVersion>>
+
         @GET("current-api-session")
         fun currentSession(): Deferred<Response<Session>>
 
@@ -110,10 +115,8 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
     val clt: OkHttpClient
     init {
         clt = OkHttpClient.Builder().apply {
-            socketFactory(socketFactory)
-            if (sslContext != null) {
-                this.sslSocketFactory(sslContext.socketFactory, trustManager)
-            }
+            socketFactory(AsychChannelSocket.Factory())
+            sslSocketFactory(AsyncTLSSocketFactory(sslContext), trustManager)
             cache(null)
             addInterceptor(SessionInterceptor())
         }.build()
@@ -125,8 +128,10 @@ class Controller(endpoint: URL, sslContext: SSLContext?, trustManager: X509Trust
             .client(clt)
             .build()
         api = retrofit.create(API::class.java)
-        errorConverter = retrofit.responseBodyConverter<Response<Unit>>(Response::class.java, emptyArray())
+        errorConverter = retrofit.responseBodyConverter(Response::class.java, emptyArray())
     }
+
+    suspend fun version() = api.version().await().data
 
     suspend internal fun login(login: Login? = null): Session {
         // validate current session

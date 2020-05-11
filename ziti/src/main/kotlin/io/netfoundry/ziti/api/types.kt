@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,14 @@ internal class Response<T>(val meta: Meta, val data: T?, val error: Error?)
 internal class Error(val code: String, val msg: String)
 internal class Meta(val location: String?)
 internal class Id(val id: String)
-internal class NetSessionReq(val serviceId: String)
 
+internal enum class SessionType {
+    Dial,
+    Bind
+}
+internal class NetSessionReq(val serviceId: String, val type: SessionType = SessionType.Dial)
+
+class ControllerVersion(val buildDate: String, val revision: String, val runtimeVersion: String, val version: String)
 internal class Login(val username: String, val password: String)
 internal class Session(val token: String, val identity: Identity?)
 internal class SessionResponse(val session: Session)

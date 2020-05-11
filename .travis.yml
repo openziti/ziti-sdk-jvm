@@ -1,22 +1,22 @@
 version: "~> 1.0"
 
-language: android
+language: java
 os: linux
-dist: trusty
+dist: bionic
+jdk:
+  - openjdk8
 
 env:
   - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
 
-android:
-  components:
-    - build-tools-29.0.3
-    - android-29
-  licenses:
-    - etc/android-sdk-license
-    - etc/android-sdk-preview-license
-
 before_install:
-  - yes | sdkmanager "platforms;android-29"
+  - wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
+  - mkdir -p $HOME/android_sdk
+  - unzip -o /tmp/android-sdk.zip -d $HOME/android_sdk
+  - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --licenses
+  - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "platforms;android-29"
+  - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "build-tools;29.0.3"
+  - echo "sdk.dir=$HOME/android_sdk" >> local.properties
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -24,6 +24,7 @@ before_cache:
 
 cache:
   directories:
+    - $HOME/android_sdk
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
@@ -46,6 +47,7 @@ jobs:
 
     - stage: test and build
       script:
+        - env
         - ./gradlew build
         - ./gradlew :ziti:check
         - ./gradlew :ziti-android:check

@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-plugins {
-    id("java")
-    id("application")
-}
+package io.netfoundry.ziti.identity
 
-repositories {
-    mavenCentral()
-}
+import com.google.gson.Gson
+import java.io.File
 
-dependencies {
-    implementation project(":ziti")
-    testImplementation "junit:junit:4.12"
-}
+internal class IdentityConfig(val ztAPI: String, val id: Id) {
+    internal class Id(val key: String, val cert: String, val ca: String?)
 
-compileJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
+    companion object {
+        fun load(f: File): IdentityConfig =
+            Gson().fromJson(f.reader(), IdentityConfig::class.java)
 
-application {
-    mainClassName = "io.netfoundry.ziti.sample.Sample"
+        fun load(path: String): IdentityConfig = load(File(path))
+    }
 }

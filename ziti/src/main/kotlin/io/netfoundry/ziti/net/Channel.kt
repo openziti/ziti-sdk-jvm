@@ -19,8 +19,8 @@ package io.netfoundry.ziti.net
 import io.netfoundry.ziti.Errors
 import io.netfoundry.ziti.ZitiException
 import io.netfoundry.ziti.identity.Identity
-import io.netfoundry.ziti.util.ZitiLog
 import io.netfoundry.ziti.util.Logged
+import io.netfoundry.ziti.util.ZitiLog
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.produce
@@ -115,7 +115,7 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
                 d("sending m = ${m}")
                 val syncher = synchers.remove(m.seqNo)
                 try {
-                    peer.write(m.toBytes())
+                    m.write(peer)
                     syncher?.complete(Unit)
                 } catch (ex: Throwable) {
                     waiters.remove(m.seqNo)?.completeExceptionally(ex)
@@ -172,7 +172,7 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
     fun rx(): ReceiveChannel<Message> = produce(this.coroutineContext, 16) {
         try {
             while (true) {
-                val m = Message.readMessage(peer.getInput())
+                val m = Message.readMessage(peer)
                 send(m)
             }
         } catch (ex: Exception) {

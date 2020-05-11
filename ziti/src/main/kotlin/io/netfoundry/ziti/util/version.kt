@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,13 @@ object Version {
     val VersionInfo: Properties by lazy {
         Properties().apply {
             val inputStream = Version.javaClass.getResourceAsStream("ziti-version.properties")
-            load(inputStream)
+            try {
+                load(inputStream)
+            } catch (ex: Exception) {
+                setProperty("version", "local")
+                setProperty("revision", "local-build")
+                setProperty("branch", "local")
+            }
         }
     }
 
