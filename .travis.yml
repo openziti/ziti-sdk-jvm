@@ -3,6 +3,8 @@ version: "~> 1.0"
 language: java
 os: linux
 dist: bionic
+jdk:
+  - openjdk8
 
 env:
   - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
