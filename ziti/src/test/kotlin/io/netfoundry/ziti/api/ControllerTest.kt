@@ -79,7 +79,8 @@ class ControllerTest {
             val services = ctrl.getServices()
             Assume.assumeTrue(!services.isEmpty())
 
-            val session = ctrl.createNetSession(services[0])
+            println(services[0])
+            val session = ctrl.createNetSession(services[0], SessionType.Dial)
 
             println(session)
         }
