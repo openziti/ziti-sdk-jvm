@@ -39,10 +39,9 @@ internal object Sockets : Logged by ZitiLog() {
         defaultImplCls = impl1
 
         var cons: Constructor<SocketImpl>
-        var args: Array<Any?>
+        var args: Array<Any?> = arrayOf()
         try { // v8 contructor
             cons = defaultImplCls.getDeclaredConstructor()
-            args = arrayOf()
         } catch(ex: NoSuchMethodException) {
             cons = defaultImplCls.getDeclaredConstructor(Boolean::class.java)
             args = arrayOf(false)

@@ -27,7 +27,7 @@ import javax.net.ssl.*
 /**
  * [SSLSocket] adapter of [AsyncTLSChannel]
  */
-class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, port: Int, sslContext: SSLContext): SSLSocket() {
+class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, port: Int, sslContext: SSLContext): SSLSocketShim() {
 
     internal val asyncTls: AsyncTLSChannel = AsyncTLSChannel(transport, sslContext)
     internal val impl: AsyncSocketImpl = AsyncSocketImpl(asyncTls)
@@ -78,7 +78,7 @@ class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, 
     }
 
     override fun getEnableSessionCreation() = asyncTls.engine.enableSessionCreation
-    override fun getApplicationProtocol() = null
+    // override fun getApplicationProtocol() = null
 
     override fun getUseClientMode(): Boolean = true
     override fun setUseClientMode(mode: Boolean) {
