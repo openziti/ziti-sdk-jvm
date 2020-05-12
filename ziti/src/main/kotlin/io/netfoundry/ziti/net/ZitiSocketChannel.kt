@@ -281,12 +281,13 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl): Asynchronou
         synchronized(receiveBuff) {
             when (msg.content) {
                 ZitiProtocol.ContentType.StateClosed -> {
-                    e{"closed message type[${msg.content}] for conn[$connId]"}
+                    d{"closed message type[${msg.content}] for conn[$connId]"}
                     state.set(State.closed)
                     signal.offer(-1)
                     channel.deregisterReceiver(connId)
                 }
                 ZitiProtocol.ContentType.Data -> {
+                    t{"received data(${msg.body.size} bytes) for conn[$connId]"}
                     receiveBuff.compact()
                     receiveBuff.put(msg.body)
                     receiveBuff.flip()

@@ -24,6 +24,7 @@ import io.netfoundry.ziti.api.*
 import io.netfoundry.ziti.identity.Identity
 import io.netfoundry.ziti.net.Channel
 import io.netfoundry.ziti.net.ZitiConn
+import io.netfoundry.ziti.net.ZitiServerSocketChannel
 import io.netfoundry.ziti.net.ZitiSocketChannel
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
 import io.netfoundry.ziti.net.internal.ZitiSocket
@@ -33,6 +34,7 @@ import kotlinx.coroutines.*
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URI
+import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
@@ -279,5 +281,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun open(): AsynchronousSocketChannel {
         return ZitiSocketChannel(this)
+    }
+
+    override fun openServer(): AsynchronousServerSocketChannel {
+        return ZitiServerSocketChannel(this)
     }
 }
