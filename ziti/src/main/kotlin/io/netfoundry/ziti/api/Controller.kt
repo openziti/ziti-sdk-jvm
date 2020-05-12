@@ -211,8 +211,11 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
 
         val errorBody = resp.errorBody()
 
-        return if (errorBody != null)
-            errorConverter.convert(errorBody)?.error?.code.toString()
+        return if (errorBody != null) {
+            val body = errorConverter.convert(errorBody)
+            w{"request failed with ${body?.error}"}
+            body?.error?.code.toString()
+        }
         else resp.message()
     }
 

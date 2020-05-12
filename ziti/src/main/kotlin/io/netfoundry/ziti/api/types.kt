@@ -23,7 +23,7 @@ import java.util.*
 internal data class ClientInfo(val sdkInfo: Map<*, *>, val envInfo: Map<*, *>, val configTypes: Array<String>)
 
 internal class Response<T>(val meta: Meta, val data: T?, val error: Error?)
-internal class Error(val code: String, val msg: String)
+internal data class Error(val code: String, val message: String, val cause: JsonObject, val field: String?)
 internal class Meta(val location: String?)
 internal class Id(val id: String)
 
