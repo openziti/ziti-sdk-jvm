@@ -160,12 +160,15 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
                     }
                 }
             }
-        } catch (eof: EOFException) {
-            d("eof on rxer")
-        } catch (jce: CancellationException) {
-            d("rxer() cancelled")
         } catch (ie: Throwable) {
-            e("rxer() exception", ie)
+            when(ie) {
+                is EOFException -> d("eof on rxer")
+                is CancellationException -> d("rxer() cancelled")
+                else -> e("rxer() exception", ie)
+            }
+            for (e in waiters) {
+                e.value.completeExceptionally(ie)
+            }
         } finally {
             d("rxer() is done")
             close()
