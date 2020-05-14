@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package io.netfoundry.ziti
+package io.netfoundry.ziti.net.nio
 
-import java.net.Socket
-import java.nio.channels.AsynchronousServerSocketChannel
-import java.nio.channels.AsynchronousSocketChannel
+import java.nio.channels.CompletionHandler
+import java.util.concurrent.CompletableFuture
 
-interface ZitiContext {
-    fun open(): AsynchronousSocketChannel
-    fun openServer(): AsynchronousServerSocketChannel
-    fun dial(serviceName: String): ZitiConnection
-    fun connect(host: String, port: Int): Socket
-
-    fun stop()
+class FutureHandler<A>: CompletionHandler<A, CompletableFuture<A>> {
+    override fun completed(result: A?, f: CompletableFuture<A>) { f.complete(result) }
+    override fun failed(exc: Throwable, f: CompletableFuture<A>) { f.completeExceptionally(exc) }
 }

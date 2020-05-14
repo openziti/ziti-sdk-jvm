@@ -62,6 +62,7 @@ internal interface Transport : Closeable {
         override suspend fun write(buf: ByteBuffer):Unit = suspendCoroutine {
             val h = object : ContinuationHandler<Int,Unit>() {
                 override fun completed(result: Int, c: Continuation<Unit>) {
+                    t{"wrote ${result} bytes"}
                     if (buf.hasRemaining()) {
                         socket.write(buf, c, this)
                     } else {
@@ -76,6 +77,7 @@ internal interface Transport : Closeable {
         override suspend fun read(buf: ByteBuffer, full: Boolean):Unit = suspendCoroutine {
             val h = object : ContinuationHandler<Int, Unit>() {
                 override fun completed(result: Int, c: Continuation<Unit>) {
+                    t{"read $result bytes"}
                     if (buf.hasRemaining() && full) {
                         socket.read(buf, c, this)
                     } else {

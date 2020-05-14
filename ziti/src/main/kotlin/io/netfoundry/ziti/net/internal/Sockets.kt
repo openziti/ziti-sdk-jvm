@@ -35,19 +35,20 @@ internal object Sockets : Logged by ZitiLog() {
     lateinit var defaultImplConsArgs: Array<Any?>
 
     init {
-        val impl1 = Class.forName("java.net.SocksSocketImpl") as Class<SocketImpl>
+        val impl1 = Class.forName("java.net.PlainSocketImpl") as Class<SocketImpl>
         defaultImplCls = impl1
 
         var cons: Constructor<SocketImpl>
         var args: Array<Any?> = arrayOf()
-        try { // v8 contructor
+        try { // v8 constructor
             cons = defaultImplCls.getDeclaredConstructor()
         } catch(ex: NoSuchMethodException) {
             cons = defaultImplCls.getDeclaredConstructor(Boolean::class.java)
             args = arrayOf(false)
         }
 
-        defaultImplCons = defaultImplCls.getDeclaredConstructor()
+        defaultImplCons = cons
+        defaultImplConsArgs = args
 
         java.security.AccessController.doPrivileged(
             PrivilegedAction<Any> {
@@ -67,6 +68,6 @@ internal object Sockets : Logged by ZitiLog() {
         }
     }
 
-    class BypassSocket : Socket(defaultImplCons.newInstance())
+    class BypassSocket : Socket(defaultImplCons.newInstance(*defaultImplConsArgs))
 }
 

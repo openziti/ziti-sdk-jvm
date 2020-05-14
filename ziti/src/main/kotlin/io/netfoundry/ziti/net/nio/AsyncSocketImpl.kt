@@ -19,6 +19,7 @@ package io.netfoundry.ziti.net.nio
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.*
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
@@ -34,7 +35,7 @@ internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImp
 
     internal val inputLock = Semaphore(1)
     internal val input = ByteBuffer.allocate(32 * 1024).apply {
-        flip()
+        (this as Buffer).flip()
     }
     internal val timeout = AtomicInteger(Socket().soTimeout)
 

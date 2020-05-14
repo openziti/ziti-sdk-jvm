@@ -99,7 +99,7 @@ Content-Length: ${payload.remaining()}
         ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
 
         val wf = CompletableFuture<Long>()
-        ch.write(wb, 0, 2, 1, TimeUnit.SECONDS, wf, AsyncTLSChannel.FutureHandler())
+        ch.write(wb, 0, 2, 1, TimeUnit.SECONDS, wf, FutureHandler())
         val wc = wf.get(2, TimeUnit.SECONDS)
         assertEquals(writeTotal, wc)
 

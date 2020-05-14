@@ -37,6 +37,7 @@ import kotlinx.coroutines.channels.Channel as Chan
  *
  */
 internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : ZitiConnection,
+    Channel.MessageReceiver,
     Closeable, Logged by ZitiLog("ziti-conn") {
     enum class State {
         New,
@@ -54,13 +55,16 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
     private val input = Input()
     private val output = Output()
 
-    val recChan = Chan<Message>(16)
-
+    private val recChan = Chan<Message>(16)
     var timeout: Long = 5000
 
     init {
         connId = channel.registerReceiver(this)
         startSession(networkSession)
+    }
+
+    override suspend fun receive(msg: Message) {
+        recChan.send(msg)
     }
 
     internal fun startSession(ns: NetworkSession) {

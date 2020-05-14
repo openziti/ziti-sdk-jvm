@@ -14,17 +14,26 @@
  * limitations under the License.
  */
 
-package io.netfoundry.ziti
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
 
-import java.net.Socket
-import java.nio.channels.AsynchronousServerSocketChannel
-import java.nio.channels.AsynchronousSocketChannel
+group 'io.netfoundry.ziti'
 
-interface ZitiContext {
-    fun open(): AsynchronousSocketChannel
-    fun openServer(): AsynchronousServerSocketChannel
-    fun dial(serviceName: String): ZitiConnection
-    fun connect(host: String, port: Int): Socket
+repositories {
+    mavenCentral()
+}
 
-    fun stop()
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4')
+
+    implementation project(":ziti")
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
 }

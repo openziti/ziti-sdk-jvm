@@ -187,9 +187,9 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         }
     }
 
-    internal suspend fun createNetSession(s: Service): NetworkSession {
+    internal suspend fun createNetSession(s: Service, t: SessionType): NetworkSession {
         try {
-            val response = api.createNetworkSession(NetSessionReq(s.id)).await()
+            val response = api.createNetworkSession(NetSessionReq(s.id, t)).await()
             return response.data!!
         } catch (ex: Exception) {
             return convertError(ex)
@@ -211,8 +211,11 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
 
         val errorBody = resp.errorBody()
 
-        return if (errorBody != null)
-            errorConverter.convert(errorBody)?.error?.code.toString()
+        return if (errorBody != null) {
+            val body = errorConverter.convert(errorBody)
+            w{"request failed with ${body?.error}"}
+            body?.error?.code.toString()
+        }
         else resp.message()
     }
 
