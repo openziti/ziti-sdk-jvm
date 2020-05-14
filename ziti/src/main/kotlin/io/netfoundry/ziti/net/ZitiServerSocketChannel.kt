@@ -16,8 +16,10 @@
 
 package io.netfoundry.ziti.net
 
+import com.goterl.lazycode.lazysodium.utils.Key
 import io.netfoundry.ziti.ZitiAddress
 import io.netfoundry.ziti.api.SessionType
+import io.netfoundry.ziti.crypto.Crypto
 import io.netfoundry.ziti.impl.ZitiContextImpl
 import io.netfoundry.ziti.net.nio.FutureHandler
 import io.netfoundry.ziti.util.Logged
@@ -45,6 +47,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
     var state: State = State.initial
     lateinit var incoming: Chan<Message>
     lateinit var token: String
+    internal val keyPair = Crypto.newKeyPair()
 
     enum class State {
         initial,
@@ -73,6 +76,8 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
             val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8))
             connectMsg.setHeader(ZitiProtocol.Header.ConnId, connId)
             connectMsg.setHeader(ZitiProtocol.Header.SeqHeader, 0)
+            connectMsg.setHeader(ZitiProtocol.Header.PublicKeyHeader, keyPair.publicKey.asBytes)
+
             d("starting network connection ${session.id}/$connId")
             try {
                 val reply = channel.SendAndWait(connectMsg)
@@ -124,11 +129,17 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                 dialSuccess.setHeader(ZitiProtocol.Header.ConnId, connId)
                 dialSuccess.setHeader(ZitiProtocol.Header.ReplyFor, req.seqNo)
 
+                val sessKeys = req.getHeader(ZitiProtocol.Header.PublicKeyHeader)?.let {
+                    Crypto.kx(keyPair, Key.fromBytes(it), true)
+                }
+                child.setupCrypto(sessKeys)
+
                 val startMsg = channel.SendAndWait(dialSuccess)
 
                 if (startMsg.content == ZitiProtocol.ContentType.StateConnected) {
                     child.state.set(ZitiSocketChannel.State.connected)
                     child.channel = channel
+                    child.startCrypto()
 
                     handler.completed(child, att)
                 } else {
@@ -168,9 +179,9 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
             ZitiProtocol.ContentType.Dial -> {
                 if (!incoming.offer(msg)) { // backlog is full
                     val reject = Message(ZitiProtocol.ContentType.DialFailed)
-                    reject.setHeader(ZitiProtocol.Header.ConnId, connId)
-                    reject.setHeader(ZitiProtocol.Header.ReplyFor, msg.seqNo)
-                    reject.setHeader(ZitiProtocol.Header.SeqHeader, 0)
+                        .setHeader(ZitiProtocol.Header.ConnId, connId)
+                        .setHeader(ZitiProtocol.Header.ReplyFor, msg.seqNo)
+                        .setHeader(ZitiProtocol.Header.SeqHeader, 0)
 
                     channel.Send(reject)
                 }

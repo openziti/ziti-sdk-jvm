@@ -16,10 +16,22 @@
 
 package io.netfoundry.ziti.net.nio
 
+import kotlinx.coroutines.CompletableDeferred
 import java.nio.channels.CompletionHandler
 import java.util.concurrent.CompletableFuture
 
-class FutureHandler<A>: CompletionHandler<A, CompletableFuture<A>> {
+internal class FutureHandler<A>: CompletionHandler<A, CompletableFuture<A>> {
     override fun completed(result: A?, f: CompletableFuture<A>) { f.complete(result) }
     override fun failed(exc: Throwable, f: CompletableFuture<A>) { f.completeExceptionally(exc) }
+}
+
+internal class DeferredHandler<A>: CompletionHandler<A, CompletableDeferred<A>> {
+    override fun completed(result: A, deferred: CompletableDeferred<A>) {
+        deferred.complete(result)
+    }
+
+    override fun failed(exc: Throwable, deferred: CompletableDeferred<A>) {
+        deferred.completeExceptionally(exc)
+    }
+
 }

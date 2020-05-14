@@ -131,9 +131,10 @@ internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImp
                         if (read == -1) {
                             return -1
                         }
-
+                        inputLock.acquire()
                         val count1 = min(len, input.remaining())
                         input.get(b, off, count1)
+                        inputLock.release()
                         return count1
                     } catch (toex: TimeoutException) {
                         throw SocketTimeoutException(toex.message)
