@@ -22,6 +22,7 @@ group 'io.netfoundry.ziti'
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {

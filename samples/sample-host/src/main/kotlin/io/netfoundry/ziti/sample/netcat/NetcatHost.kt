@@ -18,31 +18,14 @@ package io.netfoundry.ziti.sample.netcat
 
 import io.netfoundry.ziti.Ziti
 import io.netfoundry.ziti.ZitiAddress
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.lang.System.exit
 import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousSocketChannel
-import java.nio.channels.CompletionHandler
 import kotlin.text.Charsets.UTF_8
 
 object NetcatHost {
-
-    suspend fun suspendRead(buf: ByteBuffer, clt: AsynchronousSocketChannel): Int {
-        val result = CompletableDeferred<Int>()
-        clt.read(buf, result, object : CompletionHandler<Int, CompletableDeferred<Int>>{
-            override fun completed(result: Int, c: CompletableDeferred<Int>) {
-                c.complete(result)
-            }
-            override fun failed(exc: Throwable, c: CompletableDeferred<Int>) {
-                c.completeExceptionally(exc)
-            }
-        })
-
-        return result.await()
-    }
 
     @JvmStatic
     fun main(args: Array<String>) {
