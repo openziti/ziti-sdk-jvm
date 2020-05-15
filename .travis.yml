@@ -13,6 +13,9 @@ before_install:
   - sudo apt update
   - apt list openjdk-8*
   - sudo apt-get -y install --upgrade openjdk-8-jdk
+  - javac -version
+  - ls -l /usr/bin/javac
+  - ls -l /etc/alternatives/javac
   - wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
   - mkdir -p $HOME/android_sdk
   - unzip -o /tmp/android-sdk.zip -d $HOME/android_sdk
