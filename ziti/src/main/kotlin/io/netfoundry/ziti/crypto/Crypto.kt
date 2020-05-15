@@ -16,12 +16,11 @@
 
 package io.netfoundry.ziti.crypto
 
-import com.goterl.lazycode.lazysodium.LazySodiumJava
-import com.goterl.lazycode.lazysodium.SodiumJava
+import com.goterl.lazycode.lazysodium.LazySodium
 import com.goterl.lazycode.lazysodium.utils.Key
 import com.goterl.lazycode.lazysodium.utils.KeyPair
-import com.goterl.lazycode.lazysodium.utils.LibraryLoader
 import com.goterl.lazycode.lazysodium.utils.SessionPair
+import java.util.*
 
 object Crypto {
     interface SecretStream {
@@ -32,7 +31,7 @@ object Crypto {
         fun decrypt(b: ByteArray): ByteArray
     }
 
-    internal val sodium = LazySodiumJava(SodiumJava(LibraryLoader.Mode.BUNDLED_ONLY))
+    internal val sodium: LazySodium
 
     fun newKeyPair(): KeyPair = sodium.cryptoKxKeypair()
 
@@ -43,4 +42,10 @@ object Crypto {
             sodium.cryptoKxClientSessionKeys(pair.publicKey, pair.secretKey, peerPub)
 
     fun newStream(pair: SessionPair): SecretStream = StreamImpl(pair)
+
+    init {
+        val sl = ServiceLoader.load(CryptoLoader::class.java)
+        val ld = sl.firstOrNull() ?: JavaCryptoLoader()
+        sodium = ld.load()
+    }
 }
