@@ -8,6 +8,7 @@ env:
   - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
 
 before_install:
+  - echo $PATH
   - sudo apt update
   - apt list openjdk-8*
   - sudo apt-get -y install --upgrade openjdk-8-jdk java-common
