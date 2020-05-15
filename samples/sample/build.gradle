@@ -19,10 +19,6 @@ plugins {
     id("application")
 }
 
-repositories {
-    mavenCentral()
-    jcenter()
-}
 
 dependencies {
     implementation project(":ziti")

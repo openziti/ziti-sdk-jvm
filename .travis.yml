@@ -10,6 +10,8 @@ env:
   - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
 
 before_install:
+  - sudo apt update
+  - apt-get -y install --only-upgrade openjdk-8-jdk
   - wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
   - mkdir -p $HOME/android_sdk
   - unzip -o /tmp/android-sdk.zip -d $HOME/android_sdk

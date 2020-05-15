@@ -19,10 +19,6 @@ plugins {
     id("application")
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation project(':ziti')
     testImplementation 'junit:junit:4.12'
