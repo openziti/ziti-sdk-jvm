@@ -27,7 +27,7 @@ import javax.net.ssl.*
 /**
  * [SSLSocket] adapter of [AsyncTLSChannel]
  */
-class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, port: Int, sslContext: SSLContext): SSLSocketShim() {
+class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, port: Int, sslContext: SSLContext): SSLSocket() {
 
     internal val asyncTls: AsyncTLSChannel = AsyncTLSChannel(transport, sslContext)
     internal val impl: AsyncSocketImpl = AsyncSocketImpl(asyncTls)

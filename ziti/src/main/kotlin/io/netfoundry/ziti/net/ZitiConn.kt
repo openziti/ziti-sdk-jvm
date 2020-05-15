@@ -56,7 +56,7 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
     private val output = Output()
 
     private val recChan = Chan<Message>(16)
-    var timeout: Long = 5000
+    override var timeout: Long = 5000
 
     init {
         connId = channel.registerReceiver(this)

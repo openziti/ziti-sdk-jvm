@@ -77,6 +77,8 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         closed
     }
 
+    override var timeout: Long = 0
+
     val state = AtomicReference(State.initial)
     var connId: Int = 0
     lateinit var channel: Channel
@@ -356,8 +358,12 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     override suspend fun receive(out: ByteArray, off: Int, len: Int): Int {
         val deferred = CompletableDeferred<Int>()
-        read(ByteBuffer.wrap(out, off, len), deferred, DeferredHandler())
-        return deferred.await()
+        read(ByteBuffer.wrap(out, off, len), timeout ?: 0, TimeUnit.MILLISECONDS, deferred, DeferredHandler())
+        try {
+            return deferred.await()
+        } catch (ex: TimeoutCancellationException) {
+            return 0
+        }
     }
 
     override fun getInputStream(): InputStream {

@@ -31,10 +31,10 @@ internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged 
     var connected: Boolean = false
     var closed: Boolean = false
     val fallback: Socket?
-    var zitiConn: ZitiConn?
+    var zitiConn: ZitiConnection?
 
     init {
-        zitiConn = zc as ZitiConn?
+        zitiConn = zc
         if (zitiConn != null) {
             connected = true
             fallback = null
@@ -69,7 +69,7 @@ internal class ZitiSocketImpl(zc: ZitiConnection? = null): SocketImpl(), Logged 
         val addr = address as InetSocketAddress
         for (ctx in ZitiImpl.contexts) {
             try {
-                zitiConn = ctx.dial(addr.hostName, addr.port) as ZitiConn
+                zitiConn = ctx.dial(addr.hostName, addr.port)
                 connected = true
             } catch (zex: ZitiException) {
                 when (zex.code) {
