@@ -8,14 +8,8 @@ env:
   - BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}
 
 before_install:
-  - echo $PATH
   - sudo apt update
-  - apt list openjdk-8*
   - sudo apt-get -y install --upgrade openjdk-8-jdk java-common
-  - which javac
-  - javac -version
-  - ls -l /usr/bin/javac
-  - ls -l /etc/alternatives/javac
   - wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
   - mkdir -p $HOME/android_sdk
   - unzip -o /tmp/android-sdk.zip -d $HOME/android_sdk
@@ -53,7 +47,9 @@ jobs:
 
     - stage: test and build
       script:
-        - env
+        - echo $PATH
+        - which javac
+        - javac -version
         - ./gradlew build
         - ./gradlew :ziti:check
         - ./gradlew :ziti-android:check
