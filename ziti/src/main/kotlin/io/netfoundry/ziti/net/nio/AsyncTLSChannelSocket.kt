@@ -63,6 +63,7 @@ class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, 
     override fun getSupportedProtocols(): Array<String> = asyncTls.getSupportedProtocols()
     override fun setEnabledProtocols(p: Array<String>) = asyncTls.setEnabledProtocols(p)
     override fun getEnabledProtocols(): Array<String> = asyncTls.getEnabledProtocols()
+    override fun getApplicationProtocol(): String? = null
 
     override fun getSoTimeout() = impl.getOption(SO_TIMEOUT) as Int
     override fun setSoTimeout(timeout: Int) = impl.setOption(SO_TIMEOUT, timeout)
