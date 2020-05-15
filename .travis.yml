@@ -28,7 +28,7 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
-before_script:
+install:
   - echo ${gh_ci_key} | base64 --decode > github_deploy_key
   - chmod 600 github_deploy_key
   - git config user.name ziti-ci
