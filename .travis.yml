@@ -13,6 +13,7 @@ before_install:
   - sudo apt update
   - apt list openjdk-8*
   - sudo apt-get -y install --upgrade openjdk-8-jdk
+  - which javac
   - javac -version
   - ls -l /usr/bin/javac
   - ls -l /etc/alternatives/javac
