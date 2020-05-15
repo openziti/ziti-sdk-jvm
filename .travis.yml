@@ -47,6 +47,7 @@ jobs:
 
     - stage: test and build
       script:
+        - export PATH=/usr/lib/jvm/java-8-openjdk-amd64/bin:${PATH}
         - echo $PATH
         - which javac
         - javac -version
