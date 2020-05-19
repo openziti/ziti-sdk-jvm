@@ -23,14 +23,8 @@ plugins {
     id("com.jfrog.artifactory")
 }
 
-repositories {
-    mavenCentral()
-    jcenter()
-}
-
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.72")
-
     implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4')
 
     implementation('com.squareup.retrofit2:retrofit:2.8.1')
@@ -42,6 +36,8 @@ dependencies {
     implementation('io.jsonwebtoken:jjwt-orgjson:0.11.1')
 
     implementation('org.bouncycastle:bcpkix-jdk15on:1.65')
+
+    implementation("com.goterl.lazycode:lazysodium-java:4.2.6")
 
     implementation('com.github.ajalt:clikt:2.6.0')
 

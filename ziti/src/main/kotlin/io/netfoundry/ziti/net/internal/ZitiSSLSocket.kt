@@ -27,7 +27,7 @@ import java.security.KeyStore
 import java.security.SecureRandom
 import javax.net.ssl.*
 
-class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int) :
+        class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int) :
     SSLSocket(),
     Logged by ZitiLog("ziti-ssl-socket")
 {

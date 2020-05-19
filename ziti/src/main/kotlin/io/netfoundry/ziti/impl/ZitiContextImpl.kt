@@ -16,14 +16,10 @@
 
 package io.netfoundry.ziti.impl
 
-import io.netfoundry.ziti.Errors
-import io.netfoundry.ziti.ZitiConnection
-import io.netfoundry.ziti.ZitiContext
-import io.netfoundry.ziti.ZitiException
+import io.netfoundry.ziti.*
 import io.netfoundry.ziti.api.*
 import io.netfoundry.ziti.identity.Identity
 import io.netfoundry.ziti.net.Channel
-import io.netfoundry.ziti.net.ZitiConn
 import io.netfoundry.ziti.net.ZitiServerSocketChannel
 import io.netfoundry.ziti.net.ZitiSocketChannel
 import io.netfoundry.ziti.net.dns.ZitiDNSManager
@@ -91,17 +87,14 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     override fun dial(serviceName: String): ZitiConnection {
-        val ns = getNetworkSession(serviceName, SessionType.Dial)
-        return dial(ns)
+        val conn = open() as ZitiSocketChannel
+        conn.connect(ZitiAddress(serviceName)).get()
+        return conn
     }
 
-    internal fun dial(ns: NetworkSession): ZitiConnection {
-        val ch = getChannel(ns)
-        return ZitiConn(ns, ch)
-    }
-
-    internal fun dial(host: String, port: Int): ZitiConnection = getNetworkSession(host, port).let {
-        ZitiConn(it, getChannel(it))
+    internal fun dial(host: String, port: Int): ZitiConnection {
+        val service = getService(host, port)
+        return dial(service.name)
     }
 
     override fun connect(host: String, port: Int): Socket = ZitiSocket(dial(host, port))
@@ -210,13 +203,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     }
 
-    internal fun getNetworkSession(host: String, port: Int): NetworkSession {
+    internal fun getService(host: String, port: Int): Service {
         checkServicesLoaded()
 
-        val service = servicesByName.values.find {
+        return servicesByName.values.find {
             it.dns?.hostname == host && it.dns?.port == port
         } ?: throw ZitiException(Errors.ServiceNotAvailable)
-        return getNetworkSession(service, SessionType.Dial)
     }
 
     internal val channels: MutableMap<String, Channel> = mutableMapOf()

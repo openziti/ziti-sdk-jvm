@@ -151,6 +151,9 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
                         val receiver = synchronized(receivers) {
                             receivers[it]
                         }
+                        if (receiver == null) {
+                            e("receiver[connId=$recId] not found for $m")
+                        }
                         try {
                             receiver?.receive(m)
                         }

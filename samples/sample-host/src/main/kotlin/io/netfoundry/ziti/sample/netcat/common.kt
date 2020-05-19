@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package io.netfoundry.ziti.net.nio
+package io.netfoundry.ziti.sample.netcat
 
 import kotlinx.coroutines.CompletableDeferred
+import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
-import java.util.concurrent.CompletableFuture
 
-internal class FutureHandler<A>: CompletionHandler<A, CompletableFuture<A>> {
-    override fun completed(result: A?, f: CompletableFuture<A>) { f.complete(result) }
-    override fun failed(exc: Throwable, f: CompletableFuture<A>) { f.completeExceptionally(exc) }
-}
+suspend fun suspendRead(buf: ByteBuffer, clt: AsynchronousSocketChannel): Int {
+    val result = CompletableDeferred<Int>()
+    clt.read(buf, result, object : CompletionHandler<Int, CompletableDeferred<Int>> {
+        override fun completed(result: Int, c: CompletableDeferred<Int>) {
+            c.complete(result)
+        }
+        override fun failed(exc: Throwable, c: CompletableDeferred<Int>) {
+            c.completeExceptionally(exc)
+        }
+    })
 
-internal class DeferredHandler<A>: CompletionHandler<A, CompletableDeferred<A>> {
-    override fun completed(result: A, deferred: CompletableDeferred<A>) {
-        deferred.complete(result)
-    }
-
-    override fun failed(exc: Throwable, deferred: CompletableDeferred<A>) {
-        deferred.completeExceptionally(exc)
-    }
-
+    return result.await()
 }

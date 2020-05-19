@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,8 @@ object ZitiProtocol {
         const val ConnId = 1000
         const val SeqHeader = 1001
         const val SessionToken = 1002
+        const val PublicKeyHeader = 1003
+        const val CostHeader = 1004
     }
 
 

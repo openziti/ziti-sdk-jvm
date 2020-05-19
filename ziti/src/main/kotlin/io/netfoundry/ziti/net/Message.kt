@@ -108,17 +108,21 @@ class Message(
             .format(content, seqNo, repTo, getIntHeader(ZitiProtocol.Header.ConnId), body.size)
     }
 
-    fun setHeader(headerId: Int, v: String) {
+    fun setHeader(headerId: Int, v: String) = this.apply {
         headers.put(headerId, v.toByteArray())
     }
 
-    fun setHeader(headerId: Int, v: Int) {
+    fun setHeader(headerId: Int, v: Int): Message = this.apply {
         val b = ByteArray(4)
         ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).putInt(v)
         headers.put(headerId, b)
     }
 
-    fun setHeader(headerId: Int, v: Boolean) {
+    fun setHeader(headerId: Int, b: ByteArray) = this.apply {
+        headers.put(headerId, b)
+    }
+
+    fun setHeader(headerId: Int, v: Boolean) = this.apply {
         val b: Byte = if (v) 1 else 0
         headers.put(headerId, byteArrayOf(b))
     }
@@ -136,4 +140,6 @@ class Message(
     fun getBoolHeader(headerId: Int): Boolean {
         return headers[headerId]?.let { it[0].toInt() != 0 } ?: false
     }
+
+    fun getHeader(headerId: Int): ByteArray? = headers[headerId]
 }

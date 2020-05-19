@@ -20,6 +20,7 @@ import io.netfoundry.ziti.net.nio.AsyncTLSChannel
 import io.netfoundry.ziti.util.Logged
 import io.netfoundry.ziti.util.ZitiLog
 import java.io.Closeable
+import java.io.EOFException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.URI
@@ -44,7 +45,7 @@ internal interface Transport : Closeable {
     fun isClosed(): Boolean
 
     suspend fun write(buf: ByteBuffer)
-    suspend fun read(buf: ByteBuffer, full: Boolean = true)
+    suspend fun read(buf: ByteBuffer, full: Boolean = true): Int
 
     private abstract class ContinuationHandler<V,R>: CompletionHandler<V,Continuation<R>> {
         override fun failed(exc: Throwable, cont: Continuation<R>) = cont.resumeWithException(exc)
@@ -74,14 +75,24 @@ internal interface Transport : Closeable {
             socket.write(buf, it, h)
         }
 
-        override suspend fun read(buf: ByteBuffer, full: Boolean):Unit = suspendCoroutine {
-            val h = object : ContinuationHandler<Int, Unit>() {
-                override fun completed(result: Int, c: Continuation<Unit>) {
+        override suspend fun read(buf: ByteBuffer, full: Boolean): Int = suspendCoroutine {
+            val h = object : ContinuationHandler<Int, Int>() {
+                val initPos = buf.position()
+                override fun completed(result: Int, c: Continuation<Int>) {
                     t{"read $result bytes"}
-                    if (buf.hasRemaining() && full) {
+                    if (result == -1) {
+                        if (buf.position() > initPos) {
+                            t{"resuming $c with $buf"}
+                            c.resume(buf.position() - initPos)
+                        } else {
+                            t{"resuming $c with EOF"}
+                            c.resumeWithException(EOFException())
+                        }
+                    } else if (buf.hasRemaining() && full) {
                         socket.read(buf, c, this)
                     } else {
-                        c.resume(Unit)
+                        t{"resuming $c with result=$result"}
+                        c.resume(result)
                     }
                 }
             }

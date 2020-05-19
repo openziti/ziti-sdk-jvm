@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.io.InputStream
 import java.io.OutputStream
 
 interface ZitiConnection: Closeable {
+    var timeout: Long
+
     suspend fun send(data: ByteArray)
     suspend fun receive(out: ByteArray, off: Int, len: Int): Int
 
