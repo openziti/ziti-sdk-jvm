@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ziti-jvm'
-include 'ziti'
-include 'ziti-netty'
-
-if (properties.buildForAndroid == "true") {
-    include 'ziti-android'
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id("java")
+    id("application")
 }
 
+dependencies {
+    implementation project(':ziti-netty')
+    implementation "io.netty:netty-all:4.1.50.Final"
+    implementation "com.github.ajalt:clikt:2.7.0"
+    implementation "org.slf4j:slf4j-simple:1.7.30"
+    testImplementation "junit:junit:4.12"
+}
 
-include ':samples:sample'
-include ':samples:http-sample'
-include ':samples:sample-host'
-include ':samples:netty-http-sample'
+application {
+    mainClassName = "io.netfoundry.ziti.sample.netty.HttpSample"
+}
+
