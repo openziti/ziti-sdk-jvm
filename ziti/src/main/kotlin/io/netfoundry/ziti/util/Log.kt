@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NetFoundry, Inc.
+ * Copyright (c) 2018-2020 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,15 @@
 
 package io.netfoundry.ziti.util
 
+import org.slf4j.LoggerFactory
+import org.slf4j.MarkerFactory
 import java.lang.reflect.Method
 import java.util.logging.Level
 import java.util.logging.Logger
 
 typealias LogMsg = () -> String
 
-internal interface Logged {
+interface Logged {
     fun e(msg: LogMsg)
     fun e(msg: String) = e(null) { msg }
     fun e(msg: String, t: Throwable) = e(t) { msg }
@@ -55,7 +57,7 @@ internal fun getDelegate(name: String): Logged {
     }
 }
 
-internal class ZitiLog(name: String, private val delegate: Logged = getDelegate(name)) : Logged by delegate {
+class ZitiLog(name: String, private val delegate: Logged = SLF4JLoggedImpl(name)) : Logged by delegate {
     constructor() :
             this(getCaller().split(".").last())
 
@@ -83,6 +85,25 @@ internal class JULoggedImpl(val name: String) : Logged {
     override fun v(msg: LogMsg) = logger.logp(Level.FINER, name, "", msg)
 
     override fun t(msg: LogMsg) = logger.logp(Level.FINEST, name, "", msg)
+}
+
+val TRACE = MarkerFactory.getMarker("TRACE")
+internal class SLF4JLoggedImpl(val name: String) : Logged {
+    private val logger = LoggerFactory.getLogger(name)
+
+    override fun e(msg: LogMsg) = e(null, msg)
+
+    override fun e(ex: Throwable?, msg: LogMsg) = logger.error(msg(), ex)
+
+    override fun w(msg: LogMsg) = logger.warn(msg())
+
+    override fun i(msg: LogMsg) = logger.info(msg())
+
+    override fun d(msg: LogMsg) = logger.debug(msg())
+
+    override fun v(msg: LogMsg) = logger.trace(msg())
+
+    override fun t(msg: LogMsg) = logger.trace(TRACE, msg())
 }
 
 internal class AndroidLogged(val tag: String): Logged {
