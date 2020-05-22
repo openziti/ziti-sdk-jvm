@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ziti-jvm'
-include 'ziti'
-include 'ziti-netty'
+package io.netfoundry.ziti.netty
 
-if (properties.buildForAndroid == "true") {
-    include 'ziti-android'
+import io.netfoundry.ziti.ZitiContext
+import io.netty.channel.ChannelFactory
+import io.netty.channel.ServerChannel
+
+class ZitiServerChannelFactory(val ziti: ZitiContext): ChannelFactory<ServerChannel> {
+    override fun newChannel(): ServerChannel = ZitiServerChannel(ziti.openServer())
 }
-
-
-include ':samples:sample'
-include ':samples:http-sample'
-include ':samples:sample-host'
-include ':samples:netty-http-sample'

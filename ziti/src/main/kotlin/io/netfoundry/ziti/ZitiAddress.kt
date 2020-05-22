@@ -18,4 +18,7 @@ package io.netfoundry.ziti
 
 import java.net.SocketAddress
 
-class ZitiAddress(val service: String): SocketAddress()
+sealed class ZitiAddress: SocketAddress() {
+    data class Service(val name: String): ZitiAddress()
+    data class Session(val id: String, val connId: Int, val service: String): ZitiAddress()
+}

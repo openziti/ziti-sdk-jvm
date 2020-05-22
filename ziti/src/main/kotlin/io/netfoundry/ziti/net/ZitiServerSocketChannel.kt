@@ -41,7 +41,7 @@ import kotlinx.coroutines.channels.Channel as Chan
 internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousServerSocketChannel(null),
     Channel.MessageReceiver, Logged by ZitiLog() {
 
-    var localAddr: ZitiAddress? = null
+    var localAddr: ZitiAddress.Service? = null
     lateinit var channel: Channel
     var connId: Int = -1
     var state: State = State.initial
@@ -59,7 +59,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
     override fun isOpen(): Boolean = state != State.closed
 
     override fun bind(local: SocketAddress?, backlog: Int): AsynchronousServerSocketChannel {
-        if (local !is ZitiAddress) throw UnsupportedAddressTypeException()
+        if (local !is ZitiAddress.Service) throw UnsupportedAddressTypeException()
         when(state) {
             State.initial -> {}
             State.binding,
@@ -68,18 +68,18 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
         }
 
         runBlocking {
-            val session = ctx.getNetworkSession(local.service, SessionType.Bind)
-            token = session.token
-            channel = ctx.getChannel(session)
-            connId = channel.registerReceiver(this@ZitiServerSocketChannel)
-
-            val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8))
-            connectMsg.setHeader(ZitiProtocol.Header.ConnId, connId)
-            connectMsg.setHeader(ZitiProtocol.Header.SeqHeader, 0)
-            connectMsg.setHeader(ZitiProtocol.Header.PublicKeyHeader, keyPair.publicKey.asBytes)
-
-            d("starting network connection ${session.id}/$connId")
             try {
+                val session = ctx.getNetworkSession(local.name, SessionType.Bind)
+                token = session.token
+                channel = ctx.getChannel(session)
+                connId = channel.registerReceiver(this@ZitiServerSocketChannel)
+
+                val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8))
+                connectMsg.setHeader(ZitiProtocol.Header.ConnId, connId)
+                connectMsg.setHeader(ZitiProtocol.Header.SeqHeader, 0)
+                connectMsg.setHeader(ZitiProtocol.Header.PublicKeyHeader, keyPair.publicKey.asBytes)
+
+                d("starting network connection ${session.id}/$connId")
                 val reply = channel.SendAndWait(connectMsg)
                 when (reply.content) {
                     ZitiProtocol.ContentType.StateConnected -> {
@@ -103,6 +103,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                 }
             } catch (ex: Throwable) {
                 e("failed to bind", ex)
+                state = State.closed
                 throw BindException(ex.message)
             }
         }
@@ -140,6 +141,8 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                     child.state.set(ZitiSocketChannel.State.connected)
                     child.channel = channel
                     child.startCrypto()
+                    child.local = localAddr
+                    child.remote = ZitiAddress.Session("$connId", child.connId, localAddr!!.name)
 
                     handler.completed(child, att)
                 } else {

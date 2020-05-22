@@ -88,7 +88,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun dial(serviceName: String): ZitiConnection {
         val conn = open() as ZitiSocketChannel
-        conn.connect(ZitiAddress(serviceName)).get()
+        conn.connect(ZitiAddress.Service(serviceName)).get()
         return conn
     }
 

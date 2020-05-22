@@ -35,7 +35,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.lang.Math.min
 import java.net.ConnectException
-import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.net.SocketOption
 import java.nio.ByteBuffer
@@ -84,12 +83,13 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     lateinit var channel: Channel
     val seq = AtomicInteger(1)
     var remote: ZitiAddress? = null
+    var local: ZitiAddress? = null
     val receiveMutex = Mutex()
     val receiveBuff: ByteBuffer = ByteBuffer.allocate(32 * 1024).apply { flip() }
     val signal = Chan<Int>()
     val crypto = CompletableDeferred<Crypto.SecretStream?>()
 
-    override fun getLocalAddress(): SocketAddress? = InetSocketAddress(connId)
+    override fun getLocalAddress(): SocketAddress? = local
 
     override fun getRemoteAddress(): SocketAddress? = remote
 
@@ -98,7 +98,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     override fun <T : Any?> setOption(name: SocketOption<T>?, value: T): AsynchronousSocketChannel = this
 
     override fun <A : Any?> connect(remote: SocketAddress?, attachment: A, handler: CompletionHandler<Void, in A>) {
-        if (remote !is ZitiAddress) {
+        if (remote !is ZitiAddress.Service) {
             throw UnsupportedAddressTypeException()
         }
 
@@ -117,7 +117,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         ctx.async {
             val kp = Crypto.newKeyPair()
 
-            val ns = ctx.getNetworkSession(remote.service, SessionType.Dial)
+            val ns = ctx.getNetworkSession(remote.name, SessionType.Dial)
             channel = ctx.getChannel(ns)
             connId = channel.registerReceiver(this@ZitiSocketChannel)
 
@@ -138,6 +138,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                         setupCrypto(Crypto.kx(kp, Key.fromBytes(peerPk), false))
                         startCrypto()
                     }
+                    local = ZitiAddress.Session(ns.id, connId, remote.name)
                     d("network connection established ${ns.id}/$connId")
                     state.set(State.connected)
                 }
@@ -173,7 +174,6 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     override fun shutdownInput(): AsynchronousSocketChannel {
         state.set(State.closed)
-        signal.close()
         channel.deregisterReceiver(connId)
         return this
     }
@@ -298,6 +298,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 dataMessage.setHeader(ZitiProtocol.Header.ConnId, connId)
                 dataMessage.setHeader(ZitiProtocol.Header.SeqHeader, seq.getAndIncrement())
                 sent += data.size
+                v("sending $dataMessage")
                 channel.Send(dataMessage)
             }
             handler.completed(sent, att)
@@ -403,5 +404,16 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 .setHeader(ZitiProtocol.Header.SeqHeader, seq.getAndIncrement())
             channel.Send(headerMessage)
         }
+    }
+
+    override fun toString(): String {
+        val s = StringBuilder(this::class.java.simpleName)
+        s.append("[$state]")
+        when(state.get()) {
+            State.connecting -> s.append("(remote=$remote)")
+            State.connected -> s.append("($local -> $remote)")
+            else -> {}
+        }
+        return s.toString()
     }
 }
