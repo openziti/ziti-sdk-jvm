@@ -18,9 +18,10 @@ Release Notes
 
 Obtaining SDK
 ------------
-The recommended way to use the Ziti SDK for Java in your project is to add the dependency using your favorite build tool.
-Register our repository and
-add the SDK Maven dependency to your project.
+The recommended way to use the Ziti SDK for Java in your project is to add the dependency
+using your favorite build tool.
+Our artifacts are hosted on JCenter, so add JCenter repo and dependency to your project.
+Make sure to use latest version from the top of this page.
 
 Maven
 _____
@@ -31,18 +32,21 @@ _____
      <repositories>
         ....
         <repository>
-          <id>ziti-repo</id>
-          <name>NetFoundry Ziti Repository</name>
-          <url>https://netfoundry.jfrog.io/netfoundry/ziti-maven</url>
-        </repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>bintray</name>
+            <url>https://jcenter.bintray.com</url>
+         </repository>
      </repositories>
      ....
      <dependencies>
         ...
         <dependency>
-           <groupId>io.netfoundry.ziti</groupId>
+           <groupId>org.openziti</groupId>
            <artifactId>ziti</artifactId>
-           <version>0.4.4-7</version>
+           <version>0.12.2</version>
         </dependency>
      </dependencies>
      ....
@@ -54,12 +58,12 @@ ______
 
    repositories {
        ...
-       maven { url = "https://netfoundry.jfrog.io/netfoundry/ziti-maven" }
+       jcenter()
    }
    ...
    dependencies {
       ...
-      implementation 'io.netfoundry.ziti:ziti:0.4.4-7'
+      implementation 'io.netfoundry.ziti:ziti:0.12.2'
    }
 
 Building from Source
@@ -124,4 +128,4 @@ to address them.
 .. _Developer Community: https://developer.netfoundry.io
 .. _docs: https://netfoundry.github.io/ziti-doc/ziti/overview.html
 .. _Discourse: https://netfoundry.discourse.group/
-.. _issues: https://github.com/NetFoundry/ziti-sdk-jvm/issues
+.. _issues: https://github.com/openziti/ziti-sdk-jvm/issues
