@@ -17,8 +17,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: 'maven-publish'
-apply plugin: "com.jfrog.artifactory"
+apply plugin: 'com.jfrog.bintray'
 
 android {
     compileSdkVersion 29
@@ -54,7 +53,7 @@ android {
 repositories {
     jcenter()
     google()
-    maven {
+    maven { // needed to lazysodium-android
         url = "https://netfoundry.jfrog.io/netfoundry/ziti-maven"
     }
 }
@@ -80,9 +79,10 @@ task sourceJar(type: Jar) {
 }
 
 afterEvaluate {
+    println("adding zitiAndroid pub")
     publishing {
         publications {
-            aar(MavenPublication) {
+            zitiAndroid(MavenPublication) {
                 groupId = project.group
                 version = project.version
                 from components.release
@@ -92,19 +92,22 @@ afterEvaluate {
     }
 }
 
-artifactory {
-    setContextUrl("https://netfoundry.jfrog.io/netfoundry")
-    publish {
-        repository {
-            repoKey = "ziti-maven"
-            username = "ziti-ci"
-            password = System.getenv("JFROG_API_KEY")
-            maven = true
-        }
-        defaults {
-            publications("aar")
-            publishPom = true
-            publishArtifacts = true
+bintray {
+    user = System.getProperty('bintray.user')
+    key = System.getProperty('bintray.key')
+    publications = ['zitiAndroid']
+
+    pkg {
+        userOrg = 'openziti'
+        repo = 'maven'
+        name = 'ziti-android'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/netfoundry/ziti-sdk-jvm.git'
+        version {
+            name = project.version
+            desc = project.version
+            released = new Date()
         }
     }
 }
+

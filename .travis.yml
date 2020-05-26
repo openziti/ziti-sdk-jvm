@@ -58,5 +58,5 @@ jobs:
     - stage: tag and publish
       script:
         - ./gradlew :tagIfNeeded
-        - ./gradlew assemble :ziti:artifactoryPublish :ziti-android:artifactoryPublish
+        - ./gradlew assemble bintrayUpload -Dbintray.user=${BINTRAY_USER} -Dbintray.key=${BINTRAY_API_KEY}
         - git push --tags --verbose

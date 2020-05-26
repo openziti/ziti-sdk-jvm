@@ -18,9 +18,7 @@ plugins {
     id("java-library")
     id("application")
     id("org.jetbrains.kotlin.jvm")
-    id("maven")
-    id("maven-publish")
-    id("com.jfrog.artifactory")
+    id("com.jfrog.bintray")
 }
 
 dependencies {
@@ -57,10 +55,9 @@ compileJava {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
+
 tasks {
-
     def generatedResourcesDir = "${buildDir}/generated-resources/main"
-
 
     task versionProps(type: WriteProperties) {
         outputFile = "${generatedResourcesDir}/io/netfoundry/ziti/util/ziti-version.properties"
@@ -77,36 +74,46 @@ tasks {
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.java.srcDirs
+    from sourceSets.main.kotlin.srcDirs
     classifier "sources"
+}
+
+javadoc.failOnError = false
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier('javadoc')
+    from javadoc.destinationDir
 }
 
 artifacts {
     archives(sourcesJar)
+    archives(javadocJar)
 }
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            from(components["java"])
-            artifact(sourcesJar)
-            artifact(distZip)
+        zitiJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
         }
     }
 }
 
-artifactory {
-    setContextUrl("https://netfoundry.jfrog.io/netfoundry")
-    publish {
-        repository{
-            setProperty("repoKey", "ziti-maven")
-            setProperty("username", "ziti-ci")
-            setProperty("password", System.getenv("JFROG_API_KEY"))
-            setProperty("maven", true)
-        }
-        defaults{
-            publications("mavenJava")
-            publishPom = true
-            publishArtifacts = true
+bintray {
+    user = System.getProperty('bintray.user')
+    key = System.getProperty('bintray.key')
+    publications = ['zitiJava']
+
+    pkg {
+        userOrg = 'openziti'
+        repo = 'maven'
+        name = 'ziti'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/netfoundry/ziti-sdk-jvm.git'
+        version {
+            name = project.version
+            desc = project.version
+            released = new Date()
         }
     }
 }

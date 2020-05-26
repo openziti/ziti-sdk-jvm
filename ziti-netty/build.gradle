@@ -16,6 +16,7 @@
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
+    id 'com.jfrog.bintray'
 }
 
 
@@ -38,4 +39,50 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.java.srcDirs
+    from sourceSets.main.kotlin.srcDirs
+    classifier "sources"
+}
+
+javadoc.failOnError = false
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier('javadoc')
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives(sourcesJar)
+    archives(javadocJar)
+}
+
+publishing {
+    publications {
+        zitiNetty(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+}
+
+bintray {
+    user = System.getProperty('bintray.user')
+    key = System.getProperty('bintray.key')
+    publications = ['zitiNetty']
+
+    pkg {
+        userOrg = 'openziti'
+        repo = 'maven'
+        name = 'ziti-netty'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/netfoundry/ziti-sdk-jvm.git'
+        version {
+            name = project.version
+            desc = project.version
+            released = new Date()
+        }
+    }
 }
