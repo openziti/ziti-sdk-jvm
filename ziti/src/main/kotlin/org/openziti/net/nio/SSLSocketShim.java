@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
+package org.openziti.net.nio;
 
-group 'org.openziti'
+import javax.net.ssl.SSLSocket;
 
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4')
-
-    implementation project(":ziti")
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+abstract public class SSLSocketShim extends SSLSocket {
+    public String getApplicationProtocol() {
+        return null;
+    }
 }

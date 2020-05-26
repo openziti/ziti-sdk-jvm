@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
+package org.openziti
 
-group 'org.openziti'
+import kotlinx.coroutines.runBlocking
+import java.io.Closeable
+import java.io.InputStream
+import java.io.OutputStream
 
+interface ZitiConnection: Closeable {
+    var timeout: Long
 
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4')
+    suspend fun send(data: ByteArray)
+    suspend fun receive(out: ByteArray, off: Int, len: Int): Int
 
-    implementation project(":ziti")
-}
+    fun write(data: ByteArray) = runBlocking { send(data) }
+    fun read(out: ByteArray, off: Int, len: Int): Int = runBlocking { receive(out, off, len) }
 
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    fun getInputStream(): InputStream
+    fun getOutputStream(): OutputStream
 }

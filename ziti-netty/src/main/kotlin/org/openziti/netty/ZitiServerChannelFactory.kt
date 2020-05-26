@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
+package org.openziti.netty
 
-group 'org.openziti'
+import io.netty.channel.ChannelFactory
+import io.netty.channel.ServerChannel
+import org.openziti.ZitiContext
 
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4')
-
-    implementation project(":ziti")
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+class ZitiServerChannelFactory(val ziti: ZitiContext): ChannelFactory<ServerChannel> {
+    override fun newChannel(): ServerChannel = ZitiServerChannel(ziti.openServer())
 }

@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
+package org.openziti.identity
 
-group 'org.openziti'
+import com.google.gson.Gson
+import java.io.File
 
+internal class IdentityConfig(val ztAPI: String, val id: Id) {
+    internal class Id(val key: String, val cert: String, val ca: String?)
 
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4')
+    companion object {
+        fun load(f: File): IdentityConfig =
+            Gson().fromJson(f.reader(), IdentityConfig::class.java)
 
-    implementation project(":ziti")
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+        fun load(path: String): IdentityConfig = load(File(path))
+    }
 }

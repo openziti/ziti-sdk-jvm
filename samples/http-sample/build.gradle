@@ -25,6 +25,6 @@ dependencies {
 }
 
 application {
-    mainClassName = "io.netfoundry.ziti.sample.http.HttpSample"
+    mainClassName = "org.openziti.sample.http.HttpSample"
 }
 

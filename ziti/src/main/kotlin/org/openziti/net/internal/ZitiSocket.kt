@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
+package org.openziti.net.internal
 
-group 'org.openziti'
+import org.openziti.ZitiConnection
+import org.openziti.net.ZitiSocketImpl
+import java.net.Socket
 
+internal class ZitiSocket internal constructor(internal val zitiImpl: ZitiSocketImpl) : Socket(zitiImpl) {
 
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4')
+    constructor(zc: ZitiConnection) : this(ZitiSocketImpl(zc))
 
-    implementation project(":ziti")
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    override fun isConnected(): Boolean {
+        return zitiImpl.isConnected()
+    }
 }
