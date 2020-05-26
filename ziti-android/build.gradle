@@ -100,7 +100,7 @@ bintray {
     pkg {
         userOrg = 'openziti'
         repo = 'maven'
-        name = 'ziti-android'
+        name = 'ziti'
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/netfoundry/ziti-sdk-jvm.git'
         version {
