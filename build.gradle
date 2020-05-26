@@ -18,6 +18,7 @@ buildscript {
     repositories {
         mavenCentral()
         google()
+        jcenter()
     }
     dependencies {
         classpath("com.android.tools.build:gradle:3.6.3")
@@ -28,7 +29,8 @@ buildscript {
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.72"
     id("io.wusa.semver-git-plugin") version "2.0.2"
-    id("com.jfrog.artifactory") version "4.14.1"
+    id "com.jfrog.bintray" version "1.8.5"
+    id "maven-publish"
 }
 
 repositories {
@@ -41,7 +43,7 @@ ext {
     zitiBaseVersion = file("version").readLines()[0].trim()
 }
 
-group = "io.netfoundry.ziti"
+group = "org.openziti"
 
 semver {
     //nextVersion = "patch"
@@ -51,7 +53,7 @@ semver {
         branch {
             regex = "master"
             incrementer = "NO_VERSION_INCREMENTER"
-            formatter = { info -> "${info.version.major}.${info.version.minor}.${info.version.patch}-${zitiBuildnum}" }
+            formatter = { info -> "${info.version.major}.${info.version.minor}.${info.version.patch}" }
         }
         branch {
             regex = ".+"
@@ -80,8 +82,6 @@ subprojects {
         mavenCentral()
         jcenter()
     }
-
-    plugins.apply("com.jfrog.artifactory")
 
     tasks.withType(PublishToMavenRepository).all {
         onlyIf { !gitInfo.dirty }
@@ -132,3 +132,36 @@ tasks.register("tagIfNeeded") {
         }
     }
 }
+
+subprojects { p ->
+    p.plugins.apply('maven-publish')
+
+    p.publishing.publications.whenObjectAdded { pub ->
+        println("adding ${pub.name} to ${p.name}")
+        pub.pom {
+            licenses {
+                license {
+                    name = "The Apache Software License, Version 2.0"
+                    url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    distribution = "repo"
+                }
+            }
+            developers {
+                developer {
+                    id = "advdev"
+                    name = "NetFoundry Advanced Development Team"
+                    email = "adv-dev@netfoundry.io"
+                }
+            }
+
+            scm {
+                url = "https://github.com/openziti/ziti-sdk-jvm"
+            }
+        }
+    }
+}
+
+
+bintrayPublish.enabled(false)
+bintrayUpload.enabled(false)
+

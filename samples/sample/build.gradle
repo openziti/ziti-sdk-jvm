@@ -31,5 +31,5 @@ compileJava {
 }
 
 application {
-    mainClassName = "io.netfoundry.ziti.sample.Sample"
+    mainClassName = "org.openziti.sample.Sample"
 }
