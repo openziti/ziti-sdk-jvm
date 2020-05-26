@@ -105,8 +105,8 @@ bintray {
     publications = ['zitiJava']
 
     pkg {
-        userOrg = 'openziti'
-        repo = 'maven'
+        userOrg = parent.bintrayOrg
+        repo = parent.bintrayRepo
         name = 'ziti'
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/netfoundry/ziti-sdk-jvm.git'

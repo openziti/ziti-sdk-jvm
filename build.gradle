@@ -41,6 +41,9 @@ repositories {
 ext {
     zitiBuildnum = System.getenv("BUILD_NUMBER") ?: "local"
     zitiBaseVersion = file("version").readLines()[0].trim()
+
+    bintrayOrg = System.getenv('BINTRAY_ORG') ?: 'openziti'
+    bintrayRepo = System.getenv('BINTRAY_REPO') ?: "maven"
 }
 
 group = "org.openziti"

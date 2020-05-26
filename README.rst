@@ -1,6 +1,9 @@
 .. image:: https://travis-ci.org/netfoundry/ziti-sdk-jvm.svg?branch=master
     :target: https://travis-ci.org/netfoundry/ziti-sdk-jvm
 
+.. image:: https://api.bintray.com/packages/openziti/maven/ziti/images/download.svg
+    :target: https://bintray.com/openziti/maven/ziti/_latestVersion
+
 Ziti SDK for JVM
 =================
 The **Ziti SDK for JVM** enables Java and other developers to easily and securely connect their applications
