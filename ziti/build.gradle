@@ -60,7 +60,7 @@ tasks {
     def generatedResourcesDir = "${buildDir}/generated-resources/main"
 
     task versionProps(type: WriteProperties) {
-        outputFile = "${generatedResourcesDir}/io/netfoundry/ziti/util/ziti-version.properties"
+        outputFile = "${generatedResourcesDir}/org/openziti/util/ziti-version.properties"
 
         property("version", "${project.version}")
         property("revision", gitCommit)
