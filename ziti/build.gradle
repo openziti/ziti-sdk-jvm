@@ -103,6 +103,7 @@ bintray {
     user = System.getProperty('bintray.user')
     key = System.getProperty('bintray.key')
     publications = ['zitiJava']
+    publish = true
 
     pkg {
         userOrg = parent.bintrayOrg

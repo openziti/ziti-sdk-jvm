@@ -96,6 +96,7 @@ bintray {
     user = System.getProperty('bintray.user')
     key = System.getProperty('bintray.key')
     publications = ['zitiAndroid']
+    publish = true
 
     pkg {
         userOrg = parent.bintrayOrg
