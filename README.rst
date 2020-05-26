@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/netfoundry/ziti-sdk-jvm.svg?branch=master
-    :target: https://travis-ci.org/netfoundry/ziti-sdk-jvm
+.. image:: https://travis-ci.org/openziti/ziti-sdk-jvm.svg?branch=master
+    :target: https://travis-ci.org/openziti/ziti-sdk-jvm
 
 .. image:: https://api.bintray.com/packages/openziti/maven/ziti/images/download.svg
     :target: https://bintray.com/openziti/maven/ziti/_latestVersion
