@@ -10,9 +10,12 @@ env:
 before_install:
   - sudo apt update
   - sudo apt-get -y install --upgrade openjdk-8-jdk java-common
-  - wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
-  - mkdir -p $HOME/android_sdk
-  - unzip -o /tmp/android-sdk.zip -d $HOME/android_sdk
+  - |
+    if [ ! -f "$HOME/android_sdk/tools/sdkmanager ]; then
+       wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
+       mkdir -p $HOME/android_sdk
+       unzip -o /tmp/android-sdk.zip -d $HOME/android_sdk
+    fi
   - yes | $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --licenses
   - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "platforms;android-29"
   - $HOME/android_sdk/tools/bin/sdkmanager --sdk_root=$HOME/android_sdk --install "build-tools;29.0.3"
@@ -29,11 +32,13 @@ cache:
     - $HOME/.gradle/wrapper/
 
 install:
+  - echo $PWD
   - echo ${gh_ci_key} | base64 --decode > github_deploy_key
   - chmod 600 github_deploy_key
+  - md5sum github_deploy_key
   - git config user.name ziti-ci
   - git config user.email ziti-ci@netfoundry.io
-  - git config core.sshCommand 'ssh -i github_deploy_key'
+  - git config core.sshCommand "ssh -i github_deploy_key"
   - git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}
 
 stages:
