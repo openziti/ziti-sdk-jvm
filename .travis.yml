@@ -38,7 +38,7 @@ install:
   - md5sum github_deploy_key
   - git config user.name ziti-ci
   - git config user.email ziti-ci@netfoundry.io
-  - git config core.sshCommand "ssh -i github_deploy_key"
+  - git config core.sshCommand "ssh -v -i github_deploy_key"
   - git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}
 
 stages:
