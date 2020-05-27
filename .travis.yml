@@ -38,7 +38,7 @@ install:
   - md5sum github_deploy_key
   - git config user.name ziti-ci
   - git config user.email ziti-ci@netfoundry.io
-  - git config core.sshCommand "ssh -v -i github_deploy_key"
+  - git config core.sshCommand "ssh -i github_deploy_key"
   - git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}
 
 stages:
@@ -63,5 +63,6 @@ jobs:
     - stage: tag and publish
       script:
         - ./gradlew :tagIfNeeded
-        - ./gradlew assemble bintrayUpload -Dbintray.user=${BINTRAY_USER} -Dbintray.key=${BINTRAY_API_KEY}
+        - ./gradlew build assemble
+        - ./gradlew bintrayUpload -Dbintray.user=${BINTRAY_USER} -Dbintray.key=${BINTRAY_API_KEY}
         - git push --tags --verbose
