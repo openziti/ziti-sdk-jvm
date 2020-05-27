@@ -26,10 +26,29 @@ import java.security.KeyStore
 import javax.net.SocketFactory
 import javax.net.ssl.SSLSocketFactory
 
+/**
+ * Main API entry point.
+ */
 object Ziti {
+
+    /**
+     * Load Ziti identity from the file.
+     * The following formats of ziti identity files are supported:
+     * * JSON file produced by `ziti-enroller`
+     * * JKS or PKCS#12 file produced by [enroll] method
+     *
+     * @param idFile file containing identity information (key, certificate, controller url)
+     * @param pwd password to access the file (only needed for .jks or .pfx/.p12 if they are protected by password)
+     */
     @JvmStatic
     fun newContext(idFile: File, pwd: CharArray): ZitiContext = ZitiImpl.loadContext(idFile, pwd, null)
 
+    /**
+     * Load Ziti identity from the file.
+     * The following formats of ziti identity files are supported:
+     * @param fname path to file
+     * @param pwd password to access the file (only needed for .jks or .pfx/.p12 if they are protected by password)
+     */
     @JvmStatic
     fun newContext(fname: String, pwd: CharArray): ZitiContext = newContext(File(fname), pwd)
 

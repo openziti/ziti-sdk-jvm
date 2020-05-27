@@ -21,6 +21,9 @@ import java.io.Closeable
 import java.io.InputStream
 import java.io.OutputStream
 
+/**
+ * Object representing established Ziti connection.
+ */
 interface ZitiConnection: Closeable {
     var timeout: Long
 
