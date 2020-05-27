@@ -16,7 +16,7 @@
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
-    id 'com.jfrog.bintray'
+    id 'com.jfrog.bintray' version '1.8.5'
 }
 
 
