@@ -33,7 +33,7 @@ import java.security.KeyStore
 /**
  *
  */
-class ControllerTest {
+internal class ControllerTest {
 
     internal lateinit var cfg: IdentityConfig
     internal lateinit var ks: KeyStore

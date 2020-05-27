@@ -20,11 +20,60 @@ import java.net.Socket
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 
+/**
+ * Object representing an instantiated Ziti identity.
+ * It main purpose is to instantiate
+ * - connections to Ziti services
+ * - binding for hosting Ziti services in the app
+ */
 interface ZitiContext {
-    fun open(): AsynchronousSocketChannel
-    fun openServer(): AsynchronousServerSocketChannel
+
+    /**
+     * connect to Ziti service.
+     */
     fun dial(serviceName: String): ZitiConnection
+
+    /**
+     * connect to Ziti service identified by intercept host and port.
+     * @param host intercept hostname
+     * @param port intercept port
+     * @return connection adapted to standard [Socket]
+     */
     fun connect(host: String, port: Int): Socket
+
+    /**
+     * creates unconnected [AsynchronousSocketChannel].
+     *
+     * before it can be used it has to be connected, via any standard
+     * [AsynchronousSocketChannel.connect] method with [ZitiAddress.Service] address.
+     * ```kotlin
+     *    val con = zitiCtx.open()
+     *    con.connect(ZitiAddress.Service(serviceName)).get()
+     * ```
+     * @return unconnected connection adapted to [AsynchronousSocketChannel]
+     */
+    fun open(): AsynchronousSocketChannel
+
+    /**
+     * creates unbound [AsynchronousServerSocketChannel].
+     *
+     * before it can be used to accept ziti client connections
+     * it has to be bound to Ziti service via any standard [AsynchronousServerSocketChannel.bind] method
+     * with [ZitiAddress.Service] address
+     * all standard [AsynchronousServerSocketChannel.accept] methods are supported.
+     *
+     * Example:
+     * ```kotlin
+     * val server = zitiCtx.openServer()
+     * server.bind(ZitiAddress.Service(serviceName))
+     *
+     * // start accepting
+     * val clt = service.accept().get()
+     *
+     * ```
+     * @return unbound [AsynchronousServerSocketChannel]
+     */
+    fun openServer(): AsynchronousServerSocketChannel
 
     fun stop()
 }

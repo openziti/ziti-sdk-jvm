@@ -63,4 +63,4 @@ internal class CreateIdentity(val name: String, val type: String, enrollmentType
     val enrollment = EnrollmentType(enrollmentType.equals("ott"))
 }
 
-const val InterceptConfig = "ziti-tunneler-client.v1"
+internal const val InterceptConfig = "ziti-tunneler-client.v1"

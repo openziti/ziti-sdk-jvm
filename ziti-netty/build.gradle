@@ -47,15 +47,26 @@ task sourcesJar(type: Jar) {
     classifier "sources"
 }
 
-javadoc.failOnError = false
-task javadocJar(type: Jar, dependsOn: javadoc) {
+dokka {
+    outputFormat = 'html'
+    configuration {
+        jdkVersion = 8
+    }
+}
+
+task dokkaJar(type: Jar, dependsOn: dokka) {
     classifier('javadoc')
-    from javadoc.destinationDir
+    from dokka.outputDirectory
 }
 
 artifacts {
     archives(sourcesJar)
-    archives(javadocJar)
+    archives(dokkaJar)
+}
+
+artifacts {
+    archives(sourcesJar)
+    archives(dokkaJar)
 }
 
 publishing {
@@ -63,7 +74,7 @@ publishing {
         zitiNetty(MavenPublication) {
             from components.java
             artifact sourcesJar
-            artifact javadocJar
+            artifact dokkaJar
         }
     }
 }

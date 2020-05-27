@@ -23,6 +23,7 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:3.6.3")
         classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.14.1")
+        classpath("org.jetbrains.dokka:dokka-gradle-plugin:0.10.1")
     }
 }
 
@@ -137,30 +138,36 @@ tasks.register("tagIfNeeded") {
 }
 
 subprojects { p ->
-    p.plugins.apply('maven-publish')
+    if (!p.identityPath.path.startsWith(":samples")) {
+        p.plugins.apply('maven-publish')
+        if (p.hasProperty('kotlin')) {
+            p.plugins.apply('org.jetbrains.dokka')
+        }
 
-    p.publishing.publications.whenObjectAdded { pub ->
-        println("adding ${pub.name} to ${p.name}")
-        pub.pom {
-            licenses {
-                license {
-                    name = "The Apache Software License, Version 2.0"
-                    url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-                    distribution = "repo"
+        p.publishing.publications.whenObjectAdded { pub ->
+            println("adding ${pub.name} to ${p.name}")
+            pub.pom {
+                licenses {
+                    license {
+                        name = "The Apache Software License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "repo"
+                    }
                 }
-            }
-            developers {
-                developer {
-                    id = "advdev"
-                    name = "NetFoundry Advanced Development Team"
-                    email = "adv-dev@netfoundry.io"
+                developers {
+                    developer {
+                        id = "advdev"
+                        name = "NetFoundry Advanced Development Team"
+                        email = "adv-dev@netfoundry.io"
+                    }
                 }
-            }
 
-            scm {
-                url = "https://github.com/openziti/ziti-sdk-jvm"
+                scm {
+                    url = "https://github.com/openziti/ziti-sdk-jvm"
+                }
             }
         }
+
     }
 }
 

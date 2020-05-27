@@ -18,7 +18,16 @@ package org.openziti
 
 import java.net.SocketAddress
 
+/**
+ * Object representing Ziti address.
+ * It can be used to initiate connections or host services on Ziti network.
+ */
 sealed class ZitiAddress: SocketAddress() {
+    /**
+     * Address representing a Ziti service.
+     * @param name name of the service
+     */
     data class Service(val name: String): ZitiAddress()
-    data class Session(val id: String, val connId: Int, val service: String): ZitiAddress()
+
+    internal data class Session(val id: String, val connId: Int, val service: String): ZitiAddress()
 }
