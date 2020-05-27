@@ -11,7 +11,7 @@ before_install:
   - sudo apt update
   - sudo apt-get -y install --upgrade openjdk-8-jdk java-common
   - |
-    if [ ! -f "$HOME/android_sdk/tools/sdkmanager ]; then
+    if [ ! -f "$HOME/android_sdk/tools/sdkmanager" ]; then
        wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip -O /tmp/android-sdk.zip
        mkdir -p $HOME/android_sdk
        unzip -o /tmp/android-sdk.zip -d $HOME/android_sdk
