@@ -107,7 +107,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
         Sockets.init()
     }
 
-    fun enroll(ks: KeyStore, jwt: ByteArray, name: String): ZitiContextImpl {
+    fun enroll(ks: KeyStore, jwt: ByteArray, name: String): ZitiContext {
         val enroller = Enroller.fromJWT(String(jwt))
         val alias = enroller.enroll(null, ks, name)
 

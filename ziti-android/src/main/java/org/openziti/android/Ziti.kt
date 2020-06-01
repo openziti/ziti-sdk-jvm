@@ -25,7 +25,6 @@ import android.os.Build
 import android.os.Handler
 import android.support.v4.content.FileProvider
 import android.support.v4.content.LocalBroadcastManager
-import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +35,9 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import org.openziti.ZitiContext
 import org.openziti.net.dns.DNSResolver
+import org.openziti.util.Logged
 import org.openziti.util.Version
+import org.openziti.util.ZitiLog
 import java.net.URI
 import java.security.KeyStore
 import java.util.zip.ZipEntry
@@ -46,7 +47,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  *
  */
-object Ziti: CoroutineScope {
+object Ziti: CoroutineScope, Logged by ZitiLog() {
     const val IDENTITY_ADDED = "ziti.identity.added"
     const val IDENTITY_REMOVED = "ziti.identity.removed"
 
@@ -130,12 +131,12 @@ object Ziti: CoroutineScope {
 
             if (keyStore.isKeyEntry(a)) {
                 if (a == idAlias) {
-                    Log.i("ziti", "removing key entry $a")
+                    i("removing key entry $a")
                     keyStore.deleteEntry(a)
                 }
             } else if (keyStore.isCertificateEntry(a)) {
                 if (a.startsWith("ziti:${ctx.name()}")) {
-                    Log.i("ziti", "removing certificate entry $a")
+                    i("removing certificate entry $a")
                     keyStore.deleteEntry(a)
                 }
             }
@@ -144,6 +145,10 @@ object Ziti: CoroutineScope {
 
     fun enrollZiti(jwtUri: Uri) {
         val jwt = app.contentResolver.openInputStream(jwtUri)!!.readBytes()
+        enrollZiti(jwt)
+    }
+
+    fun enrollZiti(jwt: ByteArray) {
         val name = "ziti-sdk"
 
         Thread {
@@ -153,7 +158,7 @@ object Ziti: CoroutineScope {
                 LocalBroadcastManager.getInstance(app).sendBroadcast(
                     Intent(IDENTITY_ADDED).putExtra("id", ctx.name()))
             } catch (ex: Exception) {
-                Log.w("sample", "exception", ex)
+                e("failed to enroll", ex)
                 showResult("Enrollment Failed", ex)
             }
         }.start()
