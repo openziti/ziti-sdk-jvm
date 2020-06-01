@@ -86,7 +86,7 @@ class AsyncTLSChannel(
     internal val transport: AsynchronousSocketChannel
     internal lateinit var engine: SSLEngine
 
-    private val sslbuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
+    private val sslbuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
     private val plnbuf = ByteBuffer.allocate(SSL_BUFFER_SIZE).apply { (this as Buffer).flip() }
 
     init {

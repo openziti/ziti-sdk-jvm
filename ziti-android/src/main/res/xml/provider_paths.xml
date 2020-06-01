@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ Copyright (c) 2018-2020 NetFoundry, Inc.
   ~
@@ -14,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<resources>
-    <string name="jna_library_appname">ziti</string>
-    <string name="supportEmailSubject">Ziti Support (Android)</string>
-</resources>
+<paths>
+    <external-cache-path
+        name="logs"
+        path="."/>
+</paths>

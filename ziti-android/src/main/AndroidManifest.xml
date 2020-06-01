@@ -16,11 +16,21 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.netfoundry.ziti.android">
+    package="org.openziti.android">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <application>
         <activity android:name=".EnrollmentActivity"></activity>
+
+    <provider
+            android:name="org.openziti.android.LogFileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+        <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+    </provider>
     </application>
 
 </manifest>

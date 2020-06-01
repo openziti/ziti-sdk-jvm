@@ -14,24 +14,6 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
+package org.openziti.util
 
-group 'org.openziti'
-
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4')
-
-    api project(":ziti")
-    implementation "org.slf4j:slf4j-simple:+"
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
+data class NetworkStats(val upRate: Double, val downRate: Double)

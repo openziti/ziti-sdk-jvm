@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
-
-group 'org.openziti'
+package org.openziti.android;
 
 
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4')
+import android.support.v4.content.FileProvider;
 
-    api project(":ziti")
-    implementation "org.slf4j:slf4j-simple:+"
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+/**
+ */
+public class LogFileProvider extends FileProvider {
 }

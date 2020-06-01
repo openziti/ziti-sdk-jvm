@@ -17,6 +17,12 @@
 package org.openziti.impl
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
 import org.openziti.*
 import org.openziti.api.*
 import org.openziti.identity.Identity
@@ -35,29 +41,24 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
+import kotlinx.coroutines.channels.Channel as Chan
+import org.openziti.api.Identity as ApiIdentity
 
 /**
  * Object maintaining current Ziti session.
  *
  */
+@ExperimentalCoroutinesApi
 internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : ZitiContext, Identity by id,
     CoroutineScope, Logged by ZitiLog() {
 
-    enum class Status {
-        Active,
-        Disabled,
-        NotAuthorized,
-        Unavailable,
-        Impared
-    }
-
-    var enabled: Boolean by Delegates.observable(false) { _, _, isEnabled ->
+    private var _enabled: Boolean by Delegates.observable(false) { _, _, isEnabled ->
         if (isEnabled) {
-            status = Status.Active
+            statusCh.offer(ZitiContext.Status.Loading)
             val session = login()
             runServiceUpdates(session)
         } else {
-            status = Status.Disabled
+            statusCh.offer(ZitiContext.Status.Disabled)
             stop()
         }
     }
@@ -66,7 +67,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + supervisor
 
+    private var apiId: ApiIdentity? = null
     private val controller: Controller
+    private val statusCh: ConflatedBroadcastChannel<ZitiContext.Status>
+    private val serviceCh: BroadcastChannel<ZitiContext.ServiceEvent>
 
     private val servicesLoaded = CompletableDeferred<Unit>()
     private val servicesByName = mutableMapOf<String, Service>()
@@ -74,16 +78,55 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val servicesByAddr = mutableMapOf<InetSocketAddress, Service>()
     private val addrById = mutableMapOf<String, InetSocketAddress>()
 
-    var status: Status by Delegates.observable(Status.Disabled) { d, old, new ->
-        d { "${d.name}: [$old] => [$new]" }
-    }
-
     data class SessionKey (val serviceId: String, val type: SessionType)
     private val networkSessions = ConcurrentHashMap<SessionKey, NetworkSession>()
 
     init {
         controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager(), sessionToken)
-        this.enabled = enabled
+        statusCh = ConflatedBroadcastChannel(ZitiContext.Status.Disabled)
+        serviceCh = BroadcastChannel(kotlinx.coroutines.channels.Channel.BUFFERED)
+
+        launch {
+            val sub = statusCh.openSubscription()
+            for (s in sub)  {
+                d { "${this@ZitiContextImpl} transitioned to $s" }
+            }
+        }
+        this._enabled = enabled
+    }
+
+    override fun getId(): ApiIdentity? = apiId
+
+    override fun getStatus() = statusCh.value
+    override fun statusUpdates() = statusCh.openSubscription()
+
+    override fun serviceUpdates(): ReceiveChannel<ZitiContext.ServiceEvent> {
+
+        val ch = Chan<ZitiContext.ServiceEvent>(Chan.BUFFERED)
+        val sub = serviceCh.openSubscription()
+        launch {
+            servicesByName.values.asFlow().collect {
+                ch.send(ZitiContext.ServiceEvent(it, ZitiContext.ServiceUpdate.Available))
+            }
+            sub.consumeAsFlow().collect {
+                ch.send(it)
+            }
+        }
+
+        ch.invokeOnClose {
+            sub.cancel(null)
+        }
+        return ch
+    }
+
+    private fun updateStatus(s: ZitiContext.Status) {
+        if (statusCh.value != ZitiContext.Status.Disabled) {
+            statusCh.offer(s)
+        }
+    }
+
+    override fun setEnabled(v: Boolean) {
+        _enabled = v
     }
 
     override fun dial(serviceName: String): ZitiConnection {
@@ -92,6 +135,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         return conn
     }
 
+    internal fun dialById(serviceId: String): ZitiConnection =
+        servicesById[serviceId]?.let {
+            dial(it.name)
+        } ?: throw ZitiException(Errors.ServiceNotAvailable)
+
+
     internal fun dial(host: String, port: Int): ZitiConnection {
         val service = getService(host, port)
         return dial(service.name)
@@ -99,24 +148,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun connect(host: String, port: Int): Socket = ZitiSocket(dial(host, port))
 
-    fun initialize() {
-        if (!enabled) {
-            stop()
-            status = Status.Disabled
-            processServiceUpdates(emptyArray())
-            networkSessions.clear()
-        } else if (enabled) {
-            status = Status.Active
-
-            val session = login()
-            runServiceUpdates(session)
-        }
-    }
-
     override fun stop() {
-        controller.shutdown()
-        supervisor.cancelChildren()
-
         val copy = channels.values
 
         copy.forEach { ch ->
@@ -125,12 +157,28 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     fun destroy() {
+        try { controller.shutdown() } catch(_: Exception) {}
+        runBlocking { supervisor.cancelAndJoin() }
     }
 
     internal fun login() = async {
-        controller.login().also {
-            d("${name()} logged in successfully s[${it.token}] at ${controller()} t[${Thread.currentThread().name}]")
-            sessionToken = it.token
+        try {
+            controller.login().also {
+                d("${name()} logged in successfully s[${it.token}] at ${controller()} t[${Thread.currentThread().name}]")
+                sessionToken = it.token
+                apiId = it.identity
+                updateStatus(ZitiContext.Status.Active)
+            }
+        } catch (ex: Exception) {
+            e(ex) { "[${name()}] failed to login" }
+            if (ex is ZitiException && ex.code == Errors.NotAuthorized) {
+                sessionToken = null
+                updateStatus(ZitiContext.Status.NotAuthorized(ex))
+            }
+            else {
+                updateStatus(ZitiContext.Status.Unavailable(ex))
+            }
+            throw ex
         }
     }
 
@@ -148,13 +196,13 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             w("[${name()}] failed ${ze.localizedMessage}")
             if (ze.code == Errors.NotAuthorized) {
                 sessionToken = null
-                status = Status.NotAuthorized
+                updateStatus(ZitiContext.Status.NotAuthorized(ze))
             }
         } catch (ce: CancellationException) {
             d("[${name()}] refresh stopped")
         } catch (ex: Exception) {
             e("[${name()}] failed to load: ${ex.localizedMessage}", ex)
-            status = Status.Impared
+            updateStatus(ZitiContext.Status.Impaired(ex))
         }
     }
 
@@ -173,7 +221,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     internal fun getNetworkSession(service: Service, st: SessionType): NetworkSession = runBlocking {
         d("getNetworkSession(${service.name})")
 
-        enabled || throw ZitiException(Errors.ServiceNotAvailable)
+        _enabled || throw ZitiException(Errors.ServiceNotAvailable)
 
         checkServicesLoaded()
 
@@ -248,6 +296,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                     servicesByAddr.remove(addr)
                 }
                 ZitiDNSManager.unregisterService(it)
+                launch {
+                    serviceCh.send(ZitiContext.ServiceEvent(it, ZitiContext.ServiceUpdate.Unavailable))
+                }
             }
 
             networkSessions.remove(SessionKey(rid, SessionType.Dial))
@@ -256,7 +307,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         // update
         for (s in services) {
-            servicesByName.put(s.name, s)
+            val oldV = servicesByName.put(s.name, s)
+            if (oldV == null) {
+                launch {
+                    serviceCh.send(ZitiContext.ServiceEvent(s, ZitiContext.ServiceUpdate.Available))
+                }
+            }
             servicesById.put(s.id, s)
 
             ZitiDNSManager.registerService(s)?.let { addr ->
@@ -272,10 +328,40 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     override fun open(): AsynchronousSocketChannel {
+        checkActive()
         return ZitiSocketChannel(this)
     }
 
     override fun openServer(): AsynchronousServerSocketChannel {
+        checkActive()
         return ZitiServerSocketChannel(this)
+    }
+
+    override fun toString(): String {
+        val id = getId()
+        return "${id?.name ?: name()}[${id?.id}]@${controller()}"
+    }
+
+    private fun checkActive() {
+        if (getStatus() == ZitiContext.Status.Active)
+            return
+
+        // wait for active
+        runBlocking {
+            val sub = statusCh.openSubscription()
+            try {
+                loop@
+                for (s in sub) {
+                    when (s) {
+                        ZitiContext.Status.Active -> break@loop
+                        ZitiContext.Status.Loading -> {
+                        }
+                        else -> throw IllegalStateException("invalid state")
+                    }
+                }
+            } finally {
+                sub.cancel()
+            }
+        }
     }
 }

@@ -16,9 +16,13 @@
 
 package org.openziti
 
+import kotlinx.coroutines.channels.ReceiveChannel
+import org.openziti.api.Service
+import org.openziti.identity.Identity
 import java.net.Socket
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
+import org.openziti.api.Identity as ApiIdentity
 
 /**
  * Object representing an instantiated Ziti identity.
@@ -26,7 +30,32 @@ import java.nio.channels.AsynchronousSocketChannel
  * - connections to Ziti services
  * - binding for hosting Ziti services in the app
  */
-interface ZitiContext {
+interface ZitiContext: Identity {
+
+    enum class ServiceUpdate {
+        Available,
+        Unavailable,
+        ConfigurationChange
+    }
+
+    data class ServiceEvent(val service: Service, val type: ServiceUpdate)
+
+    sealed class Status {
+        object Loading: Status()
+        object Active: Status()
+        object Disabled: Status()
+        class NotAuthorized(val ex: Exception): Status()
+        class Unavailable(val ex: Exception): Status()
+        class Impaired(val ex: Exception): Status()
+
+        override fun toString() = this::class.java.simpleName
+    }
+
+    fun setEnabled(v: Boolean)
+    fun getStatus(): Status
+    fun statusUpdates(): ReceiveChannel<Status>
+    fun serviceUpdates(): ReceiveChannel<ServiceEvent>
+    fun getId(): ApiIdentity?
 
     /**
      * connect to Ziti service.

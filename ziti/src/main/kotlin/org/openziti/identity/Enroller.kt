@@ -100,29 +100,29 @@ class Enroller(
         fun main(args: Array<String>) = Cli().main(args)
     }
 
-    fun enroll(cert: KeyStore.Entry?, keyStore: KeyStore, name: String): String {
+    fun enroll(cert: KeyStore.Entry?, keyStore: KeyStore, n: String): String {
 
         val conn = enrollmentURL.openConnection() as HttpsURLConnection
         val ssl = getSSLContext(cert)
 
         val pke = when (method) {
             Method.ott ->
-                enrollOtt(name, conn, keyStore, ssl)
+                enrollOtt(n, conn, keyStore, ssl)
 
             Method.ottca ->
                 if (!(cert is KeyStore.PrivateKeyEntry)) throw Exception("client certificate is required for ottca enrollment")
-                else enrollOttca(name, conn, cert, keyStore, ssl)
+                else enrollOttca(n, conn, cert, keyStore, ssl)
 
             else -> throw UnsupportedOperationException("method $method is not supported")
         }
 
-        val alias = "ziti://${enrollmentURL.host}:${enrollmentURL.port}/${URLEncoder.encode(name, UTF_8.name())}"
+        val alias = "ziti://${enrollmentURL.host}:${enrollmentURL.port}/${URLEncoder.encode(this.name, UTF_8.name())}"
         val protect = if (keyStore.type == "PKCS12") KeyStore.PasswordProtection(charArrayOf()) else null
 
         keyStore.setEntry(alias, pke, protect)
 
         for (ca in caCerts) {
-            val caAlias = "ziti:${name}/${ca.serialNumber}"
+            val caAlias = "ziti:${this.name}/${ca.serialNumber}"
             keyStore.setCertificateEntry(caAlias, ca)
         }
         return alias
