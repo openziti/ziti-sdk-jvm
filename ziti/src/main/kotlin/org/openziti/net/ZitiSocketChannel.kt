@@ -97,6 +97,8 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     override fun <T : Any> getOption(name: SocketOption<T>?): T? = null
     override fun <T : Any?> setOption(name: SocketOption<T>?, value: T): AsynchronousSocketChannel = this
 
+    override fun isClosed() = !isOpen
+
     override fun <A : Any?> connect(remote: SocketAddress?, attachment: A, handler: CompletionHandler<Void, in A>) {
         if (remote !is ZitiAddress.Service) {
             throw UnsupportedAddressTypeException()
@@ -359,7 +361,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     override suspend fun receive(out: ByteArray, off: Int, len: Int): Int {
         val deferred = CompletableDeferred<Int>()
-        read(ByteBuffer.wrap(out, off, len), timeout ?: 0, TimeUnit.MILLISECONDS, deferred, DeferredHandler())
+        read(ByteBuffer.wrap(out, off, len), timeout, TimeUnit.MILLISECONDS, deferred, DeferredHandler())
         try {
             return deferred.await()
         } catch (ex: TimeoutCancellationException) {

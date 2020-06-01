@@ -63,6 +63,9 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
         startSession(networkSession)
     }
 
+    override fun isClosed(): Boolean {
+        return state == State.Closed
+    }
     override suspend fun receive(msg: Message) {
         recChan.send(msg)
     }

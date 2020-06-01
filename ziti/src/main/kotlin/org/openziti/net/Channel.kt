@@ -16,6 +16,7 @@
 
 package org.openziti.net
 
+import com.codahale.metrics.Meter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.produce
@@ -53,6 +54,9 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
 
     private val receiverSeq = AtomicInteger(0)
     private val receivers = mutableMapOf<Int, MessageReceiver>()
+
+    internal val upMeter = Meter()
+    internal val downMeter = Meter()
 
     internal fun registerReceiver(rec: MessageReceiver): Int {
         val id = receiverSeq.incrementAndGet()

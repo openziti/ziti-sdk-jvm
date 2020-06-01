@@ -35,4 +35,6 @@ interface ZitiConnection: Closeable {
 
     fun getInputStream(): InputStream
     fun getOutputStream(): OutputStream
+
+    fun isClosed(): Boolean
 }

@@ -37,13 +37,13 @@ data class ControllerVersion(val buildDate: String, val revision: String, val ru
 internal class Login(val username: String, val password: String)
 internal class Session(val token: String, val identity: Identity?)
 
-internal data class ServiceDNS(val hostname: String, val port: Int)
+data class ServiceDNS(val hostname: String, val port: Int)
 data class Service internal constructor(
     val id: String, val name: String,
     internal val permissions: Set<SessionType>,
     internal val config: Map<String,JsonObject>) {
 
-    internal val dns: ServiceDNS?
+    val dns: ServiceDNS?
         get() = getConfig(InterceptConfig, ServiceDNS::class.java)
 
     fun <C> getConfig(configType: String, cls: Class<out C>): C? {
@@ -56,7 +56,8 @@ internal data class NetworkSession(val id: String, val token: String, val edgeRo
 
 internal class OneTimeToken(val token: String, val jwt: String, val issuedAt: Date)
 internal class Enrollment(val ott: OneTimeToken)
-internal class Identity(val id: String, val name: String, val enrollment: Enrollment?)
+data class Identity internal constructor(val id: String, val name: String, internal val enrollment: Enrollment?)
+
 
 internal class EnrollmentType(val ott: Boolean)
 internal class CreateIdentity(val name: String, val type: String, enrollmentType: String) {

@@ -22,6 +22,7 @@ import org.openziti.net.ZitiSocketFactory
 import org.openziti.net.dns.DNSResolver
 import org.openziti.net.dns.ZitiDNSManager
 import java.io.File
+import java.net.SocketAddress
 import java.security.KeyStore
 import javax.net.SocketFactory
 import javax.net.ssl.SSLSocketFactory
@@ -53,13 +54,16 @@ object Ziti {
     fun newContext(fname: String, pwd: CharArray): ZitiContext = newContext(File(fname), pwd)
 
     @JvmStatic
+    fun removeContext(ctx: ZitiContext) = ZitiImpl.removeContext(ctx)
+
+    @JvmStatic
     fun init(fname: String, pwd: CharArray, seamless: Boolean) = ZitiImpl.init(File(fname), pwd, seamless)
 
     @JvmStatic
     fun init(ks: KeyStore, seamless: Boolean) =  ZitiImpl.init(ks, seamless)
 
     @JvmStatic
-    fun enroll(ks: KeyStore, jwt: ByteArray, name: String) = ZitiImpl.enroll(ks, jwt, name)
+    fun enroll(ks: KeyStore, jwt: ByteArray, name: String): ZitiContext = ZitiImpl.enroll(ks, jwt, name)
 
     @JvmStatic
     fun getSocketFactory(): SocketFactory = ZitiSocketFactory()
@@ -69,4 +73,10 @@ object Ziti {
 
     @JvmStatic
     fun getDNSResolver(): DNSResolver = ZitiDNSManager
+
+    @JvmStatic
+    fun connect(addr: SocketAddress): ZitiConnection = ZitiImpl.connect(addr)
+
+    @JvmStatic
+    fun getContexts(): Collection<ZitiContext> = ZitiImpl.contexts
 }

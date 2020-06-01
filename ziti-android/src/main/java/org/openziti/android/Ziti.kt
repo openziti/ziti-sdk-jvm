@@ -16,32 +16,56 @@
 
 package org.openziti.android
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
+import android.support.v4.content.FileProvider
+import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.launch
+import org.openziti.ZitiContext
+import org.openziti.net.dns.DNSResolver
+import org.openziti.util.Version
+import java.net.URI
 import java.security.KeyStore
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+import kotlin.coroutines.CoroutineContext
 
 /**
  *
  */
-object Ziti {
+object Ziti: CoroutineScope {
+    const val IDENTITY_ADDED = "ziti.identity.added"
+    const val IDENTITY_REMOVED = "ziti.identity.removed"
 
-    val Impl = org.openziti.Ziti
+    private val supervisor = SupervisorJob()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.IO + supervisor
+
+    internal val Impl = org.openziti.Ziti
+    private var enrollmentClass: Class<out Activity> = EnrollmentActivity::class.java
 
     const val Ziti = "Ziti"
     const val ZitiNotificationChannel = "Ziti"
 
     lateinit var app: Context
+    lateinit var zitiPref: SharedPreferences
     lateinit var keyStore: KeyStore
+
+    @JvmStatic
+    fun getDnsResolver(): DNSResolver = Impl.getDNSResolver()
 
     @JvmStatic
     fun init(app: Context, seamless: Boolean = true) {
@@ -56,7 +80,22 @@ object Ziti {
         keyStore = KeyStore.getInstance("AndroidKeyStore")
         keyStore.load(null)
 
+        zitiPref = app.getSharedPreferences("ziti", Context.MODE_PRIVATE)
         val ctxList = Impl.init(keyStore, seamless)
+
+        for (c in ctxList) {
+            val enabled = zitiPref.getBoolean("${c.name()}.enabled", true)
+            c.setEnabled(enabled)
+            launch {
+                c.statusUpdates().consumeAsFlow().collect {
+                    val on = it != ZitiContext.Status.Disabled
+                    zitiPref.edit()
+                        .putBoolean("${c.name()}.enabled", on)
+                        .apply()
+                }
+            }
+        }
+
         if (ctxList.isEmpty()) {
             val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 Notification.Builder(app, ZitiNotificationChannel)
@@ -71,11 +110,34 @@ object Ziti {
                 .setContentText("Application is not enrolled with Ziti Network")
                 .setContentIntent(
                     PendingIntent.getActivity(
-                    app, 0x7171, Intent(app, EnrollmentActivity::class.java), PendingIntent.FLAG_CANCEL_CURRENT))
+                    app, 0x7171, getEnrollmentIntent(), PendingIntent.FLAG_CANCEL_CURRENT))
                 .build()
 
             app.getSystemService(NotificationManager::class.java)?.apply {
                 notify(null, 0x2171, notification)
+            }
+        }
+    }
+
+    fun deleteIdentity(ctx: ZitiContext) {
+        Impl.removeContext(ctx)
+        LocalBroadcastManager.getInstance(app).sendBroadcast(
+            Intent(IDENTITY_REMOVED).putExtra("id", ctx.name()))
+
+        val ctrl = URI.create(ctx.controller())
+        val idAlias = "ziti://${ctrl.host}:${ctrl.port}/${ctx.name()}"
+        for(a in keyStore.aliases()) {
+
+            if (keyStore.isKeyEntry(a)) {
+                if (a == idAlias) {
+                    Log.i("ziti", "removing key entry $a")
+                    keyStore.deleteEntry(a)
+                }
+            } else if (keyStore.isCertificateEntry(a)) {
+                if (a.startsWith("ziti:${ctx.name()}")) {
+                    Log.i("ziti", "removing certificate entry $a")
+                    keyStore.deleteEntry(a)
+                }
             }
         }
     }
@@ -86,8 +148,10 @@ object Ziti {
 
         Thread {
             try {
-                Impl.enroll(keyStore, jwt, name)
+                val ctx = Impl.enroll(keyStore, jwt, name)
                 showResult("Enrollment Success!!", null)
+                LocalBroadcastManager.getInstance(app).sendBroadcast(
+                    Intent(IDENTITY_ADDED).putExtra("id", ctx.name()))
             } catch (ex: Exception) {
                 Log.w("sample", "exception", ex)
                 showResult("Enrollment Failed", ex)
@@ -104,5 +168,53 @@ object Ziti {
                 app.getSystemService(NotificationManager::class.java)?.cancel(null, 0x2171)
             }
         }
+    }
+
+    fun sendFeedbackIntent() = Intent(Intent.ACTION_SEND).apply {
+        type = "application/zip"
+        putExtra(Intent.EXTRA_EMAIL, arrayOf("support@netfoundry.io"))
+        putExtra(Intent.EXTRA_SUBJECT, app.getString(R.string.supportEmailSubject))
+
+        val identities = Impl.getContexts()
+        val ids = if (identities.isNullOrEmpty()) {
+            "no enrollments"
+        } else {
+            identities.joinToString(separator = "\n") {
+                "\t${it} - ${it.getStatus()}"
+            }
+        }
+
+        val bodyString = """
+                    |${Build.MANUFACTURER}: ${Build.MODEL}
+                    |Android Version: ${Build.VERSION.RELEASE}
+                    |Android-SDK: ${Build.VERSION.SDK_INT}
+                    |Ziti Version: "${BuildConfig.VERSION_NAME}(${Version.revision})"
+                    |
+                    |Enrollments:
+                    |${ids}
+                    |""".trimMargin()
+
+        putExtra(Intent.EXTRA_TEXT, bodyString)
+
+        val logDir = app.externalCacheDir!!.resolve("logs")
+        logDir.mkdirs()
+        val log = Runtime.getRuntime().exec("logcat -d -b crash,main").inputStream.bufferedReader().readText()
+
+        val logFile = logDir.resolve("log.zip")
+        val zip = ZipOutputStream(logFile.outputStream())
+        zip.putNextEntry(ZipEntry("ziti.log"))
+        zip.writer().write(log)
+        zip.finish()
+        zip.flush()
+        zip.close()
+
+        putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(app,
+            "${app.packageName}.provider", logFile))
+    }
+
+    fun getEnrollmentIntent() = Intent(app, enrollmentClass)
+
+    fun setEnrollmentActivity(cls: Class<out Activity>) {
+        enrollmentClass = cls
     }
 }
