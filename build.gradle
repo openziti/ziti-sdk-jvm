@@ -22,7 +22,7 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:3.6.3")
-        classpath("org.jfrog.buildinfo:build-info-extractor-gradle:4.14.1")
+        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5")
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:0.10.1")
     }
 }
@@ -110,7 +110,7 @@ tasks.register("tagIfNeeded") {
             def tagMajor = semver.info.version.major
             def tagMinor = semver.info.version.minor
             def tagPatch = semver.info.version.patch
-            def ahead = semver.info.version.suffix?.count
+            def ahead = semver.info.version.suffix?.count ?: 0
 
             if ( zitiMajor > tagMajor ||
                 (zitiMajor == tagMajor && zitiMinor > tagMinor ) ||
