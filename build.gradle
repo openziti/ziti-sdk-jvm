@@ -60,10 +60,10 @@ semver {
         }
         branch {
             regex = ".+"
-            incrementer = "NO_VERSION_INCREMENTER"
+            incrementer = "PATCH_VERSION_INCREMENTER"
             formatter = { info ->
                 def v = info.version
-                """${info.branch.id}-${v.major}.${v.minor}.${v.patch}.${v.suffix?.count ?: "0"}.${v.suffix?.sha}""" }
+                """${v.major}.${v.minor}.${v.patch}-${v.suffix?.count ?: "0"}.${v.suffix?.sha}-${info.branch.id}""" }
         }
     }
 }
