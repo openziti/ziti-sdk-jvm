@@ -62,9 +62,12 @@ jobs:
 
     - stage: tag and publish
       script:
+        - echo "java.home = ${JAVA_HOME}"
         - export PATH=/usr/lib/jvm/java-8-openjdk-amd64/bin:${PATH}
+        - export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
         - javac -version
         - ./gradlew :tagIfNeeded
+        - ./gradlew clean
         - ./gradlew build assemble
         - ./gradlew bintrayUpload -Dbintray.user=${BINTRAY_USER} -Dbintray.key=${BINTRAY_API_KEY}
         - git push --tags --verbose
