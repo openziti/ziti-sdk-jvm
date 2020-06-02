@@ -62,6 +62,8 @@ jobs:
 
     - stage: tag and publish
       script:
+        - export PATH=/usr/lib/jvm/java-8-openjdk-amd64/bin:${PATH}
+        - javac -version
         - ./gradlew :tagIfNeeded
         - ./gradlew build assemble
         - ./gradlew bintrayUpload -Dbintray.user=${BINTRAY_USER} -Dbintray.key=${BINTRAY_API_KEY}
