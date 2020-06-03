@@ -54,13 +54,13 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         fun version(): Deferred<Response<ControllerVersion>>
 
         @GET("current-api-session")
-        fun currentSession(): Deferred<Response<Session>>
+        fun currentApiSession(): Deferred<Response<ApiSession>>
 
         @POST("authenticate?method=password")
-        fun authenticate(@Body login: Login): Deferred<Response<Session>>
+        fun authenticate(@Body login: Login): Deferred<Response<ApiSession>>
 
         @POST("authenticate?method=cert")
-        fun authenticateCert(@Body req: ClientInfo): Deferred<Response<Session>>
+        fun authenticateCert(@Body req: ClientInfo): Deferred<Response<ApiSession>>
 
         @DELETE("current-api-session")
         fun logout(): Deferred<Unit>
@@ -82,7 +82,7 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
     }
 
     internal val api: API
-    internal var session: Session? = sessToken?.let { Session(it, null) }
+    internal var apiSession: ApiSession? = sessToken?.let { ApiSession(it, null) }
 
     internal val errorConverter: Converter<ResponseBody, Response<Unit>>
 
@@ -133,19 +133,19 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
 
     suspend fun version() = api.version().await().data
 
-    suspend internal fun login(login: Login? = null): Session {
+    suspend internal fun login(login: Login? = null): ApiSession {
         // validate current session
-        if (session != null) {
+        if (apiSession != null) {
             try {
-                session = api.currentSession().await().data
+                apiSession = api.currentApiSession().await().data
             } catch (ex: HttpException) {
                 val err = getError(ex.response())
                 w("current-session: ${ex.code()} ${err}")
-                session = null
+                apiSession = null
             }
         }
 
-        if (session == null) {
+        if (apiSession == null) {
 
             val call = if (login == null)
                 api.authenticateCert(getClientInfo()) else
@@ -153,12 +153,12 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
 
             try {
                 val resp = call.await()
-                session = resp.data!!
+                apiSession = resp.data!!
             } catch (ex: Exception) {
                 return convertError(ex)
             }
         }
-        return session!!
+        return apiSession!!
     }
 
     suspend fun logout() {
@@ -222,9 +222,9 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
     inner class SessionInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
             val r = chain.request()
-            d("${r.method()} ${r.url()} session=${session} t[${Thread.currentThread().name}]")
+            d("${r.method()} ${r.url()} session=${apiSession} t[${Thread.currentThread().name}]")
 
-            session?.let {
+            apiSession?.let {
                 val request = chain.request().newBuilder()
                     .header("zt-session", it.token)
                     .build()

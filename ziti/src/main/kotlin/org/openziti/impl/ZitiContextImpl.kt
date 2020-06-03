@@ -185,7 +185,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    private fun runServiceUpdates(session: Deferred<Session>) = launch {
+    private fun runServiceUpdates(session: Deferred<ApiSession>) = launch {
         try {
             session.await()
             while (true) {
