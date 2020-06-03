@@ -60,10 +60,11 @@ semver {
         }
         branch {
             regex = ".+"
-            incrementer = "NO_VERSION_INCREMENTER"
+            incrementer = "PATCH_INCREMENTER"
             formatter = { info ->
                 def v = info.version
-                """${info.branch.id}-${v.major}.${v.minor}.${v.patch}.${v.suffix?.count ?: "0"}.${v.suffix?.sha}""" }
+                """${v.major}.${v.minor}.${v.patch}-${v.suffix?.count ?: "0"}.${v.suffix?.sha}-${info.branch.id}"""
+            }
         }
     }
 }
@@ -75,7 +76,6 @@ ext {
 }
 
 version = semver.info
-println("version = ${version}")
 
 subprojects {
     group = rootProject.group
@@ -122,7 +122,6 @@ tasks.register("tagIfNeeded") {
             } else {
                 if (ahead == 0) {
                     println("already has tag = ${tagMajor}.${tagMinor}.${tagPatch}")
-                    // new_tag = "${tagMajor}.${tagMinor}.${tagPatch}"
                 }
                 else {
                     println("bumping up new tag")

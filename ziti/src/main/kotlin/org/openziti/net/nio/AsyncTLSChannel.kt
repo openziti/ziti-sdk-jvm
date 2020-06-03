@@ -18,6 +18,7 @@ package org.openziti.net.nio
 
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
+import org.openziti.util.transfer
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.net.SocketOption
@@ -26,6 +27,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.*
 import java.nio.channels.spi.AsynchronousChannelProvider
 import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.net.ssl.*
 import javax.net.ssl.SSLEngineResult.Status.*
 
@@ -88,6 +90,7 @@ class AsyncTLSChannel(
 
     private val sslbuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
     private val plnbuf = ByteBuffer.allocate(SSL_BUFFER_SIZE).apply { (this as Buffer).flip() }
+    private val readOp = AtomicBoolean(false)
 
     init {
         state = State.initial
@@ -273,17 +276,6 @@ class AsyncTLSChannel(
         return this
     }
 
-    fun ByteBuffer.transfer(dsts: Array<out ByteBuffer>): Long {
-        var c = 0L
-        for (d in dsts) {
-            while(this.hasRemaining() && d.hasRemaining()) {
-                d.put(this.get())
-                c++
-            }
-        }
-        return c
-    }
-
     override fun <A> read(dst: ByteBuffer, timeout: Long, unit: TimeUnit,
         attachment: A, handler: CompletionHandler<Int, in A>
     ) {
@@ -311,29 +303,34 @@ class AsyncTLSChannel(
         if ((offset < 0) || (length < 0) || (offset > _dsts.size - length)) {
             throw IndexOutOfBoundsException()
         }
+
+        if (!readOp.compareAndSet(false, true)) {
+            throw ReadPendingException()
+        }
+
         val dsts = _dsts.sliceArray(offset until offset + length)
         if (plnbuf.hasRemaining()) {
-            handler.completed(plnbuf.transfer(dsts), attachment)
+            val read = plnbuf.transfer(dsts)
+            readOp.set(false)
+            handler.completed(read, attachment)
             return
         }
 
+        plnbuf.clear()
         val readHandler = object : CompletionHandler<Int, A> {
             override fun completed(result: Int, attachment: A) {
-                t{"read $result bytes: ssl=$sslbuf"}
                 if (result == -1) {
+                    readOp.set(false)
                     handler.completed(-1, attachment)
                 } else {
                     sslbuf.flip()
-                    plnbuf.compact()
 
                     var produced = 0
                     var enough = false
                     while (sslbuf.hasRemaining() && !enough) {
-                        t{"sslbuf = $sslbuf plnbuf = $plnbuf"}
                         try {
                             val res = engine.unwrap(sslbuf, plnbuf)
-                            t{"$res"}
-                            when(res.status) {
+                            when (res.status) {
                                 CLOSED -> {
                                     transport.shutdownInput()
                                     handler.completed(-1, attachment)
@@ -347,6 +344,7 @@ class AsyncTLSChannel(
                                     produced += res.bytesProduced()
                             }
                         } catch (ex: SSLException) {
+                            readOp.set(false)
                             handler.failed(ex, attachment)
                             return
                         }
@@ -355,7 +353,9 @@ class AsyncTLSChannel(
                     sslbuf.compact()
                     if (produced > 0) {
                         plnbuf.flip()
-                        handler.completed(plnbuf.transfer(dsts), attachment)
+                        val count = plnbuf.transfer(dsts)
+                        readOp.set(false)
+                        handler.completed(count, attachment)
                     } else {
                         transport.read(sslbuf, timeout, unit, attachment, this) // TODO adjust tmieout
                     }
