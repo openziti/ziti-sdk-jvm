@@ -54,12 +54,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     private var _enabled: Boolean by Delegates.observable(false) { _, _, isEnabled ->
         if (isEnabled) {
-            statusCh.offer(ZitiContext.Status.Loading)
-            val session = login()
-            runServiceUpdates(session)
+            if (statusCh.value == ZitiContext.Status.Disabled)
+                statusCh.offer(ZitiContext.Status.Active)
         } else {
             statusCh.offer(ZitiContext.Status.Disabled)
-            stop()
         }
     }
 
@@ -83,16 +81,21 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     init {
         controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager(), sessionToken)
-        statusCh = ConflatedBroadcastChannel(ZitiContext.Status.Disabled)
+        statusCh = ConflatedBroadcastChannel(ZitiContext.Status.Loading)
         serviceCh = BroadcastChannel(kotlinx.coroutines.channels.Channel.BUFFERED)
+        this._enabled = enabled
 
+        val sub = statusCh.openSubscription()
         launch {
-            val sub = statusCh.openSubscription()
             for (s in sub)  {
                 d { "${this@ZitiContextImpl} transitioned to $s" }
+                if (s == ZitiContext.Status.Disabled) {
+                    stop()
+                }
             }
         }
-        this._enabled = enabled
+
+        runServiceUpdates(login())
     }
 
     override fun getId(): ApiIdentity? = apiId

@@ -19,8 +19,6 @@ package org.openziti.net
 import com.goterl.lazycode.lazysodium.utils.Key
 import com.goterl.lazycode.lazysodium.utils.SessionPair
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.openziti.ZitiAddress
 import org.openziti.ZitiConnection
 import org.openziti.api.SessionType
@@ -30,10 +28,11 @@ import org.openziti.net.nio.DeferredHandler
 import org.openziti.net.nio.FutureHandler
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
+import org.openziti.util.transfer
+import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.lang.Math.min
 import java.net.ConnectException
 import java.net.SocketAddress
 import java.net.SocketOption
@@ -84,9 +83,8 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     val seq = AtomicInteger(1)
     var remote: ZitiAddress? = null
     var local: ZitiAddress? = null
-    val receiveMutex = Mutex()
+    val receiveQueue = Chan<ByteArray>(16)
     val receiveBuff: ByteBuffer = ByteBuffer.allocate(32 * 1024).apply { flip() }
-    val signal = Chan<Int>()
     val crypto = CompletableDeferred<Crypto.SecretStream?>()
 
     override fun getLocalAddress(): SocketAddress? = local
@@ -211,49 +209,42 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         return result
     }
 
-    internal fun transfer (dsts: Array<out ByteBuffer>): Long = runBlocking {
-        receiveMutex.withLock {
-                var copied = 0L
-                for (b in dsts) {
-                    val count = min(b.remaining(), receiveBuff.remaining())
-                    receiveBuff.get(b.array(), b.position(), count)
-                    b.position(b.position() + count)
-                    copied += count
-                    if (!receiveBuff.hasRemaining()) break
-                }
-                copied
-        }
-    }
-
     override fun <A : Any?> read(dsts: Array<out ByteBuffer>, offset: Int, length: Int,
         to: Long, unit: TimeUnit,
         att: A, handler: CompletionHandler<Long, in A>) {
         t{"reading state=$state"}
         val slice = dsts.sliceArray(offset until offset + length)
-        val copied = transfer(slice)
+        val copied = receiveBuff.transfer(slice)
         if (copied > 0) {
             t{"reading completed[$copied]"}
             handler.completed(copied, att)
-        } else if (state.get() == State.closed) {
-            handler.completed(-1, att)
         } else {
-            ctx.async {
-                val received = if (to > 0) {
-                    withTimeout(unit.toMillis(to)) {
-                        signal.receive()
-                    }
-                }
-                else signal.receive()
-                t{"received $received"}
-                if (received == -1) {
-                    handler.completed(-1, att)
-                } else {
-                    val count = transfer(slice)
-                    t{"transferred $count"}
+            ctx.launch {
+                var count = 0L
+                t { "waiting for data with $receiveBuff" }
+                receiveBuff.compact()
+                try {
+                    var data: ByteArray? = receiveQueue.receive()
+                    do {
+                        val dataBuf = ByteBuffer.wrap(data)
+                        count += dataBuf.transfer(slice)
+                        if (dataBuf.hasRemaining()) {
+                            t{ "saving ${dataBuf.remaining()} for later" }
+                            receiveBuff.put(dataBuf)
+                            break
+                        }
+                        data = receiveQueue.poll()
+                    } while (data != null)
+
+                    t { "transferred $count" }
                     handler.completed(count, att)
+                } catch (e1: Exception) {
+                    if (count > 0) handler.completed(count, att)
+                    else if (e1 is EOFException) handler.completed(-1, att)
+                    else handler.failed(e1, att)
+                } finally {
+                    receiveBuff.flip()
                 }
-            }.invokeOnCompletion { ex ->
-                if (ex != null) handler.failed(ex, att)
             }
         }
     }
@@ -314,38 +305,32 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     }
 
     override suspend fun receive(msg: Message) {
+        v{"conn[$connId] received message[${msg.content}] with seq[${msg.getIntHeader(ZitiProtocol.Header.SeqHeader)}]"}
         when (msg.content) {
             ZitiProtocol.ContentType.StateClosed -> {
-                d{"closed message type[${msg.content}] for conn[$connId]"}
                 state.set(State.closed)
-                signal.offer(-1)
+                t{"signaling EOF"}
+                receiveQueue.close(EOFException())
                 channel.deregisterReceiver(connId)
             }
             ZitiProtocol.ContentType.Data -> {
-                t{"received data(${msg.body.size} bytes) for conn[$connId] ${receiveMutex.isLocked}"}
-                receiveMutex.withLock {
-                    receiveBuff.compact()
-
-                    val crypt = crypto.await()
-                    if (crypt != null) {
-                        if (crypt.initialized()) {
-                            receiveBuff.put(crypt.decrypt(msg.body))
-                        } else {
-                            crypt.init(msg.body)
-                            d { "crypto init finished conn[$connId]" }
-                        }
+                t{"received data(${msg.body.size} bytes) for conn[$connId]"}
+                val crypt = crypto.await()
+                if (crypt != null) {
+                    if (crypt.initialized()) {
+                        receiveQueue.send(crypt.decrypt(msg.body))
                     } else {
-                        receiveBuff.put(msg.body)
+                        crypt.init(msg.body)
+                        d { "crypto init finished conn[$connId]" }
                     }
-                    receiveBuff.flip()
-                    t{"receiveBuff=$receiveBuff"}
-                    signal.offer(msg.body.size)
+                } else {
+                    receiveQueue.send(msg.body)
                 }
             }
             else -> {
                 e{"unexpected message type[${msg.content}] for conn[$connId]"}
                 state.set(State.closed)
-                signal.offer(-1)
+                receiveQueue.close(IllegalStateException())
                 channel.deregisterReceiver(connId)
             }
         }
@@ -361,9 +346,12 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     override suspend fun receive(out: ByteArray, off: Int, len: Int): Int {
         val deferred = CompletableDeferred<Int>()
-        read(ByteBuffer.wrap(out, off, len), timeout, TimeUnit.MILLISECONDS, deferred, DeferredHandler())
+        val dst = ByteBuffer.wrap(out, off, len)
+        read(dst, timeout, TimeUnit.MILLISECONDS, deferred, DeferredHandler())
         try {
-            return deferred.await()
+            val res = deferred.await()
+            v{"received res=$res, into $dst"}
+            return res
         } catch (ex: TimeoutCancellationException) {
             return 0
         }
