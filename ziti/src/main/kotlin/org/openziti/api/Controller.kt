@@ -75,7 +75,7 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         fun getIdentity(@Path("id") id: String): Call<Response<Identity>>
 
         @POST("sessions")
-        fun createNetworkSession(@Body req: NetSessionReq): Deferred<Response<NetworkSession>>
+        fun createNetworkSession(@Body req: SessionReq): Deferred<Response<Session>>
 
         @DELETE("{p}")
         fun delete(@Header("zt-session") session: String, @Path("p", encoded = true) path: String): Call<Response<Unit>>
@@ -187,9 +187,9 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         }
     }
 
-    internal suspend fun createNetSession(s: Service, t: SessionType): NetworkSession {
+    internal suspend fun createNetSession(s: Service, t: SessionType): Session {
         try {
-            val response = api.createNetworkSession(NetSessionReq(s.id, t)).await()
+            val response = api.createNetworkSession(SessionReq(s.id, t)).await()
             return response.data!!
         } catch (ex: Exception) {
             return convertError(ex)

@@ -77,7 +77,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val addrById = mutableMapOf<String, InetSocketAddress>()
 
     data class SessionKey (val serviceId: String, val type: SessionType)
-    private val networkSessions = ConcurrentHashMap<SessionKey, NetworkSession>()
+    private val networkSessions = ConcurrentHashMap<SessionKey, Session>()
 
     init {
         controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager(), sessionToken)
@@ -221,7 +221,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal fun getNetworkSession(service: Service, st: SessionType): NetworkSession = runBlocking {
+    internal fun getNetworkSession(service: Service, st: SessionType): Session = runBlocking {
         d("getNetworkSession(${service.name})")
 
         _enabled || throw ZitiException(Errors.ServiceNotAvailable)
@@ -235,7 +235,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal fun getNetworkSessionByID(servId: String, st: SessionType): NetworkSession {
+    internal fun getNetworkSessionByID(servId: String, st: SessionType): Session {
         checkServicesLoaded()
 
         servicesById.get(servId)?.let {
@@ -246,7 +246,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         throw ZitiException(Errors.ServiceNotAvailable)
     }
 
-    internal fun getNetworkSession(name: String, st: SessionType): NetworkSession {
+    internal fun getNetworkSession(name: String, st: SessionType): Session {
         checkServicesLoaded()
 
         val service = servicesByName.get(name) ?: throw ZitiException(Errors.ServiceNotAvailable)
@@ -264,7 +264,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     internal val channels: MutableMap<String, Channel> = mutableMapOf()
 
-    internal fun getChannel(ns: NetworkSession): Channel {
+    internal fun getChannel(ns: Session): Channel {
         val addrList = ns.edgeRouters.map { it.urls["tls"] }.filterNotNull()
         for (addr in addrList) {
             channels[addr]?.let { return it }

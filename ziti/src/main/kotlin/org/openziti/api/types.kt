@@ -31,7 +31,7 @@ internal enum class SessionType {
     Dial,
     Bind
 }
-internal class NetSessionReq(val serviceId: String, val type: SessionType = SessionType.Dial)
+internal class SessionReq(val serviceId: String, val type: SessionType = SessionType.Dial)
 
 data class ControllerVersion(val buildDate: String, val revision: String, val runtimeVersion: String, val version: String)
 internal class Login(val username: String, val password: String)
@@ -53,12 +53,13 @@ data class Service internal constructor(
 
 internal data class EdgeRouter(val name: String, val hostname: String, val urls: Map<String, String>)
 
-internal data class NetworkSession(val id: String, val token: String, val edgeRouters: Array<EdgeRouter>) {
+internal data class Session(val id: String, val token: String, val edgeRouters: Array<EdgeRouter>) {
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as NetworkSession
+        other as Session
 
         if (id != other.id) return false
         if (token != other.token) return false
