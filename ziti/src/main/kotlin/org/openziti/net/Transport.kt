@@ -105,6 +105,10 @@ internal interface Transport : Closeable {
         }
 
         override fun isClosed(): Boolean = !socket.isOpen
+
+        override fun toString(): String {
+            return "TLS:${socket.remoteAddress}"
+        }
     }
 
 }

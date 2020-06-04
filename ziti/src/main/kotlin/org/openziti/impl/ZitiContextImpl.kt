@@ -16,6 +16,7 @@
 
 package org.openziti.impl
 
+import com.codahale.metrics.MetricRegistry
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
@@ -82,6 +83,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     data class SessionKey (val serviceId: String, val type: SessionType)
     private val networkSessions = ConcurrentHashMap<SessionKey, Session>()
+
+    private val metrics = MetricRegistry()
 
     init {
         controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager(), sessionToken)
@@ -273,6 +276,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     internal val channels: MutableMap<String, Channel> = mutableMapOf()
 
+    private val latencyInterval = Duration.ofMinutes(1)
+
     internal fun getChannel(ns: Session): Channel {
         val addrList = ns.edgeRouters.map { it.urls["tls"] }.filterNotNull()
         for (addr in addrList) {
@@ -286,6 +291,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 ch.onClose {
                     channels.remove(addr)
                 }
+
+                ch.startLatencyCheck(latencyInterval, metrics.timer("$addr.latency"))
+
                 return ch
 
             } catch (ex: Exception) {

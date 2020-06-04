@@ -397,6 +397,7 @@ class AsyncTLSChannel(
     }
 
     private fun hsWrite(out: ByteBuffer, hs: Handhaker) {
+        t{"hs writing ${out.remaining()} bytes"}
         transport.write(out, hs, object : CompletionHandler<Int, Handhaker> {
             override fun completed(result: Int, attachment: Handhaker) {
                 CompletableFuture.runAsync{
@@ -416,7 +417,12 @@ class AsyncTLSChannel(
             when (engine.handshakeStatus) {
                 SSLEngineResult.HandshakeStatus.NEED_WRAP -> {
                     val wrapped = ByteBuffer.allocate(SSL_BUFFER_SIZE)
-                    val res = engine.wrap(ByteBuffer.allocate(0), wrapped)
+                    val emptyBuf = ByteBuffer.allocate(0)
+                    do {
+                        val res = engine.wrap(emptyBuf, wrapped)
+                        t{"hs produced ${res.bytesProduced()} bytes"}
+                    } while(res.handshakeStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP)
+
                     wrapped.flip()
                     hsWrite(wrapped, hs)
                 }
@@ -439,6 +445,11 @@ class AsyncTLSChannel(
                         hs.input.compact()
                         transport.read(hs.input, hs, object : CompletionHandler<Int, Handhaker> {
                             override fun completed(n: Int, r: Handhaker) {
+                                t{"hs read $n bytes"}
+                                if (n == -1) {
+                                    r.result.completeExceptionally(SSLException("peer terminated"))
+                                    return
+                                }
                                 r.input.flip()
                                 try {
                                     val res = engine.unwrap(r.input, output)

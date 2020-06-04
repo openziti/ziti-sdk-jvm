@@ -17,6 +17,7 @@
 package org.openziti.net
 
 import com.codahale.metrics.Meter
+import com.codahale.metrics.Timer
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.produce
@@ -30,7 +31,10 @@ import java.io.EOFException
 import java.io.IOException
 import java.net.ConnectException
 import java.nio.charset.StandardCharsets
+import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
@@ -57,6 +61,8 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
 
     internal val upMeter = Meter()
     internal val downMeter = Meter()
+
+    internal lateinit var latencyMeter: Timer
 
     internal fun registerReceiver(rec: MessageReceiver): Int {
         val id = receiverSeq.incrementAndGet()
@@ -200,15 +206,30 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
         }
     }
 
-    companion object {
-        val TAG = Channel::class.java.simpleName
+    fun getCurrentLatency() = latencyMeter.snapshot.median
 
+    internal fun startLatencyCheck(interval: Duration, timer: Timer) = launch {
+        latencyMeter = timer
+        while(!closed.get()) {
+            val start = Instant.now()
+
+            val q = Message(ZitiProtocol.ContentType.LatencyType)
+            val r = SendAndWait(q)
+
+            val latency = Duration.between(start, Instant.now())
+            timer.update(latency.toNanos(), TimeUnit.NANOSECONDS)
+            t{"latency[${this@Channel}] is now ${getCurrentLatency()}"}
+
+            delay(interval.toMillis())
+        }
+    }
+
+    override fun toString(): String = "Channel[$peer]"
+
+    companion object {
         fun Dial(addr: String, id: Identity): Channel {
             try {
-                val token = id.sessionToken
-                if (token == null) {
-                    throw IllegalStateException("no session token for connection")
-                }
+                val token = id.sessionToken ?: throw IllegalStateException("no session token for connection")
 
                 val peer = Transport.dial(addr, id.sslContext())
                 val ch = Channel(peer)
