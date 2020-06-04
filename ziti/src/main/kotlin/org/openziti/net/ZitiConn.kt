@@ -22,7 +22,7 @@ import kotlinx.coroutines.channels.receiveOrNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.openziti.ZitiConnection
-import org.openziti.api.NetworkSession
+import org.openziti.api.Session
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.io.*
@@ -36,7 +36,7 @@ import kotlinx.coroutines.channels.Channel as Chan
 /**
  *
  */
-internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : ZitiConnection,
+internal class ZitiConn(session: Session, val channel: Channel) : ZitiConnection,
     Channel.MessageReceiver,
     Closeable, Logged by ZitiLog("ziti-conn") {
     enum class State {
@@ -60,7 +60,7 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
 
     init {
         connId = channel.registerReceiver(this)
-        startSession(networkSession)
+        startSession(session)
     }
 
     override fun isClosed(): Boolean {
@@ -70,7 +70,7 @@ internal class ZitiConn(networkSession: NetworkSession, val channel: Channel) : 
         recChan.send(msg)
     }
 
-    internal fun startSession(ns: NetworkSession) {
+    internal fun startSession(ns: Session) {
         val connectMsg = Message(ZitiProtocol.ContentType.Connect, ns.token.toByteArray(UTF_8))
         connectMsg.setHeader(ZitiProtocol.Header.ConnId, connId)
         d("starting network connection ${ns.id}/$connId")

@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.toList
 import org.openziti.*
 import org.openziti.api.*
 import org.openziti.identity.Identity
@@ -38,6 +39,7 @@ import java.net.Socket
 import java.net.URI
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
@@ -61,6 +63,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
+    private var refreshDelay = Duration.ofMinutes(5).toMillis()
+
     private val supervisor = SupervisorJob()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + supervisor
@@ -77,7 +81,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val addrById = mutableMapOf<String, InetSocketAddress>()
 
     data class SessionKey (val serviceId: String, val type: SessionType)
-    private val networkSessions = ConcurrentHashMap<SessionKey, NetworkSession>()
+    private val networkSessions = ConcurrentHashMap<SessionKey, Session>()
 
     init {
         controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager(), sessionToken)
@@ -185,15 +189,20 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    private fun runServiceUpdates(session: Deferred<Session>) = launch {
+    private fun runServiceUpdates(session: Deferred<ApiSession>) = launch {
         try {
             session.await()
             while (true) {
                 d("[${id.name()}] slept and restarting on t[${Thread.currentThread().name}]")
-                val services = controller.getServices()
+
+                val services = controller.getServices().toList()
                 processServiceUpdates(services)
                 d("[${id.name()}] got ${services.size} services on t[${Thread.currentThread().name}]")
-                delay(5 * 60000)
+
+                controller.getSessions().collect {
+                    updateSession(it)
+                }
+                delay(refreshDelay)
             }
         } catch (ze: ZitiException) {
             w("[${name()}] failed ${ze.localizedMessage}")
@@ -221,7 +230,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal fun getNetworkSession(service: Service, st: SessionType): NetworkSession = runBlocking {
+    internal fun getNetworkSession(service: Service, st: SessionType): Session = runBlocking {
         d("getNetworkSession(${service.name})")
 
         _enabled || throw ZitiException(Errors.ServiceNotAvailable)
@@ -235,7 +244,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal fun getNetworkSessionByID(servId: String, st: SessionType): NetworkSession {
+    internal fun getNetworkSessionByID(servId: String, st: SessionType): Session {
         checkServicesLoaded()
 
         servicesById.get(servId)?.let {
@@ -246,7 +255,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         throw ZitiException(Errors.ServiceNotAvailable)
     }
 
-    internal fun getNetworkSession(name: String, st: SessionType): NetworkSession {
+    internal fun getNetworkSession(name: String, st: SessionType): Session {
         checkServicesLoaded()
 
         val service = servicesByName.get(name) ?: throw ZitiException(Errors.ServiceNotAvailable)
@@ -264,7 +273,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     internal val channels: MutableMap<String, Channel> = mutableMapOf()
 
-    internal fun getChannel(ns: NetworkSession): Channel {
+    internal fun getChannel(ns: Session): Channel {
         val addrList = ns.edgeRouters.map { it.urls["tls"] }.filterNotNull()
         for (addr in addrList) {
             channels[addr]?.let { return it }
@@ -287,7 +296,17 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         throw ZitiException(Errors.EdgeRouterUnavailable)
     }
 
-    internal fun processServiceUpdates(services: Array<Service>) {
+    // can't just replace old with new as updates do not contain session token
+    // do update list of edge routers for this session
+    private fun updateSession(s: Session) {
+        val sessionKey = SessionKey(s.service.id, s.type)
+        networkSessions.containsKey(sessionKey) || return
+        networkSessions.merge(sessionKey, s) { old, new ->
+            old.apply { edgeRouters = new.edgeRouters }
+        }
+    }
+
+    internal fun processServiceUpdates(services: Collection<Service>) {
         val currentIds = services.map { it.id }.toCollection(mutableSetOf())
         // check removed access
 

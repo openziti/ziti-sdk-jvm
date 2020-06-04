@@ -18,6 +18,8 @@ package org.openziti.api
 
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -54,19 +56,19 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         fun version(): Deferred<Response<ControllerVersion>>
 
         @GET("current-api-session")
-        fun currentSession(): Deferred<Response<Session>>
+        fun currentApiSession(): Deferred<Response<ApiSession>>
 
         @POST("authenticate?method=password")
-        fun authenticate(@Body login: Login): Deferred<Response<Session>>
+        fun authenticate(@Body login: Login): Deferred<Response<ApiSession>>
 
         @POST("authenticate?method=cert")
-        fun authenticateCert(@Body req: ClientInfo): Deferred<Response<Session>>
+        fun authenticateCert(@Body req: ClientInfo): Deferred<Response<ApiSession>>
 
         @DELETE("current-api-session")
         fun logout(): Deferred<Unit>
 
-        @GET("services?limit=100")
-        fun services(): Deferred<Response<Array<Service>>>
+        @GET("services")
+        fun getServicesAsync(@Query("offset") offset: Int = 0, @Query("limit") limit: Int? = null): Deferred<Response<Collection<Service>>>
 
         @POST("identities")
         fun createIdentity(@Body req: CreateIdentity): Call<Response<Id>>
@@ -74,15 +76,18 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         @GET("identities/{id}")
         fun getIdentity(@Path("id") id: String): Call<Response<Identity>>
 
+        @GET("sessions")
+        fun getSessionsAsync(@Query("offset") offset: Int = 0, @Query("limit") limit: Int? = null): Deferred<Response<Collection<Session>>>
+
         @POST("sessions")
-        fun createNetworkSession(@Body req: NetSessionReq): Deferred<Response<NetworkSession>>
+        fun createNetworkSession(@Body req: SessionReq): Deferred<Response<Session>>
 
         @DELETE("{p}")
         fun delete(@Header("zt-session") session: String, @Path("p", encoded = true) path: String): Call<Response<Unit>>
     }
 
     internal val api: API
-    internal var session: Session? = sessToken?.let { Session(it, null) }
+    internal var apiSession: ApiSession? = sessToken?.let { ApiSession(it, null) }
 
     internal val errorConverter: Converter<ResponseBody, Response<Unit>>
 
@@ -133,19 +138,19 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
 
     suspend fun version() = api.version().await().data
 
-    suspend internal fun login(login: Login? = null): Session {
+    suspend internal fun login(login: Login? = null): ApiSession {
         // validate current session
-        if (session != null) {
+        if (apiSession != null) {
             try {
-                session = api.currentSession().await().data
+                apiSession = api.currentApiSession().await().data
             } catch (ex: HttpException) {
                 val err = getError(ex.response())
                 w("current-session: ${ex.code()} ${err}")
-                session = null
+                apiSession = null
             }
         }
 
-        if (session == null) {
+        if (apiSession == null) {
 
             val call = if (login == null)
                 api.authenticateCert(getClientInfo()) else
@@ -153,12 +158,12 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
 
             try {
                 val resp = call.await()
-                session = resp.data!!
+                apiSession = resp.data!!
             } catch (ex: Exception) {
                 return convertError(ex)
             }
         }
-        return session!!
+        return apiSession!!
     }
 
     suspend fun logout() {
@@ -179,17 +184,45 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         return req.execute().body()?.data
     }
 
-    internal suspend fun getServices(): Array<Service> {
-        try {
-            return api.services().await().data!!
-        } catch (ex: Exception) {
-            return convertError(ex)
+    internal fun getServices() = flow {
+        var req = api.getServicesAsync()
+
+        while (true) {
+            val resp = req.await()
+            resp.data?.let {
+                for (s in it) emit(s)
+            }
+
+            val p = resp.meta.pagination ?: break
+            val nextOffset = p.offset + p.limit
+            if (p.totalCount <= nextOffset)
+                break
+
+            req = api.getServicesAsync(nextOffset)
         }
     }
 
-    internal suspend fun createNetSession(s: Service, t: SessionType): NetworkSession {
+    internal fun getSessions(): Flow<Session> = flow {
+        var req = api.getSessionsAsync()
+
+        while(true) {
+            val resp = req.await()
+            resp.data?.let {
+                for (s in it) emit(s)
+            }
+
+            val p = resp.meta.pagination ?: break
+            val nextOffset = p.offset + p.limit
+            if (p.totalCount <= nextOffset)
+                break
+
+            req = api.getSessionsAsync(nextOffset)
+        }
+    }
+
+    internal suspend fun createNetSession(s: Service, t: SessionType): Session {
         try {
-            val response = api.createNetworkSession(NetSessionReq(s.id, t)).await()
+            val response = api.createNetworkSession(SessionReq(s.id, t)).await()
             return response.data!!
         } catch (ex: Exception) {
             return convertError(ex)
@@ -222,9 +255,9 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
     inner class SessionInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
             val r = chain.request()
-            d("${r.method()} ${r.url()} session=${session} t[${Thread.currentThread().name}]")
+            d("${r.method()} ${r.url()} session=${apiSession} t[${Thread.currentThread().name}]")
 
-            session?.let {
+            apiSession?.let {
                 val request = chain.request().newBuilder()
                     .header("zt-session", it.token)
                     .build()

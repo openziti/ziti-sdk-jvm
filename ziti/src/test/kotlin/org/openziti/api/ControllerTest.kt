@@ -16,8 +16,11 @@
 
 package org.openziti.api
 
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
+import org.junit.After
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertThat
 import org.junit.Assume
@@ -29,6 +32,7 @@ import org.openziti.identity.findIdentityAlias
 import org.openziti.identity.keystoreFromConfig
 import java.net.URL
 import java.security.KeyStore
+import kotlin.test.assertEquals
 
 /**
  *
@@ -50,6 +54,14 @@ internal class ControllerTest {
         identity = KeyStoreIdentity(ks, findIdentityAlias(ks))
 
         ctrl = Controller(URL(identity.controller()), identity.sslContext(), identity.trustManager())
+    }
+
+    @After
+    fun tearDown() {
+        runBlocking {
+            if (this@ControllerTest::ctrl.isInitialized)
+                ctrl.logout()
+        }
     }
 
     @Test
@@ -76,13 +88,19 @@ internal class ControllerTest {
     fun testGetSession() {
         runBlocking {
             val s = ctrl.login()
-            val services = ctrl.getServices()
+            val services = ctrl.getServices().toList()
             Assume.assumeTrue(!services.isEmpty())
 
             println(services[0])
-            val session = ctrl.createNetSession(services[0], SessionType.Dial)
+            for (serv in services) {
+                val session = ctrl.createNetSession(serv, SessionType.Dial)
+                println(session)
+                assertEquals(serv.id, session.service.id)
+            }
 
-            println(session)
+            ctrl.getSessions().collect {
+                println(it)
+            }
         }
     }
 }
