@@ -24,8 +24,9 @@ internal data class ClientInfo(val sdkInfo: Map<*, *>, val envInfo: Map<*, *>, v
 
 internal class Response<T>(val meta: Meta, val data: T?, val error: Error?)
 internal data class Error(val code: String, val message: String, val cause: JsonObject, val field: String?)
-internal class Meta(val location: String?)
-internal class Id(val id: String)
+internal class Meta(val pagination: Pagination?)
+internal class Pagination(val limit: Int, val offset: Int, val totalCount: Int)
+internal data class Id(val id: String)
 
 internal enum class SessionType {
     Dial,
@@ -53,7 +54,8 @@ data class Service internal constructor(
 
 internal data class EdgeRouter(val name: String, val hostname: String, val urls: Map<String, String>)
 
-internal data class Session(val id: String, val token: String, val edgeRouters: Array<EdgeRouter>) {
+internal data class Session(val id: String, val token: String, val service: Id, val type: SessionType,
+                            var edgeRouters: Array<EdgeRouter>) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -63,6 +65,8 @@ internal data class Session(val id: String, val token: String, val edgeRouters: 
 
         if (id != other.id) return false
         if (token != other.token) return false
+        if (service != other.service) return false
+        if (type != other.type) return false
 
         return true
     }
@@ -70,6 +74,8 @@ internal data class Session(val id: String, val token: String, val edgeRouters: 
     override fun hashCode(): Int {
         var result = id.hashCode()
         result = 31 * result + token.hashCode()
+        result = 31 * result + service.hashCode()
+        result = 31 * result + type.hashCode()
         return result
     }
 }

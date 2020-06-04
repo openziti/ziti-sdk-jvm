@@ -18,6 +18,8 @@ package org.openziti.api
 
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -65,14 +67,17 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         @DELETE("current-api-session")
         fun logout(): Deferred<Unit>
 
-        @GET("services?limit=100")
-        fun services(): Deferred<Response<Array<Service>>>
+        @GET("services")
+        fun getServicesAsync(@Query("offset") offset: Int = 0, @Query("limit") limit: Int? = null): Deferred<Response<Collection<Service>>>
 
         @POST("identities")
         fun createIdentity(@Body req: CreateIdentity): Call<Response<Id>>
 
         @GET("identities/{id}")
         fun getIdentity(@Path("id") id: String): Call<Response<Identity>>
+
+        @GET("sessions")
+        fun getSessionsAsync(@Query("offset") offset: Int = 0, @Query("limit") limit: Int? = null): Deferred<Response<Collection<Session>>>
 
         @POST("sessions")
         fun createNetworkSession(@Body req: SessionReq): Deferred<Response<Session>>
@@ -179,11 +184,39 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         return req.execute().body()?.data
     }
 
-    internal suspend fun getServices(): Array<Service> {
-        try {
-            return api.services().await().data!!
-        } catch (ex: Exception) {
-            return convertError(ex)
+    internal fun getServices() = flow {
+        var req = api.getServicesAsync()
+
+        while (true) {
+            val resp = req.await()
+            resp.data?.let {
+                for (s in it) emit(s)
+            }
+
+            val p = resp.meta.pagination ?: break
+            val nextOffset = p.offset + p.limit
+            if (p.totalCount <= nextOffset)
+                break
+
+            req = api.getServicesAsync(nextOffset)
+        }
+    }
+
+    internal fun getSessions(): Flow<Session> = flow {
+        var req = api.getSessionsAsync()
+
+        while(true) {
+            val resp = req.await()
+            resp.data?.let {
+                for (s in it) emit(s)
+            }
+
+            val p = resp.meta.pagination ?: break
+            val nextOffset = p.offset + p.limit
+            if (p.totalCount <= nextOffset)
+                break
+
+            req = api.getSessionsAsync(nextOffset)
         }
     }
 
