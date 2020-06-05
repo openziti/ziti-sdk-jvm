@@ -71,6 +71,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + supervisor
 
+    private var apiSession: ApiSession? = null
     private var apiId: ApiIdentity? = null
     private val controller: Controller
     private val statusCh: ConflatedBroadcastChannel<ZitiContext.Status>
@@ -88,7 +89,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val metrics = MetricRegistry()
 
     init {
-        controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager(), sessionToken)
+        controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager())
         statusCh = ConflatedBroadcastChannel(ZitiContext.Status.Loading)
         serviceCh = BroadcastChannel(kotlinx.coroutines.channels.Channel.BUFFERED)
         this._enabled = enabled
@@ -176,14 +177,14 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         try {
             controller.login().also {
                 d("${name()} logged in successfully s[${it.token}] at ${controller()} t[${Thread.currentThread().name}]")
-                sessionToken = it.token
+                apiSession = it
                 apiId = it.identity
                 updateStatus(ZitiContext.Status.Active)
             }
         } catch (ex: Exception) {
             e(ex) { "[${name()}] failed to login" }
             if (ex is ZitiException && ex.code == Errors.NotAuthorized) {
-                sessionToken = null
+                apiSession = null
                 updateStatus(ZitiContext.Status.NotAuthorized(ex))
             }
             else {
@@ -207,7 +208,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 controller.getSessions().collect {
                     val s = updateSession(it)
                     s?.let {
-                        edgeRouters.addAll(it.edgeRouters)
+                        edgeRouters.addAll(it.edgeRouters!!)
                     }
                 }
 
@@ -217,7 +218,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         } catch (ze: ZitiException) {
             w("[${name()}] failed ${ze.localizedMessage}")
             if (ze.code == Errors.NotAuthorized) {
-                sessionToken = null
+                apiSession = null
                 updateStatus(ZitiContext.Status.NotAuthorized(ze))
             }
         } catch (ce: CancellationException) {
@@ -249,7 +250,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         networkSessions.getOrPut(SessionKey(service.id, st)) {
             val netSession = controller.createNetSession(service, st)
-            d("received net session[${netSession.id}] for service[${service.name}]")
+            t("received $netSession for service[${service.name}]")
             netSession
         }
     }
@@ -286,7 +287,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val latencyInterval = Duration.ofMinutes(1)
 
     internal suspend fun getChannel(ns: Session): Channel {
-        val addrList = ns.edgeRouters.map { it.urls["tls"] }.filterNotNull()
+        val ers = ns.edgeRouters ?: throw ZitiException(Errors.EdgeRouterUnavailable)
+
+        val addrList = ers.map { it.urls["tls"] }.filterNotNull()
 
         val chMap = sortedMapOf<Double,Channel>()
         val unconnected = mutableListOf<String>()
@@ -315,7 +318,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         if (c != null) {
             c
         } else {
-            val ch = Channel.Dial(addr, this@ZitiContextImpl)
+            val ch = Channel.Dial(addr, this@ZitiContextImpl, apiSession!!)
             val existing = channels.putIfAbsent(ch.addr, ch)
             if (existing == null) {
                 ch.startLatencyCheck(latencyInterval, metrics.timer("${ch.addr}.latency"))

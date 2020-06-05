@@ -36,7 +36,7 @@ internal class SessionReq(val serviceId: String, val type: SessionType = Session
 
 data class ControllerVersion(val buildDate: String, val revision: String, val runtimeVersion: String, val version: String)
 internal class Login(val username: String, val password: String)
-internal class ApiSession(val token: String, val identity: Identity?)
+internal class ApiSession(val id: String, val token: String, val identity: Identity?)
 
 data class ServiceDNS(val hostname: String, val port: Int)
 data class Service internal constructor(
@@ -55,7 +55,7 @@ data class Service internal constructor(
 internal data class EdgeRouter(val name: String, val hostname: String, val urls: Map<String, String>)
 
 internal data class Session(val id: String, val token: String, val service: Id, val type: SessionType,
-                            var edgeRouters: Array<EdgeRouter>) {
+                            var edgeRouters: Array<EdgeRouter>?) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import org.openziti.Errors
 import org.openziti.ZitiException
+import org.openziti.api.ApiSession
 import org.openziti.identity.Identity
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
@@ -227,15 +228,13 @@ internal class Channel(val addr: String, val peer: Transport) : Closeable, Corou
     override fun toString(): String = "Channel[$peer]"
 
     companion object {
-        suspend fun Dial(addr: String, id: Identity): Channel {
+        suspend fun Dial(addr: String, id: Identity, apiSession: ApiSession): Channel {
             try {
-                val token = id.sessionToken ?: throw IllegalStateException("no session token for connection")
-
                 val peer = Transport.dial(addr, id.sslContext())
                 val ch = Channel(addr, peer)
 
                 val helloMsg = Message.newHello(id.name()).apply {
-                    setHeader(ZitiProtocol.Header.SessionToken, token)
+                    setHeader(ZitiProtocol.Header.SessionToken, apiSession.token)
                 }
 
                 val reply = ch.SendAndWait(helloMsg)
