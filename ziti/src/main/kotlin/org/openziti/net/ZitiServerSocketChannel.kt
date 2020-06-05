@@ -18,8 +18,8 @@ package org.openziti.net
 
 import com.goterl.lazycode.lazysodium.utils.Key
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.openziti.ZitiAddress
 import org.openziti.api.SessionType
@@ -121,7 +121,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
         if (state == State.closed) throw ClosedChannelException()
         if (state != State.bound) throw NotYetBoundException()
 
-        ctx.async {
+        ctx.launch {
             try {
                 val req = incoming.receive()
 

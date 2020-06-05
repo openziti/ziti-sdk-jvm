@@ -19,8 +19,9 @@ package org.openziti.net
 import com.codahale.metrics.Meter
 import com.codahale.metrics.Timer
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.produce
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import org.openziti.Errors
 import org.openziti.ZitiException
 import org.openziti.identity.Identity
@@ -160,8 +161,7 @@ internal class Channel(val addr: String, val peer: Transport) : Closeable, Corou
 
     suspend fun rxer() {
         try {
-            val inbound = rx()
-            for (m in inbound) {
+            rx().collect { m ->
                 d("got m = ${m}")
                 val waiter = waiters.remove(m.repTo)
                 if (waiter != null) {
@@ -199,21 +199,10 @@ internal class Channel(val addr: String, val peer: Transport) : Closeable, Corou
         }
     }
 
-    @ExperimentalCoroutinesApi
-    fun rx(): ReceiveChannel<Message> = produce(this.coroutineContext, 16) {
-        try {
-            while (true) {
-                val m = Message.readMessage(peer)
-                send(m)
-            }
-        } catch (ex: Exception) {
-            w{"rx() closed with $ex"}
-            if (!closed.get()) {
-                e("rx(): ${ex.localizedMessage}", ex)
-                close(ex)
-            } else {
-                close()
-            }
+    fun rx(): Flow<Message> = flow {
+        while (true) {
+            val m = Message.readMessage(peer)
+            emit(m)
         }
     }
 
