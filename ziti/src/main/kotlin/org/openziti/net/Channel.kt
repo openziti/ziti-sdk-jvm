@@ -87,6 +87,17 @@ internal class Channel(val addr: String, val peer: Transport) : Closeable, Corou
     }
 
     override fun close() {
+
+        for (v in waiters) {
+            v.value.completeExceptionally(CancellationException())
+        }
+        waiters.clear()
+
+        for (v in synchers) {
+            v.value.completeExceptionally(CancellationException())
+        }
+        synchers.clear()
+
         for (l in closeListeners) {
             l()
         }

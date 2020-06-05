@@ -17,6 +17,7 @@
 package org.openziti.net
 
 import com.goterl.lazycode.lazysodium.utils.Key
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.runBlocking
@@ -72,6 +73,10 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                 val session = ctx.getNetworkSession(local.name, SessionType.Bind)
                 token = session.token
                 channel = ctx.getChannel(session)
+                channel.onClose {
+                    state = State.closed
+                    incoming.cancel()
+                }
                 connId = channel.registerReceiver(this@ZitiServerSocketChannel)
 
                 val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8))
@@ -149,8 +154,15 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                     val err = Charsets.UTF_8.decode(ByteBuffer.wrap(startMsg.body)).toString()
                     handler.failed(IOException(err), att)
                 }
-            } catch (clex: ClosedReceiveChannelException) {
-                handler.failed(ClosedChannelException(), att)
+            } catch (ex: Throwable) {
+                when (ex) {
+                    is ClosedReceiveChannelException ->
+                        handler.failed(ClosedChannelException(), att)
+                    is CancellationException ->
+                        handler.failed(ClosedChannelException(), att)
+                    else ->
+                        handler.failed(ex, att)
+                }
             }
         }
     }
