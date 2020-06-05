@@ -42,40 +42,46 @@ object NetcatHost {
         val server = ziti.openServer()
         server.bind(ZitiAddress.Service(service))
 
-        while(true) {
-            println("waiting for clients")
-            val clt = server.accept().get()
-            println("client connected")
+        try {
+            while (true) {
+                println("waiting for clients")
+                val clt = server.accept().get()
+                println("client connected")
 
-            val writer = Thread {
-                while (true) {
-                    print("> ")
-                    val l = readLine() + "\n"
-                    clt.write(ByteBuffer.wrap(l.toByteArray()))
-                }
-            }
-            writer.start()
-
-            runBlocking {
-                val reader = launch(Dispatchers.IO) {
-                    val readBuf = ByteBuffer.allocate(1024)
+                val writer = Thread {
                     while (true) {
-                        val rc = suspendRead(readBuf, clt)
-                        if (rc == -1) {
-                            clt.close()
-                            break
-                        } else {
-                            readBuf.flip()
-                            val text = UTF_8.decode(readBuf).toString()
-                            print(text)
-                            readBuf.compact()
-                        }
+                        print("> ")
+                        val l = readLine() + "\n"
+                        clt.write(ByteBuffer.wrap(l.toByteArray()))
                     }
                 }
-                reader.invokeOnCompletion { writer.interrupt() }
-                reader.join()
+                writer.start()
+
+                runBlocking {
+                    val reader = launch(Dispatchers.IO) {
+                        val readBuf = ByteBuffer.allocate(1024)
+                        while (true) {
+                            val rc = suspendRead(readBuf, clt)
+                            if (rc == -1) {
+                                clt.close()
+                                break
+                            } else {
+                                readBuf.flip()
+                                val text = UTF_8.decode(readBuf).toString()
+                                print(text)
+                                readBuf.compact()
+                            }
+                        }
+                    }
+                    reader.invokeOnCompletion { writer.interrupt() }
+                    reader.join()
+                }
+                println("client disconnected")
             }
-            println("client disconnected")
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        } finally {
+            Ziti.removeContext(ziti)
         }
     }
 }
