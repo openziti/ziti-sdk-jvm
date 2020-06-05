@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.selects.select
 import org.openziti.*
 import org.openziti.api.*
 import org.openziti.identity.Identity
@@ -274,34 +275,52 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         } ?: throw ZitiException(Errors.ServiceNotAvailable)
     }
 
-    internal val channels: MutableMap<String, Channel> = mutableMapOf()
+    internal val channels = ConcurrentHashMap<String, Channel>()
 
     private val latencyInterval = Duration.ofMinutes(1)
 
-    internal fun getChannel(ns: Session): Channel {
+    internal suspend fun getChannel(ns: Session): Channel {
         val addrList = ns.edgeRouters.map { it.urls["tls"] }.filterNotNull()
-        for (addr in addrList) {
-            channels[addr]?.let { return it }
-        }
+
+        val chMap = sortedMapOf<Double,Channel>()
+        val unconnected = mutableListOf<String>()
 
         for (addr in addrList) {
-            try {
-                val ch = Channel.Dial(addr, this)
-                channels[addr] = ch
-                ch.onClose {
-                    channels.remove(addr)
-                }
-
-                ch.startLatencyCheck(latencyInterval, metrics.timer("$addr.latency"))
-
-                return ch
-
-            } catch (ex: Exception) {
-                w("failed to dial channel ${ex.localizedMessage}")
+            val c = channels[addr]
+            if (c != null) {
+                chMap.put(c.getCurrentLatency(), c)
+            } else {
+                unconnected.add(addr)
             }
         }
 
-        throw ZitiException(Errors.EdgeRouterUnavailable)
+        if (chMap.isEmpty()) {
+            val selected = connectAll(unconnected) ?: throw ZitiException(Errors.EdgeRouterUnavailable)
+            d{"selected $selected"}
+            return selected
+        } else {
+            coroutineScope { launch { connectAll(unconnected) } }
+            return chMap.entries.first().value
+        }
+    }
+
+    internal fun connectChannelAsync(addr: String) = async {
+        val ch = Channel.Dial(addr, this@ZitiContextImpl)
+        ch.startLatencyCheck(latencyInterval, metrics.timer("${ch.addr}.latency"))
+        channels[ch.addr] = ch
+        d{"connected $ch"}
+        ch
+    }
+
+    internal suspend fun connectAll(addrList: List<String>): Channel? {
+        if (addrList.isEmpty()) return null
+
+        val chans = addrList.map { addr ->  connectChannelAsync(addr)}
+        return select {
+            chans.forEach {
+                it.onAwait { it }
+            }
+        }
     }
 
     // can't just replace old with new as updates do not contain session token

@@ -28,9 +28,9 @@ class TransportTest {
 
     @Test
     fun testHTTP() {
-        val t = Transport.dial("tls://httpbin.org:443", SSLContext.getDefault())
-
         runBlocking {
+            val t = Transport.dial("tls://httpbin.org:443", SSLContext.getDefault())
+
             val req = """POST /anything HTTP/1.1
 Accept: */*
 Connection: keep-alive
@@ -47,8 +47,7 @@ User-Agent: ziti/1.0.2
             println(resp)
             val lines = resp.toString().reader().readLines()
             assertThat(lines[0], CoreMatchers.startsWith("HTTP/1.1 200 OK"))
-
+            t.close()
         }
-        t.close()
     }
 }

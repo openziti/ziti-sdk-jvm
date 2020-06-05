@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.channels.Channel as Chan
 
-internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged by ZitiLog() {
+internal class Channel(val addr: String, val peer: Transport) : Closeable, CoroutineScope, Logged by ZitiLog() {
 
     internal interface MessageReceiver {
         suspend fun receive(msg: Message)
@@ -227,18 +227,18 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
     override fun toString(): String = "Channel[$peer]"
 
     companion object {
-        fun Dial(addr: String, id: Identity): Channel {
+        suspend fun Dial(addr: String, id: Identity): Channel {
             try {
                 val token = id.sessionToken ?: throw IllegalStateException("no session token for connection")
 
                 val peer = Transport.dial(addr, id.sslContext())
-                val ch = Channel(peer)
+                val ch = Channel(addr, peer)
 
                 val helloMsg = Message.newHello(id.name()).apply {
                     setHeader(ZitiProtocol.Header.SessionToken, token)
                 }
 
-                val reply = runBlocking { ch.SendAndWait(helloMsg) }
+                val reply = ch.SendAndWait(helloMsg)
 
                 if (reply.content != ZitiProtocol.ContentType.ResultType) {
                     peer.close()
