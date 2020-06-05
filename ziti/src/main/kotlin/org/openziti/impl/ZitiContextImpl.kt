@@ -203,9 +203,15 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 processServiceUpdates(services)
                 d("[${id.name()}] got ${services.size} services on t[${Thread.currentThread().name}]")
 
+                val edgeRouters = mutableSetOf<EdgeRouter>()
                 controller.getSessions().collect {
-                    updateSession(it)
+                    val s = updateSession(it)
+                    s?.let {
+                        edgeRouters.addAll(it.edgeRouters)
+                    }
                 }
+
+                connectAll(edgeRouters)
                 delay(refreshDelay)
             }
         } catch (ze: ZitiException) {
@@ -305,11 +311,34 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     internal fun connectChannelAsync(addr: String) = async {
-        val ch = Channel.Dial(addr, this@ZitiContextImpl)
-        ch.startLatencyCheck(latencyInterval, metrics.timer("${ch.addr}.latency"))
-        channels[ch.addr] = ch
-        d{"connected $ch"}
-        ch
+        val c = channels[addr]
+        if (c != null) {
+            c
+        } else {
+            val ch = Channel.Dial(addr, this@ZitiContextImpl)
+            val existing = channels.putIfAbsent(ch.addr, ch)
+            if (existing == null) {
+                ch.startLatencyCheck(latencyInterval, metrics.timer("${ch.addr}.latency"))
+                ch.onClose {
+                    channels.remove(ch.addr)
+                }
+                d{"connected $ch"}
+                ch
+            } else {
+                ch.close()
+                existing
+            }
+        }
+    }
+
+    internal fun connectAll(routers: Collection<EdgeRouter>) = launch {
+        routers.forEach {
+            it.urls["tls"]?.let {
+                if (!channels.containsKey(it)) {
+                    connectChannelAsync(it).await()
+                }
+            }
+        }
     }
 
     internal suspend fun connectAll(addrList: List<String>): Channel? {
@@ -325,10 +354,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     // can't just replace old with new as updates do not contain session token
     // do update list of edge routers for this session
-    private fun updateSession(s: Session) {
+    private fun updateSession(s: Session): Session? {
         val sessionKey = SessionKey(s.service.id, s.type)
-        networkSessions.containsKey(sessionKey) || return
-        networkSessions.merge(sessionKey, s) { old, new ->
+        networkSessions.containsKey(sessionKey) || return null
+        return networkSessions.merge(sessionKey, s) { old, new ->
             old.apply { edgeRouters = new.edgeRouters }
         }
     }
