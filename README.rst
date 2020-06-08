@@ -127,5 +127,5 @@ to address them.
 
 .. _Developer Community: https://developer.netfoundry.io
 .. _docs: https://netfoundry.github.io/ziti-doc/ziti/overview.html
-.. _Discourse: https://netfoundry.discourse.group/
+.. _Discourse: https://openziti.discourse.group/
 .. _issues: https://github.com/openziti/ziti-sdk-jvm/issues
