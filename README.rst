@@ -102,8 +102,8 @@ private key entry
    ``ziti://<controller_addr>/<id>`` alias (pkcs#12 - friendly name)
 
 rootCA
-   root CA certificates used to validate `Ziti controller <https://netfoundry.github.io/ziti-doc/ziti/manage/controller.html>`_ and
-   `routers <https://netfoundry.github.io/ziti-doc/ziti/manage/router-overview.html>`_
+   root CA certificates used to validate `Ziti controller <https://openziti.github.io/ziti/manage/controller.html>`_ and
+   `routers <https://openziti.github.io/ziti/manage/router-overview.html>`_
 
 Note:
 
@@ -112,7 +112,7 @@ Note:
 
 Android Support
 ---------------
-Easiest way to start developing on Android with Ziti is to create your repo from our `template project <https://github.com/NetFoundry/ziti-android-app>`_ or just look at the code for inspiration.
+Easiest way to start developing on Android with Ziti is to create your repo from our `template project <https://github.com/openziti/ziti-android-app>`_ or just look at the code for inspiration.
 
 
 Getting Help
@@ -126,6 +126,6 @@ to address them.
 
 
 .. _Developer Community: https://developer.netfoundry.io
-.. _docs: https://netfoundry.github.io/ziti-doc/ziti/overview.html
+.. _docs: https://openziti.github.io/ziti/overview.html
 .. _Discourse: https://openziti.discourse.group/
 .. _issues: https://github.com/openziti/ziti-sdk-jvm/issues
