@@ -16,6 +16,7 @@
 
 package org.openziti.impl
 
+import com.codahale.metrics.MetricRegistry
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.selects.select
 import org.openziti.*
 import org.openziti.api.*
 import org.openziti.identity.Identity
@@ -69,6 +71,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + supervisor
 
+    private var apiSession: ApiSession? = null
     private var apiId: ApiIdentity? = null
     private val controller: Controller
     private val statusCh: ConflatedBroadcastChannel<ZitiContext.Status>
@@ -83,8 +86,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     data class SessionKey (val serviceId: String, val type: SessionType)
     private val networkSessions = ConcurrentHashMap<SessionKey, Session>()
 
+    private val metrics = MetricRegistry()
+
     init {
-        controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager(), sessionToken)
+        controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager())
         statusCh = ConflatedBroadcastChannel(ZitiContext.Status.Loading)
         serviceCh = BroadcastChannel(kotlinx.coroutines.channels.Channel.BUFFERED)
         this._enabled = enabled
@@ -172,14 +177,14 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         try {
             controller.login().also {
                 d("${name()} logged in successfully s[${it.token}] at ${controller()} t[${Thread.currentThread().name}]")
-                sessionToken = it.token
+                apiSession = it
                 apiId = it.identity
                 updateStatus(ZitiContext.Status.Active)
             }
         } catch (ex: Exception) {
             e(ex) { "[${name()}] failed to login" }
             if (ex is ZitiException && ex.code == Errors.NotAuthorized) {
-                sessionToken = null
+                apiSession = null
                 updateStatus(ZitiContext.Status.NotAuthorized(ex))
             }
             else {
@@ -199,15 +204,21 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 processServiceUpdates(services)
                 d("[${id.name()}] got ${services.size} services on t[${Thread.currentThread().name}]")
 
+                val edgeRouters = mutableSetOf<EdgeRouter>()
                 controller.getSessions().collect {
-                    updateSession(it)
+                    val s = updateSession(it)
+                    s?.let {
+                        edgeRouters.addAll(it.edgeRouters!!)
+                    }
                 }
+
+                connectAll(edgeRouters)
                 delay(refreshDelay)
             }
         } catch (ze: ZitiException) {
             w("[${name()}] failed ${ze.localizedMessage}")
             if (ze.code == Errors.NotAuthorized) {
-                sessionToken = null
+                apiSession = null
                 updateStatus(ZitiContext.Status.NotAuthorized(ze))
             }
         } catch (ce: CancellationException) {
@@ -239,7 +250,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         networkSessions.getOrPut(SessionKey(service.id, st)) {
             val netSession = controller.createNetSession(service, st)
-            d("received net session[${netSession.id}] for service[${service.name}]")
+            t("received $netSession for service[${service.name}]")
             netSession
         }
     }
@@ -271,37 +282,85 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         } ?: throw ZitiException(Errors.ServiceNotAvailable)
     }
 
-    internal val channels: MutableMap<String, Channel> = mutableMapOf()
+    internal val channels = ConcurrentHashMap<String, Channel>()
 
-    internal fun getChannel(ns: Session): Channel {
-        val addrList = ns.edgeRouters.map { it.urls["tls"] }.filterNotNull()
+    private val latencyInterval = Duration.ofMinutes(1)
+
+    internal suspend fun getChannel(ns: Session): Channel {
+        val ers = ns.edgeRouters ?: throw ZitiException(Errors.EdgeRouterUnavailable)
+
+        val addrList = ers.map { it.urls["tls"] }.filterNotNull()
+
+        val chMap = sortedMapOf<Double,Channel>()
+        val unconnected = mutableListOf<String>()
+
         for (addr in addrList) {
-            channels[addr]?.let { return it }
-        }
-
-        for (addr in addrList) {
-            try {
-                val ch = Channel.Dial(addr, this)
-                channels[addr] = ch
-                ch.onClose {
-                    channels.remove(addr)
-                }
-                return ch
-
-            } catch (ex: Exception) {
-                w("failed to dial channel ${ex.localizedMessage}")
+            val c = channels[addr]
+            if (c != null) {
+                chMap.put(c.getCurrentLatency(), c)
+            } else {
+                unconnected.add(addr)
             }
         }
 
-        throw ZitiException(Errors.EdgeRouterUnavailable)
+        if (chMap.isEmpty()) {
+            val selected = connectAll(unconnected) ?: throw ZitiException(Errors.EdgeRouterUnavailable)
+            d{"selected $selected"}
+            return selected
+        } else {
+            coroutineScope { launch { connectAll(unconnected) } }
+            return chMap.entries.first().value
+        }
+    }
+
+    internal fun connectChannelAsync(addr: String) = async {
+        val c = channels[addr]
+        if (c != null) {
+            c
+        } else {
+            val ch = Channel.Dial(addr, this@ZitiContextImpl, apiSession!!)
+            val existing = channels.putIfAbsent(ch.addr, ch)
+            if (existing == null) {
+                ch.startLatencyCheck(latencyInterval, metrics.timer("${ch.addr}.latency"))
+                ch.onClose {
+                    channels.remove(ch.addr)
+                }
+                d{"connected $ch"}
+                ch
+            } else {
+                ch.close()
+                existing
+            }
+        }
+    }
+
+    internal fun connectAll(routers: Collection<EdgeRouter>) = launch {
+        routers.forEach {
+            it.urls["tls"]?.let {
+                if (!channels.containsKey(it)) {
+                    connectChannelAsync(it).await()
+                }
+            }
+        }
+    }
+
+    internal suspend fun connectAll(addrList: List<String>): Channel? {
+        if (addrList.isEmpty()) return null
+
+        val chans = addrList.map { addr ->  connectChannelAsync(addr)}
+        return select {
+            chans.forEach {
+                it.onAwait { it }
+            }
+        }
     }
 
     // can't just replace old with new as updates do not contain session token
     // do update list of edge routers for this session
-    private fun updateSession(s: Session) {
+    private fun updateSession(s: Session): Session? {
         val sessionKey = SessionKey(s.service.id, s.type)
-        networkSessions.containsKey(sessionKey) || return
-        networkSessions.merge(sessionKey, s) { old, new ->
+        networkSessions.containsKey(sessionKey) || return null
+        return networkSessions.merge(sessionKey, s) { old, new ->
             old.apply { edgeRouters = new.edgeRouters }
         }
     }

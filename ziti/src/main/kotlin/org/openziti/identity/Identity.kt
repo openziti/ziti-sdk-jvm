@@ -32,8 +32,6 @@ interface Identity {
     fun name(): String
     fun sslContext(): SSLContext
     fun trustManager(): X509TrustManager
-
-    var sessionToken: String?
 }
 
 internal class KeyStoreIdentity(private val ks: KeyStore, alias: String, pw: CharArray = charArrayOf()) : Identity {
@@ -76,6 +74,4 @@ internal class KeyStoreIdentity(private val ks: KeyStore, alias: String, pw: Cha
     override fun sslContext(): SSLContext = ssl
 
     override fun trustManager(): X509TrustManager = tm
-
-    override var sessionToken: String? = null
 }

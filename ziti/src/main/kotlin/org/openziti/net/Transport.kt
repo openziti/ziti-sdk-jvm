@@ -16,7 +16,9 @@
 
 package org.openziti.net
 
+import kotlinx.coroutines.CompletableDeferred
 import org.openziti.net.nio.AsyncTLSChannel
+import org.openziti.net.nio.DeferredHandler
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.io.Closeable
@@ -36,13 +38,16 @@ import kotlin.coroutines.suspendCoroutine
 internal interface Transport : Closeable {
 
     companion object {
-        fun dial(address: String, ssl: SSLContext): Transport {
+        suspend fun dial(address: String, ssl: SSLContext): Transport {
             val url = URI.create(address)
-            return TLS(url.host, url.port, ssl)
+            val tls = TLS(url.host, url.port, ssl)
+            tls.connect()
+            return tls
         }
     }
 
     fun isClosed(): Boolean
+    suspend fun connect()
 
     suspend fun write(buf: ByteBuffer)
     suspend fun read(buf: ByteBuffer, full: Boolean = true): Int
@@ -53,11 +58,16 @@ internal interface Transport : Closeable {
 
     class TLS(host: String, port: Int, sslContext: SSLContext) : Transport, Logged by ZitiLog("ziti-tls") {
         val socket: AsynchronousSocketChannel
-
+        val addr = InetSocketAddress(InetAddress.getByName(host), port)
         init {
             d { "connecting to $host:$port on t[${Thread.currentThread().name}" }
             socket = AsyncTLSChannel(sslContext)
-            socket.connect(InetSocketAddress(InetAddress.getByName(host), port)).get()
+        }
+
+        override suspend fun connect() {
+            val done = CompletableDeferred<Void>()
+            socket.connect(addr, done, DeferredHandler())
+            done.await()
         }
 
         override suspend fun write(buf: ByteBuffer):Unit = suspendCoroutine {
@@ -105,6 +115,10 @@ internal interface Transport : Closeable {
         }
 
         override fun isClosed(): Boolean = !socket.isOpen
+
+        override fun toString(): String {
+            return "TLS:${socket.remoteAddress}"
+        }
     }
 
 }

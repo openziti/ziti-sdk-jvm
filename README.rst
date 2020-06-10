@@ -1,13 +1,16 @@
 .. image:: https://travis-ci.org/openziti/ziti-sdk-jvm.svg?branch=master
     :target: https://travis-ci.org/openziti/ziti-sdk-jvm
 
+.. image:: https://github.com/openziti/ziti-sdk-jvm/workflows/CI%20build/badge.svg
+    :target: https://github.com/openziti/ziti-sdk-jvm/actions?query=workflow%3A%22CI+build%22
+
 .. image:: https://api.bintray.com/packages/openziti/maven/ziti/images/download.svg
     :target: https://bintray.com/openziti/maven/ziti/_latestVersion
 
 Ziti SDK for JVM
 =================
 The **Ziti SDK for JVM** enables Java and other developers to easily and securely connect their applications
-to backend services over NetFoundry Ziti networks.
+to backend services over Ziti networks.
 
 .. contents::
 
@@ -46,7 +49,7 @@ _____
         <dependency>
            <groupId>org.openziti</groupId>
            <artifactId>ziti</artifactId>
-           <version>0.12.2</version>
+           <version>0.13+</version>
         </dependency>
      </dependencies>
      ....
@@ -63,7 +66,7 @@ ______
    ...
    dependencies {
       ...
-      implementation 'io.netfoundry.ziti:ziti:0.12.2'
+      implementation 'org.openziti:ziti:0.13+'
    }
 
 Building from Source
@@ -89,7 +92,7 @@ Features
 
 Enrollment
 __________
-See background `here <https://netfoundry.github.io/ziti-doc/ziti/identities/enrolling.html>`_
+See background `here <https://openziti.github.io/ziti/identities/enrolling.html>`_
 
 Java SDK provides a way to enroll and generate *identity file*.
 The default identity format for Java SDK is Java KeyStore stored as ``.p12/.pfx`` files,
@@ -112,12 +115,16 @@ Note:
 
 Android Support
 ---------------
-Easiest way to start developing on Android with Ziti is to create your repo from our `template project <https://github.com/netfoundry/ziti-android-app>`_ or just look at the code for inspiration.
+Easiest way to start developing on Android with Ziti is to create your repo from
+our `template project <https://github.com/openziti/ziti-android-app>`_
+or just look at the code for inspiration.
+
 
 
 Getting Help
 ------------
-Please use these community resources for getting help. We use GitHub issues_ for tracking bugs and feature requests and have limited bandwidth
+Please use these community resources for getting help. We use GitHub issues_
+for tracking bugs and feature requests and have limited bandwidth
 to address them.
 
 - Read the docs_
@@ -125,7 +132,7 @@ to address them.
 - Participate in discussion on Discourse_
 
 
-.. _Developer Community: https://developer.netfoundry.io
+.. _Developer Community: https://ziti.dev
 .. _docs: https://openziti.github.io/ziti/overview.html
 .. _Discourse: https://openziti.discourse.group/
 .. _issues: https://github.com/openziti/ziti-sdk-jvm/issues

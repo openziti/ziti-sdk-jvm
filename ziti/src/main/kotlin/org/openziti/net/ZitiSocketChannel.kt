@@ -119,6 +119,10 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
             val ns = ctx.getNetworkSession(remote.name, SessionType.Dial)
             channel = ctx.getChannel(ns)
+            channel.onClose {
+                state.set(State.closed)
+                receiveQueue.cancel()
+            }
             connId = channel.registerReceiver(this@ZitiSocketChannel)
 
             val connectMsg = Message(ZitiProtocol.ContentType.Connect, ns.token.toByteArray(UTF_8))

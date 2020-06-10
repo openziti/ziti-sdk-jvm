@@ -17,11 +17,14 @@
 package org.openziti.net
 
 import com.codahale.metrics.Meter
+import com.codahale.metrics.Timer
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.produce
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import org.openziti.Errors
 import org.openziti.ZitiException
+import org.openziti.api.ApiSession
 import org.openziti.identity.Identity
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
@@ -30,13 +33,16 @@ import java.io.EOFException
 import java.io.IOException
 import java.net.ConnectException
 import java.nio.charset.StandardCharsets
+import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.channels.Channel as Chan
 
-internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged by ZitiLog() {
+internal class Channel(val addr: String, val peer: Transport) : Closeable, CoroutineScope, Logged by ZitiLog() {
 
     internal interface MessageReceiver {
         suspend fun receive(msg: Message)
@@ -57,6 +63,8 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
 
     internal val upMeter = Meter()
     internal val downMeter = Meter()
+
+    internal lateinit var latencyMeter: Timer
 
     internal fun registerReceiver(rec: MessageReceiver): Int {
         val id = receiverSeq.incrementAndGet()
@@ -81,6 +89,17 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
     }
 
     override fun close() {
+
+        for (v in waiters) {
+            v.value.completeExceptionally(CancellationException())
+        }
+        waiters.clear()
+
+        for (v in synchers) {
+            v.value.completeExceptionally(CancellationException())
+        }
+        synchers.clear()
+
         for (l in closeListeners) {
             l()
         }
@@ -143,8 +162,7 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
 
     suspend fun rxer() {
         try {
-            val inbound = rx()
-            for (m in inbound) {
+            rx().collect { m ->
                 d("got m = ${m}")
                 val waiter = waiters.remove(m.repTo)
                 if (waiter != null) {
@@ -182,42 +200,44 @@ internal class Channel(val peer: Transport) : Closeable, CoroutineScope, Logged 
         }
     }
 
-    @ExperimentalCoroutinesApi
-    fun rx(): ReceiveChannel<Message> = produce(this.coroutineContext, 16) {
-        try {
-            while (true) {
-                val m = Message.readMessage(peer)
-                send(m)
-            }
-        } catch (ex: Exception) {
-            w{"rx() closed with $ex"}
-            if (!closed.get()) {
-                e("rx(): ${ex.localizedMessage}", ex)
-                close(ex)
-            } else {
-                close()
-            }
+    fun rx(): Flow<Message> = flow {
+        while (true) {
+            val m = Message.readMessage(peer)
+            emit(m)
         }
     }
 
+    fun getCurrentLatency() = latencyMeter.snapshot.median
+
+    internal fun startLatencyCheck(interval: Duration, timer: Timer) = launch {
+        latencyMeter = timer
+        while(!closed.get()) {
+            val start = Instant.now()
+
+            val q = Message(ZitiProtocol.ContentType.LatencyType)
+            val r = SendAndWait(q)
+
+            val latency = Duration.between(start, Instant.now())
+            timer.update(latency.toNanos(), TimeUnit.NANOSECONDS)
+            t{"latency[${this@Channel}] is now ${getCurrentLatency()}"}
+
+            delay(interval.toMillis())
+        }
+    }
+
+    override fun toString(): String = "Channel[$peer]"
+
     companion object {
-        val TAG = Channel::class.java.simpleName
-
-        fun Dial(addr: String, id: Identity): Channel {
+        suspend fun Dial(addr: String, id: Identity, apiSession: ApiSession): Channel {
             try {
-                val token = id.sessionToken
-                if (token == null) {
-                    throw IllegalStateException("no session token for connection")
-                }
-
                 val peer = Transport.dial(addr, id.sslContext())
-                val ch = Channel(peer)
+                val ch = Channel(addr, peer)
 
                 val helloMsg = Message.newHello(id.name()).apply {
-                    setHeader(ZitiProtocol.Header.SessionToken, token)
+                    setHeader(ZitiProtocol.Header.SessionToken, apiSession.token)
                 }
 
-                val reply = runBlocking { ch.SendAndWait(helloMsg) }
+                val reply = ch.SendAndWait(helloMsg)
 
                 if (reply.content != ZitiProtocol.ContentType.ResultType) {
                     peer.close()

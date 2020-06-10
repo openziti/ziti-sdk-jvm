@@ -47,7 +47,7 @@ import javax.net.SocketFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
-class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustManager, sessToken: String? = null) :
+class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustManager) :
     Logged by ZitiLog() {
     val SdkInfo = mapOf("type" to "ziti-sdk-java") + Version.VersionInfo
 
@@ -77,7 +77,9 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         fun getIdentity(@Path("id") id: String): Call<Response<Identity>>
 
         @GET("sessions")
-        fun getSessionsAsync(@Query("offset") offset: Int = 0, @Query("limit") limit: Int? = null): Deferred<Response<Collection<Session>>>
+        fun getSessionsAsync(@Query("filter") filter: String? = null,
+                             @Query("offset") offset: Int = 0,
+                             @Query("limit") limit: Int? = null): Deferred<Response<Collection<Session>>>
 
         @POST("sessions")
         fun createNetworkSession(@Body req: SessionReq): Deferred<Response<Session>>
@@ -87,7 +89,7 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
     }
 
     internal val api: API
-    internal var apiSession: ApiSession? = sessToken?.let { ApiSession(it, null) }
+    internal var apiSession: ApiSession? = null
 
     internal val errorConverter: Converter<ResponseBody, Response<Unit>>
 
@@ -203,10 +205,15 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
     }
 
     internal fun getSessions(): Flow<Session> = flow {
-        var req = api.getSessionsAsync()
+        val sessionFilter = apiSession?.let {
+            "apiSession=\"${it.id}\""
+        }
+
+        var req = api.getSessionsAsync(filter = sessionFilter)
 
         while(true) {
             val resp = req.await()
+            t{"received ${resp.data?.size} sessions"}
             resp.data?.let {
                 for (s in it) emit(s)
             }
@@ -216,7 +223,7 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
             if (p.totalCount <= nextOffset)
                 break
 
-            req = api.getSessionsAsync(nextOffset)
+            req = api.getSessionsAsync(sessionFilter, nextOffset)
         }
     }
 
@@ -255,7 +262,7 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
     inner class SessionInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
             val r = chain.request()
-            d("${r.method()} ${r.url()} session=${apiSession} t[${Thread.currentThread().name}]")
+            d("${r.method()} ${r.url()} session=${apiSession?.id} t[${Thread.currentThread().name}]")
 
             apiSession?.let {
                 val request = chain.request().newBuilder()
