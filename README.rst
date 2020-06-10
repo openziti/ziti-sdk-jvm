@@ -120,6 +120,7 @@ our `template project <https://github.com/openziti/ziti-android-app>`_
 or just look at the code for inspiration.
 
 
+
 Getting Help
 ------------
 Please use these community resources for getting help. We use GitHub issues_
@@ -133,5 +134,5 @@ to address them.
 
 .. _Developer Community: https://ziti.dev
 .. _docs: https://openziti.github.io/ziti/overview.html
-.. _Discourse: https://netfoundry.discourse.group/
+.. _Discourse: https://openziti.discourse.group/
 .. _issues: https://github.com/openziti/ziti-sdk-jvm/issues
