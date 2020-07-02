@@ -184,6 +184,7 @@ class Enroller(
         conn.sslSocketFactory = ssl.socketFactory
         conn.doInput = true
         conn.doOutput = true
+        conn.setRequestProperty("Accept", "application/json")
         conn.setRequestProperty("Content-Type", "text/plain")
         conn.setRequestProperty("Content-Length", pemBytes.size.toString())
         conn.outputStream.write(pemBytes)
