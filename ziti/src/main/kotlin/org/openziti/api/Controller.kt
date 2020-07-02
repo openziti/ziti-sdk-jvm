@@ -261,17 +261,16 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
 
     inner class SessionInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
-            val r = chain.request()
-            d("${r.method()} ${r.url()} session=${apiSession?.id} t[${Thread.currentThread().name}]")
-
-            apiSession?.let {
-                val request = chain.request().newBuilder()
-                    .header("zt-session", it.token)
-                    .build()
-                return chain.proceed(request)
+            val origReq = chain.request()
+            val rb = origReq.newBuilder()
+            if (origReq.header("Accept") == null) {
+                rb.header("Accept", "application/json")
             }
+            apiSession?.let { rb.header("zt-session", it.token) }
 
-            return chain.proceed(chain.request())
+            val req = rb.build()
+            d("${req.method()} ${req.url()} session=${apiSession?.id} t[${Thread.currentThread().name}]")
+            return chain.proceed(req)
         }
     }
 
