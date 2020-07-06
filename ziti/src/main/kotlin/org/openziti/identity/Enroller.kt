@@ -203,7 +203,7 @@ class Enroller(
                     readCerts(conn.inputStream.reader()).toTypedArray()
                 }
                 "application/json" -> {
-                    val body = conn.inputStream.readAllBytes()
+                    val body = conn.inputStream.readBytes()
                     val data = JSONObject(body.toString(UTF_8)).getJSONObject("data")
                     readCerts(data.getString("cert")).toTypedArray()
                 }
