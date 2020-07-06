@@ -190,20 +190,26 @@ class Enroller(
         conn.outputStream.write(pemBytes)
         conn.outputStream.flush()
 
-
-        val rc = conn.responseCode
-        val body: ByteArray
-        when {
-            rc >= 400 -> {
-                body = conn.errorStream.readBytes()
-                val error = JSONObject(body.toString(UTF_8)).getJSONObject("error")
-                val msg = error.get("message")?.toString()
-                msg.let { throw IllegalArgumentException(it) }
+        if (conn.responseCode >= 400) {
+            val body = conn.errorStream.readBytes()
+            val error = JSONObject(body.toString(UTF_8)).getJSONObject("error")
+            val msg = error.get("message")?.toString()
+            msg.let { throw IllegalArgumentException(it) }
+        }
+        else {
+            val ct = conn.getHeaderField("Content-Type").toLowerCase()
+            val certs = when (ct) {
+                "application/x-pem-file" -> {
+                    readCerts(conn.inputStream.reader()).toTypedArray()
+                }
+                "application/json" -> {
+                    val body = conn.inputStream.readBytes()
+                    val data = JSONObject(body.toString(UTF_8)).getJSONObject("data")
+                    readCerts(data.getString("cert")).toTypedArray()
+                }
+                else -> error("Invalid content-type: $ct")
             }
-            else -> {
-                val certs = readCerts(conn.inputStream.reader()).toTypedArray()
-                return KeyStore.PrivateKeyEntry(kp.private, certs)
-            }
+            return KeyStore.PrivateKeyEntry(kp.private, certs)
         }
     }
 
