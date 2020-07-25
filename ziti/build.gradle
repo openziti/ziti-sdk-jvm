@@ -45,6 +45,7 @@ dependencies {
     implementation('com.github.ajalt:clikt:2.7.0')
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.3.72")
+    testImplementation("org.slf4j:slf4j-simple:1.7.30")
 }
 
 application {
