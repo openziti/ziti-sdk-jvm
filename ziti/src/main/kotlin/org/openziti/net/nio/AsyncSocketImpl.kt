@@ -16,6 +16,10 @@
 
 package org.openziti.net.nio
 
+import org.openziti.net.internal.Sockets
+import org.openziti.util.Logged
+import org.openziti.util.ZitiLog
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.*
@@ -30,20 +34,43 @@ import kotlin.math.min
 /**
  * SocketImpl wrapper over AsyncSocketChannel
  */
-internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImpl() {
+internal class AsyncSocketImpl(private val connector: Connector = DefaultConnector): SocketImpl(), Logged by ZitiLog() {
+
+    interface Connector {
+        fun connect(addr: SocketAddress, timeout: Int): AsynchronousSocketChannel
+
+        fun doConnect(ch: AsynchronousSocketChannel, addr: SocketAddress, timeout: Int): AsynchronousSocketChannel {
+            val cf = ch.connect(addr)
+            if (timeout > 0) {
+                cf.get(timeout.toLong(), TimeUnit.MILLISECONDS);
+            } else {
+                cf.get()
+            }
+            return ch
+        }
+    }
+
+    object DefaultConnector: Connector {
+        override fun connect(addr: SocketAddress, timeout: Int) =
+            doConnect(AsynchronousSocketChannel.open(), addr, timeout)
+    }
+
+    class channelConnector(val ch: AsynchronousSocketChannel): Connector {
+        override fun connect(addr: SocketAddress, timeout: Int): AsynchronousSocketChannel =
+            doConnect(ch, addr, timeout)
+    }
+
+    constructor(ch: AsynchronousSocketChannel): this(channelConnector(ch)) {
+        channel = ch
+    }
+
     internal lateinit var channel: AsynchronousSocketChannel
 
     internal val inputLock = Semaphore(1)
     internal val input = ByteBuffer.allocate(32 * 1024).apply {
         (this as Buffer).flip()
     }
-    internal val timeout = AtomicInteger(Socket().soTimeout)
-
-    init {
-        ch?.let {
-            channel = it
-        }
-    }
+    internal val timeout = AtomicInteger(Sockets.defaultSoTimeout)
 
     override fun bind(host: InetAddress?, port: Int) = error("only client sockets are supported")
     override fun accept(s: SocketImpl?) = error("only client sockets are supported")
@@ -63,9 +90,6 @@ internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImp
 
     override fun create(stream: Boolean) {
         require(stream){"only stream sockets are supported"}
-        if (!::channel.isInitialized) {
-            channel = AsynchronousSocketChannel.open()
-        }
     }
 
     override fun connect(host: String, port: Int) =
@@ -75,11 +99,23 @@ internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImp
         InetSocketAddress(address, port), 0)
 
     override fun connect(address: SocketAddress, timeout: Int) {
-        val cf = channel.connect(address)
-        if (timeout > 0) {
-            cf.get(timeout.toLong(), TimeUnit.MILLISECONDS)
+        if (!::channel.isInitialized) {
+            try {
+                channel = connector.connect(address, timeout)
+            } catch (cex: IOException) {
+                if (connector != DefaultConnector) { // try fallback
+                    channel = DefaultConnector.connect(address, timeout)
+                } else {
+                    throw cex
+                }
+            }
         } else {
-            cf.get()
+            val cf = channel.connect(address)
+            if (timeout > 0) {
+                cf.get(timeout.toLong(), TimeUnit.MILLISECONDS)
+            } else {
+                cf.get()
+            }
         }
     }
 
@@ -106,7 +142,7 @@ internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImp
 
                     input.compact()
                     val rf = CompletableFuture<Int>()
-                    val to = getOption(SocketOptions.SO_TIMEOUT) as Number
+                    val to = (getOption(SocketOptions.SO_TIMEOUT) as Number).toLong()
                     channel.read(input, 0, TimeUnit.MILLISECONDS, rf,
                         object : CompletionHandler<Int, CompletableFuture<Int>> {
 
@@ -127,7 +163,7 @@ internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImp
                         })
 
                     try {
-                        val read = rf.get(to.toLong(), TimeUnit.MILLISECONDS)
+                        val read = if (to > 0) rf.get(to, TimeUnit.MILLISECONDS) else rf.get()
                         if (read == -1) {
                             return -1
                         }
@@ -152,7 +188,8 @@ internal class AsyncSocketImpl(ch: AsynchronousSocketChannel? = null): SocketImp
     }
 
     override fun close() {
-        channel.close()
+        if (::channel.isInitialized)
+            channel.close()
     }
 
     override fun getOption(optID: Int): Any? {
