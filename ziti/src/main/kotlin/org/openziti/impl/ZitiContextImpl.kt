@@ -33,7 +33,7 @@ import org.openziti.net.Channel
 import org.openziti.net.ZitiServerSocketChannel
 import org.openziti.net.ZitiSocketChannel
 import org.openziti.net.dns.ZitiDNSManager
-import org.openziti.net.internal.ZitiSocket
+import org.openziti.net.nio.AsychChannelSocket
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.net.InetSocketAddress
@@ -158,7 +158,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         return dial(service.name)
     }
 
-    override fun connect(host: String, port: Int): Socket = ZitiSocket(dial(host, port))
+    override fun connect(host: String, port: Int): Socket {
+        val ch = open()
+        val s = getService(host, port)
+        ch.connect(ZitiAddress.Service(s.name)).get()
+        return AsychChannelSocket(ch)
+    }
 
     override fun stop() {
         val copy = channels.values

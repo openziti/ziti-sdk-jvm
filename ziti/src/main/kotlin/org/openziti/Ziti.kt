@@ -17,10 +17,10 @@
 package org.openziti
 
 import org.openziti.impl.ZitiImpl
-import org.openziti.net.ZitiSSLSocketFactory
 import org.openziti.net.ZitiSocketFactory
 import org.openziti.net.dns.DNSResolver
 import org.openziti.net.dns.ZitiDNSManager
+import org.openziti.net.nio.AsyncTLSSocketFactory
 import java.io.File
 import java.net.SocketAddress
 import java.security.KeyStore
@@ -69,7 +69,7 @@ object Ziti {
     fun getSocketFactory(): SocketFactory = ZitiSocketFactory()
 
     @JvmStatic
-    fun getSSLSocketFactory(): SSLSocketFactory = ZitiSSLSocketFactory()
+    fun getSSLSocketFactory(): SSLSocketFactory = AsyncTLSSocketFactory()
 
     @JvmStatic
     fun getDNSResolver(): DNSResolver = ZitiDNSManager

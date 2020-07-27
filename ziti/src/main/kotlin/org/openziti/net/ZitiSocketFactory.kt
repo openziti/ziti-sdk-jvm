@@ -16,16 +16,37 @@
 
 package org.openziti.net
 
-import org.openziti.net.internal.ZitiSocket
-import java.net.InetAddress
-import java.net.Socket
+import org.openziti.Ziti
+import org.openziti.impl.ZitiContextImpl
+import org.openziti.net.nio.AsychChannelSocket
+import org.openziti.net.nio.AsyncSocketImpl
+import org.openziti.util.Logged
+import org.openziti.util.ZitiLog
+import java.net.*
+import java.nio.channels.AsynchronousSocketChannel
 import javax.net.SocketFactory
 
 /**
  *
  */
 internal class ZitiSocketFactory: SocketFactory() {
-    override fun createSocket(): Socket = ZitiSocket(ZitiSocketImpl())
+    object ZitiConnector: AsyncSocketImpl.Connector, Logged by ZitiLog() {
+        override fun connect(addr: SocketAddress, timeout: Int): AsynchronousSocketChannel {
+            for (ctx in Ziti.getContexts()) {
+                val ctxImpl = ctx as ZitiContextImpl
+                val sockAddr = addr as InetSocketAddress
+                try {
+                    val s = ctxImpl.getService(addr.hostName, addr.port)
+                    return doConnect(ctx.open(), addr, timeout)
+                } catch (ex: Exception) {}
+            }
+
+            i{"no ZitiContext provides service for $addr"}
+            throw ConnectException()
+        }
+    }
+
+    override fun createSocket(): Socket = AsychChannelSocket(AsyncSocketImpl(ZitiConnector))
 
     override fun createSocket(p0: String?, p1: Int): Socket {
         error("not implemented")

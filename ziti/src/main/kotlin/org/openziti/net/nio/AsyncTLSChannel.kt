@@ -88,7 +88,7 @@ class AsyncTLSChannel(
     internal val transport: AsynchronousSocketChannel
     internal lateinit var engine: SSLEngine
 
-    private val sslbuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
+    private val sslbuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
     private val plnbuf = ByteBuffer.allocate(SSL_BUFFER_SIZE).apply { (this as Buffer).flip() }
     private val readOp = AtomicBoolean(false)
 
@@ -310,6 +310,7 @@ class AsyncTLSChannel(
 
         val dsts = _dsts.sliceArray(offset until offset + length)
         if (plnbuf.hasRemaining()) {
+            v{"transferring ${plnbuf.remaining()} leftover bytes"}
             val read = plnbuf.transfer(dsts)
             readOp.set(false)
             handler.completed(read, attachment)
@@ -386,32 +387,32 @@ class AsyncTLSChannel(
             state = State.handshaking
             engine.useClientMode = true
             engine.beginHandshake()
-            continueHandshake(Handhaker(handshake, ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)))
+            continueHandshake(Handshaker(handshake, sslbuf))
         }
     }
 
-    data class Handhaker (val result: CompletableFuture<SSLSession>, val input: ByteBuffer) {
+    data class Handshaker (val result: CompletableFuture<SSLSession>, val input: ByteBuffer) {
         init {
             input.flip()
         }
     }
 
-    private fun hsWrite(out: ByteBuffer, hs: Handhaker) {
+    private fun hsWrite(out: ByteBuffer, hs: Handshaker) {
         t{"hs writing ${out.remaining()} bytes"}
-        transport.write(out, hs, object : CompletionHandler<Int, Handhaker> {
-            override fun completed(result: Int, attachment: Handhaker) {
+        transport.write(out, hs, object : CompletionHandler<Int, Handshaker> {
+            override fun completed(result: Int, attachment: Handshaker) {
                 CompletableFuture.runAsync{
                     continueHandshake(attachment)
                 }
             }
 
-            override fun failed(exc: Throwable, attachment: Handhaker) {
+            override fun failed(exc: Throwable, attachment: Handshaker) {
                 attachment.result.completeExceptionally(exc)
             }
         })
     }
 
-    private fun continueHandshake(hs: Handhaker) {
+    private fun continueHandshake(hs: Handshaker) {
         v{"continuing handshake: ${engine.handshakeStatus}"}
         try {
             when (engine.handshakeStatus) {
@@ -443,8 +444,8 @@ class AsyncTLSChannel(
 
                     if (engine.handshakeStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
                         hs.input.compact()
-                        transport.read(hs.input, hs, object : CompletionHandler<Int, Handhaker> {
-                            override fun completed(n: Int, r: Handhaker) {
+                        transport.read(hs.input, hs, object : CompletionHandler<Int, Handshaker> {
+                            override fun completed(n: Int, r: Handshaker) {
                                 t{"hs read $n bytes"}
                                 if (n == -1) {
                                     r.result.completeExceptionally(SSLException("peer terminated"))
@@ -467,7 +468,7 @@ class AsyncTLSChannel(
                                 }
                             }
 
-                            override fun failed(exc: Throwable?, r: Handhaker) {
+                            override fun failed(exc: Throwable?, r: Handshaker) {
                                 r.result.completeExceptionally(exc)
                             }
                         })
@@ -484,6 +485,20 @@ class AsyncTLSChannel(
 
                 SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING -> {
                     state = State.connected
+                    plnbuf.compact()
+                    loop@ while (hs.input.hasRemaining()) {
+                        t{"sslbuf has ${hs.input.remaining()} bytes"}
+                        val res = engine.unwrap(hs.input, plnbuf)
+                        t{"unwrapped ${res.bytesProduced()} plain bytes res = $res"}
+                        when(res.status) {
+                            OK -> continue@loop
+                            BUFFER_UNDERFLOW, BUFFER_OVERFLOW -> break@loop
+                            CLOSED -> error("unexpected TLS engine close")
+                            else -> error("unexpected engine state")
+                        }
+                    }
+                    plnbuf.flip()
+                    hs.input.compact()
                     hs.result.complete(engine.session)
                 }
 

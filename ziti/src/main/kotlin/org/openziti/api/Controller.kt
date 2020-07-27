@@ -27,7 +27,6 @@ import okhttp3.ResponseBody
 import org.openziti.Errors
 import org.openziti.ZitiException
 import org.openziti.getZitiError
-import org.openziti.net.internal.Sockets
 import org.openziti.net.nio.AsychChannelSocket
 import org.openziti.net.nio.AsyncTLSSocketFactory
 import org.openziti.util.Logged
@@ -40,10 +39,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.IOException
-import java.net.InetAddress
-import java.net.Socket
 import java.net.URL
-import javax.net.SocketFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
@@ -92,32 +88,6 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
     internal var apiSession: ApiSession? = null
 
     internal val errorConverter: Converter<ResponseBody, Response<Unit>>
-
-
-    val socketFactory = object : SocketFactory() {
-        override fun createSocket(): Socket = Sockets.BypassSocket()
-
-        override fun createSocket(host: String?, port: Int): Socket {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun createSocket(host: String?, port: Int, localHost: InetAddress?, localPort: Int): Socket {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun createSocket(host: InetAddress?, port: Int): Socket {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun createSocket(
-            address: InetAddress?,
-            port: Int,
-            localAddress: InetAddress?,
-            localPort: Int
-        ): Socket {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-    }
 
     val clt: OkHttpClient
     init {

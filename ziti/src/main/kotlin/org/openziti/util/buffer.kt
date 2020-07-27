@@ -23,8 +23,9 @@ internal fun ByteBuffer.transfer (dsts: Array<out ByteBuffer>): Long  {
     var copied = 0L
     for (b in dsts) {
         val count = min(b.remaining(), this.remaining())
-        this.get(b.array(), b.position(), count)
-        b.position(b.position() + count)
+        while(b.hasRemaining() && hasRemaining()) {
+            b.put(this.get())
+        }
         copied += count
         if (!this.hasRemaining()) break
     }

@@ -34,6 +34,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.ConnectException
+import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.net.SocketOption
 import java.nio.ByteBuffer
@@ -81,7 +82,8 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     var connId: Int = 0
     lateinit var channel: Channel
     val seq = AtomicInteger(1)
-    var remote: ZitiAddress? = null
+    lateinit var serviceName: String
+    var remote: SocketAddress? = null
     var local: ZitiAddress? = null
     val receiveQueue = Chan<ByteArray>(16)
     val receiveBuff: ByteBuffer = ByteBuffer.allocate(32 * 1024).apply { flip() }
@@ -98,8 +100,18 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     override fun isClosed() = !isOpen
 
     override fun <A : Any?> connect(remote: SocketAddress?, attachment: A, handler: CompletionHandler<Void, in A>) {
-        if (remote !is ZitiAddress.Service) {
-            throw UnsupportedAddressTypeException()
+
+        when (remote) {
+            is InetSocketAddress -> {
+                val s = ctx.getService(remote.hostName, remote.port)
+                serviceName = s.name
+                this.remote = remote
+            }
+            is ZitiAddress.Service -> {
+                this.remote = remote
+                this.serviceName = remote.name
+            }
+            else -> throw UnsupportedAddressTypeException()
         }
 
         state.getAndUpdate { st ->
@@ -117,7 +129,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         ctx.async {
             val kp = Crypto.newKeyPair()
 
-            val ns = ctx.getNetworkSession(remote.name, SessionType.Dial)
+            val ns = ctx.getNetworkSession(serviceName, SessionType.Dial)
             channel = ctx.getChannel(ns)
             channel.onClose {
                 state.set(State.closed)
@@ -142,7 +154,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                         setupCrypto(Crypto.kx(kp, Key.fromBytes(peerPk), false))
                         startCrypto()
                     }
-                    local = ZitiAddress.Session(ns.id, connId, remote.name)
+                    local = ZitiAddress.Session(ns.id, connId, serviceName)
                     d("network connection established ${ns.id}/$connId")
                     state.set(State.connected)
                 }
@@ -226,7 +238,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             ctx.launch {
                 var count = 0L
                 t { "waiting for data with $receiveBuff" }
-                receiveBuff.compact()
+
                 try {
                     var data: ByteArray? = receiveQueue.receive()
                     do {
@@ -234,7 +246,9 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                         count += dataBuf.transfer(slice)
                         if (dataBuf.hasRemaining()) {
                             t{ "saving ${dataBuf.remaining()} for later" }
+                            receiveBuff.compact()
                             receiveBuff.put(dataBuf)
+                            receiveBuff.flip()
                             break
                         }
                         data = receiveQueue.poll()
@@ -242,12 +256,11 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
                     t { "transferred $count" }
                     handler.completed(count, att)
+
                 } catch (e1: Exception) {
                     if (count > 0) handler.completed(count, att)
                     else if (e1 is EOFException) handler.completed(-1, att)
                     else handler.failed(e1, att)
-                } finally {
-                    receiveBuff.flip()
                 }
             }
         }

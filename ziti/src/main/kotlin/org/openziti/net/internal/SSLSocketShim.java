@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.openziti.net.nio;
+package org.openziti.net.internal;
 
 import javax.net.ssl.SSLSocket;
 

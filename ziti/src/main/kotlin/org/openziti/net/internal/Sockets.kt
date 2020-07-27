@@ -17,7 +17,8 @@
 package org.openziti.net.internal
 
 import org.openziti.impl.ZitiImpl
-import org.openziti.net.ZitiSocketImpl
+import org.openziti.net.ZitiSocketFactory
+import org.openziti.net.nio.AsyncSocketImpl
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.lang.reflect.Constructor
@@ -33,6 +34,7 @@ internal object Sockets : Logged by ZitiLog() {
     val defaultImplCls: Class<out SocketImpl>
     val defaultImplCons: Constructor<out SocketImpl>
     lateinit var defaultImplConsArgs: Array<Any?>
+    var defaultSoTimeout: Int = 0
 
     init {
         val impl1 = Class.forName("java.net.PlainSocketImpl") as Class<SocketImpl>
@@ -59,8 +61,9 @@ internal object Sockets : Logged by ZitiLog() {
 
     fun init() {
         if (initialized.compareAndSet(false, true)) {
+            defaultSoTimeout = Socket().soTimeout
             d { "internals initialized" }
-            Socket.setSocketImplFactory { ZitiSocketImpl() }
+            Socket.setSocketImplFactory { -> AsyncSocketImpl(ZitiSocketFactory.ZitiConnector) }
 
             if (ZitiImpl.onAndroid) {
                 HTTP.init()
