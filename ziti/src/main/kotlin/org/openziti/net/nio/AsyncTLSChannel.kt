@@ -310,6 +310,7 @@ class AsyncTLSChannel(
 
         val dsts = _dsts.sliceArray(offset until offset + length)
         if (plnbuf.hasRemaining()) {
+            v{"transferring ${plnbuf.remaining()} leftover bytes"}
             val read = plnbuf.transfer(dsts)
             readOp.set(false)
             handler.completed(read, attachment)
@@ -484,6 +485,19 @@ class AsyncTLSChannel(
 
                 SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING -> {
                     state = State.connected
+                    plnbuf.compact()
+                    loop@ while (hs.input.hasRemaining()) {
+                        t{"sslbuf has ${hs.input.remaining()} bytes"}
+                        val res = engine.unwrap(hs.input, plnbuf)
+                        t{"unwrapped ${res.bytesProduced()} plain bytes res = $res"}
+                        when(res.status) {
+                            OK -> continue@loop
+                            BUFFER_UNDERFLOW, BUFFER_OVERFLOW -> break@loop
+                            CLOSED -> error("unexpected TLS engine close")
+                            else -> error("unexpected engine state")
+                        }
+                    }
+                    plnbuf.flip()
                     hs.input.compact()
                     hs.result.complete(engine.session)
                 }
