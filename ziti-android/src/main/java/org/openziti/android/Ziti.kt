@@ -217,9 +217,16 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
             "${app.packageName}.provider", logFile))
     }
 
+    @JvmStatic
     fun getEnrollmentIntent() = Intent(app, enrollmentClass)
 
+    @JvmStatic
     fun setEnrollmentActivity(cls: Class<out Activity>) {
         enrollmentClass = cls
     }
+
+    @JvmStatic
+    fun getSocketFactory() = Impl.getSocketFactory()
+    @JvmStatic
+    fun getSSLSocketFactory() = Impl.getSSLSocketFactory()
 }

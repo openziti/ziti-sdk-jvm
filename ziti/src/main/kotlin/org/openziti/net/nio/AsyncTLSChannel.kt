@@ -19,6 +19,7 @@ package org.openziti.net.nio
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import org.openziti.util.transfer
+import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.net.SocketOption
@@ -101,7 +102,13 @@ class AsyncTLSChannel(
             engine = ssl.createSSLEngine(it.hostName, it.port)
             val block = CompletableFuture<Void>()
             startHandshake(block)
-            block.get()
+            try {
+                block.get()
+            } catch (xx: ExecutionException) {
+                val cause = xx.cause
+                if (cause is IOException) throw cause
+                throw IOException(cause)
+            }
         }
     }
 

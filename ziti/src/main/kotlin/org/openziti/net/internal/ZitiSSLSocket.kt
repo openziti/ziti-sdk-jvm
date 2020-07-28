@@ -27,10 +27,21 @@ import java.security.KeyStore
 import java.security.SecureRandom
 import javax.net.ssl.*
 
-class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int) :
+class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
     SSLSocketShim(),
     Logged by ZitiLog("ziti-ssl-socket")
 {
+    companion object {
+        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
+            init(null as KeyStore?)
+        }
+        val tls = SSLContext.getDefault().apply {
+            init(null, tmf.trustManagers, SecureRandom())
+        }
+    }
+
+    constructor(s: Socket, addr: InetAddress, port: Int): this(s, addr.hostName, port)
+    constructor(s: Socket, host: String, port: Int): this(s, tls.createSSLEngine(host, port))
 
     inner class Output : OutputStream() {
         val buffer = ByteBuffer.allocate(32 * 1024)
@@ -214,15 +225,7 @@ class ZitiSSLSocket(val transport: Socket, val host: InetAddress, val pport: Int
         engine.enableSessionCreation = flag
     }
 
-    val engine: SSLEngine
-
     init {
-        val ssl = SSLContext.getInstance("TLSv1.2")
-        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-        tmf.init(null as KeyStore?)
-        ssl.init(null, tmf.trustManagers, SecureRandom())
-
-        engine = ssl.createSSLEngine(host.hostName, pport)
         engine.useClientMode = true
     }
 }
