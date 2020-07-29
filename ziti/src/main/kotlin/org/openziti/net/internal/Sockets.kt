@@ -21,43 +21,13 @@ import org.openziti.net.ZitiSocketFactory
 import org.openziti.net.nio.AsyncSocketImpl
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
-import java.lang.reflect.Constructor
 import java.net.Socket
-import java.net.SocketImpl
-import java.security.PrivilegedAction
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal object Sockets : Logged by ZitiLog() {
 
     private val initialized = AtomicBoolean(false)
-
-    val defaultImplCls: Class<out SocketImpl>
-    val defaultImplCons: Constructor<out SocketImpl>
-    lateinit var defaultImplConsArgs: Array<Any?>
     var defaultSoTimeout: Int = 0
-
-    init {
-        val impl1 = Class.forName("java.net.PlainSocketImpl") as Class<SocketImpl>
-        defaultImplCls = impl1
-
-        var cons: Constructor<SocketImpl>
-        var args: Array<Any?> = arrayOf()
-        try { // v8 constructor
-            cons = defaultImplCls.getDeclaredConstructor()
-        } catch(ex: NoSuchMethodException) {
-            cons = defaultImplCls.getDeclaredConstructor(Boolean::class.java)
-            args = arrayOf(false)
-        }
-
-        defaultImplCons = cons
-        defaultImplConsArgs = args
-
-        java.security.AccessController.doPrivileged(
-            PrivilegedAction<Any> {
-                defaultImplCons.setAccessible(true)
-            })
-
-    }
 
     fun init() {
         if (initialized.compareAndSet(false, true)) {
@@ -70,7 +40,5 @@ internal object Sockets : Logged by ZitiLog() {
             }
         }
     }
-
-    class BypassSocket : Socket(defaultImplCons.newInstance(*defaultImplConsArgs))
 }
 

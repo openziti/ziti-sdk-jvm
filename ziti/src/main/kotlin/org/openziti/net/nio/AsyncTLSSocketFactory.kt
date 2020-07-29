@@ -16,6 +16,9 @@
 
 package org.openziti.net.nio
 
+import org.openziti.net.internal.ZitiSSLSocket
+import java.lang.reflect.Field
+import java.lang.reflect.Method
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -32,10 +35,38 @@ class AsyncTLSSocketFactory(val ssl: SSLContext): SSLSocketFactory() {
     override fun getDefaultCipherSuites(): Array<String> = ssl.createSSLEngine().enabledCipherSuites
     override fun getSupportedCipherSuites(): Array<String> = ssl.createSSLEngine().supportedCipherSuites
 
+    private val getImplMethod: Method?
+    private val implField: Field?
+
+    init {
+        val sockMethods = Socket::class.java.methods
+        println("methods: $sockMethods")
+        println("declMethods: ${Socket::class.java.declaredMethods}")
+
+        var m: Method? = null
+        try {
+            m = Socket::class.java.getDeclaredMethod("getImpl").apply {
+                isAccessible = true
+            }
+        } catch(ex: NoSuchMethodException) { }
+
+        var f: Field? = null
+        try {
+            f = Socket::class.java.getDeclaredField("impl").apply { isAccessible = true }
+        } catch (ex: Exception){}
+        implField = f
+        getImplMethod = m
+    }
+
     override fun createSocket(transport: Socket, host: String, port: Int, autoClose: Boolean): Socket {
-        require(transport is AsychChannelSocket)
-        val ch = transport.impl.channel
-        return AsyncTLSChannelSocket(ch, host, port, ssl)
+        val impl = getImplMethod?.invoke(transport) ?: implField?.get(transport)
+
+        if(impl is AsyncSocketImpl) {
+            val ch = impl.channel
+            return AsyncTLSChannelSocket(ch, host, port, ssl)
+        }
+
+        return ZitiSSLSocket(transport, ssl.createSSLEngine(host, port))
     }
 
     override fun createSocket(host: String?, port: Int): Socket =

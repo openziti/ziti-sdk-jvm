@@ -41,10 +41,22 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
 
         fun doConnect(ch: AsynchronousSocketChannel, addr: SocketAddress, timeout: Int): AsynchronousSocketChannel {
             val cf = ch.connect(addr)
-            if (timeout > 0) {
-                cf.get(timeout.toLong(), TimeUnit.MILLISECONDS);
-            } else {
-                cf.get()
+            try {
+                if (timeout > 0) {
+                    cf.get(timeout.toLong(), TimeUnit.MILLISECONDS);
+                } else {
+                    cf.get()
+                }
+            } catch (xx: ExecutionException) {
+                val cause = xx.cause
+                if (cause is IOException) {
+                    throw cause
+                }
+
+                throw IOException(cause)
+            } catch (tox: TimeoutException) {
+                cf.cancel(true)
+                throw SocketTimeoutException(tox.localizedMessage)
             }
             return ch
         }
