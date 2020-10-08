@@ -38,7 +38,7 @@ dependencies {
     implementation('io.dropwizard.metrics:metrics-core:4.1.11')
     implementation('org.bouncycastle:bcpkix-jdk15on:1.65')
 
-    implementation("com.goterl.lazycode:lazysodium-java:4.2.6") {
+    implementation("com.goterl.lazycode:lazysodium-java:4.3.0") {
         exclude module: 'slf4j-api'
     }
 
