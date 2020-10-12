@@ -17,6 +17,7 @@
 package org.openziti.net
 
 import com.goterl.lazycode.lazysodium.utils.Key
+import com.goterl.lazycode.lazysodium.utils.KeyPair
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.launch
@@ -48,7 +49,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
     var state: State = State.initial
     lateinit var incoming: Chan<Message>
     lateinit var token: String
-    internal val keyPair = Crypto.newKeyPair()
+    var keyPair: KeyPair? = null
 
     enum class State {
         initial,
@@ -70,6 +71,10 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
 
         runBlocking {
             try {
+                val service = ctx.getService(local.name)
+                if (service.encryptionRequired) {
+                    keyPair = Crypto.newKeyPair()
+                }
                 val session = ctx.getNetworkSession(local.name, SessionType.Bind)
                 token = session.token
                 channel = ctx.getChannel(session)
@@ -82,7 +87,9 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                 val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8))
                 connectMsg.setHeader(ZitiProtocol.Header.ConnId, connId)
                 connectMsg.setHeader(ZitiProtocol.Header.SeqHeader, 0)
-                connectMsg.setHeader(ZitiProtocol.Header.PublicKeyHeader, keyPair.publicKey.asBytes)
+                keyPair?.let {
+                    connectMsg.setHeader(ZitiProtocol.Header.PublicKeyHeader, it.publicKey.asBytes)
+                }
 
                 d("starting network connection ${session.id}/$connId")
                 val reply = channel.SendAndWait(connectMsg)
@@ -135,10 +142,13 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                 dialSuccess.setHeader(ZitiProtocol.Header.ConnId, connId)
                 dialSuccess.setHeader(ZitiProtocol.Header.ReplyFor, req.seqNo)
 
-                val sessKeys = req.getHeader(ZitiProtocol.Header.PublicKeyHeader)?.let {
-                    Crypto.kx(keyPair, Key.fromBytes(it), true)
-                }
-                child.setupCrypto(sessKeys)
+                keyPair?.let { kp ->
+                    val sessKeys = req.getHeader(ZitiProtocol.Header.PublicKeyHeader)?.let {
+                        Crypto.kx(kp, Key.fromBytes(it), true)
+                    }
+                    child.setupCrypto(sessKeys)
+                    println("crypto is on for ${child}")
+                } ?: child.setupCrypto(null)
 
                 val startMsg = channel.SendAndWait(dialSuccess)
 

@@ -35,7 +35,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:$jjwt_ver")
     implementation("io.jsonwebtoken:jjwt-impl:$jjwt_ver")
     implementation("io.jsonwebtoken:jjwt-orgjson:$jjwt_ver")
-    implementation('io.dropwizard.metrics:metrics-core:4.1.13')
+    implementation('io.dropwizard.metrics:metrics-core:4.1.12.1')
     implementation('org.bouncycastle:bcpkix-jdk15on:1.66')
 
     implementation("com.goterl.lazycode:lazysodium-java:4.3.0") {
@@ -44,7 +44,7 @@ dependencies {
 
     implementation('com.github.ajalt:clikt:2.7.0')
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.3.72")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.4.10")
     testImplementation("org.slf4j:slf4j-simple:1.7.30")
 }
 

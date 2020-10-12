@@ -174,7 +174,7 @@ internal class Channel(val addr: String, val peer: Transport) : Closeable, Corou
                             receivers[it]
                         }
                         if (receiver == null) {
-                            e("receiver[connId=$recId] not found for $m")
+                            d("receiver[connId=$recId] not found for $m")
                         }
                         try {
                             receiver?.receive(m)
