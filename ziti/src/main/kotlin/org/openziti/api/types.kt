@@ -41,6 +41,7 @@ internal class ApiSession(val id: String, val token: String, val identity: Ident
 data class ServiceDNS(val hostname: String, val port: Int)
 data class Service internal constructor(
     val id: String, val name: String,
+    val encryptionRequired: Boolean,
     internal val permissions: Set<SessionType>,
     internal val config: Map<String,JsonObject>) {
 

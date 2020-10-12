@@ -88,6 +88,7 @@ internal class ControllerTest {
     fun testGetSession() {
         runBlocking {
             val s = ctrl.login()
+            assertNotNull(s.token)
             val services = ctrl.getServices().toList()
             Assume.assumeTrue(!services.isEmpty())
 

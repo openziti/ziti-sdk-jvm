@@ -279,6 +279,11 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     }
 
+    internal fun getService(name: String): Service {
+        checkServicesLoaded()
+        return servicesByName.get(name) ?: throw ZitiException(Errors.ServiceNotAvailable)
+    }
+
     internal fun getService(host: String, port: Int): Service {
         checkServicesLoaded()
 
