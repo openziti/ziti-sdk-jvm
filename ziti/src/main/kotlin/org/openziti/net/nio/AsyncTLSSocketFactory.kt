@@ -39,10 +39,6 @@ class AsyncTLSSocketFactory(val ssl: SSLContext): SSLSocketFactory() {
     private val implField: Field?
 
     init {
-        val sockMethods = Socket::class.java.methods
-        println("methods: $sockMethods")
-        println("declMethods: ${Socket::class.java.declaredMethods}")
-
         var m: Method? = null
         try {
             m = Socket::class.java.getDeclaredMethod("getImpl").apply {

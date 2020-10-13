@@ -17,8 +17,12 @@
 package org.openziti.net.dns
 
 import java.net.InetAddress
+import java.util.function.Consumer
 
-@FunctionalInterface
 interface DNSResolver {
     fun resolve(hostname: String): InetAddress?
+
+    data class DNSEvent(val hostname: String?, val ip: InetAddress, val removed: Boolean)
+    fun subscribe(sub: (DNSEvent) -> Unit)
+    fun subscribe(sub: Consumer<DNSEvent>)
 }
