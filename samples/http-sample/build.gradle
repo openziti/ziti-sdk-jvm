@@ -22,7 +22,7 @@ plugins {
 dependencies {
     implementation project(':ziti')
     implementation("org.slf4j:slf4j-simple:1.7.30")
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.1'
 }
 
 application {
