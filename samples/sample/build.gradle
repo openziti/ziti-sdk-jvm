@@ -22,7 +22,6 @@ plugins {
 
 dependencies {
     implementation project(":ziti")
-    testImplementation "junit:junit:4.12"
 }
 
 compileJava {
