@@ -15,7 +15,7 @@
  */
 buildscript {
     dependencies {
-        classpath 'com.kezong:fat-aar:1.2.15'
+        classpath 'com.kezong:fat-aar:1.2.19'
     }
 }
 
