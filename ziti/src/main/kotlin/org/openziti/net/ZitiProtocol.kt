@@ -18,8 +18,6 @@ package org.openziti.net
 
 /**
  *
- * @author eugene
- * @since 9/12/19
  */
 object ZitiProtocol {
     val VERSION = byteArrayOf(0x3, 0x6, 0x9, 0xc)
@@ -41,7 +39,10 @@ object ZitiProtocol {
         DialSuccess(60788),
         DialFailed(60789),
         Bind(60790),
-        Unbind(60791);
+        Unbind(60791),
+        StateSessionEnded(60792),
+        Probe(60793),
+        UpdateBind(60794);
 
         companion object {
             fun fromInt(i: Int): ContentType = values().find { it.id == i } ?: error("unknow content type[${i}]")
@@ -58,12 +59,24 @@ object ZitiProtocol {
         val ReflectedHeaderBitMask = (1 shl 7)
         val MaxReflectedHeader = (1 shl 8) - 1
 
+        const val LatencyProbeTime = 128
+
         const val ConnId = 1000
         const val SeqHeader = 1001
         const val SessionToken = 1002
         const val PublicKeyHeader = 1003
         const val CostHeader = 1004
+        const val PrecedenceHeader = 1005
+        const val TerminatorIdentityHeader = 1006
+        const val TerminatorIdentitySecretHeader = 1007
+        const val CallerIdHeader = 1008
+        const val CryptoMethodHeader = 1009
+        const val FlagsHeader = 1010
+        const val AppDataHeader = 1011
     }
 
+    object EdgeFlags {
+        const val FIN = 0x1
+    }
 
 }
