@@ -209,7 +209,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     }
 
     override fun shutdownOutput(): AsynchronousSocketChannel {
-        if (!sentFin.compareAndExchange(false, true)) {
+        if (sentFin.compareAndSet(false, true)) {
             val finMsg = Message(ZitiProtocol.ContentType.Data).apply {
                 setHeader(ZitiProtocol.Header.ConnId, connId)
                 setHeader(ZitiProtocol.Header.FlagsHeader, ZitiProtocol.EdgeFlags.FIN)
