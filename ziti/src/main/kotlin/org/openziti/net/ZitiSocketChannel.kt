@@ -19,6 +19,7 @@ package org.openziti.net
 import com.goterl.lazycode.lazysodium.utils.Key
 import com.goterl.lazycode.lazysodium.utils.SessionPair
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.openziti.ZitiAddress
 import org.openziti.ZitiConnection
 import org.openziti.api.SessionType
@@ -29,7 +30,6 @@ import org.openziti.net.nio.FutureHandler
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import org.openziti.util.transfer
-import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -42,6 +42,7 @@ import java.nio.channels.*
 import java.nio.channels.CompletionHandler
 import java.nio.channels.spi.AsynchronousChannelProvider
 import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.text.Charsets.UTF_8
@@ -75,6 +76,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         connected,
         closed
     }
+    val sentFin = AtomicBoolean(false)
 
     override var timeout: Long = 0
 
@@ -189,23 +191,55 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     override fun bind(local: SocketAddress?): AsynchronousSocketChannel = this // NOOP
 
     override fun shutdownInput(): AsynchronousSocketChannel {
-        state.set(State.closed)
+        when(state.get()) {
+            State.initial, State.connecting -> throw NotYetConnectedException()
+            State.connected -> {}
+            State.closed -> return this
+            else -> return this
+        }
         channel.deregisterReceiver(connId)
+        receiveQueue.close()
         return this
     }
 
     override fun close() {
         shutdownOutput()
         shutdownInput()
+        closeInternal()
     }
 
     override fun shutdownOutput(): AsynchronousSocketChannel {
-        val closeMsg = Message(ZitiProtocol.ContentType.StateClosed).apply {
-            setHeader(ZitiProtocol.Header.ConnId, connId)
-        }
-        d("closing conn = ${this.connId}")
-        runBlocking { channel.SendSynch(closeMsg) }
+        if (!sentFin.compareAndExchange(false, true)) {
+            val finMsg = Message(ZitiProtocol.ContentType.Data).apply {
+                setHeader(ZitiProtocol.Header.ConnId, connId)
+                setHeader(ZitiProtocol.Header.FlagsHeader, ZitiProtocol.EdgeFlags.FIN)
+                setHeader(ZitiProtocol.Header.SeqHeader, seq.getAndIncrement())
 
+            }
+            d{"sending FIN conn = ${this.connId}"}
+            runBlocking { channel.SendSynch(finMsg) }
+        }
+
+        return this
+    }
+
+    internal fun closeInternal(): AsynchronousSocketChannel {
+        synchronized(state) {
+            when (state.get()) {
+                State.initial ->
+                    state.set(State.closed)
+                State.connecting, State.connected -> {
+                    val closeMsg = Message(ZitiProtocol.ContentType.StateClosed).apply {
+                        setHeader(ZitiProtocol.Header.ConnId, connId)
+                    }
+                    d("closing conn = ${this.connId}")
+                    runBlocking { channel.SendSynch(closeMsg) }
+                    state.set(State.closed)
+                }
+                State.closed -> {}
+                else -> {}
+            }
+        }
         return this
     }
 
@@ -234,34 +268,35 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         if (copied > 0) {
             t{"reading completed[$copied]"}
             handler.completed(copied, att)
-        } else {
-            ctx.launch {
-                var count = 0L
-                t { "waiting for data with $receiveBuff" }
+            return
+        }
 
-                try {
-                    var data: ByteArray? = receiveQueue.receive()
-                    do {
-                        val dataBuf = ByteBuffer.wrap(data)
-                        count += dataBuf.transfer(slice)
-                        if (dataBuf.hasRemaining()) {
-                            t{ "saving ${dataBuf.remaining()} for later" }
-                            receiveBuff.compact()
-                            receiveBuff.put(dataBuf)
-                            receiveBuff.flip()
-                            break
-                        }
-                        data = receiveQueue.poll()
-                    } while (data != null)
+        ctx.launch {
+            var count = 0L
+            t { "waiting for data with $receiveBuff" }
 
-                    t { "transferred $count" }
-                    handler.completed(count, att)
+            try {
+                var data: ByteArray? = receiveQueue.receive()
+                do {
+                    val dataBuf = ByteBuffer.wrap(data)
+                    count += dataBuf.transfer(slice)
+                    if (dataBuf.hasRemaining()) {
+                        t { "saving ${dataBuf.remaining()} for later" }
+                        receiveBuff.compact()
+                        receiveBuff.put(dataBuf)
+                        receiveBuff.flip()
+                        break
+                    }
+                    data = receiveQueue.poll()
+                } while (data != null)
 
-                } catch (e1: Exception) {
-                    if (count > 0) handler.completed(count, att)
-                    else if (e1 is EOFException) handler.completed(-1, att)
-                    else handler.failed(e1, att)
-                }
+                t { "transferred $count" }
+                handler.completed(count, att)
+
+            } catch (e1: Exception) {
+                if (count > 0) handler.completed(count, att)
+                else if (e1 is ClosedReceiveChannelException) handler.completed(-1, att)
+                else handler.failed(e1, att)
             }
         }
     }
@@ -327,21 +362,29 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             ZitiProtocol.ContentType.StateClosed -> {
                 state.set(State.closed)
                 t{"signaling EOF"}
-                receiveQueue.close(EOFException())
+                receiveQueue.close()
                 channel.deregisterReceiver(connId)
             }
             ZitiProtocol.ContentType.Data -> {
                 t{"received data(${msg.body.size} bytes) for conn[$connId]"}
-                val crypt = crypto.await()
-                if (crypt != null) {
-                    if (crypt.initialized()) {
-                        receiveQueue.send(crypt.decrypt(msg.body))
+                if (msg.body.size > 0) {
+                    val crypt = crypto.await()
+                    if (crypt != null) {
+                        if (crypt.initialized()) {
+                            receiveQueue.send(crypt.decrypt(msg.body))
+                        } else {
+                            crypt.init(msg.body)
+                            d { "crypto init finished conn[$connId]" }
+                        }
                     } else {
-                        crypt.init(msg.body)
-                        d { "crypto init finished conn[$connId]" }
+                        receiveQueue.send(msg.body)
                     }
-                } else {
-                    receiveQueue.send(msg.body)
+                }
+                msg.getIntHeader(ZitiProtocol.Header.FlagsHeader)?.let {
+                    if (it and ZitiProtocol.EdgeFlags.FIN != 0 ) {
+                        d("received FIN")
+                        receiveQueue.close()
+                    }
                 }
             }
             else -> {

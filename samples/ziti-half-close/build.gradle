@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ziti-jvm'
-include 'ziti'
-include 'ziti-netty'
-
-if (properties.buildForAndroid == "true") {
-    include 'ziti-android'
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
 }
 
-include ':samples:ziti-half-close'
-include ':samples:sample'
-include ':samples:http-sample'
-include ':samples:sample-host'
-include ':samples:netty-http-sample'
+group 'org.openziti'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(path: ':ziti')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.0')
+    implementation "org.slf4j:slf4j-simple:1.7.30"
+}
