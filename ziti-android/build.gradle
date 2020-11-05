@@ -82,7 +82,7 @@ dependencies {
     embed('net.java.dev.jna:jna:5.6.0@aar')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.10"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1'
 
     testImplementation 'junit:junit:4.13.1'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
