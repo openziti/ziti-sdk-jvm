@@ -63,3 +63,11 @@ internal suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddres
 internal suspend fun AsynchronousSocketChannel.writeSuspend(b: ByteBuffer) = suspendCoroutine<Int> {
     this.write(b, it, ContinuationHandler())
 }
+
+internal suspend fun AsynchronousSocketChannel.writeCompletely(b: ByteBuffer): Int {
+    var res = 0
+    while (b.hasRemaining()) {
+        res += this.writeSuspend(b)
+    }
+    return res
+}

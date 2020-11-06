@@ -16,8 +16,12 @@
 
 package org.openziti.util
 
+import kotlinx.coroutines.channels.Channel
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
+
+internal val EMPTY = ByteBuffer.wrap(byteArrayOf())
 
 internal fun ByteBuffer.transfer (dsts: Array<out ByteBuffer>): Long  {
     var copied = 0L
@@ -30,4 +34,31 @@ internal fun ByteBuffer.transfer (dsts: Array<out ByteBuffer>): Long  {
         if (!this.hasRemaining()) break
     }
     return copied
+}
+
+internal class BufferPool(val capacity: Int, val bufferSize: Int) {
+    private val leftToAlloc = AtomicInteger(capacity)
+    private val pool: Channel<ByteBuffer>
+    init {
+        require(capacity > 0)
+        require(bufferSize > 0)
+
+        pool = Channel(capacity)
+    }
+
+    suspend fun get(): ByteBuffer {
+        pool.poll()?.let { return it }
+
+        if (leftToAlloc.decrementAndGet() >= 0) {
+            return ByteBuffer.allocate(bufferSize)
+        }
+
+        return pool.receive()
+    }
+
+    fun put(b: ByteBuffer) {
+        require(b.capacity() == bufferSize){"wrong buffer returned"}
+        b.clear()
+        pool.offer(b)
+    }
 }
