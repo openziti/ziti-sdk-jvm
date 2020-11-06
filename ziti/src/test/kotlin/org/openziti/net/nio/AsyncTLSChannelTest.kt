@@ -16,6 +16,7 @@
 
 package org.openziti.net.nio
 
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.isA
 import org.hamcrest.CoreMatchers.startsWith
 import org.junit.After
@@ -23,9 +24,11 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
+import org.junit.rules.Timeout
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
+import java.nio.channels.InterruptedByTimeoutException
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
@@ -41,6 +44,9 @@ class AsyncTLSChannelTest {
     @Rule
     @JvmField val thrown = ExpectedException.none()
 
+    @Rule
+    @JvmField val timeout = Timeout.seconds(5)
+
     @After
     fun tearDown() {
         ch.close()
@@ -50,6 +56,22 @@ class AsyncTLSChannelTest {
     fun connect() {
         ch = AsyncTLSChannel.open()
         ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+        verifyConnection(ch)
+    }
+
+    @Test
+    fun readWithTimeout() {
+        ch = AsyncTLSChannel.open()
+        ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+
+        // first read should fail with timeout since we have not sent request yet
+        try {
+            runBlocking { ch.readSuspend(ByteBuffer.allocate(128), 100, TimeUnit.MILLISECONDS) }
+            fail("expected InterruptedByTimeoutException")
+        } catch (ex: InterruptedByTimeoutException) {
+            // expected
+        }
+
         verifyConnection(ch)
     }
 
@@ -135,6 +157,8 @@ User-Agent: HTTPie/1.0.2
 
         val lines = StandardCharsets.UTF_8.decode(resp).toString().reader().readLines()
         assertThat(lines[0], startsWith("HTTP/1.1"))
+
+        ch.close()
     }
 
 }

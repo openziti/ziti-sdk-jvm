@@ -139,7 +139,10 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
     }
 
     suspend fun logout() {
-        api.logout().await()
+        apiSession?.let {
+            api.logout().await()
+        }
+        apiSession = null
     }
 
     fun shutdown() {
