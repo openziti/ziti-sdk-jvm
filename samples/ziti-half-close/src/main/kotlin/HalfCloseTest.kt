@@ -17,29 +17,14 @@
 import kotlinx.coroutines.*
 import org.openziti.Ziti
 import org.openziti.ZitiAddress
+import org.openziti.net.nio.connectSuspend
+import org.openziti.net.nio.readSuspend
+import org.openziti.net.nio.writeCompletely
 import java.net.SocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
-
-suspend fun AsynchronousSocketChannel.asyncRead(b: ByteBuffer) = suspendCoroutine<Int> {
-    this.read(b, it, object : CompletionHandler<Int, Continuation<Int>>{
-        override fun completed(result: Int, cont: Continuation<Int>) = cont.resume(result)
-        override fun failed(exc: Throwable, cont: Continuation<Int>) = cont.resumeWithException(exc)
-    })
-}
-
-suspend fun AsynchronousSocketChannel.asyncConnect(addr: SocketAddress) = suspendCoroutine<Void?> {
-    this.connect(addr, it, object : CompletionHandler<Void?, Continuation<Void?>>{
-        override fun completed(result: Void?, cont: Continuation<Void?>) = cont.resume(result)
-        override fun failed(exc: Throwable, cont: Continuation<Void?>) = cont.resumeWithException(exc)
-    })
-}
 
 object HalfCloseTest {
     class Server(val sock: AsynchronousServerSocketChannel) : CompletionHandler<AsynchronousSocketChannel, Any?> {
@@ -60,16 +45,16 @@ object HalfCloseTest {
             try {
                 while (!done) {
                     buf.clear()
-                    val result = clt.asyncRead(buf)
+                    val result = clt.readSuspend(buf)
                     if (result > 0) {
                         buf.flip()
                         println("received ${Charsets.UTF_8.decode(buf)}")
                         val msg = "you send ${result} bytes\n"
-                        clt.write(ByteBuffer.wrap(msg.toByteArray()))
+                        clt.writeCompletely(ByteBuffer.wrap(msg.toByteArray()))
                     } else if (result == -1) {
                         val msg = "you send EOF!!\n"
                         println("client sent EOF")
-                        clt.write(ByteBuffer.wrap(msg.toByteArray())).get()
+                        clt.writeCompletely(ByteBuffer.wrap(msg.toByteArray()))
                         clt.shutdownOutput()
                         done = true
                     }
@@ -91,13 +76,13 @@ object HalfCloseTest {
 
     class Client(val sock: AsynchronousSocketChannel) {
         suspend fun run(addr: SocketAddress) {
-            sock.asyncConnect(addr)
+            sock.connectSuspend(addr)
 
             val reader = GlobalScope.launch(Dispatchers.IO) {
                 val readBuf = ByteBuffer.allocate(1024)
                 while(true) {
                     readBuf.clear()
-                    val read = sock.asyncRead(readBuf)
+                    val read = sock.readSuspend(readBuf)
                     if (read > 0) {
                         readBuf.flip()
                         println("< " + Charsets.UTF_8.newDecoder().decode(readBuf).toString())
@@ -111,7 +96,7 @@ object HalfCloseTest {
 
             for (i in 0..5) {
                 val msg = "Hello this is $i!"
-                sock.write(ByteBuffer.wrap(msg.toByteArray()))
+                sock.writeCompletely(ByteBuffer.wrap(msg.toByteArray()))
                 delay(300)
             }
 
@@ -141,6 +126,6 @@ object HalfCloseTest {
             Client(clientSock).run(addr)
         }
         s.stop()
-        //ztx.stop()
+        ztx.stop()
     }
 }
