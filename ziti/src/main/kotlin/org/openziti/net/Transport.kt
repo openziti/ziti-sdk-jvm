@@ -16,24 +16,19 @@
 
 package org.openziti.net
 
-import kotlinx.coroutines.CompletableDeferred
 import org.openziti.net.nio.AsyncTLSChannel
-import org.openziti.net.nio.DeferredHandler
+import org.openziti.net.nio.connectSuspend
+import org.openziti.net.nio.readSuspend
+import org.openziti.net.nio.writeSuspend
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.io.Closeable
-import java.io.EOFException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
-import java.nio.channels.CompletionHandler
 import javax.net.ssl.SSLContext
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 internal interface Transport : Closeable {
 
@@ -52,10 +47,6 @@ internal interface Transport : Closeable {
     suspend fun write(buf: ByteBuffer)
     suspend fun read(buf: ByteBuffer, full: Boolean = true): Int
 
-    private abstract class ContinuationHandler<V,R>: CompletionHandler<V,Continuation<R>> {
-        override fun failed(exc: Throwable, cont: Continuation<R>) = cont.resumeWithException(exc)
-    }
-
     class TLS(host: String, port: Int, sslContext: SSLContext) : Transport, Logged by ZitiLog("ziti-tls") {
         val socket: AsynchronousSocketChannel
         val addr = InetSocketAddress(InetAddress.getByName(host), port)
@@ -65,49 +56,25 @@ internal interface Transport : Closeable {
         }
 
         override suspend fun connect() {
-            val done = CompletableDeferred<Void>()
-            socket.connect(addr, done, DeferredHandler())
-            done.await()
+            socket.connectSuspend(addr)
         }
 
-        override suspend fun write(buf: ByteBuffer):Unit = suspendCoroutine {
-            val h = object : ContinuationHandler<Int,Unit>() {
-                override fun completed(result: Int, c: Continuation<Unit>) {
-                    t{"wrote ${result} bytes"}
-                    if (buf.hasRemaining()) {
-                        socket.write(buf, c, this)
-                    } else {
-                        c.resume(Unit)
-                    }
-                }
+        override suspend fun write(buf: ByteBuffer) {
+            while(buf.hasRemaining()) {
+                socket.writeSuspend(buf)
             }
-
-            socket.write(buf, it, h)
         }
 
-        override suspend fun read(buf: ByteBuffer, full: Boolean): Int = suspendCoroutine {
-            val h = object : ContinuationHandler<Int, Int>() {
-                val initPos = buf.position()
-                override fun completed(result: Int, c: Continuation<Int>) {
-                    t{"read $result bytes"}
-                    if (result == -1) {
-                        if (buf.position() > initPos) {
-                            t{"resuming $c with $buf"}
-                            c.resume(buf.position() - initPos)
-                        } else {
-                            t{"resuming $c with EOF"}
-                            c.resumeWithException(EOFException())
-                        }
-                    } else if (buf.hasRemaining() && full) {
-                        socket.read(buf, c, this)
-                    } else {
-                        t{"resuming $c with result=$result"}
-                        c.resume(result)
-                    }
-                }
-            }
+        override suspend fun read(buf: ByteBuffer, full: Boolean): Int {
+            var res = socket.readSuspend(buf)
+            if (res == -1) return res
 
-            socket.read(buf, it, h)
+            while (full && buf.hasRemaining()) {
+                val rc = socket.readSuspend(buf)
+                if (rc == -1) break
+                res += rc
+            }
+            return res
         }
 
         override fun close() {
