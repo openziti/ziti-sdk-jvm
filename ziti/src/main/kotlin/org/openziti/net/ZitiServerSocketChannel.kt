@@ -69,12 +69,22 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
             State.closed -> throw ClosedChannelException()
         }
 
+        val servResult = runCatching { ctx.getService(local.name) }
+        if (servResult.isFailure) {
+            throw BindException("no permission to bind to service[${local.name}]")
+        }
+
+        val service = servResult.getOrNull()!! // never null
+        if (!service.permissions.contains(SessionType.Bind)) {
+            throw BindException("no permission to bind to service[${service.name}]")
+        }
+
+        if (service.encryptionRequired) {
+            keyPair = Crypto.newKeyPair()
+        }
+
         runBlocking {
             try {
-                val service = ctx.getService(local.name)
-                if (service.encryptionRequired) {
-                    keyPair = Crypto.newKeyPair()
-                }
                 val session = ctx.getNetworkSession(local.name, SessionType.Bind)
                 token = session.token
                 channel = ctx.getChannel(session)
@@ -147,7 +157,6 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                         Crypto.kx(kp, Key.fromBytes(it), true)
                     }
                     child.setupCrypto(sessKeys)
-                    println("crypto is on for ${child}")
                 } ?: child.setupCrypto(null)
 
                 val startMsg = channel.SendAndWait(dialSuccess)
