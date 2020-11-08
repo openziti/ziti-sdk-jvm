@@ -418,6 +418,7 @@ class AsyncTLSChannel(
                 }
             } catch (ex: Throwable) {
                 e(ex){ "exception"}
+                readOp.set(false)
                 when(ex) {
                     is TimeoutCancellationException -> handler.failed(InterruptedByTimeoutException(), attachment)
                     else -> handler.failed(ex, attachment)
@@ -426,8 +427,6 @@ class AsyncTLSChannel(
                 readOp.set(false)
             }
         }
-
-
     }
 
     internal fun getSession(): SSLSession {
