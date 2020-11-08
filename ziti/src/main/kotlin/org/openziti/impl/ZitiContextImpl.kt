@@ -168,8 +168,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun stop() {
         val copy = channels.values
 
-        copy.forEach { ch ->
-            ch.close()
+        runBlocking {
+            copy.forEach { ch ->
+                runCatching { ch.await().close() }
+            }
         }
     }
 
@@ -292,7 +294,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         } ?: throw ZitiException(Errors.ServiceNotAvailable)
     }
 
-    internal val channels = ConcurrentHashMap<String, Channel>()
+    internal val channels = ConcurrentHashMap<String, Deferred<Channel>>()
 
     private val latencyInterval = Duration.ofMinutes(1)
 
@@ -306,8 +308,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         for (addr in addrList) {
             val c = channels[addr]
-            if (c != null) {
-                chMap.put(c.getCurrentLatency(), c)
+            if (c != null && c.isCompleted) {
+                chMap.put(c.await().getCurrentLatency(), c.await())
             } else {
                 unconnected.add(addr)
             }
@@ -323,24 +325,15 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal fun connectChannelAsync(addr: String) = async {
-        val c = channels[addr]
-        if (c != null) {
-            c
-        } else {
-            val ch = Channel.Dial(addr, this@ZitiContextImpl, apiSession!!)
-            val existing = channels.putIfAbsent(ch.addr, ch)
-            if (existing == null) {
-                ch.startLatencyCheck(latencyInterval, metrics.timer("${ch.addr}.latency"))
-                ch.onClose {
-                    channels.remove(ch.addr)
+    internal fun connectChannelAsync(addr: String): Deferred<Channel> {
+        return channels.computeIfAbsent(addr) {
+                async {
+                    Channel.Dial(it, this@ZitiContextImpl, apiSession!!).apply {
+                        startLatencyCheck(latencyInterval, metrics.timer("${addr}.latency"))
+                        onClose { channels.remove(addr)?.cancel() }
+                        d{"connected $this"}
+                    }
                 }
-                d{"connected $ch"}
-                ch
-            } else {
-                ch.close()
-                existing
-            }
         }
     }
 
