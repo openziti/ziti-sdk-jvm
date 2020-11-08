@@ -36,7 +36,7 @@ internal fun ByteBuffer.transfer (dsts: Array<out ByteBuffer>): Long  {
     return copied
 }
 
-internal class BufferPool(val capacity: Int, val bufferSize: Int) {
+internal class BufferPool(val capacity: Int, val bufferSize: Int, val direct: Boolean = false) {
     private val leftToAlloc = AtomicInteger(capacity)
     private val pool: Channel<ByteBuffer>
     init {
@@ -50,7 +50,7 @@ internal class BufferPool(val capacity: Int, val bufferSize: Int) {
         pool.poll()?.let { return it }
 
         if (leftToAlloc.decrementAndGet() >= 0) {
-            return ByteBuffer.allocate(bufferSize)
+            return if (direct) ByteBuffer.allocateDirect(bufferSize) else ByteBuffer.allocate(bufferSize)
         }
 
         return pool.receive()

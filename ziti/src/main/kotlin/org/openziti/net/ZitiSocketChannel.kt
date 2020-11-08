@@ -25,8 +25,9 @@ import org.openziti.ZitiConnection
 import org.openziti.api.SessionType
 import org.openziti.crypto.Crypto
 import org.openziti.impl.ZitiContextImpl
-import org.openziti.net.nio.DeferredHandler
 import org.openziti.net.nio.FutureHandler
+import org.openziti.net.nio.readSuspend
+import org.openziti.net.nio.writeCompletely
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import org.openziti.util.transfer
@@ -399,21 +400,15 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     override suspend fun send(data: ByteArray) = send(data, 0, data.size)
 
     suspend fun send(data: ByteArray, offset: Int, len: Int) {
-        val deferred = CompletableDeferred<Int>()
-        write(ByteBuffer.wrap(data, offset, len), deferred, DeferredHandler())
-        deferred.await()
+        writeCompletely(ByteBuffer.wrap(data, offset, len))
     }
 
     override suspend fun receive(out: ByteArray, off: Int, len: Int): Int {
-        val deferred = CompletableDeferred<Int>()
         val dst = ByteBuffer.wrap(out, off, len)
-        read(dst, timeout, TimeUnit.MILLISECONDS, deferred, DeferredHandler())
-        try {
-            val res = deferred.await()
-            v{"received res=$res, into $dst"}
-            return res
+        return try {
+            readSuspend(dst, timeout, TimeUnit.MILLISECONDS)
         } catch (ex: TimeoutCancellationException) {
-            return 0
+            0
         }
     }
 

@@ -20,7 +20,6 @@ import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterF
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -95,11 +94,12 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
             socketFactory(AsychChannelSocket.Factory())
             sslSocketFactory(AsyncTLSSocketFactory(sslContext), trustManager)
             cache(null)
+            //addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             addInterceptor(SessionInterceptor())
         }.build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(HttpUrl.get(endpoint)!!)
+            .baseUrl(endpoint)
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(CoroutineCallAdapterFactory())
             .client(clt)

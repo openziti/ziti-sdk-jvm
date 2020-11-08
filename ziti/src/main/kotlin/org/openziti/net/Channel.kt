@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.channels.Channel as Chan
 
-internal class Channel(val addr: String, val peer: Transport) : Closeable, CoroutineScope, Logged by ZitiLog() {
+internal class Channel(val addr: String, val peer: Transport) : Closeable, CoroutineScope, Logged by ZitiLog("Channel/${peer}") {
 
     internal interface MessageReceiver {
         suspend fun receive(msg: Message)

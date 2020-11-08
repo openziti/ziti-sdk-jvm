@@ -23,11 +23,11 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
 import org.openziti.util.*
+import java.io.EOFException
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.net.SocketOption
-import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.channels.*
 import java.nio.channels.CompletionHandler
@@ -100,7 +100,7 @@ class AsyncTLSChannel(
     private val sslPool = BufferPool(POOL_SIZE, SSL_BUFFER_SIZE)
     private val sslIn = Channel<ByteBuffer>(POOL_SIZE)
     private val sslbuf = ByteBuffer.allocateDirect(2 * SSL_BUFFER_SIZE).apply { flip() }
-    private val plnbuf = ByteBuffer.allocate(SSL_BUFFER_SIZE).apply { (this as Buffer).flip() }
+    private val plnbuf = ByteBuffer.allocateDirect(2 * SSL_BUFFER_SIZE).apply { flip() }
     private val readOp = AtomicBoolean(false)
 
     private fun getTransport() = transport
@@ -355,13 +355,24 @@ class AsyncTLSChannel(
         GlobalScope.launch(Dispatchers.IO) {
 
             var eof = false
-            var res: SSLEngineResult? = null
             try {
                 if (!plnbuf.hasRemaining()) {
-                    plnbuf.compact()
-                    res = engine.unwrap(sslbuf, plnbuf)
-                    while (res?.status == BUFFER_UNDERFLOW && !eof) {
-                        try {
+                    plnbuf.clear()
+
+                    // quick drain of ssl input
+                    sslbuf.compact()
+                    while (sslbuf.remaining() > SSL_BUFFER_SIZE) {
+                        sslIn.poll()?.let {
+                            sslbuf.put(it)
+                            sslPool.put(it)
+                        } ?: break
+                    }
+                    sslbuf.flip()
+
+                    try {
+                        var res = if (sslbuf.hasRemaining()) engine.unwrap(sslbuf, plnbuf) else null
+                        var produced = res?.bytesProduced() ?: 0
+                        while (produced == 0) {
                             val b = if (timeout > 0)
                                 withTimeout(unit.toMillis(timeout)) { sslIn.receive() }
                             else
@@ -369,18 +380,31 @@ class AsyncTLSChannel(
 
                             sslbuf.compact()
                             sslbuf.put(b)
-                            sslbuf.flip()
-                            if (b.hasRemaining()) error("this should not happen")
-                            b.clear()
                             sslPool.put(b)
+                            // try to drain again
+                            while (sslbuf.remaining() > SSL_BUFFER_SIZE) {
+                                sslIn.poll()?.let {
+                                    sslbuf.put(it)
+                                    sslPool.put(it)
+                                } ?: break
+                            }
+                            sslbuf.flip()
                             res = engine.unwrap(sslbuf, plnbuf)
-                        } catch (ccex: ClosedReceiveChannelException) {
-                           eof = true
+                            produced = res.bytesProduced()
+                            if (res.status == CLOSED)
+                                eof = true
                         }
+                    } catch (closed: ClosedReceiveChannelException) {
+                        eof = true
+                    } catch (sslex: SSLException) {
+                        if (sslex.cause is EOFException) {
+                            eof = true
+                        } else {
+                            throw sslex
+                        }
+                    } finally {
+                        plnbuf.flip()
                     }
-
-                    plnbuf.flip()
-                    v { "decrypted ${plnbuf.remaining()} bytes" }
                 }
 
                 if (plnbuf.hasRemaining()) {
@@ -388,18 +412,18 @@ class AsyncTLSChannel(
                     v { "transferred ${count} decrypted bytes" }
                     readOp.set(false)
                     handler.completed(count, attachment)
-                } else if (eof || res?.status == CLOSED) {
+                } else if (eof) {
                     readOp.set(false)
                     handler.completed(-1, attachment)
                 }
             } catch (ex: Throwable) {
                 e(ex){ "exception"}
-                readOp.set(false)
-                plnbuf.flip()
                 when(ex) {
                     is TimeoutCancellationException -> handler.failed(InterruptedByTimeoutException(), attachment)
                     else -> handler.failed(ex, attachment)
                 }
+            } finally {
+                readOp.set(false)
             }
         }
 
