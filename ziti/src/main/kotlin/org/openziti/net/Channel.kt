@@ -201,10 +201,10 @@ internal class Channel(val addr: String, val peer: Transport) : Closeable, Corou
     }
 
     fun rx(): Flow<Message> = flow {
-        while (true) {
+        do {
             val m = Message.readMessage(peer)
-            emit(m)
-        }
+            m?.let { emit(it) }
+        } while(m != null)
     }
 
     fun getCurrentLatency() = latencyMeter.snapshot.median
