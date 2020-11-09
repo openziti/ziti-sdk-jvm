@@ -20,7 +20,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
 import org.openziti.util.*
 import java.io.EOFException
@@ -36,7 +35,9 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import javax.net.ssl.*
-import javax.net.ssl.SSLEngineResult.Status.*
+import javax.net.ssl.SSLEngineResult.Status.BUFFER_UNDERFLOW
+import javax.net.ssl.SSLEngineResult.Status.CLOSED
+import kotlin.properties.Delegates
 
 /**
  * Implementation TLS stream conforming to [AsynchronousSocketChannel].
@@ -92,9 +93,12 @@ class AsyncTLSChannel(
         closed
     }
 
-    internal val handshake = CompletableFuture<SSLSession>()
-    private var state: State
-    internal val transport: AsynchronousSocketChannel
+    internal val handshake = CompletableDeferred<SSLSession>()
+    private var state: State by Delegates.observable(State.initial) { _, ov, nv ->
+        d{"transitioning [$ov -> $nv] "}
+    }
+
+    internal val transport: AsynchronousSocketChannel = ch
     internal lateinit var engine: SSLEngine
 
     private val sslPool = BufferPool(POOL_SIZE, SSL_BUFFER_SIZE)
@@ -102,9 +106,10 @@ class AsyncTLSChannel(
     private val sslbuf = ByteBuffer.allocateDirect(2 * SSL_BUFFER_SIZE).apply { flip() }
     private val plnbuf = ByteBuffer.allocateDirect(2 * SSL_BUFFER_SIZE).apply { flip() }
     private val readOp = AtomicBoolean(false)
+    private val writeOp = AtomicBoolean(false)
+    private val closeWrite = AtomicBoolean(false)
 
-    private fun getTransport() = transport
-    private val reader: Reader
+    private val reader: Reader = Reader(transport, sslIn, sslPool)
 
     private class Reader(
         val input: AsynchronousSocketChannel,
@@ -134,23 +139,26 @@ class AsyncTLSChannel(
     }
 
     init {
-        state = State.initial
-        transport = ch
-        reader = Reader(getTransport(), sslIn, sslPool)
-        val addr = transport.remoteAddress as InetSocketAddress?
-        addr?.let {
-            state = State.connecting
-            engine = ssl.createSSLEngine(it.hostName, it.port)
-            try {
-                runBlocking { doHandshake( true) }
-                reader.startRead()
-            } catch (xx: Exception) {
-                e(xx){"failed to start"}
-                val cause = xx.cause
-                if (cause is IOException) throw cause
-                throw IOException(cause)
-            }
+        runBlocking {
+            (transport.remoteAddress as InetSocketAddress?)?.let { postConnect(it) }
         }
+    }
+
+    internal suspend fun postConnect(addr: InetSocketAddress) {
+        state = State.connecting
+        engine = ssl.createSSLEngine(addr.hostName, addr.port)
+
+        runCatching { doHandshake(true) }
+            .onSuccess {
+                handshake.complete(it)
+                state = State.connected
+                reader.startRead()
+            }
+            .onFailure {
+                handshake.completeExceptionally(it)
+                state = State.closed
+                e(it){"SSL handshake error"}
+            }
     }
 
     override fun <A : Any?> connect(remote: SocketAddress, attachment: A, handler: CompletionHandler<Void?, in A>?) {
@@ -174,16 +182,19 @@ class AsyncTLSChannel(
             }
         }
 
-        engine = ssl.createSSLEngine(remote.hostString, remote.port)
-        state = State.connecting
-
-        return GlobalScope.async(Dispatchers.IO) {
-            transport.connectSuspend(remote)
-            doHandshake(true)
-            reader.startRead()
-            state = State.connected
-            null
-        }.asCompletableFuture()
+        val result = CompletableFuture<Void?>()
+        GlobalScope.launch (Dispatchers.IO) {
+            kotlin.runCatching {
+                transport.connectSuspend(remote)
+                postConnect(remote)
+                handshake.await()
+            }.onSuccess {
+                result.complete(null)
+            }.onFailure {
+                result.completeExceptionally(it)
+            }
+        }
+        return result
     }
 
     override fun getLocalAddress(): SocketAddress = transport.localAddress
@@ -215,7 +226,7 @@ class AsyncTLSChannel(
     }
 
     override fun <A : Any?> write(
-        _srcs: Array<out ByteBuffer>,
+        srcs: Array<out ByteBuffer>,
         offset: Int,
         length: Int,
         timeout: Long,
@@ -226,60 +237,36 @@ class AsyncTLSChannel(
         requireNotNull(handler){"handler is required"}
         checkState(State.connected)
 
-        val srcs = _srcs.slice(offset until offset + length)
-        try {
-            var consumed = 0L
-            var produced = 0
-            val sslbuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
+        if (closeWrite.get()) {
+            e{"cannot write after shutdownOutput() was called"}
+            throw ClosedChannelException()
+        }
 
-            loop@
-            for (b in srcs) {
-                while(b.hasRemaining()) {
-                    val res = engine.wrap(b, sslbuf)
-                    when(res.status) {
-                        BUFFER_UNDERFLOW, BUFFER_OVERFLOW -> break@loop // buffer full
-                        CLOSED -> {
-                            if (produced > 0)
-                                break@loop
-                            handler.completed(-1, attachment)
-                            return
-                        }
-                        OK -> {
-                            consumed += res.bytesConsumed()
-                            produced += res.bytesProduced()
-                        }
-                        else -> error("can't be here")
-                    }
+        if (!writeOp.compareAndSet(false, true)) {
+            throw WritePendingException()
+        }
+
+        GlobalScope.launch(Dispatchers.IO) {
+            runCatching {
+                val sslbuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
+                val res = engine.wrap(srcs, offset, length, sslbuf)
+
+                val consumed = res.bytesConsumed()
+                val produced = res.bytesProduced()
+                if (produced > 0) {
+                    sslbuf.flip()
+                    if (transport.writeCompletely(sslbuf) < produced)
+                        throw IOException("failed to write complete SSL message")
                 }
+                v{"ssl state $res"}
+                consumed
+            }.onSuccess {
+                writeOp.set(false)
+                handler.completed(it.toLong(), attachment)
+            }.onFailure {
+                writeOp.set(false)
+                handler.failed(it, attachment)
             }
-
-            if (consumed > 0) {
-                sslbuf.flip()
-                assert(produced == sslbuf.remaining())
-                val wh = object : CompletionHandler<Int, A> {
-                    val sslbytes = produced
-                    val cltbytes = consumed
-                    override fun completed(result: Int, a: A) {
-                        if (result == -1) {
-                            handler.completed(-1, a)
-                        }
-                        else if (result < sslbytes) { // write again
-                            transport.write(sslbuf, timeout, unit, a, this)
-                        }
-                        else {
-                            handler.completed(cltbytes, a)
-                        }
-                    }
-
-                    override fun failed(exc: Throwable, a: A) = handler.failed(exc, a)
-                }
-                transport.write(sslbuf, timeout, unit, attachment, wh)
-            } else {
-                handler.completed(0, attachment)
-            }
-
-        } catch (ex: SSLException) {
-            handler.failed(ex, attachment)
         }
     }
 
@@ -301,21 +288,34 @@ class AsyncTLSChannel(
     override fun close() {
         shutdownOutput()
         shutdownInput()
+        state = State.closed
     }
 
     override fun shutdownOutput(): AsynchronousSocketChannel {
-        engine.closeOutbound()
-        val b = ByteBuffer.allocate(128)
-        val res = engine.wrap(ByteBuffer.wrap(byteArrayOf()), b)
-        if (res.bytesProduced() > 0) {
-            transport.write(b, null, object : CompletionHandler<Int, Nothing?>{
-                override fun completed(result: Int, n: Nothing?) {
-                    transport.shutdownOutput()
-                }
-
-                override fun failed(exc: Throwable?, n: Nothing?) {}
-            })
+        when (state) {
+            State.initial,
+            State.connecting,
+            State.handshaking -> throw NotYetConnectedException()
+            State.connected -> {}
+            State.closed -> throw ClosedChannelException()
         }
+
+        if (!closeWrite.compareAndSet(false, true)) {
+            throw ClosedChannelException()
+        }
+
+        d{"closing outbound"}
+        GlobalScope.launch(Dispatchers.IO) {
+            runCatching {
+                engine.closeOutbound()
+                val b = ByteBuffer.allocate(128)
+                val res = engine.wrap(EMPTY, b)
+                transport.writeCompletely(b)
+            }.onFailure {
+                w{"failed to write SSLCloseNotify: $it"}
+            }
+        }
+
         return this
     }
 
@@ -429,28 +429,17 @@ class AsyncTLSChannel(
         }
     }
 
-    internal fun getSession(): SSLSession {
-        return handshake.get()
+    internal fun getSession(): SSLSession = runBlocking {
+        handshake.await()
     }
 
-    internal fun startHandshake(result: CompletableFuture<Void>?) {
-        handshake.whenCompleteAsync { s, ex ->
-            ex?.let { result?.completeExceptionally(it) }
-                ?: result?.complete(null)
-        }
-
-        if (state == State.connecting) {
-            GlobalScope.launch(Dispatchers.IO) { doHandshake(true) }
-        }
+    internal fun startHandshake() {
+        // NOOP: handshake is start automatically
     }
 
     private suspend fun doHandshake(clientMode: Boolean): SSLSession {
         require(state == State.connecting)
         state = State.handshaking
-
-        handshake.whenComplete { _, exc ->
-            state = exc?.let { State.closed } ?: State.connected
-        }
 
         engine.useClientMode = clientMode
         engine.beginHandshake()
@@ -467,8 +456,7 @@ class AsyncTLSChannel(
                 SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING,
                 SSLEngineResult.HandshakeStatus.FINISHED -> {
                     d { "handshake is complete" }
-                    handshake.complete(engine.session)
-                    return engine.session
+                    break@loop
                 }
 
                 SSLEngineResult.HandshakeStatus.NEED_TASK -> CompletableFuture.supplyAsync {
@@ -502,6 +490,7 @@ class AsyncTLSChannel(
                 else -> error("should not be here, handshakeStatus(${engine.handshakeStatus})")
             }
         }
+        return engine.session
     }
 
     fun setEnabledProtocols(protocols: Array<out String>?) { engine.enabledProtocols = protocols }

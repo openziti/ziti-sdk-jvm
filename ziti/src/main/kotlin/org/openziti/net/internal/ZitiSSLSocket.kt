@@ -28,7 +28,7 @@ import java.security.SecureRandom
 import javax.net.ssl.*
 
 class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
-    SSLSocketShim(),
+    SSLSocket(),
     Logged by ZitiLog("ziti-ssl-socket")
 {
     companion object {

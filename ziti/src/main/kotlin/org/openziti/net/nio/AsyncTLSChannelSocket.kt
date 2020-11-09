@@ -16,6 +16,7 @@
 
 package org.openziti.net.nio
 
+import kotlinx.coroutines.future.asCompletableFuture
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.InetSocketAddress
@@ -42,11 +43,11 @@ class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, 
         asyncTls.connect(addr).get()
     }
 
-    override fun startHandshake() = asyncTls.startHandshake(null)
+    override fun startHandshake() = asyncTls.startHandshake()
     override fun getSession(): SSLSession = asyncTls.getSession()
 
     override fun addHandshakeCompletedListener(l: HandshakeCompletedListener) {
-        val f = asyncTls.handshake.thenApplyAsync {
+        val f = asyncTls.handshake.asCompletableFuture().thenApplyAsync {
             l.handshakeCompleted(HandshakeCompletedEvent(this, it))
         }
         listeners.put(l, f)

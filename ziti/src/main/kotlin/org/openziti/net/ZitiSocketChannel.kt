@@ -136,7 +136,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             channel = ctx.getChannel(ns)
             channel.onClose {
                 state.set(State.closed)
-                receiveQueue.cancel()
+                close()
             }
             connId = channel.registerReceiver(this@ZitiSocketChannel)
 
@@ -199,7 +199,10 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             else -> return this
         }
         channel.deregisterReceiver(connId)
-        receiveQueue.close()
+
+        if (!receiveQueue.isClosedForSend) {
+            receiveQueue.close()
+        }
         return this
     }
 
@@ -209,19 +212,24 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         closeInternal()
     }
 
-    override fun shutdownOutput(): AsynchronousSocketChannel {
-        if (sentFin.compareAndSet(false, true)) {
+    override fun shutdownOutput(): AsynchronousSocketChannel = runBlocking {
+        if (state.get() == State.connected && sentFin.compareAndSet(false, true)) {
             val finMsg = Message(ZitiProtocol.ContentType.Data).apply {
                 setHeader(ZitiProtocol.Header.ConnId, connId)
                 setHeader(ZitiProtocol.Header.FlagsHeader, ZitiProtocol.EdgeFlags.FIN)
                 setHeader(ZitiProtocol.Header.SeqHeader, seq.getAndIncrement())
 
             }
-            d{"sending FIN conn = ${this.connId}"}
-            runBlocking { channel.SendSynch(finMsg) }
+            d{"sending FIN conn = $connId"}
+
+            channel.runCatching {
+                SendSynch(finMsg)
+            }.onFailure {
+                e(it){"failed to send FIN message"}
+            }
         }
 
-        return this
+        this@ZitiSocketChannel
     }
 
     internal fun closeInternal(): AsynchronousSocketChannel {
@@ -234,7 +242,13 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                         setHeader(ZitiProtocol.Header.ConnId, connId)
                     }
                     d("closing conn = ${this.connId}")
-                    runBlocking { channel.SendSynch(closeMsg) }
+                    runBlocking {
+                        channel.runCatching {
+                            SendSynch(closeMsg)
+                        }.onFailure {
+                            w{"failed to send StateClosed message: $it"}
+                        }
+                    }
                     state.set(State.closed)
                 }
                 State.closed -> {}

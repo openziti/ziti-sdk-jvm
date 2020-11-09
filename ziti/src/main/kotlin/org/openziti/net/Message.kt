@@ -35,10 +35,12 @@ class Message(
         }
 
         internal suspend
-        fun readMessage(input: Transport): Message {
+        fun readMessage(input: Transport): Message? {
             val header = ByteBuffer.allocate(ZitiProtocol.HEADER_LENGTH).order(ByteOrder.LITTLE_ENDIAN)
 
-            input.read(header)
+            val read = input.read(header)
+            if (read == -1)
+                return null
             check(!header.hasRemaining()) { "could not read complete message header, read=${header.position()} expected=${header.capacity()}" }
             header.flip()
 
