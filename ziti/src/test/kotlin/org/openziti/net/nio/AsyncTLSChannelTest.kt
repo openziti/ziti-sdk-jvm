@@ -49,7 +49,7 @@ class AsyncTLSChannelTest {
 
     @After
     fun tearDown() {
-        ch.close()
+        if (ch.isOpen) ch.close()
     }
 
     @Test
@@ -157,8 +157,6 @@ User-Agent: HTTPie/1.0.2
 
         val lines = StandardCharsets.UTF_8.decode(resp).toString().reader().readLines()
         assertThat(lines[0], startsWith("HTTP/1.1"))
-
-        ch.close()
     }
 
 }
