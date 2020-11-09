@@ -43,7 +43,7 @@ import kotlinx.coroutines.channels.Channel as Chan
 internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousServerSocketChannel(null),
     Channel.MessageReceiver, Logged by ZitiLog() {
 
-    var localAddr: ZitiAddress.Service? = null
+    var localAddr: ZitiAddress.Bind? = null
     lateinit var channel: Channel
     var connId: Int = -1
     var state: State = State.initial
@@ -61,7 +61,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
     override fun isOpen(): Boolean = state != State.closed
 
     override fun bind(local: SocketAddress?, backlog: Int): AsynchronousServerSocketChannel {
-        if (local !is ZitiAddress.Service) throw UnsupportedAddressTypeException()
+        if (local !is ZitiAddress.Bind) throw UnsupportedAddressTypeException()
         when(state) {
             State.initial -> {}
             State.binding,
@@ -69,9 +69,9 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
             State.closed -> throw ClosedChannelException()
         }
 
-        val servResult = runCatching { ctx.getService(local.name) }
+        val servResult = runCatching { ctx.getService(local.service) }
         if (servResult.isFailure) {
-            throw BindException("no permission to bind to service[${local.name}]")
+            throw BindException("no permission to bind to service[${local.service}]")
         }
 
         val service = servResult.getOrNull()!! // never null
@@ -85,7 +85,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
 
         runBlocking {
             try {
-                val session = ctx.getNetworkSession(local.name, SessionType.Bind)
+                val session = ctx.getNetworkSession(local.service, SessionType.Bind)
                 token = session.token
                 channel = ctx.getChannel(session)
                 channel.onClose {
@@ -166,7 +166,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                     child.channel = channel
                     child.startCrypto()
                     child.local = localAddr
-                    child.remote = ZitiAddress.Session("$connId", child.connId, localAddr!!.name)
+                    child.remote = ZitiAddress.Session("$connId", child.connId, localAddr!!.service)
 
                     handler.completed(child, att)
                 } else {

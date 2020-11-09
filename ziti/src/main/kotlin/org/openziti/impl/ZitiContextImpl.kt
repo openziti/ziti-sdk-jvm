@@ -143,7 +143,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun dial(serviceName: String): ZitiConnection {
         val conn = open() as ZitiSocketChannel
-        conn.connect(ZitiAddress.Service(serviceName)).get()
+        conn.connect(ZitiAddress.Dial(serviceName)).get()
         return conn
     }
 
@@ -161,7 +161,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun connect(host: String, port: Int): Socket {
         val ch = open()
         val s = getService(host, port)
-        ch.connect(ZitiAddress.Service(s.name)).get()
+        ch.connect(ZitiAddress.Dial(s.name)).get()
         return AsychChannelSocket(ch)
     }
 

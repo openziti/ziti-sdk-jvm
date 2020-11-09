@@ -26,8 +26,17 @@ sealed class ZitiAddress: SocketAddress() {
     /**
      * Address representing a Ziti service.
      * @param name name of the service
+     * @param identity target terminator
+     * @param callerId caller identity
      */
-    data class Service(val name: String): ZitiAddress()
+
+    data class Dial @JvmOverloads constructor (
+        val service: String, val identity: String? = null, val callerId: String? = null)
+        : ZitiAddress()
+
+    data class Bind  @JvmOverloads constructor(
+        val service: String, val identity: String? = null, val useEdgeId: Boolean = false)
+        : ZitiAddress()
 
     internal data class Session(val id: String, val connId: Int, val service: String): ZitiAddress()
 }

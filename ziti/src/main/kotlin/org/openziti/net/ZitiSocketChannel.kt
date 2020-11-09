@@ -110,9 +110,9 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 serviceName = s.name
                 this.remote = remote
             }
-            is ZitiAddress.Service -> {
+            is ZitiAddress.Dial -> {
                 this.remote = remote
-                this.serviceName = remote.name
+                this.serviceName = remote.service
             }
             else -> throw UnsupportedAddressTypeException()
         }
