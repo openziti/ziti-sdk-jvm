@@ -41,7 +41,7 @@ object NetcatClient {
 
         val clt = ziti.open()
         try {
-            clt.connect(ZitiAddress.Service(service)).get()
+            clt.connect(ZitiAddress.Dial(service)).get()
         } catch (ex: Exception) {
             ex.printStackTrace()
             exit(1)

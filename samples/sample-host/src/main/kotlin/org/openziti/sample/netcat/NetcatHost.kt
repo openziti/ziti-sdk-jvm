@@ -40,7 +40,7 @@ object NetcatHost {
         val ziti = Ziti.newContext(cfg, charArrayOf())
 
         val server = ziti.openServer()
-        server.bind(ZitiAddress.Service(service))
+        server.bind(ZitiAddress.Bind(service))
 
         try {
             while (true) {

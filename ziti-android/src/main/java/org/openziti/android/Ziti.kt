@@ -31,7 +31,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import org.openziti.ZitiContext
 import org.openziti.net.dns.DNSResolver
@@ -88,7 +87,7 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
             val enabled = zitiPref.getBoolean("${c.name()}.enabled", true)
             c.setEnabled(enabled)
             launch {
-                c.statusUpdates().consumeAsFlow().collect {
+                c.statusUpdates().collect {
                     val on = it != ZitiContext.Status.Disabled
                     zitiPref.edit()
                         .putBoolean("${c.name()}.enabled", on)
