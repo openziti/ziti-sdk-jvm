@@ -26,6 +26,7 @@ import org.openziti.ZitiAddress
 import org.openziti.api.SessionType
 import org.openziti.crypto.Crypto
 import org.openziti.impl.ZitiContextImpl
+import org.openziti.net.ZitiProtocol.Header
 import org.openziti.net.nio.FutureHandler
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
@@ -94,11 +95,17 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                 }
                 connId = channel.registerReceiver(this@ZitiServerSocketChannel)
 
-                val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8))
-                connectMsg.setHeader(ZitiProtocol.Header.ConnId, connId)
-                connectMsg.setHeader(ZitiProtocol.Header.SeqHeader, 0)
-                keyPair?.let {
-                    connectMsg.setHeader(ZitiProtocol.Header.PublicKeyHeader, it.publicKey.asBytes)
+                val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8)).apply {
+                    setHeader(Header.ConnId, connId)
+                    setHeader(Header.SeqHeader, 0)
+                    val bindId = local.identity ?: (if (local.useEdgeId) ctx.getId()?.name else null)
+
+                    bindId?.let {
+                        setHeader(Header.TerminatorIdentityHeader, it)
+                    }
+                    keyPair?.let {
+                        setHeader(Header.PublicKeyHeader, it.publicKey.asBytes)
+                    }
                 }
 
                 d("starting network connection ${session.id}/$connId")
@@ -148,12 +155,12 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                 val connIdBuf = ByteArray(4)
                 ByteBuffer.wrap(connIdBuf).order(ByteOrder.LITTLE_ENDIAN).putInt(child.connId)
                 val dialSuccess = Message(ZitiProtocol.ContentType.DialSuccess, connIdBuf)
-                dialSuccess.setHeader(ZitiProtocol.Header.SeqHeader, 0)
-                dialSuccess.setHeader(ZitiProtocol.Header.ConnId, connId)
-                dialSuccess.setHeader(ZitiProtocol.Header.ReplyFor, req.seqNo)
+                dialSuccess.setHeader(Header.SeqHeader, 0)
+                dialSuccess.setHeader(Header.ConnId, connId)
+                dialSuccess.setHeader(Header.ReplyFor, req.seqNo)
 
                 keyPair?.let { kp ->
-                    val sessKeys = req.getHeader(ZitiProtocol.Header.PublicKeyHeader)?.let {
+                    val sessKeys = req.getHeader(Header.PublicKeyHeader)?.let {
                         Crypto.kx(kp, Key.fromBytes(it), true)
                     }
                     child.setupCrypto(sessKeys)
@@ -199,7 +206,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
     override fun close() {
         if (state == State.bound) {
             val unbind = Message(ZitiProtocol.ContentType.Unbind, token.toByteArray(Charsets.UTF_8)).apply {
-                setHeader(ZitiProtocol.Header.ConnId, connId)
+                setHeader(Header.ConnId, connId)
             }
             runBlocking { channel.SendSynch(unbind) }
 
@@ -213,9 +220,9 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
             ZitiProtocol.ContentType.Dial -> {
                 if (!incoming.offer(msg)) { // backlog is full
                     val reject = Message(ZitiProtocol.ContentType.DialFailed)
-                        .setHeader(ZitiProtocol.Header.ConnId, connId)
-                        .setHeader(ZitiProtocol.Header.ReplyFor, msg.seqNo)
-                        .setHeader(ZitiProtocol.Header.SeqHeader, 0)
+                        .setHeader(Header.ConnId, connId)
+                        .setHeader(Header.ReplyFor, msg.seqNo)
+                        .setHeader(Header.SeqHeader, 0)
 
                     channel.Send(reject)
                 }

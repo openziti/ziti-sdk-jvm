@@ -75,6 +75,11 @@ object ZitiProtocol {
         const val AppDataHeader = 1011
     }
 
+    object CryptoMethod {
+        const val Libsodium = 0
+        const val AES256_GCM = 1
+    }
+
     object EdgeFlags {
         const val FIN = 0x1
     }
