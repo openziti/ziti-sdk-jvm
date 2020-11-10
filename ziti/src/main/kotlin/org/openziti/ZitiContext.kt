@@ -16,7 +16,7 @@
 
 package org.openziti
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.Flow
 import org.openziti.api.Service
 import org.openziti.identity.Identity
 import java.net.Socket
@@ -53,8 +53,8 @@ interface ZitiContext: Identity {
 
     fun setEnabled(v: Boolean)
     fun getStatus(): Status
-    fun statusUpdates(): ReceiveChannel<Status>
-    fun serviceUpdates(): ReceiveChannel<ServiceEvent>
+    fun statusUpdates(): Flow<Status>
+    fun serviceUpdates(): Flow<ServiceEvent>
     fun getId(): ApiIdentity?
 
     /**
