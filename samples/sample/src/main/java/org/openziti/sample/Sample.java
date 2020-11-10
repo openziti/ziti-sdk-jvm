@@ -67,8 +67,6 @@ public class Sample {
         }
         System.out.println("\n=================== Done ==================\n");
 
-        ziti.stop();
-
-        System.exit(0);
+        ziti.destroy();
     }
 }
