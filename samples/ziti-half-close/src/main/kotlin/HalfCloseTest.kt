@@ -71,6 +71,7 @@ object HalfCloseTest {
         }
 
         override fun failed(exc: Throwable?, attachment: Any?) {
+            println("accept failed $exc")
             stop()
         }
     }
@@ -124,10 +125,15 @@ object HalfCloseTest {
 
         val clientSock = ztx.open()
         runBlocking {
-            val clientAddr = ZitiAddress.Dial(a.service, "test-terminator")
-            Client(clientSock).run(clientAddr)
+            kotlin.runCatching {
+                val clientAddr = ZitiAddress.Dial(a.service, "test-terminator")
+                Client(clientSock).run(clientAddr)
+            }
+
+            println("stopping server side")
+            s.stop()
+            println("stopping ziti context")
+            ztx.destroy()
         }
-        s.stop()
-        ztx.stop()
     }
 }

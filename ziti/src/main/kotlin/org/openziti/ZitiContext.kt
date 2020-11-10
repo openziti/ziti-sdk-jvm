@@ -104,5 +104,5 @@ interface ZitiContext: Identity {
      */
     fun openServer(): AsynchronousServerSocketChannel
 
-    fun stop()
+    fun destroy()
 }

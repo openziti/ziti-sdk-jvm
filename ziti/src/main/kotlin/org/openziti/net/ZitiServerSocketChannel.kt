@@ -46,7 +46,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
 
     var localAddr: ZitiAddress.Bind? = null
     lateinit var channel: Channel
-    var connId: Int = -1
+    val connId: Int = ctx.nextConnId()
     var state: State = State.initial
     lateinit var incoming: Chan<Message>
     lateinit var token: String
@@ -93,7 +93,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                     state = State.closed
                     incoming.cancel()
                 }
-                connId = channel.registerReceiver(this@ZitiServerSocketChannel)
+                channel.registerReceiver(connId, this@ZitiServerSocketChannel)
 
                 val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8)).apply {
                     setHeader(Header.ConnId, connId)
@@ -150,7 +150,6 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                 val req = incoming.receive()
 
                 val child = ZitiSocketChannel(ctx)
-                child.connId = channel.registerReceiver(child)
                 d{"accepting child conn[${child.connId}] on parent[$connId]"}
                 val connIdBuf = ByteArray(4)
                 ByteBuffer.wrap(connIdBuf).order(ByteOrder.LITTLE_ENDIAN).putInt(child.connId)
@@ -170,7 +169,8 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
 
                 if (startMsg.content == ZitiProtocol.ContentType.StateConnected) {
                     child.state.set(ZitiSocketChannel.State.connected)
-                    child.channel = channel
+                    channel.registerReceiver(child.connId, child)
+                    child.chPromise.complete(channel)
                     child.startCrypto()
                     child.local = localAddr
                     child.remote = ZitiAddress.Session("$connId", localAddr!!.service, req.getStringHeader(Header.CallerIdHeader))

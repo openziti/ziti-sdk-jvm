@@ -37,6 +37,7 @@ import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 import org.openziti.api.Identity as ApiIdentity
@@ -79,6 +80,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     data class SessionKey (val serviceId: String, val type: SessionType)
     private val networkSessions = ConcurrentHashMap<SessionKey, Session>()
+
+    private val connCounter = AtomicInteger(0)
 
     private val metrics = MetricRegistry()
 
@@ -142,19 +145,27 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         return AsychChannelSocket(ch)
     }
 
-    override fun stop() {
+    fun stop() {
         val copy = channels.values
 
         runBlocking {
             copy.forEach { ch ->
-                runCatching { ch.await().close() }
+                runCatching {
+                    d{"closing ${ch.getCompleted().addr}"}
+                    ch.await().close()
+                }
             }
         }
     }
 
-    fun destroy() {
-        try { controller.shutdown() } catch(_: Exception) {}
+    override fun destroy() {
+        d{"stopping networking"}
+        stop()
+        d{"stopping controller"}
+        runCatching { controller.shutdown() }
+        d{"shutting down"}
         runBlocking { supervisor.cancelAndJoin() }
+        d{"ziti context is finished"}
     }
 
     internal fun login() = async {
@@ -270,6 +281,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             it.dns?.hostname == host && it.dns?.port == port
         } ?: throw ZitiException(Errors.ServiceNotAvailable)
     }
+
+    internal fun nextConnId() = connCounter.incrementAndGet()
 
     internal val channels = ConcurrentHashMap<String, Deferred<Channel>>()
 

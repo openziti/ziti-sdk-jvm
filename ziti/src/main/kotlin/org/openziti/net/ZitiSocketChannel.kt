@@ -17,11 +17,13 @@
 package org.openziti.net
 
 import com.goterl.lazycode.lazysodium.utils.Key
+import com.goterl.lazycode.lazysodium.utils.KeyPair
 import com.goterl.lazycode.lazysodium.utils.SessionPair
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.openziti.ZitiAddress
 import org.openziti.ZitiConnection
+import org.openziti.api.Session
 import org.openziti.api.SessionType
 import org.openziti.crypto.Crypto
 import org.openziti.impl.ZitiContextImpl
@@ -84,8 +86,11 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     override var timeout: Long = 0
 
     val state = AtomicReference(State.initial)
-    var connId: Int = 0
-    lateinit var channel: Channel
+    val connId: Int = ctx.nextConnId()
+    val chPromise = CompletableDeferred<Channel>()
+    val channel: Channel
+        get() = runBlocking { chPromise.await() }
+
     val seq = AtomicInteger(1)
     lateinit var serviceName: String
     var remote: SocketAddress? = null
@@ -104,20 +109,18 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     override fun isClosed() = !isOpen
 
-    override fun <A : Any?> connect(remote: SocketAddress?, attachment: A, handler: CompletionHandler<Void, in A>) {
+    override fun <A : Any?> connect(remote: SocketAddress, attachment: A, handler: CompletionHandler<Void, in A>) {
 
-        when (remote) {
+        val addr = when (remote) {
             is InetSocketAddress -> {
                 val s = ctx.getService(remote.hostName, remote.port)
-                serviceName = s.name
-                this.remote = remote
+                ZitiAddress.Dial(s.name)
             }
-            is ZitiAddress.Dial -> {
-                this.remote = remote
-                this.serviceName = remote.service
-            }
+            is ZitiAddress.Dial -> remote
             else -> throw UnsupportedAddressTypeException()
         }
+
+        serviceName = addr.service
 
         state.getAndUpdate { st ->
             when(st) {
@@ -131,78 +134,32 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             State.connecting
         }
 
-        ctx.async {
+        ctx.launch {
+            ctx.runCatching {
+                val service = getService(serviceName)
+                val ns = getNetworkSession(serviceName, SessionType.Dial)
 
-            val service = ctx.getService(serviceName)
-            val kp = if (service.encryptionRequired) Crypto.newKeyPair() else null
+                val kp = if (service.encryptionRequired) Crypto.newKeyPair() else null
 
-            val ns = ctx.getNetworkSession(serviceName, SessionType.Dial)
-            channel = ctx.getChannel(ns)
-            channel.onClose {
-                state.set(State.closed)
+                val ch = ctx.getChannel(ns)
+                chPromise.complete(ch)
+                ch.onClose {
+                    state.set(State.closed)
+                    close()
+                }
+                ch.registerReceiver(connId, this@ZitiSocketChannel)
+                doZitiHandshake(ch, addr, ns, kp)
+            }.onSuccess {
+                handler.completed(null, attachment)
+            }.onFailure {
+                chPromise.completeExceptionally(it)
                 close()
+                handler.failed(it, attachment)
             }
-            connId = channel.registerReceiver(this@ZitiSocketChannel)
-
-            val connectMsg = Message(ZitiProtocol.ContentType.Connect, ns.token.toByteArray(UTF_8)).apply {
-                setHeader(Header.ConnId, connId)
-                setHeader(Header.SeqHeader, 0)
-                kp?.let {
-                    setHeader(Header.PublicKeyHeader, it.publicKey.asBytes)
-                    setHeader(Header.CryptoMethodHeader, CryptoMethod.Libsodium)
-                }
-
-                if (remote is ZitiAddress.Dial) {
-                    remote.identity?.let {
-                        setHeader(Header.TerminatorIdentityHeader, it)
-                    }
-                    (remote.callerId ?: ctx.getId()?.name)?.let {
-                        setHeader(Header.CallerIdHeader, it)
-                    }
-                } else {
-                    ctx.getId()?.let {
-                        setHeader(Header.CallerIdHeader, it.name)
-                    }
-                }
-            }
-
-            d("starting network connection ${ns.id}/$connId")
-            val reply = channel.SendAndWait(connectMsg)
-            when (reply.content) {
-                ZitiProtocol.ContentType.StateConnected -> {
-                    val peerPk = reply.getHeader(Header.PublicKeyHeader)
-                    if (kp == null || peerPk == null) {
-                        crypto.complete(null)
-                    } else {
-                        setupCrypto(Crypto.kx(kp, Key.fromBytes(peerPk), false))
-                        startCrypto()
-                    }
-
-                    local = ZitiAddress.Session(ns.id, serviceName, null)
-                    d("network connection established ${ns.id}/$connId")
-                    state.set(State.connected)
-                }
-                ZitiProtocol.ContentType.StateClosed -> {
-                    state.set(State.closed)
-                    val err = reply.body.toString(UTF_8)
-                    w("connection rejected: $err")
-                    throw ConnectException(err)
-                }
-                else -> {
-                    state.set(State.closed)
-                    throw IOException("Invalid response type")
-                }
-            }
-        }.invokeOnCompletion { exc ->
-            if (exc != null) {
-                handler.failed(exc, attachment)
-                channel.deregisterReceiver(connId)
-            }
-            else handler.completed(null, attachment)
         }
     }
 
-    override fun connect(remote: SocketAddress?): Future<Void> {
+    override fun connect(remote: SocketAddress): Future<Void> {
         val result = CompletableFuture<Void>()
         connect(remote, result, FutureHandler())
         return result
@@ -214,13 +171,15 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     override fun shutdownInput(): AsynchronousSocketChannel {
         when(state.get()) {
-            State.initial, State.connecting -> throw NotYetConnectedException()
+            State.initial -> throw NotYetConnectedException()
+            State.connecting -> {} // connecting process failed
             State.connected -> {}
             State.closed -> return this
             else -> return this
         }
-        channel.deregisterReceiver(connId)
-        receiveQueue.runCatching { close() }
+
+        runCatching { channel.deregisterReceiver(connId) }
+        runCatching { receiveQueue.close() }
         return this
     }
 
@@ -240,8 +199,8 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             }
             d{"sending FIN conn = $connId"}
 
-            channel.runCatching {
-                SendSynch(finMsg)
+            runCatching {
+                channel.SendSynch(finMsg)
             }.onFailure {
                 e(it){"failed to send FIN message"}
             }
@@ -467,6 +426,52 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
         override fun write(b: ByteArray, off: Int, len: Int) = runBlocking {
             send(b, off, len)
+        }
+    }
+
+    internal suspend fun doZitiHandshake(channel: Channel, remote: ZitiAddress.Dial, ns: Session, kp: KeyPair?) {
+        val connectMsg = Message(ZitiProtocol.ContentType.Connect, ns.token.toByteArray(UTF_8)).apply {
+            setHeader(Header.ConnId, connId)
+            setHeader(Header.SeqHeader, 0)
+            kp?.let {
+                setHeader(Header.PublicKeyHeader, it.publicKey.asBytes)
+                setHeader(Header.CryptoMethodHeader, CryptoMethod.Libsodium)
+            }
+
+            remote.identity?.let {
+                setHeader(Header.TerminatorIdentityHeader, it)
+            }
+            (remote.callerId ?: ctx.getId()?.name)?.let {
+                    setHeader(Header.CallerIdHeader, it)
+            }
+        }
+
+        d("starting network connection ${ns.id}/$connId")
+        val reply = channel.SendAndWait(connectMsg)
+        when (reply.content) {
+            ZitiProtocol.ContentType.StateConnected -> {
+                val peerPk = reply.getHeader(Header.PublicKeyHeader)
+                if (kp == null || peerPk == null) {
+                    crypto.complete(null)
+                } else {
+                    setupCrypto(Crypto.kx(kp, Key.fromBytes(peerPk), false))
+                    startCrypto()
+                }
+
+                local = ZitiAddress.Session(ns.id, serviceName, null)
+                d("network connection established ${ns.id}/$connId")
+                state.set(State.connected)
+            }
+            ZitiProtocol.ContentType.StateClosed -> {
+                state.set(State.closed)
+                val err = reply.body.toString(UTF_8)
+                w("connection rejected: $err")
+                throw ConnectException(err)
+            }
+            else -> {
+                state.set(State.closed)
+                throw IOException("Invalid response type")
+            }
         }
     }
 
