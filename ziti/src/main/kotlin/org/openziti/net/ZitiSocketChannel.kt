@@ -178,7 +178,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                         startCrypto()
                     }
 
-                    local = ZitiAddress.Session(ns.id, connId, serviceName)
+                    local = ZitiAddress.Session(ns.id, serviceName, null)
                     d("network connection established ${ns.id}/$connId")
                     state.set(State.connected)
                 }

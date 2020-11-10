@@ -173,7 +173,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                     child.channel = channel
                     child.startCrypto()
                     child.local = localAddr
-                    child.remote = ZitiAddress.Session("$connId", child.connId, localAddr!!.service)
+                    child.remote = ZitiAddress.Session("$connId", localAddr!!.service, req.getStringHeader(Header.CallerIdHeader))
 
                     handler.completed(child, att)
                 } else {

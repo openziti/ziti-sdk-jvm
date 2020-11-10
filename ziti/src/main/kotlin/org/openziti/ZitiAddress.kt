@@ -38,5 +38,5 @@ sealed class ZitiAddress: SocketAddress() {
         val service: String, val identity: String? = null, val useEdgeId: Boolean = false)
         : ZitiAddress()
 
-    internal data class Session(val id: String, val connId: Int, val service: String): ZitiAddress()
+    internal data class Session(val id: String, val service: String, val callerId: String?): ZitiAddress()
 }
