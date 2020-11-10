@@ -48,7 +48,7 @@ class ZitiSocketChannelTest {
     @Test
     fun connect() {
         val ch = ctx.open() as ZitiSocketChannel
-        ch.connect(ZitiAddress.Service("httpbin")).get()
+        ch.connect(ZitiAddress.Dial("httpbin")).get()
         val req = """GET /json HTTP/1.1
 Accept: */*
 Accept-Encoding: gzip, deflate

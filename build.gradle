@@ -91,50 +91,6 @@ subprojects {
     }
 }
 
-def sh (cmd, ...args) {
-    def out = new ByteArrayOutputStream()
-    this.exec {
-        commandLine(cmd, *args)
-        standardOutput = out
-    }
-    return out.toString()
-}
-
-tasks.register("tagIfNeeded") {
-
-    if (gitBranch == "master") {
-
-        doLast {
-            def (zitiMajor, zitiMinor, zitiPatch) = zitiBaseVersion.split(/\./).collect { it.toInteger() }
-
-            def tagMajor = semver.info.version.major
-            def tagMinor = semver.info.version.minor
-            def tagPatch = semver.info.version.patch
-            def ahead = semver.info.version.suffix?.count ?: 0
-
-            if ( zitiMajor > tagMajor ||
-                (zitiMajor == tagMajor && zitiMinor > tagMinor ) ||
-                (zitiMinor == tagMajor && zitiMinor == tagMinor && zitiPatch > tagPatch) )
-            {
-                def new_tag = "${zitiMajor}.${zitiMinor}.${zitiPatch}"
-                println("advancing tag($new_tag) based on 'version' file")
-                sh("git", "tag",  "-a",  new_tag, "-m", "CI tag ${new_tag}")
-            } else {
-                if (ahead == 0) {
-                    println("already has tag = ${tagMajor}.${tagMinor}.${tagPatch}")
-                }
-                else {
-                    println("bumping up new tag")
-                    def new_tag = "${tagMajor}.${tagMinor}.${tagPatch + 1}"
-                    println("setting new tag = $new_tag")
-                    sh("git", "tag",  "-a",  new_tag, "-m", "CI tag ${new_tag}")
-                }
-            }
-
-        }
-    }
-}
-
 subprojects { p ->
     if (!p.identityPath.path.startsWith(":samples")) {
         p.plugins.apply('maven-publish')
@@ -165,6 +121,5 @@ subprojects { p ->
                 }
             }
         }
-
     }
 }

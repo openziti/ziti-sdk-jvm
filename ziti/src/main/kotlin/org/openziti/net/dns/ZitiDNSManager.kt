@@ -16,11 +16,8 @@
 
 package org.openziti.net.dns
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -35,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
 
-@ExperimentalCoroutinesApi
 internal object ZitiDNSManager : DNSResolver, ServiceMapper {
 
     internal val PREFIX = byteArrayOf(0xa9.toByte(), 0xfe.toByte())
@@ -45,7 +41,7 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper {
     internal val host2Ip = mutableMapOf<String, InetAddress>()
     internal val addr2serviceId = mutableMapOf<InetSocketAddress, String>()
     internal val serviceId2addr = mutableMapOf<String, InetSocketAddress>()
-    internal val dnsBroadCast = BroadcastChannel<DNSResolver.DNSEvent>(Channel.BUFFERED)
+    internal val dnsBroadCast = MutableSharedFlow<DNSResolver.DNSEvent>()
 
     internal fun registerService(service: Service): InetSocketAddress? {
 
@@ -58,7 +54,7 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper {
             }
 
             runBlocking {
-                dnsBroadCast.send(DNSResolver.DNSEvent(hostname, ip, false))
+                dnsBroadCast.emit(DNSResolver.DNSEvent(hostname, ip, false))
             }
 
             service.dns?.port?.let { port ->
@@ -80,7 +76,7 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper {
             addr2serviceId.remove(addr)
             runBlocking {
                 GlobalScope.launch {
-                    dnsBroadCast.send(DNSResolver.DNSEvent(service.dns?.hostname, addr.address, true))
+                    dnsBroadCast.emit(DNSResolver.DNSEvent(service.dns?.hostname, addr.address, true))
                 }
             }
         }
@@ -89,10 +85,8 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper {
     override fun resolve(hostname: String): InetAddress? = host2Ip.get(hostname.toLowerCase(Locale.getDefault()))
 
     override fun subscribe(sub: (DNSResolver.DNSEvent) -> Unit) {
-        runBlocking {
-            GlobalScope.launch {
-                dnsBroadCast.asFlow().collect { sub(it) }
-            }
+        GlobalScope.launch {
+            dnsBroadCast.collect { sub(it) }
         }
     }
 

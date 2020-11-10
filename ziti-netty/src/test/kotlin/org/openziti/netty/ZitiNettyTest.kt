@@ -111,7 +111,7 @@ class ZitiNettyTest {
 
         val server = ServerBootstrap().group(group)
             .channelFactory(ZitiServerChannelFactory(ziti))
-            .localAddress(ZitiAddress.Service(service))
+            .localAddress(ZitiAddress.Bind(service))
             .childHandler(object : ChannelInitializer<Channel>(){
                 override fun initChannel(ch: Channel) {
                     println("new child $ch")
@@ -124,7 +124,7 @@ class ZitiNettyTest {
             }).bind().sync()
 
         val client = ziti.open()
-        client.connect(ZitiAddress.Service(service)).get(1, TimeUnit.SECONDS)
+        client.connect(ZitiAddress.Dial(service)).get(1, TimeUnit.SECONDS)
 
         val reqBody = Base64.getEncoder().encodeToString(Random.nextBytes(32))
 

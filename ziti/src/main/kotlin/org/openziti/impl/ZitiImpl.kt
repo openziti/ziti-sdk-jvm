@@ -140,10 +140,10 @@ internal object ZitiImpl : Logged by ZitiLog() {
                 e { "service @[$addr] not available in any contexts" }
                 throw ZitiException(Errors.ServiceNotAvailable)
             }
-            is ZitiAddress.Service -> {
+            is ZitiAddress.Dial -> {
                 for (c in contexts) {
                     try {
-                        return c.dial(addr.name)
+                        return c.open().apply { connect(addr).get() } as ZitiConnection
                     } catch (ex: Exception) {
                         i { "service @[$addr] not available for ${c.name()}" }
                     }

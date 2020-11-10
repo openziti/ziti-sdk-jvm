@@ -57,7 +57,7 @@ object HttpSample {
                     }
                 })
                 // .bind(13333)
-                .bind(ZitiAddress.Service(service))
+                .bind(ZitiAddress.Bind(service))
                 .sync().addListener {
                     if (!it.isSuccess) {
                         println("server failed to bind ${it.cause()}")

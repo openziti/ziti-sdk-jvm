@@ -42,6 +42,7 @@ object HalfCloseTest {
         fun runClient(clt: AsynchronousSocketChannel) = GlobalScope.launch(Dispatchers.IO) {
             val buf = ByteBuffer.allocate(1024)
             var done = false
+            println("client[${clt.remoteAddress}] connected")
             try {
                 while (!done) {
                     buf.clear()
@@ -70,6 +71,7 @@ object HalfCloseTest {
         }
 
         override fun failed(exc: Throwable?, attachment: Any?) {
+            println("accept failed $exc")
             stop()
         }
     }
@@ -112,7 +114,7 @@ object HalfCloseTest {
         val ztx = Ziti.newContext(args[0], charArrayOf())
 
         val serverSocket = ztx.openServer()
-        val a = ZitiAddress.Service(args[1])
+        val a = ZitiAddress.Bind(args[1], "test-terminator")
 
         serverSocket.bind(a)
         val addr = serverSocket.localAddress
@@ -123,9 +125,15 @@ object HalfCloseTest {
 
         val clientSock = ztx.open()
         runBlocking {
-            Client(clientSock).run(addr)
+            kotlin.runCatching {
+                val clientAddr = ZitiAddress.Dial(a.service, "test-terminator")
+                Client(clientSock).run(clientAddr)
+            }
+
+            println("stopping server side")
+            s.stop()
+            println("stopping ziti context")
+            ztx.destroy()
         }
-        s.stop()
-        ztx.stop()
     }
 }

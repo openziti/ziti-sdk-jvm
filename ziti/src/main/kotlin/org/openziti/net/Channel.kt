@@ -58,7 +58,6 @@ internal class Channel(val addr: String, val peer: Transport) : Closeable, Corou
     private val waiters = ConcurrentHashMap<Int, CompletableDeferred<Message>>()
     private val synchers = ConcurrentHashMap<Int, CompletableDeferred<Unit>>()
 
-    private val receiverSeq = AtomicInteger(0)
     private val receivers = mutableMapOf<Int, MessageReceiver>()
 
     internal val upMeter = Meter()
@@ -66,12 +65,10 @@ internal class Channel(val addr: String, val peer: Transport) : Closeable, Corou
 
     internal lateinit var latencyMeter: Timer
 
-    internal fun registerReceiver(rec: MessageReceiver): Int {
-        val id = receiverSeq.incrementAndGet()
+    internal fun registerReceiver(id: Int, rec: MessageReceiver) {
         synchronized(receivers) {
             receivers[id] = rec
         }
-        return id
     }
 
     internal fun deregisterReceiver(id: Int) = synchronized(receivers) {

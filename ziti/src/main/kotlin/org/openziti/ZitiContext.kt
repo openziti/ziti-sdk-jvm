@@ -16,7 +16,7 @@
 
 package org.openziti
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.Flow
 import org.openziti.api.Service
 import org.openziti.identity.Identity
 import java.net.Socket
@@ -53,8 +53,8 @@ interface ZitiContext: Identity {
 
     fun setEnabled(v: Boolean)
     fun getStatus(): Status
-    fun statusUpdates(): ReceiveChannel<Status>
-    fun serviceUpdates(): ReceiveChannel<ServiceEvent>
+    fun statusUpdates(): Flow<Status>
+    fun serviceUpdates(): Flow<ServiceEvent>
     fun getId(): ApiIdentity?
 
     /**
@@ -74,7 +74,7 @@ interface ZitiContext: Identity {
      * creates unconnected [AsynchronousSocketChannel].
      *
      * before it can be used it has to be connected, via any standard
-     * [AsynchronousSocketChannel.connect] method with [ZitiAddress.Service] address.
+     * [AsynchronousSocketChannel.connect] method with [ZitiAddress.Dial] address.
      * ```kotlin
      *    val con = zitiCtx.open()
      *    con.connect(ZitiAddress.Service(serviceName)).get()
@@ -88,7 +88,7 @@ interface ZitiContext: Identity {
      *
      * before it can be used to accept ziti client connections
      * it has to be bound to Ziti service via any standard [AsynchronousServerSocketChannel.bind] method
-     * with [ZitiAddress.Service] address
+     * with [ZitiAddress.Bind] address
      * all standard [AsynchronousServerSocketChannel.accept] methods are supported.
      *
      * Example:
@@ -104,5 +104,5 @@ interface ZitiContext: Identity {
      */
     fun openServer(): AsynchronousServerSocketChannel
 
-    fun stop()
+    fun destroy()
 }
