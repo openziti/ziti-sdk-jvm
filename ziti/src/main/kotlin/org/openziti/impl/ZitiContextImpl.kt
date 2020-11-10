@@ -90,10 +90,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         this._enabled = enabled
 
         launch {
-            statusCh.takeWhile {it != ZitiContext.Status.Disabled}.collect {
+            statusCh.collect {
                 d { "${this@ZitiContextImpl} transitioned to $it" }
+                if (it == ZitiContext.Status.Disabled) {
+                    stop()
+                }
             }
-            stop()
         }
 
         runServiceUpdates(login())
