@@ -22,12 +22,13 @@ group 'org.openziti'
 
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1')
+    implementation deps.kotlin
+    implementation deps.kotlinCoroutines
 
     api project(":ziti")
-    implementation "org.slf4j:slf4j-simple:+"
+    implementation deps.slf4jSimple
 }
+
 
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"

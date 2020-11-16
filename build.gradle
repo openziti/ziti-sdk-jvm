@@ -25,6 +25,24 @@ buildscript {
         classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5")
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:0.10.1")
     }
+
+    ext.versions = [
+            kotlin: '1.4.10',
+            coroutines: '1.4.1',
+            slf4j: '1.7.30',
+            junit: '4.13.1'
+    ]
+
+    ext.deps = [
+            kotlin: "org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}",
+            kotlinCoroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}",
+            kotlinCoroutines8: "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${versions.coroutines}",
+            kotlinTest: "org.jetbrains.kotlin:kotlin-test-junit:${versions.kotlin}",
+            kotlinCoroutinesTest: "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.coroutines}",
+            slf4jApi: "org.slf4j:slf4j-api:${versions.slf4j}",
+            slf4jSimple: "org.slf4j:slf4j-simple:${versions.slf4j}",
+            junit: "junit:junit:${versions.junit}"
+    ]
 }
 
 plugins {

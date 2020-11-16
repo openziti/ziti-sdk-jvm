@@ -16,7 +16,6 @@
 
 plugins {
     id("java")
-    id("application")
 }
 
 
@@ -27,8 +26,4 @@ dependencies {
 compileJava {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-application {
-    mainClassName = "org.openziti.sample.Sample"
 }

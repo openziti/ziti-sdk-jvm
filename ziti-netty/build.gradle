@@ -27,10 +27,11 @@ repositories {
 dependencies {
     api(project(':ziti'))
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.10"
+    implementation deps.kotlin
     implementation "io.netty:netty-all:4.1.54.Final"
 
-    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:1.4.10"
+    testImplementation deps.junit
+    testImplementation deps.kotlinTest
     testImplementation "com.google.code.gson:gson:2.8.6"
 }
 
