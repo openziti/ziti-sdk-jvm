@@ -16,11 +16,6 @@
 
 package org.openziti.identity
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
-import com.github.ajalt.clikt.parameters.options.validate
-import com.github.ajalt.clikt.parameters.types.file
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.x500.X500Name
@@ -31,9 +26,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.openziti.util.*
 import java.io.ByteArrayOutputStream
-import java.io.FileNotFoundException
 import java.io.OutputStreamWriter
-import java.net.InetAddress
 import java.net.URL
 import java.net.URLEncoder
 import java.security.KeyPairGenerator
@@ -74,30 +67,6 @@ class Enroller(
 
             Enroller(zitiJwt.enrollmentURL, Method.valueOf(method), name, controllerCA)
         }
-
-        private class Cli : CliktCommand(name = "ziti-enroller") {
-            val jwt by option(help = "Enrollment token (JWT file). Required").file().required().validate {
-                it.exists() || throw FileNotFoundException("jwt[${it.path}] not found")
-            }
-            val out by option(help = "Output configuration file.").file().required().validate {
-                it.exists() && throw FileAlreadyExistsException(it, null, "identity file already exists")
-            }
-
-            override fun run() {
-                val enroller = fromJWT(jwt.readText())
-                val store = KeyStore.getInstance("PKCS12").apply {
-                    load(null)
-                }
-
-                enroller.enroll(null, store, InetAddress.getLocalHost().hostName)
-
-                store.store(out.outputStream(), charArrayOf())
-            }
-
-        }
-
-        @JvmStatic
-        fun main(args: Array<String>) = Cli().main(args)
     }
 
     fun enroll(cert: KeyStore.Entry?, keyStore: KeyStore, n: String): String {

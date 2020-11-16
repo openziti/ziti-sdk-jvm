@@ -16,7 +16,6 @@
 
 plugins {
     id("java-library")
-    id("application")
     id("org.jetbrains.kotlin.jvm")
     id "com.jfrog.bintray"
 }
@@ -44,17 +43,10 @@ dependencies {
         exclude module: 'slf4j-api'
     }
 
-    implementation('com.github.ajalt:clikt:2.7.0')
-
     testImplementation deps.junit
     testImplementation deps.kotlinTest
     testImplementation deps.kotlinCoroutinesTest
     testImplementation deps.slf4jSimple
-}
-
-application {
-    mainClassName = "org.openziti.identity.Enroller"
-    applicationName = "ziti-enroller"
 }
 
 compileJava {
