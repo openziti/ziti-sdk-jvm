@@ -17,7 +17,6 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id("java")
-    id("application")
 }
 
 dependencies {
@@ -26,8 +25,3 @@ dependencies {
     implementation "com.github.ajalt:clikt:2.7.0"
     implementation deps.slf4jSimple
 }
-
-application {
-    mainClassName = "org.openziti.sample.netty.HttpSample"
-}
-

@@ -16,15 +16,9 @@
 
 plugins {
     id("java")
-    id("application")
 }
 
 dependencies {
     implementation project(':ziti')
     implementation deps.slf4jSimple
 }
-
-application {
-    mainClassName = "org.openziti.sample.http.HttpSample"
-}
-

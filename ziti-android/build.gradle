@@ -43,9 +43,8 @@ android {
         buildConfigField "String", "GIT_COMMIT", "\"${semver.info.shortCommit}\""
         buildConfigField "String", "GIT_BRANCH", "\"${semver.info.branch.id}\""
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        //testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
     }
 
@@ -88,7 +87,7 @@ dependencies {
 
     testImplementation deps.junit
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation 'com.android.support:support-compat:28.0.0'
     implementation 'com.android.support:localbroadcastmanager:28.0.0'
