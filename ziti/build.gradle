@@ -87,27 +87,15 @@ tasks {
     }
 }
 
-task sourcesJar(type: Jar) {
+tasks.register('sourcesJar', Jar) {
     from sourceSets.main.java.srcDirs
     from sourceSets.main.kotlin.srcDirs
     classifier "sources"
 }
 
-dokka {
-    outputFormat = 'html'
-    configuration {
-        jdkVersion = 8
-        sourceLink {
-            path = "src/main/kotlin"
-            url = "https://github.com/openziti/ziti-sdk-jvm/blob/master/ziti/src/main/kotlin"
-            lineSuffix = "#L"
-        }
-    }
-}
-
-task dokkaJar(type: Jar, dependsOn: dokka) {
+tasks.register('dokkaJar', Jar) {
     classifier('javadoc')
-    from dokka.outputDirectory
+    from dokkaJavadoc.outputDirectory
 }
 
 artifacts {
