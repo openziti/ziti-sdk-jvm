@@ -94,22 +94,14 @@ dependencies {
 }
 
 
-task sourceJar(type: Jar) {
+tasks.register('sourceJar', Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier "sources"
 }
 
-dokka {
-    outputFormat = 'html'
-    configuration {
-        jdkVersion = 8
-    }
-}
-
-tasks.create('dokkaJar', Jar) {
-    dependsOn dokka
+tasks.register('dokkaJar', Jar) {
     classifier('javadoc')
-    from dokka.outputDirectory
+    from dokkaJavadoc.outputDirectory
 }
 
 afterEvaluate {
