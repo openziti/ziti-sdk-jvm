@@ -192,7 +192,7 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
                     |${Build.MANUFACTURER}: ${Build.MODEL}
                     |Android Version: ${Build.VERSION.RELEASE}
                     |Android-SDK: ${Build.VERSION.SDK_INT}
-                    |Ziti Version: "${BuildConfig.VERSION_NAME}(${Version.revision})"
+                    |Ziti Version: "${BuildConfig.ZITI_VERSION}(${Version.revision})"
                     |
                     |Enrollments:
                     |${ids}
