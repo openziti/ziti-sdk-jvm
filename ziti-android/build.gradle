@@ -38,10 +38,10 @@ android {
         minSdkVersion 26
         targetSdkVersion 30
         versionCode 1
-        versionName "${project.version}"
 
         buildConfigField "String", "GIT_COMMIT", "\"${semver.info.shortCommit}\""
         buildConfigField "String", "GIT_BRANCH", "\"${semver.info.branch.id}\""
+        buildConfigField "String", "ZITI_VERSION", "\"${project.version}\""
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
