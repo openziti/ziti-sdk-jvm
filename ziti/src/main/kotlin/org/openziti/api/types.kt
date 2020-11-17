@@ -18,7 +18,25 @@ package org.openziti.api
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.google.gson.TypeAdapter
+import com.google.gson.annotations.JsonAdapter
+import com.google.gson.annotations.SerializedName
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import java.util.*
+
+internal const val InterceptConfig = "ziti-tunneler-client.v1"
+internal enum class SessionType {
+    Dial,
+    Bind
+}
+
+enum class PostureQueryType {
+    OS,
+    MAC,
+    DOMAIN,
+    PROCESS
+}
 
 internal data class ClientInfo(val sdkInfo: Map<*, *>, val envInfo: Map<*, *>, val configTypes: Array<String>)
 
@@ -28,10 +46,6 @@ internal class Meta(val pagination: Pagination?)
 internal class Pagination(val limit: Int, val offset: Int, val totalCount: Int)
 internal data class Id(val id: String)
 
-internal enum class SessionType {
-    Dial,
-    Bind
-}
 internal class SessionReq(val serviceId: String, val type: SessionType = SessionType.Dial)
 
 data class ControllerVersion(val buildDate: String, val revision: String, val runtimeVersion: String, val version: String)
@@ -39,17 +53,52 @@ internal class Login(val username: String, val password: String)
 internal class ApiSession(val id: String, val token: String, val identity: Identity?)
 
 data class ServiceDNS(val hostname: String, val port: Int)
-data class Service internal constructor(
+class Service internal constructor(
     val id: String, val name: String,
     val encryptionRequired: Boolean,
     internal val permissions: Set<SessionType>,
+
+    @SerializedName("postureQueries")
+    internal val postureSets: Array<PostureSet>?,
+
     internal val config: Map<String,JsonObject>) {
 
     val dns: ServiceDNS?
         get() = getConfig(InterceptConfig, ServiceDNS::class.java)
 
-    fun <C> getConfig(configType: String, cls: Class<out C>): C? {
-        return Gson().fromJson(config[configType],cls)
+    fun <C> getConfig(configType: String, cls: Class<out C>): C? = Gson().fromJson(config[configType],cls)
+}
+
+data class PostureQueryProcess (
+    val osType: String,
+    val path: String,
+)
+
+data class PostureQuery (
+    val queryType: PostureQueryType,
+    val id: String,
+    val isPassing: Boolean,
+    val process: PostureQueryProcess?
+)
+
+internal data class PostureSet (
+    val isPassing: Boolean,
+    val policyId: String,
+    val postureQueries: Array<PostureQuery>?
+)
+
+@JsonAdapter(PostureResponseAdapter::class)
+class PostureResponse (val id: String, val typeId: PostureQueryType, val data: Data) {
+    abstract class Data
+    class OS(val type: String, val version: String, val build: String) : Data()
+    class Domain(val domain: String): Data()
+    class MAC(val macAddresses: Array<String>): Data()
+
+    companion object {
+        fun OS(id: String, name: String, version: String, build: String) =
+            PostureResponse(id, PostureQueryType.OS, OS(name, version, build))
+        fun MAC(id: String, macs: Array<String>) =
+            PostureResponse(id, PostureQueryType.MAC, MAC(macs))
     }
 }
 
@@ -91,4 +140,25 @@ internal class CreateIdentity(val name: String, val type: String, enrollmentType
     val enrollment = EnrollmentType(enrollmentType.equals("ott"))
 }
 
-internal const val InterceptConfig = "ziti-tunneler-client.v1"
+class PostureResponseAdapter: TypeAdapter<PostureResponse>() {
+    override fun write(out: JsonWriter, value: PostureResponse) {
+        out.beginObject()
+        out.name("typeId")
+        out.value(value.typeId.name)
+        out.name("id")
+        out.value(value.id)
+
+        val dataTree = Gson().toJsonTree(value.data) as JsonObject
+        dataTree.entrySet().forEach {
+            out.name(it.key)
+            out.jsonValue(Gson().toJson(it.value))
+        }
+
+        out.endObject()
+    }
+
+    override fun read(`in`: JsonReader?): PostureResponse {
+        TODO("Not yet implemented")
+    }
+
+}

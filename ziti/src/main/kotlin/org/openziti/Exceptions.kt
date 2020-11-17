@@ -23,6 +23,7 @@ sealed class Errors {
     object NotAuthorized: Errors()
     object EdgeRouterUnavailable: Errors()
     object ServiceNotAvailable: Errors()
+    object InsufficientSecurity: Errors()
     data class WTF(val err: String): Errors()
 
     override fun toString(): String = javaClass.simpleName
@@ -33,7 +34,8 @@ private val errorMap = mapOf(
     "INVALID_AUTHENTICATION" to Errors.NotAuthorized,
     "REQUIRES_CERT_AUTH" to Errors.NotAuthorized,
     "UNAUTHORIZED" to Errors.NotAuthorized,
-    "INVALID_AUTH" to Errors.NotAuthorized
+    "INVALID_AUTH" to Errors.NotAuthorized,
+    "INVALID_POSTURE" to Errors.InsufficientSecurity
 )
 
 fun getZitiError(err: String): Errors = errorMap.getOrElse(err) { Errors.WTF(err) }
