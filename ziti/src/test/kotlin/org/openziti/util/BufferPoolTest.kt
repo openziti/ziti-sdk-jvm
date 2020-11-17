@@ -16,7 +16,17 @@
 
 package org.openziti.util
 
+import com.google.gson.Gson
+import com.google.gson.TypeAdapter
+import com.google.gson.annotations.JsonAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
@@ -45,6 +55,58 @@ class BufferPoolTest {
             pool.put(b2)
             val b3 = withTimeout(10) { pool.get() }
             assertEquals(b3.capacity(), pool.bufferSize)
+        }
+    }
+
+    class PostureJsonAdapter: TypeAdapter<PostureResp>() {
+        val gson = Gson()
+        override fun write(out: JsonWriter, value: PostureResp) {
+
+            out.beginObject()
+            out.name("id")
+            out.value(value.id)
+            out.name("type")
+            out.value(value.kind)
+
+
+            val ad = gson.getAdapter(value.data.javaClass)
+            val dO = ad.toJsonTree(value.data).asJsonObject
+            dO.entrySet().forEach { e ->
+                out.name(e.key)
+                gson.getAdapter(e.value.javaClass).write(out, e.value)
+            }
+
+            out.endObject()
+        }
+
+        override fun read(`in`: JsonReader?): PostureResp {
+            TODO("Not yet implemented")
+        }
+    }
+
+    data class PostureRespOs(val name: String, val version: String)
+    @JsonAdapter(PostureJsonAdapter::class)
+    data class PostureResp(val id: String, val kind: String, val data: Any)
+    @Test
+    fun testOS() {
+
+        runBlocking {
+
+            val f = channelFlow {
+                println("starting flow")
+                for (i in 0..100) {
+                    delay(100)
+                    send(i)
+                }
+            }.conflate()
+            println("taking 10")
+            f.take(10).collect {
+                println(it)
+            }
+
+            delay(2000)
+
+            f.collect { println(it) }
         }
     }
 }
