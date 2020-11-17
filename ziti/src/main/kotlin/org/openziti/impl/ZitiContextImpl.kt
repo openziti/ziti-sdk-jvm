@@ -28,6 +28,7 @@ import org.openziti.net.ZitiServerSocketChannel
 import org.openziti.net.ZitiSocketChannel
 import org.openziti.net.dns.ZitiDNSManager
 import org.openziti.net.nio.AsychChannelSocket
+import org.openziti.posture.PostureService
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.net.InetSocketAddress
@@ -67,6 +68,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private var apiSession: ApiSession? = null
     private var apiId: ApiIdentity? = null
     private val controller: Controller
+    private val postureService = PostureService()
+
     private val statusCh: MutableStateFlow<ZitiContext.Status>
             = MutableStateFlow(if (enabled) ZitiContext.Status.Loading else ZitiContext.Status.Disabled)
 
@@ -396,6 +399,18 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 servicesByAddr.put(addr, s)
 
                 d("[${name()}] service[${s.name}] => $addr")
+            }
+
+            s.postureSets?.forEach {
+                it.postureQueries?.forEach {
+                    postureService.registerServiceCheck(s.id, it)
+                }
+            }
+        }
+
+        runBlocking {
+            postureService.getPosture().forEach {
+                controller.sendPostureResp(it)
             }
         }
 
