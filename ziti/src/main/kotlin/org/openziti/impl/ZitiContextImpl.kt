@@ -241,32 +241,21 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal fun getNetworkSession(service: Service, st: SessionType): Session = runBlocking {
+    internal suspend fun getNetworkSession(service: Service, st: SessionType): Session {
         d("getNetworkSession(${service.name})")
 
         _enabled || throw ZitiException(Errors.ServiceNotAvailable)
 
         checkServicesLoaded()
 
-        networkSessions.getOrPut(SessionKey(service.id, st)) {
+        return networkSessions.getOrPut(SessionKey(service.id, st)) {
             val netSession = controller.createNetSession(service, st)
             t("received $netSession for service[${service.name}]")
             netSession
         }
     }
 
-    internal fun getNetworkSessionByID(servId: String, st: SessionType): Session {
-        checkServicesLoaded()
-
-        servicesById.get(servId)?.let {
-            if (it.permissions.contains(st))
-                return getNetworkSession(it, st)
-        }
-
-        throw ZitiException(Errors.ServiceNotAvailable)
-    }
-
-    internal fun getNetworkSession(name: String, st: SessionType): Session {
+    internal suspend fun getNetworkSession(name: String, st: SessionType): Session {
         checkServicesLoaded()
 
         val service = servicesByName.get(name) ?: throw ZitiException(Errors.ServiceNotAvailable)

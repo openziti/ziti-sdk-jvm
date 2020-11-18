@@ -152,6 +152,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             }.onSuccess {
                 handler.completed(null, attachment)
             }.onFailure {
+                e(it){"failed to connect"}
                 chPromise.completeExceptionally(it)
                 close()
                 handler.failed(it, attachment)
@@ -220,10 +221,10 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                     }
                     d("closing conn = ${this.connId}")
                     runBlocking {
-                        channel.runCatching {
-                            SendSynch(closeMsg)
+                        runCatching {
+                            channel.SendSynch(closeMsg)
                         }.onFailure {
-                            w{"failed to send StateClosed message: $it"}
+                            w { "failed to send StateClosed message: $it" }
                         }
                     }
                     state.set(State.closed)
