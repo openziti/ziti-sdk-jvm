@@ -16,6 +16,7 @@
 
 package org.openziti.api
 
+import com.google.gson.JsonObject
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
@@ -79,6 +80,9 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         @POST("sessions")
         fun createNetworkSession(@Body req: SessionReq): Deferred<Response<Session>>
 
+        @POST("posture-response")
+        fun sendPosture (@Body pr: PostureResponse): Deferred<Response<JsonObject>>
+
         @DELETE("{p}")
         fun delete(@Header("zt-session") session: String, @Path("p", encoded = true) path: String): Call<Response<Unit>>
     }
@@ -132,7 +136,7 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
                 val resp = call.await()
                 apiSession = resp.data!!
             } catch (ex: Exception) {
-                return convertError(ex)
+                convertError(ex)
             }
         }
         return apiSession!!
@@ -205,11 +209,15 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
             val response = api.createNetworkSession(SessionReq(s.id, t)).await()
             return response.data!!
         } catch (ex: Exception) {
-            return convertError(ex)
+            convertError(ex)
         }
     }
 
-    private fun <T> convertError(t: Throwable): T {
+    internal suspend fun sendPostureResp(pr: PostureResponse) {
+        api.sendPosture(pr).await()
+    }
+
+    private fun convertError(t: Throwable): Nothing {
         e("error $t", t)
         when (t) {
             is HttpException -> throw ZitiException(getZitiError(getError(t.response())))

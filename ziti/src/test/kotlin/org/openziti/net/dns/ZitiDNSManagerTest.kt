@@ -34,7 +34,7 @@ class ZitiDNSManagerTest {
         }
         ZitiDNSManager.registerService(
             Service(id = "id", name = "name", encryptionRequired = false, permissions = emptySet(),
-                config = mapOf(InterceptConfig to dns))
+                config = mapOf(InterceptConfig to dns), postureSets = null)
         )
 
         assertEquals(1, events.size)
