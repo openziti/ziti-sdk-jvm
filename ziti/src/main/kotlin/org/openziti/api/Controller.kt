@@ -30,6 +30,7 @@ import org.openziti.getZitiError
 import org.openziti.net.nio.AsychChannelSocket
 import org.openziti.net.nio.AsyncTLSSocketFactory
 import org.openziti.util.Logged
+import org.openziti.util.SystemInfoProvider
 import org.openziti.util.Version
 import org.openziti.util.ZitiLog
 import retrofit2.Call
@@ -257,12 +258,7 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
 
     private fun getClientInfo(): ClientInfo = ClientInfo(
         sdkInfo = SdkInfo,
-        envInfo = mapOf(
-            "os" to System.getProperty("os.name"),
-            "osRelease" to System.getProperty("java.vm.version"),
-            "osVersion" to System.getProperty("os.version"),
-            "arch" to System.getProperty("os.arch")
-        ),
+        envInfo = SystemInfoProvider().getSystemInfo(),
         configTypes = arrayOf(InterceptConfig)
     )
 }

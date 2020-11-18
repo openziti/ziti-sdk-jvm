@@ -23,6 +23,7 @@ import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import org.openziti.util.SystemInfo
 import java.util.*
 
 internal const val InterceptConfig = "ziti-tunneler-client.v1"
@@ -38,7 +39,7 @@ enum class PostureQueryType {
     PROCESS
 }
 
-internal data class ClientInfo(val sdkInfo: Map<*, *>, val envInfo: Map<*, *>, val configTypes: Array<String>)
+internal data class ClientInfo(val sdkInfo: Map<*, *>, val envInfo: SystemInfo, val configTypes: Array<String>)
 
 internal class Response<T>(val meta: Meta, val data: T?, val error: Error?)
 internal data class Error(val code: String, val message: String, val cause: JsonObject, val field: String?)
