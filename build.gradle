@@ -28,7 +28,7 @@ buildscript {
 
     ext.versions = [
             kotlin: '1.4.10',
-            coroutines: '1.4.1',
+            coroutines: '1.4.1-native-mt',
             slf4j: '1.7.30',
             junit: '4.13.1'
     ]
