@@ -27,7 +27,7 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
 
 
-class ZitiChannel(parent: ServerChannel, val peer: AsynchronousSocketChannel):
+class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
     AbstractChannel(parent),
     Logged by ZitiLog() {
 
@@ -124,7 +124,10 @@ class ZitiChannel(parent: ServerChannel, val peer: AsynchronousSocketChannel):
 
     private inner class AsyncUnsafe: AbstractChannel.AbstractUnsafe() {
         override fun connect(remoteAddress: SocketAddress?, localAddress: SocketAddress?, promise: ChannelPromise) {
-            promise.setFailure(UnsupportedOperationException())
+            peer.connect(remoteAddress, promise, object : CompletionHandler<Void, ChannelPromise>{
+                override fun completed(result: Void?, attachment: ChannelPromise) { promise.trySuccess() }
+                override fun failed(exc: Throwable, attachment: ChannelPromise) { promise.tryFailure(exc) }
+            })
         }
     }
 

@@ -22,21 +22,60 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.file
+import io.netty.bootstrap.Bootstrap
 import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.Channel
-import io.netty.channel.ChannelInitializer
-import io.netty.channel.DefaultEventLoopGroup
-import io.netty.handler.codec.http.HttpRequestDecoder
-import io.netty.handler.codec.http.HttpResponseEncoder
+import io.netty.channel.*
+import io.netty.handler.codec.http.*
 import org.openziti.Ziti
 import org.openziti.ZitiAddress
 import org.openziti.ZitiContext
+import org.openziti.netty.ZitiChannelFactory
 import org.openziti.netty.ZitiServerChannelFactory
+import java.nio.charset.StandardCharsets
 
 object HttpSample {
 
     lateinit var ziti: ZitiContext
 
+    class clientInit: ChannelInitializer<Channel>(){
+        override fun initChannel(ch: Channel) {
+            ch.pipeline()
+                .addLast(HttpClientCodec())
+                .addLast(HttpContentDecompressor())
+                .addLast(object : SimpleChannelInboundHandler<HttpObject>(){
+                    override fun channelRead0(ctx: ChannelHandlerContext, msg: HttpObject) {
+                        when (msg) {
+                            is HttpResponse -> println("================\n$msg\n================\n")
+                            is HttpContent -> {
+                                println(msg.content().toString(StandardCharsets.UTF_8))
+                                ctx.close()
+                            }
+                        }
+                    }
+                })
+        }
+    }
+
+    class client: CliktCommand("client") {
+        val service by option("-s","--service", help = "ziti service to dial").required()
+        val hostname by option( "-H", "--hostname")
+
+        override fun run() {
+            val clt = Bootstrap()
+//                .group(NioEventLoopGroup())
+//                .channel(NioSocketChannel::class.java)
+                .group(DefaultEventLoopGroup())
+                .channelFactory(ZitiChannelFactory(ziti))
+                .handler(clientInit())
+                .connect(ZitiAddress.Dial(service)).sync().channel()
+                .writeAndFlush(
+                    DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/json").apply {
+                        headers().add("host", hostname ?: service)
+                    }
+                )
+                .sync()
+        }
+    }
     class server: CliktCommand("server") {
         val service by argument("service", "ziti service to bind to")
 
@@ -74,7 +113,7 @@ object HttpSample {
     object cli: CliktCommand("http-sample", name = "http-sample") {
         val idFile by option("-i", "--id").file(mustBeReadable = true).required()
         init {
-            subcommands(server())
+            subcommands(server(), client())
         }
         override fun run() {
             ziti = Ziti.newContext(idFile, charArrayOf())
