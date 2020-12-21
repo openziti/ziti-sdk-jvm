@@ -16,6 +16,7 @@
 
 package org.openziti.net.nio
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.isA
 import org.hamcrest.CoreMatchers.startsWith
@@ -45,7 +46,7 @@ class AsyncTLSChannelTest {
     @JvmField val thrown = ExpectedException.none()
 
     @Rule
-    @JvmField val timeout = Timeout.seconds(5)
+    @JvmField val timeout = Timeout.seconds(15)
 
     @After
     fun tearDown() {
@@ -55,8 +56,12 @@ class AsyncTLSChannelTest {
     @Test
     fun connect() {
         ch = AsyncTLSChannel.open()
-        ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+        ch.connect(InetSocketAddress("google.com", 443)).get(60, TimeUnit.SECONDS)
+        runBlocking {
+            delay(10000)
+        }
         verifyConnection(ch)
+
     }
 
     @Test
@@ -150,7 +155,7 @@ User-Agent: HTTPie/1.0.2
         val wc = ch.write(StandardCharsets.US_ASCII.encode(req)).get(1, TimeUnit.SECONDS)
         assertEquals(req.length, wc)
 
-        val resp = ByteBuffer.allocate(16 * 1024)
+        val resp = ByteBuffer.allocate(128)
         val rc = ch.read(resp).get(5, TimeUnit.SECONDS)
         assertEquals(rc, resp.position())
         resp.flip()
