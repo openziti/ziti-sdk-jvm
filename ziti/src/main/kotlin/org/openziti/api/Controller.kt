@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.flow
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
+import okhttp3.logging.HttpLoggingInterceptor
 import org.openziti.Errors
 import org.openziti.ZitiException
 import org.openziti.getZitiError
@@ -44,7 +45,7 @@ import java.net.URL
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
-class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustManager) :
+internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustManager) :
     Logged by ZitiLog() {
     val SdkInfo = mapOf("type" to "ziti-sdk-java") + Version.VersionInfo
 
@@ -65,7 +66,15 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         fun logout(): Deferred<Unit>
 
         @GET("services")
-        fun getServicesAsync(@Query("offset") offset: Int = 0, @Query("limit") limit: Int? = null): Deferred<Response<Collection<Service>>>
+        fun getServicesAsync(@Query("offset") offset: Int = 0, @Query("limit") limit: Int? = null)
+                : Deferred<Response<Collection<Service>>>
+
+        @GET("services/{service_id}/terminators")
+        fun getServiceTerminators(
+            @Path("service_id") service_id: String,
+            @Query("offset") offset: Int = 0,
+            @Query("limit") limit: Int = 100
+        ): Deferred<Response<Collection<ServiceTerminator>>>
 
         @POST("identities")
         fun createIdentity(@Body req: CreateIdentity): Call<Response<Id>>
@@ -92,6 +101,10 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
     internal var apiSession: ApiSession? = null
 
     internal val errorConverter: Converter<ResponseBody, Response<Unit>>
+    internal val loggingInterceptor = HttpLoggingInterceptor().apply {
+        val level = HttpLoggingInterceptor.Level.valueOf(System.getProperty("ZitiControllerDebug", "NONE"))
+        setLevel(level)
+    }
 
     val clt: OkHttpClient
     init {
@@ -99,8 +112,8 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
             socketFactory(AsychChannelSocket.Factory())
             sslSocketFactory(AsyncTLSSocketFactory(sslContext), trustManager)
             cache(null)
-            //addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             addInterceptor(SessionInterceptor())
+            addInterceptor(loggingInterceptor)
         }.build()
 
         val retrofit = Retrofit.Builder()
@@ -164,45 +177,15 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         return req.execute().body()?.data
     }
 
-    internal fun getServices() = flow {
-        var req = api.getServicesAsync()
-
-        while (true) {
-            val resp = req.await()
-            resp.data?.let {
-                for (s in it) emit(s)
-            }
-
-            val p = resp.meta.pagination ?: break
-            val nextOffset = p.offset + p.limit
-            if (p.totalCount <= nextOffset)
-                break
-
-            req = api.getServicesAsync(nextOffset)
-        }
+    internal fun getServices() = pagingRequest {
+        offset -> api.getServicesAsync(offset = offset)
     }
 
-    internal fun getSessions(): Flow<Session> = flow {
+    internal fun getSessions(): Flow<Session> {
         val sessionFilter = apiSession?.let {
             "apiSession=\"${it.id}\""
         }
-
-        var req = api.getSessionsAsync(filter = sessionFilter)
-
-        while(true) {
-            val resp = req.await()
-            t{"received ${resp.data?.size} sessions"}
-            resp.data?.let {
-                for (s in it) emit(s)
-            }
-
-            val p = resp.meta.pagination ?: break
-            val nextOffset = p.offset + p.limit
-            if (p.totalCount <= nextOffset)
-                break
-
-            req = api.getSessionsAsync(sessionFilter, nextOffset)
-        }
+        return pagingRequest { offset ->  api.getSessionsAsync(sessionFilter, offset = offset) }
     }
 
     internal suspend fun createNetSession(s: Service, t: SessionType): Session {
@@ -212,6 +195,23 @@ class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustM
         } catch (ex: Exception) {
             convertError(ex)
         }
+    }
+
+    internal fun getServiceTerminators(s: Service): Flow<ServiceTerminator> = pagingRequest {
+            offset ->  api.getServiceTerminators(s.id, offset = offset)
+    }
+
+    private fun <T> pagingRequest(req: (offset: Int) -> Deferred<Response<Collection<T>>>) = flow {
+        var offset = 0
+        do {
+            val resp = req(offset).await()
+            resp.data?.let {
+                it.forEach { st -> emit(st) }
+            }
+
+            val pagination = resp.meta.pagination!!
+            offset = pagination.offset + pagination.limit
+        } while(pagination.totalCount > offset)
     }
 
     internal suspend fun sendPostureResp(pr: PostureResponse) {

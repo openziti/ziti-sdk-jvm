@@ -16,8 +16,7 @@
 
 package org.openziti.api
 
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
 import org.junit.After
@@ -103,5 +102,16 @@ internal class ControllerTest {
                 println(it)
             }
         }
+    }
+
+    @Test
+    fun testTerminators() = runBlocking {
+        val s = ctrl.login()
+        val service = ctrl.getServices().filter {
+            it.permissions == setOf(SessionType.Bind, SessionType.Dial)
+        }.first()
+
+        //val terminatorResp = ctrl.api.getServiceTerminators(service_id = service.id)
+       // println(terminatorResp.await().data)
     }
 }
