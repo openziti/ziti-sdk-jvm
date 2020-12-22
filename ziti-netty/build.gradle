@@ -28,7 +28,7 @@ dependencies {
     api(project(':ziti'))
 
     implementation deps.kotlin
-    implementation "io.netty:netty-all:4.1.55.Final"
+    implementation "io.netty:netty-all:4.1.56.Final"
 
     testImplementation deps.junit
     testImplementation deps.kotlinTest
