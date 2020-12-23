@@ -19,6 +19,7 @@ package org.openziti.net.nio
 import kotlinx.coroutines.CompletableDeferred
 import java.net.SocketAddress
 import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
 import java.util.concurrent.CompletableFuture
@@ -46,6 +47,10 @@ internal class DeferredHandler<A>: CompletionHandler<A, CompletableDeferred<A>> 
 internal class ContinuationHandler<A>: CompletionHandler<A, Continuation<A>> {
     override fun completed(result: A, cont: Continuation<A>) = cont.resume(result)
     override fun failed(exc: Throwable, cont: Continuation<A>) = cont.resumeWithException(exc)
+}
+
+suspend fun AsynchronousServerSocketChannel.acceptSuspend() = suspendCoroutine<AsynchronousSocketChannel> {
+    this.accept(it, ContinuationHandler())
 }
 
 suspend fun AsynchronousSocketChannel.readSuspend(b: ByteBuffer) = suspendCoroutine<Int> {
