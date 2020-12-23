@@ -116,6 +116,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         emitAll(serviceCh)
     }
 
+    override fun getServiceTerminators(service: Service): Collection<ServiceTerminator> = runBlocking {
+        controller.getServiceTerminators(service).toCollection(mutableListOf())
+    }
+
     private fun updateStatus(s: ZitiContext.Status) {
         if (statusCh.value != ZitiContext.Status.Disabled) {
             statusCh.value = s

@@ -104,14 +104,4 @@ internal class ControllerTest {
         }
     }
 
-    @Test
-    fun testTerminators() = runBlocking {
-        val s = ctrl.login()
-        val service = ctrl.getServices().filter {
-            it.permissions == setOf(SessionType.Bind, SessionType.Dial)
-        }.first()
-
-        //val terminatorResp = ctrl.api.getServiceTerminators(service_id = service.id)
-       // println(terminatorResp.await().data)
-    }
 }
