@@ -22,7 +22,6 @@ buildscript {
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    id 'kotlin-android-extensions'
     id 'com.jfrog.bintray'
     id 'org.jetbrains.dokka'
 }
@@ -70,7 +69,7 @@ repositories {
     jcenter()
     google()
     maven { // needed to lazysodium-android
-        url = "https://netfoundry.jfrog.io/netfoundry/ziti-maven"
+        url = "https://dl.bintray.com/terl/lazysodium-maven"
     }
 }
 
@@ -79,7 +78,7 @@ dependencies {
         exclude module:"lazysodium-java"
         exclude module:"jna"
     }
-    embed("com.goterl.lazycode:lazysodium-android:4.1.1@aar")
+    embed("com.goterl.lazycode:lazysodium-android:4.2.0@aar")
     embed('net.java.dev.jna:jna:5.6.0@aar')
 
     implementation deps.kotlin
