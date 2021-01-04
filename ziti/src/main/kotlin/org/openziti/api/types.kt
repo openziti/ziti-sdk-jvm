@@ -46,6 +46,8 @@ internal data class Error(val code: String, val message: String, val cause: Json
 internal class Meta(val pagination: Pagination?)
 internal class Pagination(val limit: Int, val offset: Int, val totalCount: Int)
 internal data class Id(val id: String)
+data class Link(val href: String)
+abstract class ApiObject(val _links: Map<String, Link>? = null)
 
 internal class SessionReq(val serviceId: String, val type: SessionType = SessionType.Dial)
 
@@ -55,7 +57,7 @@ internal class ApiSession(val id: String, val token: String, val identity: Ident
 
 data class ServiceDNS(val hostname: String, val port: Int)
 class Service internal constructor(
-    val id: String, val name: String,
+    internal val id: String, val name: String,
     val encryptionRequired: Boolean,
     internal val permissions: Set<SessionType>,
 
@@ -69,6 +71,11 @@ class Service internal constructor(
 
     fun <C> getConfig(configType: String, cls: Class<out C>): C? = Gson().fromJson(config[configType],cls)
 }
+
+data class ServiceTerminator internal constructor(
+    val id: String,
+    val identity: String
+)
 
 data class PostureQueryProcess (
     val osType: String,

@@ -18,6 +18,7 @@ package org.openziti
 
 import kotlinx.coroutines.flow.Flow
 import org.openziti.api.Service
+import org.openziti.api.ServiceTerminator
 import org.openziti.identity.Identity
 import java.net.Socket
 import java.nio.channels.AsynchronousServerSocketChannel
@@ -56,6 +57,8 @@ interface ZitiContext: Identity {
     fun statusUpdates(): Flow<Status>
     fun serviceUpdates(): Flow<ServiceEvent>
     fun getId(): ApiIdentity?
+
+    fun getServiceTerminators(service: Service): Collection<ServiceTerminator>
 
     /**
      * connect to Ziti service.
