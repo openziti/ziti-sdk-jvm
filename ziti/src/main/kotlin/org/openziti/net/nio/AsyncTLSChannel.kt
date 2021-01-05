@@ -82,8 +82,6 @@ class AsyncTLSChannel(
         override fun openAsynchronousChannelGroup(executor: ExecutorService?, initialSize: Int): AsynchronousChannelGroup = Group(this)
     }
 
-
-
     constructor(ch: AsynchronousSocketChannel, ssl: SSLContext) : this(ch, ssl, Provider)
     constructor(ssl: SSLContext): this(AsynchronousSocketChannel.open(),ssl)
 
@@ -103,6 +101,7 @@ class AsyncTLSChannel(
     internal val transport: AsynchronousSocketChannel = ch
     internal lateinit var engine: SSLEngine
 
+    private val sslInBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE * 2)
     private val sslIn = Channel<ByteBuffer>(POOL_SIZE)
     private val plainIn = Channel<ByteBuffer>(1)
     private val sslbuf = ByteBuffer.allocateDirect(2 * SSL_BUFFER_SIZE).apply { flip() }
@@ -146,128 +145,17 @@ class AsyncTLSChannel(
         }
     }
 
-    internal fun flowRead() = GlobalScope.launch(Dispatchers.IO) {
-        val sslPool = BufferPool(POOL_SIZE, SSL_BUFFER_SIZE)
 
-        d{"start flowRead()"}
-        engine.sslParameters.maximumPacketSize
-        val sslInBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE * 2)
-        flow {
-            while(true) {
-                w{"getting pooled buffer"}
-                emit(sslPool.get())
-            }
-        }.map {
-            w{"reading"}
-            val read = transport.readSuspend(it)
-            w{"read = $read"}
-            if (read < 0) {
-                sslPool.put(it)
-                plainIn.close()
-                cancel()
-                null
-            } else it.flip()
-        }.collect {
-            if (it == null) {
-                e{"cancelling"}
-                plainIn.close()
-                cancel()
-            }
-            else {
-                sslInBuf.put(it)
-                sslPool.put(it)
-                sslInBuf.flip()
-                w { "ssl in = $sslInBuf"}
-
-                var plainBuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
-                while(sslInBuf.remaining() > 0) {
-                    val res = engine.unwrap(sslInBuf, plainBuf)
-                    w { "res = $res" }
-
-                    if (res.status == OK) {
-                        when (res.handshakeStatus) {
-                            NOT_HANDSHAKING, FINISHED -> {
-                                if (!handshake.isCompleted) handshake.complete(engine.session)
-                            }
-                            else -> continueHS(res, sslInBuf)
-                        }
-                    } else if (res.status == BUFFER_UNDERFLOW) {
-                        break;
-                    } else if (res.status == BUFFER_OVERFLOW) {
-                        plainBuf.flip()
-                        plainIn.send(plainBuf)
-                        plainBuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
-                    }
-                }
-                plainBuf.flip()
-                if (plainBuf.hasRemaining()) {
-                    plainIn.send(plainBuf)
-                }
-                sslInBuf.compact()
-            }
-        }
-    }
-
-    internal suspend fun continueHS(res: SSLEngineResult, sslInBuf: ByteBuffer) {
-        val hsBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
-        val hss = res.handshakeStatus
-        while(true) {
-            d {"engine.handshakeStatus = ${engine.handshakeStatus}"}
-            when (engine.handshakeStatus!!) {
-                NEED_TASK -> CompletableFuture.supplyAsync { engine.delegatedTask.run() }.await()
-                NEED_WRAP -> {
-                    while (engine.handshakeStatus == NEED_WRAP) {
-                        engine.wrap(EMPTY, hsBuf)
-                    }
-
-                    hsBuf.flip()
-                    d { "hsbuf = $hsBuf" }
-                    transport.writeSuspend(hsBuf)
-                }
-                NEED_UNWRAP, NEED_UNWRAP_AGAIN -> {
-                    while (engine.handshakeStatus == NEED_UNWRAP) {
-                        if (engine.unwrap(sslInBuf, hsBuf).status == BUFFER_UNDERFLOW)
-                            return
-                    }
-                }
-                FINISHED, NOT_HANDSHAKING -> {
-                    handshake.complete(engine.session)
-                    state = State.connected
-                    return
-                }
-            }
-        }
-    }
 
     internal suspend fun postConnect(addr: InetSocketAddress) {
-        state = State.connecting
+        state = State.handshaking
         engine = ssl.createSSLEngine(addr.hostName, addr.port)
-        engine.useClientMode = true;
+        engine.useClientMode = true
         engine.beginHandshake()
 
         flowRead()
-
         d{"engine status = ${engine.handshakeStatus}"}
-
-        val hsBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
-        while(engine.handshakeStatus == NEED_WRAP) {
-            engine.wrap(EMPTY, hsBuf)
-        }
-        hsBuf.flip()
-        d{"hsbuf = $hsBuf"}
-        transport.writeSuspend(hsBuf)
-
-//        runCatching { doHandshake(true) }
-//            .onSuccess {
-//                handshake.complete(it)
-//                state = State.connected
-//                reader.startRead()
-//            }
-//            .onFailure {
-//                handshake.completeExceptionally(it)
-//                state = State.closed
-//                e(it){"SSL handshake error"}
-//            }
+        continueHS(EMPTY)
     }
 
     override fun <A : Any?> connect(remote: SocketAddress, attachment: A, handler: CompletionHandler<Void?, in A>?) {
@@ -344,7 +232,7 @@ class AsyncTLSChannel(
         handler: CompletionHandler<Long, in A>?
     ) {
         requireNotNull(handler){"handler is required"}
-        checkState(State.connected)
+        checkState(State.connecting, State.handshaking, State.connected)
 
         if (closeWrite.get()) {
             e{"cannot write after shutdownOutput() was called"}
@@ -357,6 +245,10 @@ class AsyncTLSChannel(
 
         GlobalScope.launch(Dispatchers.IO) {
             runCatching {
+                if (state == State.connecting) {
+                    postConnect(transport.remoteAddress as InetSocketAddress)
+                }
+                handshake.await()
                 val sslbuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
                 val res = engine.wrap(srcs, offset, length, sslbuf)
 
@@ -465,7 +357,6 @@ class AsyncTLSChannel(
 
             var eof = false
             try {
-                    // TODO timeout
                 val inFlow = plainIn.receiveAsFlow()
                 val inBuf = if (timeout > 0) withTimeout(timeout) {inFlow.firstOrNull()} else inFlow.firstOrNull()
                 if (inBuf != null) {
@@ -568,6 +459,99 @@ class AsyncTLSChannel(
             State.connecting, State.handshaking -> throw ConnectionPendingException()
             State.connected -> throw AlreadyConnectedException()
             State.initial -> throw NotYetConnectedException()
+        }
+    }
+
+    internal fun flowRead() = GlobalScope.launch(Dispatchers.IO) {
+        val sslPool = BufferPool(POOL_SIZE, SSL_BUFFER_SIZE)
+
+        d{"start flowRead()"}
+        engine.sslParameters.maximumPacketSize
+
+        flow {
+            while(true) {
+                w{"getting pooled buffer"}
+                emit(sslPool.get())
+            }
+        }.map {
+            val read = transport.readSuspend(it)
+            if (read < 0) {
+                sslPool.put(it)
+                plainIn.close()
+                cancel()
+                null
+            } else
+                it.flip()
+        }.collect {
+            if (it == null) {
+                e{"cancelling"}
+                plainIn.close()
+                cancel()
+            }
+            else {
+                sslInBuf.put(it)
+                sslPool.put(it)
+                sslInBuf.flip()
+                w { "ssl in = $sslInBuf"}
+
+                var plainBuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
+                while(sslInBuf.remaining() > 0) {
+                    val res = engine.unwrap(sslInBuf, plainBuf)
+                    w { "res = $res" }
+
+                    if (res.status == OK) {
+                        when (res.handshakeStatus) {
+                            NOT_HANDSHAKING, FINISHED -> {
+                                if (!handshake.isCompleted) handshake.complete(engine.session)
+                            }
+                            else -> continueHS(sslInBuf)
+                        }
+                    } else if (res.status == BUFFER_UNDERFLOW) {
+                        break
+                    } else if (res.status == BUFFER_OVERFLOW) {
+                        plainBuf.flip()
+                        plainIn.send(plainBuf)
+                        plainBuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
+                    } else if (res.status == CLOSED) {
+                        plainIn.close()
+                    }
+                }
+                plainBuf.flip()
+                if (plainBuf.hasRemaining()) {
+                    plainIn.send(plainBuf)
+                }
+                sslInBuf.compact()
+            }
+        }
+    }
+
+    internal suspend fun continueHS(sslInBuf: ByteBuffer) {
+        val hsBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
+        while(true) {
+            d {"engine.handshakeStatus = ${engine.handshakeStatus}"}
+            when (engine.handshakeStatus!!) {
+                NEED_TASK -> CompletableFuture.supplyAsync { engine.delegatedTask.run() }.await()
+                NEED_WRAP -> {
+                    while (engine.handshakeStatus == NEED_WRAP) {
+                        engine.wrap(EMPTY, hsBuf)
+                    }
+
+                    hsBuf.flip()
+                    d { "hsbuf = $hsBuf" }
+                    transport.writeSuspend(hsBuf)
+                }
+                NEED_UNWRAP, NEED_UNWRAP_AGAIN -> {
+                    while (engine.handshakeStatus == NEED_UNWRAP) {
+                        if (engine.unwrap(sslInBuf, hsBuf).status == BUFFER_UNDERFLOW)
+                            return
+                    }
+                }
+                FINISHED, NOT_HANDSHAKING -> {
+                    handshake.complete(engine.session)
+                    state = State.connected
+                    return
+                }
+            }
         }
     }
 }

@@ -56,10 +56,7 @@ class AsyncTLSChannelTest {
     @Test
     fun connect() {
         ch = AsyncTLSChannel.open()
-        ch.connect(InetSocketAddress("google.com", 443)).get(60, TimeUnit.SECONDS)
-        runBlocking {
-            delay(10000)
-        }
+        ch.connect(InetSocketAddress("google.com", 443)).get(1, TimeUnit.SECONDS)
         verifyConnection(ch)
 
     }
