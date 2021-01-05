@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,8 @@ class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, 
         listeners.remove(l)?.cancel(false)
     }
 
+    override fun setSSLParameters(params: SSLParameters) = asyncTls.setSSLParameters(params)
+
     override fun getEnabledCipherSuites(): Array<String> = asyncTls.getEnabledCipherSuites()
     override fun getSupportedCipherSuites(): Array<String> = asyncTls.getSupportedCipherSuites()
     override fun setEnabledCipherSuites(p: Array<String>) = asyncTls.setEnabledCipherSuites(p)
@@ -64,7 +66,7 @@ class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, 
     override fun getSupportedProtocols(): Array<String> = asyncTls.getSupportedProtocols()
     override fun setEnabledProtocols(p: Array<String>) = asyncTls.setEnabledProtocols(p)
     override fun getEnabledProtocols(): Array<String> = asyncTls.getEnabledProtocols()
-    override fun getApplicationProtocol(): String? = null
+    override fun getApplicationProtocol(): String? = asyncTls.getApplicationProtocol()
 
     override fun getSoTimeout() = impl.getOption(SO_TIMEOUT) as Int
     override fun setSoTimeout(timeout: Int) = impl.setOption(SO_TIMEOUT, timeout)

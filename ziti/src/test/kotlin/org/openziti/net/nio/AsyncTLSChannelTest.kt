@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,11 @@
 package org.openziti.net.nio
 
 import kotlinx.coroutines.runBlocking
-import org.hamcrest.CoreMatchers.isA
 import org.hamcrest.CoreMatchers.startsWith
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.ExpectedException
 import org.junit.rules.Timeout
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -31,7 +29,6 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.InterruptedByTimeoutException
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLException
@@ -39,10 +36,7 @@ import kotlin.random.Random
 
 class AsyncTLSChannelTest {
 
-    lateinit var ch: AsynchronousSocketChannel
-
-    @Rule
-    @JvmField val thrown = ExpectedException.none()
+    lateinit var ch: AsyncTLSChannel
 
     @Rule
     @JvmField val timeout = Timeout.seconds(5)
@@ -54,22 +48,19 @@ class AsyncTLSChannelTest {
 
     @Test
     fun connect() {
-        ch = AsyncTLSChannel.open()
+        ch = AsyncTLSChannel.open() as AsyncTLSChannel
         ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
         verifyConnection(ch)
     }
 
     @Test
     fun readWithTimeout() {
-        ch = AsyncTLSChannel.open()
+        ch = AsyncTLSChannel.open() as AsyncTLSChannel
         ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
 
         // first read should fail with timeout since we have not sent request yet
-        try {
+        assertThrows(InterruptedByTimeoutException::class.java){
             runBlocking { ch.readSuspend(ByteBuffer.allocate(128), 100, TimeUnit.MILLISECONDS) }
-            fail("expected InterruptedByTimeoutException")
-        } catch (ex: InterruptedByTimeoutException) {
-            // expected
         }
 
         verifyConnection(ch)
@@ -94,11 +85,46 @@ class AsyncTLSChannelTest {
     }
 
     @Test
+    fun testALPN_Unconnected() {
+        val transport = AsynchronousSocketChannel.open()
+        val ssl = SSLContext.getDefault()
+        ch = AsyncTLSChannel(transport, ssl)
+
+        val params = ssl.defaultSSLParameters
+        params.applicationProtocols = arrayOf("h2","http1.1")
+        ch.setSSLParameters(params)
+
+        ch.connect(InetSocketAddress("google.com", 443)).get(1, TimeUnit.SECONDS)
+        ch.startHandshake()
+        ch.getSession()
+        val p = ch.getApplicationProtocol()
+        assertEquals("h2", p)
+    }
+
+    @Test
+    fun testALPN_Connected() {
+        val transport = AsynchronousSocketChannel.open()
+        transport.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+        val ssl = SSLContext.getDefault()
+        ch = AsyncTLSChannel(transport, ssl)
+
+        val params = ssl.defaultSSLParameters
+        params.applicationProtocols = arrayOf("h2","http1.1")
+        ch.setSSLParameters(params)
+
+        ch.startHandshake()
+        ch.getSession()
+        assertEquals("h2", ch.getApplicationProtocol())
+    }
+
+    @Test
     fun sslError() {
-        thrown.expect(ExecutionException::class.java)
-        thrown.expectCause(isA(SSLException::class.java))
-        ch = AsyncTLSChannel.open()
-        ch.connect(InetSocketAddress("httpbin.org", 80)).get(1, TimeUnit.SECONDS)
+        assertThrows(SSLException::class.java){
+            ch = AsyncTLSChannel.open() as AsyncTLSChannel
+            ch.connect(InetSocketAddress("httpbin.org", 80)).get(1, TimeUnit.SECONDS)
+            ch.startHandshake()
+            ch.getSession()
+        }
     }
 
     @Test
@@ -117,7 +143,7 @@ Content-Length: ${payload.remaining()}
 """
         val wb = arrayOf(StandardCharsets.US_ASCII.encode(req), payload)
         val writeTotal = wb.fold(0L){ c, b -> c + b.remaining() }
-        ch = AsyncTLSChannel.open()
+        ch = AsyncTLSChannel.open() as AsyncTLSChannel
         ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
 
         val wf = CompletableFuture<Long>()

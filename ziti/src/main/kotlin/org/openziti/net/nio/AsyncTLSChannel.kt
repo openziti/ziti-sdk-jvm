@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,8 @@ class AsyncTLSChannel(
     }
 
     internal val transport: AsynchronousSocketChannel = ch
-    internal lateinit var engine: SSLEngine
+    internal val sslParams = ssl.defaultSSLParameters
+    internal val engine: SSLEngine = ssl.createSSLEngine()
 
     private val sslPool = BufferPool(POOL_SIZE, SSL_BUFFER_SIZE)
     private val sslIn = Channel<ByteBuffer>(POOL_SIZE)
@@ -139,26 +140,28 @@ class AsyncTLSChannel(
     }
 
     init {
-        runBlocking {
-            (transport.remoteAddress as InetSocketAddress?)?.let { postConnect(it) }
-        }
+        transport.remoteAddress?.let { state = State.connecting }
     }
 
-    internal suspend fun postConnect(addr: InetSocketAddress) {
-        state = State.connecting
-        engine = ssl.createSSLEngine(addr.hostName, addr.port)
+    internal suspend fun postConnect() {
+        if (state == State.connecting) {
+            val addr = transport.remoteAddress as InetSocketAddress
+            sslParams.serverNames = listOf(SNIHostName(addr.hostName))
+            engine.sslParameters = sslParams
 
-        runCatching { doHandshake(true) }
-            .onSuccess {
-                handshake.complete(it)
-                state = State.connected
-                reader.startRead()
-            }
-            .onFailure {
-                handshake.completeExceptionally(it)
-                state = State.closed
-                e(it){"SSL handshake error"}
-            }
+            runCatching { doHandshake(true) }
+                .onSuccess {
+                    w { "connected with ALPN: `${engine.applicationProtocol}`" }
+                    handshake.complete(it)
+                    state = State.connected
+                    reader.startRead()
+                }
+                .onFailure {
+                    handshake.completeExceptionally(it)
+                    state = State.closed
+                    e(it) { "SSL handshake error" }
+                }
+        }
     }
 
     override fun <A : Any?> connect(remote: SocketAddress, attachment: A, handler: CompletionHandler<Void?, in A>?) {
@@ -186,8 +189,7 @@ class AsyncTLSChannel(
         GlobalScope.launch (Dispatchers.IO) {
             kotlin.runCatching {
                 transport.connectSuspend(remote)
-                postConnect(remote)
-                handshake.await()
+                state = State.connecting
             }.onSuccess {
                 result.complete(null)
             }.onFailure {
@@ -235,7 +237,7 @@ class AsyncTLSChannel(
         handler: CompletionHandler<Long, in A>?
     ) {
         requireNotNull(handler){"handler is required"}
-        checkState(State.connected)
+        checkState(State.connecting, State.connected)
 
         if (closeWrite.get()) {
             e{"cannot write after shutdownOutput() was called"}
@@ -248,6 +250,9 @@ class AsyncTLSChannel(
 
         GlobalScope.launch(Dispatchers.IO) {
             runCatching {
+                if (state == State.connecting) {
+                    postConnect()
+                }
                 val sslbuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
                 val res = engine.wrap(srcs, offset, length, sslbuf)
 
@@ -342,6 +347,7 @@ class AsyncTLSChannel(
         handler: CompletionHandler<Long, in A>?
     ) {
         requireNotNull(handler)
+        checkState(State.connecting, State.connected)
 
         if ((offset < 0) || (length < 0) || (offset > _dsts.size - length)) {
             throw IndexOutOfBoundsException()
@@ -353,6 +359,9 @@ class AsyncTLSChannel(
 
         val dsts = _dsts.sliceArray(offset until offset + length)
         GlobalScope.launch(Dispatchers.IO) {
+            if (state == State.connecting) {
+                postConnect()
+            }
 
             var eof = false
             try {
@@ -434,11 +443,15 @@ class AsyncTLSChannel(
     }
 
     internal fun startHandshake() {
-        // NOOP: handshake is start automatically
+        if (state == State.connecting) {
+            GlobalScope.launch(Dispatchers.IO) {
+                postConnect()
+            }
+        }
     }
 
     private suspend fun doHandshake(clientMode: Boolean): SSLSession {
-        require(state == State.connecting)
+        checkState(State.connecting)
         state = State.handshaking
 
         engine.useClientMode = clientMode
@@ -493,12 +506,26 @@ class AsyncTLSChannel(
         return engine.session
     }
 
-    fun setEnabledProtocols(protocols: Array<out String>?) { engine.enabledProtocols = protocols }
-    fun getEnabledProtocols() = engine.enabledProtocols
-    fun setEnabledCipherSuites(suites: Array<String>) { engine.enabledCipherSuites = suites }
-    fun getEnabledCipherSuites() = engine.enabledCipherSuites
+    fun setSSLParameters(params: SSLParameters) {
+        sslParams.applicationProtocols = params.applicationProtocols
+        sslParams.protocols = params.protocols
+        sslParams.cipherSuites = params.cipherSuites
+        sslParams.serverNames = params.serverNames
+        sslParams.algorithmConstraints = params.algorithmConstraints
+        sslParams.needClientAuth = params.needClientAuth
+        sslParams.useCipherSuitesOrder = params.useCipherSuitesOrder
+        sslParams.sniMatchers = params.sniMatchers
+    }
+
+    fun setEnabledProtocols(protocols: Array<out String>?) { sslParams.protocols = protocols }
+    fun getEnabledProtocols() = sslParams.protocols
+
+    fun setEnabledCipherSuites(suites: Array<String>) { sslParams.cipherSuites = suites }
+    fun getEnabledCipherSuites() = sslParams.cipherSuites
+
     fun getSupportedCipherSuites() = engine.supportedCipherSuites
     fun getSupportedProtocols() = engine.supportedProtocols
+    fun getApplicationProtocol() = engine.applicationProtocol
 
     internal fun checkState(vararg expected: State) {
         if (state in expected) return
