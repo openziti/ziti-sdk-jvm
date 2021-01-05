@@ -421,7 +421,7 @@ class AsyncTLSChannel(
     private fun readInternal() = GlobalScope.launch(Dispatchers.IO) {
         d("start reading loop()")
         kotlin.runCatching {
-            val sslInBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE * 2).flip()
+            val sslInBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE * 2).apply { flip() }
             var plainBuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
             var res: SSLEngineResult
             do {
