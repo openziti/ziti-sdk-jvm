@@ -481,7 +481,7 @@ class AsyncTLSChannel(
                     d { "hsbuf = $hsBuf" }
                     transport.writeSuspend(hsBuf)
                 }
-                NEED_UNWRAP, NEED_UNWRAP_AGAIN -> {
+                NEED_UNWRAP -> {
                     while (engine.handshakeStatus == NEED_UNWRAP) {
                         if (engine.unwrap(inBuf, hsBuf).status == BUFFER_UNDERFLOW)
                             return
