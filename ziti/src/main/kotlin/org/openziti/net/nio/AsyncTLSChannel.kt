@@ -21,6 +21,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.future.await
 import org.openziti.util.*
+import java.io.EOFException
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.SocketAddress
@@ -41,6 +42,7 @@ import kotlin.properties.Delegates
  * Implementation TLS stream conforming to [AsynchronousSocketChannel].
  *
  */
+@Suppress("BlockingMethodInNonBlockingContext")
 class AsyncTLSChannel(
     ch: AsynchronousSocketChannel,
     val ssl: SSLContext,
@@ -420,10 +422,10 @@ class AsyncTLSChannel(
 
     private fun readInternal() = GlobalScope.launch(Dispatchers.IO) {
         d("start reading loop()")
-        kotlin.runCatching {
-            val sslInBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE * 2).apply { flip() }
-            var plainBuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
-            var res: SSLEngineResult
+        val sslInBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE * 2).apply { flip() }
+        var plainBuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
+        var res: SSLEngineResult
+        try {
             do {
                 sslInBuf.compact()
                 val read = transport.readSuspend(sslInBuf)
@@ -454,15 +456,21 @@ class AsyncTLSChannel(
                     plainBuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
                 }
             } while (res.status != CLOSED)
-        }.onFailure {
-            e("reader closed", it)
-            if (!handshake.isCompleted) handshake.completeExceptionally(it)
-            state = State.closed
-            plainIn.close(it)
-            transport.close()
-        }.onSuccess {
-            w { "reader closed" }
+
+            d("reader closed")
             plainIn.close()
+        } catch (ex: Exception) {
+            if (!handshake.isCompleted) handshake.completeExceptionally(ex)
+            state = State.closed
+            if (ex is SSLException && ex.cause is EOFException) {
+                d("closed due to close_notify")
+                plainIn.close()
+            }
+            else {
+                e("reader closed", ex)
+                plainIn.close(ex)
+            }
+            transport.close()
         }
     }
 
@@ -492,6 +500,7 @@ class AsyncTLSChannel(
                     state = State.connected
                     return
                 }
+                else -> {}
             }
         }
     }
