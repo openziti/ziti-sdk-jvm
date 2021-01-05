@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.openziti.api
 import com.google.gson.JsonObject
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okhttp3.Interceptor
@@ -178,7 +179,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     }
 
     internal fun getServices() = pagingRequest {
-        offset -> api.getServicesAsync(offset = offset)
+        offset -> api.getServicesAsync(offset = offset, limit = 25)
     }
 
     internal fun getSessions(): Flow<Session> {
@@ -203,15 +204,23 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
 
     private fun <T> pagingRequest(req: (offset: Int) -> Deferred<Response<Collection<T>>>) = flow {
         var offset = 0
-        do {
-            val resp = req(offset).await()
-            resp.data?.let {
-                it.forEach { st -> emit(st) }
-            }
 
-            val pagination = resp.meta.pagination!!
-            offset = pagination.offset + pagination.limit
-        } while(pagination.totalCount > offset)
+        val p0 = req(offset)
+        val resp = p0.await()
+        val pagination = resp.meta.pagination!!
+
+        val pages = mutableListOf(p0)
+
+        while (pagination.totalCount > offset + pagination.limit) {
+            offset += pagination.limit
+            pages.add(req(offset))
+        }
+
+        pages.awaitAll().forEach { page ->
+            page.data?.let {
+                it.forEach { el -> emit(el) }
+            }
+        }
     }
 
     internal suspend fun sendPostureResp(pr: PostureResponse) {
