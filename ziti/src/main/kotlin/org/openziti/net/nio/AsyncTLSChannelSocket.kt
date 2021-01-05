@@ -59,13 +59,13 @@ class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, 
 
     override fun setSSLParameters(params: SSLParameters) = asyncTls.setSSLParameters(params)
 
-    override fun getEnabledCipherSuites(): Array<String> = asyncTls.getEnabledCipherSuites()
-    override fun getSupportedCipherSuites(): Array<String> = asyncTls.getSupportedCipherSuites()
+    override fun getEnabledCipherSuites(): Array<String>? = asyncTls.getEnabledCipherSuites()
+    override fun getSupportedCipherSuites(): Array<String>? = asyncTls.getSupportedCipherSuites()
     override fun setEnabledCipherSuites(p: Array<String>) = asyncTls.setEnabledCipherSuites(p)
 
-    override fun getSupportedProtocols(): Array<String> = asyncTls.getSupportedProtocols()
+    override fun getSupportedProtocols(): Array<String>? = asyncTls.getSupportedProtocols()
     override fun setEnabledProtocols(p: Array<String>) = asyncTls.setEnabledProtocols(p)
-    override fun getEnabledProtocols(): Array<String> = asyncTls.getEnabledProtocols()
+    override fun getEnabledProtocols(): Array<String>? = asyncTls.getEnabledProtocols()
     override fun getApplicationProtocol(): String? = asyncTls.getApplicationProtocol()
 
     override fun getSoTimeout() = impl.getOption(SO_TIMEOUT) as Int
