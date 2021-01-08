@@ -189,10 +189,12 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
         }
 
         val bodyString = """
-                    |${Build.MANUFACTURER}: ${Build.MODEL}
+                    |Device:          ${Build.MODEL} (${Build.MANUFACTURER})
                     |Android Version: ${Build.VERSION.RELEASE}
-                    |Android-SDK: ${Build.VERSION.SDK_INT}
-                    |Ziti Version: "${BuildConfig.ZITI_VERSION}(${Version.revision})"
+                    |Android-SDK:     ${Build.VERSION.SDK_INT}
+                    |Ziti Version:    ${BuildConfig.ZITI_VERSION}(${Version.revision})
+                    |App:             ${app.packageName}
+                    |App Version:     ${app.packageManager.getPackageInfo(app.packageName, 0).versionName}
                     |
                     |Enrollments:
                     |${ids}
