@@ -21,7 +21,7 @@ plugins {
 
 dependencies {
     implementation project(':ziti-netty')
-    implementation "io.netty:netty-all:4.1.56.Final"
+    implementation "io.netty:netty-all:4.1.58.Final"
     implementation "com.github.ajalt:clikt:2.7.0"
     implementation deps.slf4jSimple
 }
