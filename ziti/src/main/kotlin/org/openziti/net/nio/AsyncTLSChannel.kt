@@ -260,8 +260,10 @@ class AsyncTLSChannel(
     }
 
     override fun close() {
-        shutdownOutput()
-        shutdownInput()
+        if (state != State.closed) {
+            shutdownOutput()
+            shutdownInput()
+        }
         state = State.closed
     }
 
@@ -285,6 +287,7 @@ class AsyncTLSChannel(
                 val b = ByteBuffer.allocate(128)
                 engine.wrap(EMPTY, b)
                 transport.writeCompletely(b)
+                transport.shutdownOutput()
             }.onFailure {
                 w { "failed to write SSLCloseNotify: $it" }
             }
