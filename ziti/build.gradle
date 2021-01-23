@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ dependencies {
     implementation('io.dropwizard.metrics:metrics-core:4.1.17')
     implementation('org.bouncycastle:bcpkix-jdk15to18:1.68')
 
-    implementation("com.goterl.lazycode:lazysodium-java:4.3.0") {
+    implementation("com.goterl.lazycode:lazysodium-java:${versions.lazysodium}") {
         exclude module: 'slf4j-api'
     }
 

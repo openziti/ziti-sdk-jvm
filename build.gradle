@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ buildscript {
             kotlin: '1.4.21-2',
             coroutines: '1.4.2',
             slf4j: '1.7.30',
-            junit: '4.13.1'
+            junit: '4.13.1',
+            lazysodium: '4.3.2'
     ]
 
     ext.deps = [
