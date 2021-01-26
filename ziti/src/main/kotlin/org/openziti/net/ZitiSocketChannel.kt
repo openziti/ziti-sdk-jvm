@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,10 +143,6 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
                 val ch = ctx.getChannel(ns)
                 chPromise.complete(ch)
-                ch.onClose {
-                    state.set(State.closed)
-                    close()
-                }
                 ch.registerReceiver(connId, this@ZitiSocketChannel)
                 doZitiHandshake(ch, addr, ns, kp)
             }.onSuccess {
@@ -350,7 +346,16 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         }
     }
 
-    override suspend fun receive(msg: Message) {
+    override suspend fun receive(msg: Result<Message>) {
+        msg.onSuccess {
+            recieveMsg(it)
+        }.onFailure {
+            state.set(State.closed)
+            close()
+        }
+    }
+
+    private suspend fun recieveMsg(msg: Message) {
         v{"conn[$connId] received message[${msg.content}] with seq[${msg.getIntHeader(Header.SeqHeader)}]"}
         when (msg.content) {
             ZitiProtocol.ContentType.StateClosed -> {

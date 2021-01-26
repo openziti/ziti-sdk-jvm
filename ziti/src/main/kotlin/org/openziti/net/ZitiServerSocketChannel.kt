@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,10 +89,6 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                 val session = ctx.getNetworkSession(local.service, SessionType.Bind)
                 token = session.token
                 channel = ctx.getChannel(session)
-                channel.onClose {
-                    state = State.closed
-                    incoming.cancel()
-                }
                 channel.registerReceiver(connId, this@ZitiServerSocketChannel)
 
                 val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8)).apply {
@@ -215,7 +211,14 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
         state = State.closed
     }
 
-    override suspend fun receive(msg: Message) {
+    override suspend fun receive(msg: Result<Message>) {
+        msg.onSuccess { receive(it) }.onFailure {
+            state = State.closed
+            incoming.cancel()
+        }
+    }
+
+    suspend fun receive(msg: Message) {
         when(msg.content) {
             ZitiProtocol.ContentType.Dial -> {
                 if (!incoming.offer(msg)) { // backlog is full
