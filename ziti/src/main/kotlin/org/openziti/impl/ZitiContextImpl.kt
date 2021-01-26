@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,8 +160,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         runBlocking {
             copy.forEach { ch ->
                 runCatching {
-                    d{"closing ${ch.getCompleted().addr}"}
-                    ch.await().close()
+                    d{"closing ${ch.name}"}
+                    ch.close()
                 }
             }
         }
@@ -282,7 +282,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     internal fun nextConnId() = connCounter.incrementAndGet()
 
-    internal val channels = ConcurrentHashMap<String, Deferred<Channel>>()
+    internal val channels = ConcurrentHashMap<String, Channel>()
 
     private val latencyInterval = Duration.ofMinutes(1)
 
@@ -291,15 +291,16 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         val addrList = ers.map { it.urls["tls"] }.filterNotNull()
 
-        val chMap = sortedMapOf<Double,Channel>()
-        val unconnected = mutableListOf<String>()
+        val chMap = sortedMapOf<Long,Channel>()
+        val unconnected = mutableListOf<Channel>()
 
         for (addr in addrList) {
-            val c = channels[addr]
-            if (c != null && c.isCompleted) {
-                chMap.put(c.await().getCurrentLatency(), c.await())
-            } else {
-                unconnected.add(addr)
+            val c = getChannel(addr)
+
+            val s = c.state
+            when(s) {
+                is Channel.State.Connected -> chMap.put(s.latency, c)
+                else -> unconnected.add(c)
             }
         }
 
@@ -313,35 +314,27 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal fun connectChannelAsync(addr: String): Deferred<Channel> {
+    internal fun getChannel(addr: String): Channel {
         return channels.computeIfAbsent(addr) {
-                async {
-                    Channel.Dial(it, this@ZitiContextImpl, apiSession!!).apply {
-                        startLatencyCheck(latencyInterval, metrics.timer("${addr}.latency"))
-                        onClose { channels.remove(addr)?.cancel() }
-                        d{"connected $this"}
-                    }
-                }
+            Channel(it, id, { -> apiSession})
         }
     }
 
     internal fun connectAll(routers: Collection<EdgeRouter>) = launch {
         routers.forEach {
             it.urls["tls"]?.let {
-                if (!channels.containsKey(it)) {
-                    connectChannelAsync(it).await()
-                }
+                getChannel(it)
             }
         }
     }
 
-    internal suspend fun connectAll(addrList: List<String>): Channel? {
-        if (addrList.isEmpty()) return null
+    internal suspend fun connectAll(chList: List<Channel>): Channel? {
+        if (chList.isEmpty()) return null
 
-        val chans = addrList.map { addr ->  connectChannelAsync(addr)}
         return select {
-            chans.forEach {
-                it.onAwait { it }
+            for (ch in chList) {
+
+                ch.connectNow().onAwait { ch }
             }
         }
     }

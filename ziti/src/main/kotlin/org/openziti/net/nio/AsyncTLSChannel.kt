@@ -210,7 +210,7 @@ class AsyncTLSChannel(
         checkState(State.connecting, State.handshaking, State.connected)
 
         if (closeWrite.get()) {
-            e { "cannot write after shutdownOutput() was called" }
+            v { "cannot write after shutdownOutput() was called" }
             throw ClosedChannelException()
         }
 
@@ -280,7 +280,7 @@ class AsyncTLSChannel(
             throw ClosedChannelException()
         }
 
-        d { "closing outbound" }
+        v { "closing outbound" }
         GlobalScope.launch(Dispatchers.IO) {
             runCatching {
                 engine.closeOutbound()
@@ -289,7 +289,7 @@ class AsyncTLSChannel(
                 transport.writeCompletely(b)
                 transport.shutdownOutput()
             }.onFailure {
-                w { "failed to write SSLCloseNotify: $it" }
+                v { "failed to write SSLCloseNotify: $it" }
             }
         }
 
@@ -366,7 +366,6 @@ class AsyncTLSChannel(
                     handler.completed(-1, attachment)
                 }
             } catch (ex: Throwable) {
-                e(ex) { "exception" }
                 readOp.set(false)
                 when (ex) {
                     is TimeoutCancellationException -> handler.failed(InterruptedByTimeoutException(), attachment)
@@ -424,7 +423,7 @@ class AsyncTLSChannel(
     }
 
     private fun readInternal() = GlobalScope.launch(Dispatchers.IO) {
-        d("start reading loop()")
+        v("start reading loop()")
         val sslInBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE * 2).apply { flip() }
         var plainBuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)
         var res: SSLEngineResult
@@ -460,17 +459,16 @@ class AsyncTLSChannel(
                 }
             } while (res.status != CLOSED)
 
-            d("reader closed")
+            v("reader closed")
             plainIn.close()
         } catch (ex: Exception) {
             if (!handshake.isCompleted) handshake.completeExceptionally(ex)
             state = State.closed
             if (ex is SSLException && ex.cause is EOFException) {
-                d("closed due to close_notify")
+                v("closed due to close_notify")
                 plainIn.close()
             }
             else {
-                e("reader closed", ex)
                 plainIn.close(ex)
             }
             transport.close()
@@ -480,7 +478,7 @@ class AsyncTLSChannel(
     private suspend fun continueHS(inBuf: ByteBuffer) {
         val hsBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE)
         while (true) {
-            d { "engine.handshakeStatus = ${engine.handshakeStatus}" }
+            v{ "engine.handshakeStatus = ${engine.handshakeStatus}" }
             when (engine.handshakeStatus!!) {
                 NEED_TASK -> CompletableFuture.supplyAsync { engine.delegatedTask.run() }.await()
                 NEED_WRAP -> {
@@ -489,7 +487,6 @@ class AsyncTLSChannel(
                     }
 
                     hsBuf.flip()
-                    d { "hsbuf = $hsBuf" }
                     transport.writeSuspend(hsBuf)
                 }
                 NEED_UNWRAP -> {

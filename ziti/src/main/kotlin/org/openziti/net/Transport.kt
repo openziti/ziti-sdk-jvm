@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,16 +33,16 @@ import javax.net.ssl.SSLContext
 internal interface Transport : Closeable {
 
     companion object {
-        suspend fun dial(address: String, ssl: SSLContext): Transport {
+        suspend fun dial(address: String, ssl: SSLContext, timeout: Long): Transport {
             val url = URI.create(address)
             val tls = TLS(url.host, url.port, ssl)
-            tls.connect()
+            tls.connect(timeout)
             return tls
         }
     }
 
     fun isClosed(): Boolean
-    suspend fun connect()
+    suspend fun connect(timeout: Long)
 
     suspend fun write(buf: ByteBuffer)
     suspend fun read(buf: ByteBuffer, full: Boolean = true): Int
@@ -51,12 +51,12 @@ internal interface Transport : Closeable {
         val socket: AsynchronousSocketChannel
         val addr = InetSocketAddress(InetAddress.getByName(host), port)
         init {
-            d { "connecting to $host:$port on t[${Thread.currentThread().name}" }
+            v { "connecting to $host:$port on t[${Thread.currentThread().name}" }
             socket = AsyncTLSChannel(sslContext)
         }
 
-        override suspend fun connect() {
-            socket.connectSuspend(addr)
+        override suspend fun connect(timeout: Long) {
+            socket.connectSuspend(addr, timeout)
         }
 
         override suspend fun write(buf: ByteBuffer) {
@@ -87,5 +87,4 @@ internal interface Transport : Closeable {
             return "TLS:${socket.remoteAddress}"
         }
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.openziti.net
 
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -26,10 +26,10 @@ import javax.net.ssl.SSLContext
 
 class TransportTest {
 
-    @Test
+    @Test(timeout = 2000)
     fun testHTTP() {
         runBlocking {
-            val t = Transport.dial("tls://httpbin.org:443", SSLContext.getDefault())
+            val t = Transport.dial("tls://httpbin.org:443", SSLContext.getDefault(), 1_000)
 
             val req = """POST /anything HTTP/1.1
 Accept: */*

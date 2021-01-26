@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.openziti.net.nio
 
-import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.*
 import java.net.SocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousServerSocketChannel
@@ -63,6 +63,16 @@ suspend fun AsynchronousSocketChannel.readSuspend(b: ByteBuffer, timeout: Long, 
 
 suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress) = suspendCoroutine<Void> {
     this.connect(addr, it, ContinuationHandler())
+}
+
+suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress, timeout: Long): Void {
+    val d = GlobalScope.async(Dispatchers.IO) { connectSuspend(addr) }
+    try {
+        return withTimeout(timeout) { d.await() }
+    } catch (tox: TimeoutCancellationException) {
+        this.runCatching { close() }
+        throw tox
+    }
 }
 
 suspend fun AsynchronousSocketChannel.writeSuspend(b: ByteBuffer) = suspendCoroutine<Int> {
