@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
 import org.junit.After
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertThat
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
@@ -31,7 +29,8 @@ import org.openziti.identity.findIdentityAlias
 import org.openziti.identity.keystoreFromConfig
 import java.net.URL
 import java.security.KeyStore
-import kotlin.test.assertEquals
+import java.time.Instant
+import kotlin.test.*
 
 /**
  *
@@ -71,7 +70,7 @@ internal class ControllerTest {
         }
 
         assertNotNull(v)
-        assertThat(v!!.runtimeVersion, CoreMatchers.startsWith("go1."))
+        assertTrue { v.runtimeVersion.startsWith("go1.") }
     }
 
     @Test
@@ -81,6 +80,7 @@ internal class ControllerTest {
         }
         assertNotNull(s)
         assertNotNull(s.token)
+        assertTrue { s.expiresAt.toInstant().isAfter(Instant.now()) }
     }
 
     @Test
