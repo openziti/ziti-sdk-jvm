@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,16 @@ internal class SessionReq(val serviceId: String, val type: SessionType = Session
 
 data class ControllerVersion(val buildDate: String, val revision: String, val runtimeVersion: String, val version: String)
 internal class Login(val username: String, val password: String)
-internal class ApiSession(val id: String, val token: String, val identity: Identity?)
+internal class ApiSession(
+    val id: String,
+    val token: String,
+    val identity: Identity,
+    val updatedAt: Date,
+    val expiresAt: Date,
+    val expirationSeconds: Int
+)
+
+internal class ServiceUpdates(val lastChangeAt: Date)
 
 data class ServiceDNS(val hostname: String, val port: Int)
 class Service internal constructor(
