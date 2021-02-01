@@ -73,7 +73,7 @@ semver {
     tagType = io.wusa.TagType.LIGHTWEIGHT
     branches {
         branch {
-            regex = "master"
+            regex = "main"
             incrementer = "NO_VERSION_INCREMENTER"
             formatter = { info -> "${info.version.major}.${info.version.minor}.${info.version.patch}" }
         }
