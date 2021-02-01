@@ -44,7 +44,7 @@ class AsyncTLSChannelTest {
 
     @After
     fun tearDown() {
-        if (ch.isOpen) ch.close()
+        ch.runCatching { close() }
     }
 
     @Test

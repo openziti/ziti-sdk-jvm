@@ -19,14 +19,16 @@ package org.openziti.api
 import com.google.gson.JsonObject
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import org.openziti.Errors
+import org.openziti.ZitiContext
 import org.openziti.ZitiException
 import org.openziti.getZitiError
 import org.openziti.net.nio.AsychChannelSocket
@@ -43,6 +45,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.IOException
 import java.net.URL
+import java.time.Instant
+import java.util.*
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
@@ -65,6 +69,9 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
 
         @DELETE("current-api-session")
         fun logout(): Deferred<Unit>
+
+        @GET("/current-api-session/service-updates")
+        fun getServiceUpdates(): Deferred<Response<ServiceUpdates>>
 
         @GET("services")
         fun getServicesAsync(@Query("offset") offset: Int = 0, @Query("limit") limit: Int? = null)
@@ -101,7 +108,10 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     internal val api: API
     internal var apiSession: ApiSession? = null
 
-    internal val errorConverter: Converter<ResponseBody, Response<Unit>>
+    // API features
+    internal var hasServiceUpdates = true
+
+    private val errorConverter: Converter<ResponseBody, Response<Unit>>
     internal val loggingInterceptor = HttpLoggingInterceptor().apply {
         val level = HttpLoggingInterceptor.Level.valueOf(System.getProperty("ZitiControllerDebug", "NONE"))
         setLevel(level)
@@ -129,30 +139,21 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
 
     suspend fun version() = api.version().await().data
 
+    internal suspend fun currentApiSession(): ApiSession =
+        api.currentApiSession().runCatching { await().data!! }.getOrElse { convertError(it) }
+
     suspend internal fun login(login: Login? = null): ApiSession {
         // validate current session
         if (apiSession != null) {
-            try {
-                apiSession = api.currentApiSession().await().data
-            } catch (ex: HttpException) {
-                val err = getError(ex.response())
-                w("current-session: ${ex.code()} ${err}")
-                apiSession = null
-            }
+            apiSession = api.currentApiSession().runCatching { await().data }.getOrNull()
         }
 
         if (apiSession == null) {
-
             val call = if (login == null)
                 api.authenticateCert(getClientInfo()) else
                 api.authenticate(login)
 
-            try {
-                val resp = call.await()
-                apiSession = resp.data!!
-            } catch (ex: Exception) {
-                convertError(ex)
-            }
+            apiSession = call.runCatching { await().data!! }.getOrElse { convertError(it) }
         }
         return apiSession!!
     }
@@ -177,6 +178,18 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         val req = api.getIdentity(id)
         return req.execute().body()?.data
     }
+
+    internal suspend fun getServiceUpdates() =
+        if (!hasServiceUpdates) ServiceUpdates(Date())
+        else api.runCatching {
+            getServiceUpdates().await().data!!
+        }.getOrElse {
+            if (it is HttpException && it.code() == 404) {
+                hasServiceUpdates = false
+                ServiceUpdates(Date())
+            } else
+                convertError(it)
+        }
 
     internal fun getServices() = pagingRequest {
         offset -> api.getServicesAsync(offset = offset, limit = 25)
@@ -216,9 +229,9 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
             pages.add(req(offset))
         }
 
-        pages.awaitAll().forEach { page ->
-            page.data?.let {
-                it.forEach { el -> emit(el) }
+        pages.forEach { p ->
+            p.await().data?.let {
+                emitAll(it.asFlow())
             }
         }
     }
@@ -228,12 +241,17 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     }
 
     private fun convertError(t: Throwable): Nothing {
-        e("error $t", t)
-        when (t) {
-            is HttpException -> throw ZitiException(getZitiError(getError(t.response())))
-            is IOException -> throw ZitiException(Errors.ControllerUnavailable, t)
-            else -> throw ZitiException(Errors.WTF(t.toString()), t)
+        e("error: ${t.localizedMessage}")
+        val errCode = when (t) {
+            is HttpException -> getZitiError(getError(t.response()))
+            is IOException -> Errors.ControllerUnavailable
+            else -> Errors.WTF(t.toString())
         }
+        if (errCode is Errors.NotAuthorized) {
+            apiSession = null
+        }
+
+        throw ZitiException(errCode,  t)
     }
 
     private fun getError(resp: retrofit2.Response<*>?): String {

@@ -16,7 +16,6 @@
 
 package org.openziti.impl
 
-import com.codahale.metrics.MetricRegistry
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.selects.select
@@ -37,10 +36,12 @@ import java.net.URI
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.time.Duration
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
+import kotlin.random.Random
 import org.openziti.api.Identity as ApiIdentity
 
 /**
@@ -59,15 +60,15 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    private var refreshDelay = Duration.ofMinutes(5).toMillis()
+    private var refreshDelay = Duration.ofMinutes(1).toMillis()
 
     private val supervisor = SupervisorJob()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + supervisor
 
     private var apiSession: ApiSession? = null
-    private var apiId: ApiIdentity? = null
-    private val controller: Controller
+
+    private val controller: Controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager())
     private val postureService = PostureService()
 
     private val statusCh: MutableStateFlow<ZitiContext.Status>
@@ -86,10 +87,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     private val connCounter = AtomicInteger(0)
 
-    private val metrics = MetricRegistry()
-
     init {
-        controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager())
         this._enabled = enabled
 
         launch {
@@ -101,11 +99,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             }
         }
 
-        runServiceUpdates(login())
+        start()
     }
 
-    override fun getId(): ApiIdentity? = apiId
-
+    override fun getId(): ApiIdentity? = apiSession?.identity
     override fun getStatus() = statusCh.value
     override fun statusUpdates() = statusCh
 
@@ -126,11 +123,11 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    override fun setEnabled(v: Boolean) {
-        _enabled = v
-    }
+    override fun setEnabled(v: Boolean) { _enabled = v }
+    private fun checkEnabled() = _enabled || throw ZitiException(Errors.ServiceNotAvailable)
 
     override fun dial(serviceName: String): ZitiConnection {
+        checkEnabled()
         val conn = open() as ZitiSocketChannel
         conn.connect(ZitiAddress.Dial(serviceName)).get()
         return conn
@@ -148,14 +145,48 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     override fun connect(host: String, port: Int): Socket {
+        checkEnabled()
         val ch = open()
         val s = getService(host, port)
         ch.connect(ZitiAddress.Dial(s.name)).get()
         return AsychChannelSocket(ch)
     }
 
+    fun start(): Job = launch {
+        runner()
+    }
+
+    private suspend fun runner() {
+        while(true) {
+            apiSession = runCatching { login() }.getOrElse {
+                e("failed to login, cannot continue")
+                updateStatus(ZitiContext.Status.NotAuthorized(it))
+                throw it
+            }
+
+            updateStatus(ZitiContext.Status.Active)
+
+            val apiSessionUpdate = maintainApiSession()
+            val serviceUpdate = runServiceUpdates()
+
+            val finisher = select<Job> {
+                apiSessionUpdate.onJoin { apiSessionUpdate }
+                serviceUpdate.onJoin { serviceUpdate }
+            }
+
+            finisher.invokeOnCompletion { ex ->
+                w {"$finisher is completed due to $ex"}
+            }
+
+            listOf(apiSessionUpdate, serviceUpdate).forEach {
+                it.cancelAndJoin()
+            }
+        }
+    }
+
     fun stop() {
         val copy = channels.values
+        channels.clear()
 
         runBlocking {
             copy.forEach { ch ->
@@ -177,59 +208,73 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         d{"ziti context is finished"}
     }
 
-    internal fun login() = async {
-        try {
-            controller.login().also {
-                d("${name()} logged in successfully s[${it.token}] at ${controller()} t[${Thread.currentThread().name}]")
-                apiSession = it
-                apiId = it.identity
-                updateStatus(ZitiContext.Status.Active)
+    internal suspend fun login(): ApiSession {
+        var attempt = 0
+        statusCh.value = ZitiContext.Status.Loading
+        while(true) {
+            if (attempt > 0) {
+                val backoff = Random.nextInt(0, attempt) % 6
+                val delaySeconds = (1 shl backoff) * 5
+                d{ "retrying login() after ${delaySeconds}s (attempt=$attempt)"}
+                delay(delaySeconds * 1000L)
             }
-        } catch (ex: Exception) {
-            e(ex) { "[${name()}] failed to login" }
-            if (ex is ZitiException && ex.code == Errors.NotAuthorized) {
-                apiSession = null
-                updateStatus(ZitiContext.Status.NotAuthorized(ex))
-            }
-            else {
+
+            try {
+                return controller.login()
+            } catch (ex: Exception) {
+                if (ex is ZitiException && ex.code == Errors.NotAuthorized) {
+                    throw ex
+                }
                 updateStatus(ZitiContext.Status.Unavailable(ex))
+                w { "failed to login: ${ex.localizedMessage}" }
+                attempt++
+                continue
             }
-            throw ex
         }
     }
 
-    private fun runServiceUpdates(session: Deferred<ApiSession>) = launch {
-        try {
-            session.await()
-            while (true) {
+    private fun maintainApiSession() = async {
+        while (apiSession != null) {
+            val refreshDelay = apiSession?.let { it.expiresAt.time - it.updatedAt.time - 10} ?: 0
+            if (refreshDelay > 0) {
+                d{"waiting for refresh $refreshDelay seconds"}
+                delay(refreshDelay * 1000)
+            }
+            controller.runCatching { currentApiSession() }.onFailure{
+                if (it is ZitiException && it.code == Errors.NotAuthorized) throw it
+                w{"failed to get current session: $it"}
+            }.onSuccess {
+                apiSession = it
+            }
+        }
+    }
+
+    private fun runServiceUpdates() = async {
+        var lastUpdate = Date(0)
+        while (true) {
+            val oneUpdate = async {
                 d("[${id.name()}] slept and restarting on t[${Thread.currentThread().name}]")
+                val updt = controller.getServiceUpdates()
 
-                val services = controller.getServices().toList()
-                processServiceUpdates(services)
-                d("[${id.name()}] got ${services.size} services on t[${Thread.currentThread().name}]")
+                if (updt.lastChangeAt.after(lastUpdate)) {
+                    lastUpdate = updt.lastChangeAt
 
-                val edgeRouters = mutableSetOf<EdgeRouter>()
-                controller.getSessions().collect {
-                    val s = updateSession(it)
-                    s?.let {
-                        edgeRouters.addAll(it.edgeRouters!!)
-                    }
+                    val services = controller.getServices().toList()
+                    processServiceUpdates(services)
+                    d("[${id.name()}] got ${services.size} services on t[${Thread.currentThread().name}]")
                 }
+            }
 
-                connectAll(edgeRouters)
-                delay(refreshDelay)
+            oneUpdate.join()
+            oneUpdate.invokeOnCompletion {
+                when (it) {
+                    is CancellationException -> { cancel(it) }
+                    is ZitiException -> if (it.code == Errors.NotAuthorized) throw it
+                    else -> {}
+                }
             }
-        } catch (ze: ZitiException) {
-            w("[${name()}] failed ${ze.localizedMessage}")
-            if (ze.code == Errors.NotAuthorized) {
-                apiSession = null
-                updateStatus(ZitiContext.Status.NotAuthorized(ze))
-            }
-        } catch (ce: CancellationException) {
-            d("[${name()}] refresh stopped")
-        } catch (ex: Exception) {
-            e("[${name()}] failed to load: ${ex.localizedMessage}", ex)
-            updateStatus(ZitiContext.Status.Impaired(ex))
+            d{"delaying service refresh for ${refreshDelay}ms"}
+            delay(refreshDelay)
         }
     }
 
@@ -246,10 +291,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     internal suspend fun getNetworkSession(service: Service, st: SessionType): Session {
+        checkEnabled()
+
         d("getNetworkSession(${service.name})")
-
-        _enabled || throw ZitiException(Errors.ServiceNotAvailable)
-
         checkServicesLoaded()
 
         return networkSessions.getOrPut(SessionKey(service.id, st)) {
@@ -283,8 +327,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     internal fun nextConnId() = connCounter.incrementAndGet()
 
     internal val channels = ConcurrentHashMap<String, Channel>()
-
-    private val latencyInterval = Duration.ofMinutes(1)
 
     internal suspend fun getChannel(ns: Session): Channel {
         val ers = ns.edgeRouters ?: throw ZitiException(Errors.EdgeRouterUnavailable)
@@ -333,7 +375,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         return select {
             for (ch in chList) {
-
                 ch.connectNow().onAwait { ch }
             }
         }
@@ -400,8 +441,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             }
         }
 
-        if (!servicesLoaded.isCompleted)
-            servicesLoaded.complete(Unit)
+        servicesLoaded.complete(Unit)
     }
 
     override fun open(): AsynchronousSocketChannel {

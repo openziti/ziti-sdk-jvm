@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ interface ZitiContext: Identity {
         object Loading: Status()
         object Active: Status()
         object Disabled: Status()
-        class NotAuthorized(val ex: Exception): Status()
+        class NotAuthorized(val ex: Throwable): Status()
         class Unavailable(val ex: Exception): Status()
         class Impaired(val ex: Exception): Status()
 

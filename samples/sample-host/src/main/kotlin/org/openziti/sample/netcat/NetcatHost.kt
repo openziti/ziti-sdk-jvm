@@ -17,12 +17,14 @@
 package org.openziti.sample.netcat
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.openziti.Ziti
 import org.openziti.ZitiAddress
 import java.lang.System.exit
 import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousServerSocketChannel
 import kotlin.text.Charsets.UTF_8
 
 object NetcatHost {
@@ -39,49 +41,57 @@ object NetcatHost {
 
         val ziti = Ziti.newContext(cfg, charArrayOf())
 
-        val server = ziti.openServer()
-        server.bind(ZitiAddress.Bind(service))
+        runBlocking {
+            ziti.statusUpdates().collect { println(it) }
+        }
+        while(true) {
+            try {
+                val server = ziti.openServer()
+                server.bind(ZitiAddress.Bind(service))
 
-        try {
-            while (true) {
-                println("waiting for clients")
-                val clt = server.accept().get()
-                println("client connected")
+                processClients(server)
 
-                val writer = Thread {
-                    while (true) {
-                        print("> ")
-                        val l = readLine() + "\n"
-                        clt.write(ByteBuffer.wrap(l.toByteArray()))
-                    }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+        }
+    }
+
+    fun processClients(server: AsynchronousServerSocketChannel) {
+        while (true) {
+            println("waiting for clients")
+            val clt = server.accept().get()
+            println("client connected")
+
+            val writer = Thread {
+                while (true) {
+                    print("> ")
+                    val l = readLine() + "\n"
+                    clt.write(ByteBuffer.wrap(l.toByteArray()))
                 }
-                writer.start()
+            }
+            writer.start()
 
-                runBlocking {
-                    val reader = launch(Dispatchers.IO) {
-                        val readBuf = ByteBuffer.allocate(1024)
-                        while (true) {
-                            val rc = suspendRead(readBuf, clt)
-                            if (rc == -1) {
-                                clt.close()
-                                break
-                            } else {
-                                readBuf.flip()
-                                val text = UTF_8.decode(readBuf).toString()
-                                print(text)
-                                readBuf.compact()
-                            }
+            runBlocking {
+                val reader = launch(Dispatchers.IO) {
+                    val readBuf = ByteBuffer.allocate(1024)
+                    while (true) {
+                        val rc = suspendRead(readBuf, clt)
+                        if (rc == -1) {
+                            clt.close()
+                            break
+                        } else {
+                            readBuf.flip()
+                            val text = UTF_8.decode(readBuf).toString()
+                            print(text)
+                            readBuf.compact()
                         }
                     }
-                    reader.invokeOnCompletion { writer.interrupt() }
-                    reader.join()
                 }
-                println("client disconnected")
+                reader.invokeOnCompletion { writer.interrupt() }
+                reader.join()
             }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        } finally {
-            Ziti.removeContext(ziti)
+            println("client disconnected")
         }
     }
 }
