@@ -45,6 +45,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.IOException
 import java.net.URL
+import java.time.Instant
+import java.util.*
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
@@ -106,7 +108,10 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     internal val api: API
     internal var apiSession: ApiSession? = null
 
-    internal val errorConverter: Converter<ResponseBody, Response<Unit>>
+    // API features
+    internal var hasServiceUpdates = true
+
+    private val errorConverter: Converter<ResponseBody, Response<Unit>>
     internal val loggingInterceptor = HttpLoggingInterceptor().apply {
         val level = HttpLoggingInterceptor.Level.valueOf(System.getProperty("ZitiControllerDebug", "NONE"))
         setLevel(level)
@@ -174,9 +179,17 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         return req.execute().body()?.data
     }
 
-    internal suspend fun getServiceUpdates() = api.runCatching {
-        getServiceUpdates().await().data!!
-    }.getOrElse { convertError(it) }
+    internal suspend fun getServiceUpdates() =
+        if (!hasServiceUpdates) ServiceUpdates(Date())
+        else api.runCatching {
+            getServiceUpdates().await().data!!
+        }.getOrElse {
+            if (it is HttpException && it.code() == 404) {
+                hasServiceUpdates = false
+                ServiceUpdates(Date())
+            } else
+                convertError(it)
+        }
 
     internal fun getServices() = pagingRequest {
         offset -> api.getServicesAsync(offset = offset, limit = 25)
