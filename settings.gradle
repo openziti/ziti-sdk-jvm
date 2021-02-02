@@ -29,3 +29,5 @@ include ':samples:http-sample'
 include ':samples:sample-host'
 include ':samples:netty-http-sample'
 include ':samples:terminators-sample'
+include ':samples:sample-okhttp'
+
