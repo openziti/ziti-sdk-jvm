@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,9 @@ import java.net.URI
 import java.security.KeyStore
 
 internal object ZitiImpl : Logged by ZitiLog() {
+    internal val contexts = mutableListOf<ZitiContextImpl>()
+    internal var appId = ""
+    internal var appVersion = ""
 
     internal val onAndroid: Boolean by lazy {
         try {
@@ -60,7 +63,6 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return loadContext(ks, alias)
     }
 
-    internal val contexts = mutableListOf<ZitiContextImpl>()
     fun init(file: File, pwd: CharArray, seamless: Boolean): Unit {
         if (seamless) {
             initInternalNetworking()
@@ -155,5 +157,10 @@ internal object ZitiImpl : Logged by ZitiLog() {
 
             else -> error("unsupported address type")
         }
+    }
+
+    fun setApplicationInfo(id: String, version: String) {
+        appId = id
+        appVersion = version
     }
 }

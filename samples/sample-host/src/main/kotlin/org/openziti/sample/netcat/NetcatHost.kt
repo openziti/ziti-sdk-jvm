@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ object NetcatHost {
         val cfg = args[0]
         val service = args[1]
 
+        Ziti.setApplicationInfo("org.openziti.sample.NetCatHost", "v1.0")
         val ziti = Ziti.newContext(cfg, charArrayOf())
 
         runBlocking {

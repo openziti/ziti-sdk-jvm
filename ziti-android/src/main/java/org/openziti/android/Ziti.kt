@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,6 +76,11 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
                 NotificationChannel(ZitiNotificationChannel, Ziti, NotificationManager.IMPORTANCE_HIGH)
             )
         }
+
+
+        val appId = app.packageName
+        val appVer = app.packageManager.getPackageInfo(appId, 0).versionName
+        org.openziti.Ziti.setApplicationInfo(appId, appVer)
 
         keyStore = KeyStore.getInstance("AndroidKeyStore")
         keyStore.load(null)

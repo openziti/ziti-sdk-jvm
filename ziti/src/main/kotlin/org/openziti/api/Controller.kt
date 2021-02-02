@@ -31,6 +31,7 @@ import org.openziti.Errors
 import org.openziti.ZitiContext
 import org.openziti.ZitiException
 import org.openziti.getZitiError
+import org.openziti.impl.ZitiImpl
 import org.openziti.net.nio.AsychChannelSocket
 import org.openziti.net.nio.AsyncTLSSocketFactory
 import org.openziti.util.Logged
@@ -284,7 +285,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     }
 
     private fun getClientInfo(): ClientInfo = ClientInfo(
-        sdkInfo = SdkInfo,
+        sdkInfo = SdkInfo + mapOf("appID" to ZitiImpl.appId, "appVersion" to ZitiImpl.appVersion),
         envInfo = SystemInfoProvider().getSystemInfo(),
         configTypes = arrayOf(InterceptConfig)
     )
