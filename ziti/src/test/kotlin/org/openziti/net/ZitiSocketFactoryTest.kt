@@ -54,17 +54,15 @@ class ZitiSocketFactoryTest {
             tm = tmf.trustManagers[0] as X509TrustManager
 
             dns = Dns { hostname ->
-                var address = getDNSResolver().resolve(hostname)
-                if (address == null) {
-                    address = InetAddress.getByName(hostname)
-                }
-                if (address != null) listOf(address) else emptyList()
+                listOf(getDNSResolver().resolve(hostname) ?: InetAddress.getByName(hostname)).filterNotNull()
             }
             runBlocking {
                 delay(4000)
             }
         }
     }
+
+
     @Test
     fun testHttpClient() {
 
@@ -78,7 +76,7 @@ class ZitiSocketFactoryTest {
         val req = Request.Builder()
             .post(RequestBody.create(MediaType.get("text/plain"),"this is request body"))
             //.get()
-            .url("https://httpbin.org/anything").build()
+            .url("http://httpbin.ziti/anything").build()
         val call = clt.newCall(req)
         val resp = call.execute()
         println(resp)
