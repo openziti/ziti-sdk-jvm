@@ -11,7 +11,7 @@ repositories {
 dependencies {
     implementation project(':ziti')
     implementation 'com.squareup.okhttp3:okhttp:3.14.9'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:1.7.0'
 }
 
