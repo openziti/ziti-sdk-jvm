@@ -24,6 +24,7 @@ import org.openziti.api.Login
 import java.io.File
 import java.net.URI
 import java.security.SecureRandom
+import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.util.*
 import javax.net.ssl.SSLContext
@@ -86,9 +87,15 @@ internal object ZitiTestHelper {
         delete("/current-session")
     }
 
-    private object TrustAll : X509TrustManager {
+    internal object TrustAll : X509TrustManager {
         override fun checkClientTrusted(p0: Array<out X509Certificate>?, p1: String?) {}
         override fun checkServerTrusted(p0: Array<out X509Certificate>?, p1: String?) {}
+        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+    }
+
+    internal object TrustNoOne : X509TrustManager {
+        override fun checkClientTrusted(p0: Array<out X509Certificate>?, p1: String?) {}
+        override fun checkServerTrusted(p0: Array<out X509Certificate>?, p1: String?) { throw CertificateException("no ziti for you") }
         override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
     }
 }
