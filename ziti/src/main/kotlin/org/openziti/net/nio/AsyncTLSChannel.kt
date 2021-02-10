@@ -116,6 +116,16 @@ class AsyncTLSChannel(
 
     init {
         transport.remoteAddress?.let { state = State.connecting }
+        handshake.invokeOnCompletion { ex ->
+            if (ex == null) {
+                d {"handshake completed"}
+                state = State.connected
+            } else {
+                w {"handshake failed ${ex}"}
+                runCatching { transport.close() }
+                state = State.closed
+            }
+        }
     }
 
     private suspend fun postConnect() {
@@ -462,13 +472,12 @@ class AsyncTLSChannel(
             v("reader closed")
             plainIn.close()
         } catch (ex: Exception) {
-            if (!handshake.isCompleted) handshake.completeExceptionally(ex)
+            handshake.completeExceptionally(ex)
             state = State.closed
             if (ex is SSLException && ex.cause is EOFException) {
                 v("closed due to close_notify")
                 plainIn.close()
-            }
-            else {
+            } else {
                 plainIn.close(ex)
             }
             transport.close()
@@ -480,14 +489,25 @@ class AsyncTLSChannel(
         while (true) {
             v{ "engine.handshakeStatus = ${engine.handshakeStatus}" }
             when (engine.handshakeStatus!!) {
-                NEED_TASK -> CompletableFuture.supplyAsync { engine.delegatedTask.run() }.await()
+                NEED_TASK ->
+                    runCatching { CompletableFuture.supplyAsync { engine.delegatedTask.run() }.await() }
+                        .onFailure {
+                            handshake.completeExceptionally(it)
+                            return@continueHS
+                        }
+
                 NEED_WRAP -> {
                     while (engine.handshakeStatus == NEED_WRAP) {
                         engine.wrap(EMPTY, hsBuf)
                     }
 
                     hsBuf.flip()
-                    transport.writeSuspend(hsBuf)
+                    kotlin.runCatching {
+                        transport.writeSuspend(hsBuf)
+                    }.onFailure {
+                        handshake.completeExceptionally(it)
+                        return@continueHS
+                    }
                 }
                 NEED_UNWRAP -> {
                     while (engine.handshakeStatus == NEED_UNWRAP) {
@@ -497,7 +517,6 @@ class AsyncTLSChannel(
                 }
                 FINISHED, NOT_HANDSHAKING -> {
                     if (!handshake.isCompleted) handshake.complete(engine.session)
-                    state = State.connected
                     return
                 }
                 else -> {}

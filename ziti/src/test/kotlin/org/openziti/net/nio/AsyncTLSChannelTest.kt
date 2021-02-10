@@ -22,19 +22,23 @@ import org.hamcrest.CoreMatchers.startsWith
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Rule
-import org.junit.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.rules.Timeout
+import org.openziti.identity.ZitiTestHelper
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.InterruptedByTimeoutException
 import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLException
+import javax.net.ssl.SSLHandshakeException
+import javax.net.ssl.TrustManager
 import kotlin.random.Random
+import kotlin.test.Test
 
 class AsyncTLSChannelTest {
 
@@ -118,6 +122,17 @@ class AsyncTLSChannelTest {
         ch.startHandshake()
         ch.getSession()
         assertEquals("h2", ch.getApplicationProtocol())
+    }
+
+    @Test(expected = SSLHandshakeException::class)
+    fun test_untrustedServer() {
+        val s = AsynchronousSocketChannel.open()
+        val tls = SSLContext.getInstance("TLSv1.3")
+        tls.init(null, arrayOf(ZitiTestHelper.TrustNoOne), SecureRandom())
+        ch = AsyncTLSChannel(s, tls)
+        ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+        ch.startHandshake()
+        ch.getSession()
     }
 
     @Test
