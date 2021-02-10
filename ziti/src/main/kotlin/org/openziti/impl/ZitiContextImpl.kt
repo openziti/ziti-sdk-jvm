@@ -181,6 +181,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             listOf(apiSessionUpdate, serviceUpdate).forEach {
                 it.cancelAndJoin()
             }
+
+            networkSessions.clear()
         }
     }
 
