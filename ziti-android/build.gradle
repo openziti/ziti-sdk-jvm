@@ -79,7 +79,7 @@ dependencies {
         exclude module:"jna"
     }
     embed("com.goterl.lazycode:lazysodium-android:${versions.lazysodium}@aar")
-    embed('net.java.dev.jna:jna:5.6.0@aar')
+    embed('net.java.dev.jna:jna:5.7.0@aar')
 
     implementation deps.kotlin
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${versions.coroutines}"
