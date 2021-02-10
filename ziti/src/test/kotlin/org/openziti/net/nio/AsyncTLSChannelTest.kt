@@ -23,6 +23,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.rules.Timeout
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -61,7 +62,7 @@ class AsyncTLSChannelTest {
         ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
 
         // first read should fail with timeout since we have not sent request yet
-        assertThrows(InterruptedByTimeoutException::class.java){
+        assertThrows<InterruptedByTimeoutException>{
             runBlocking { ch.readSuspend(ByteBuffer.allocate(128), 100, TimeUnit.MILLISECONDS) }
         }
 
@@ -121,7 +122,7 @@ class AsyncTLSChannelTest {
 
     @Test
     fun sslError() {
-        assertThrows(SSLException::class.java){
+        assertThrows<SSLException>{
             ch = AsyncTLSChannel.open() as AsyncTLSChannel
             ch.connect(InetSocketAddress("httpbin.org", 80)).get(1, TimeUnit.SECONDS)
             ch.startHandshake()

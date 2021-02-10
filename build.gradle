@@ -30,8 +30,8 @@ buildscript {
             kotlin: '1.4.30',
             coroutines: '1.4.2',
             slf4j: '1.7.30',
-            junit: '4.13.1',
-            lazysodium: '4.3.2'
+            lazysodium: '4.3.2',
+            jupiter: '5.7.1'
     ]
 
     ext.deps = [
@@ -42,7 +42,8 @@ buildscript {
             kotlinCoroutinesTest: "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.coroutines}",
             slf4jApi: "org.slf4j:slf4j-api:${versions.slf4j}",
             slf4jSimple: "org.slf4j:slf4j-simple:${versions.slf4j}",
-            junit: "junit:junit:${versions.junit}"
+            jupiterApi: "org.junit.jupiter:junit-jupiter-api:${versions.jupiter}",
+            jupiter: "org.junit.jupiter:junit-jupiter-engine:${versions.jupiter}"
     ]
 }
 

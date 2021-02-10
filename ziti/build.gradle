@@ -43,7 +43,8 @@ dependencies {
         exclude module: 'slf4j-api'
     }
 
-    testImplementation deps.junit
+    testApi deps.jupiterApi
+    testImplementation deps.jupiter
     testImplementation deps.kotlinTest
     testImplementation deps.kotlinCoroutinesTest
     testImplementation deps.slf4jSimple
@@ -60,6 +61,15 @@ compileJava {
 }
 
 compileKotlin {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+compileTestKotlin {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 
