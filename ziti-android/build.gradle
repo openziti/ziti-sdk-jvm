@@ -84,7 +84,8 @@ dependencies {
     implementation deps.kotlin
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${versions.coroutines}"
 
-    testImplementation deps.junit
+    testApi deps.jupiterApi
+    testImplementation deps.jupiter
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 

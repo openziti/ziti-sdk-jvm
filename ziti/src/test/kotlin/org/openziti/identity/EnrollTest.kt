@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import kotlin.test.Ignore
 
 /**
  */
-@Ignore
 class EnrollTest {
 
     @Rule
@@ -51,14 +50,14 @@ class EnrollTest {
     }
 
     companion object {
+
+        var initSuccess: Boolean = false
         @BeforeClass
         @JvmStatic
         fun initTest() {
-            try {
+            kotlin.runCatching {
                 ZitiTestHelper.init()
-            } catch (ex: Exception) {
-                Assume.assumeNoException("set ziti-test.properties to run this test", ex)
-            }
+            }.onSuccess { initSuccess = true }
         }
 
         @AfterClass
@@ -70,6 +69,8 @@ class EnrollTest {
 
     @Before
     fun init() {
+        Assume.assumeTrue(initSuccess)
+
         controllerURL = ZitiTestHelper.ctrlURI.toURL()
 
         val device = ZitiTestHelper.createDevice(tn.methodName)

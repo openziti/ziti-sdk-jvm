@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ internal object ZitiTestHelper {
     private val objects = mutableListOf<String>()
     var session: String = ""
     lateinit var ctrlURI: URI
-    lateinit var controller: Controller
+    var controller: Controller? = null
 
     fun init() = runBlocking(Dispatchers.IO) {
 
@@ -59,21 +59,21 @@ internal object ZitiTestHelper {
         ctrlURI = URI.create(url)
         controller = Controller(ctrlURI.toURL(), controllerSSL, TrustAll)
 
-        val s = controller.login(Login(username, password))
+        val s = controller!!.login(Login(username, password))
         session = s.token
     }
 
     fun createDevice(name: String, enrollment: String = "ott"): Pair<String, Identity> {
-        val id = controller.createIdentity(name = name, enrollment = enrollment)
-        val device = controller.getIdentity(id.id)
+        val id = controller!!.createIdentity(name = name, enrollment = enrollment)
+        val device = controller!!.getIdentity(id.id)
         objects.add("/identities/${id.id}")
         return "/identities/${id.id}" to device!!
     }
 
-    fun getDevice(id: String) = controller.getIdentity(id)
+    fun getDevice(id: String) = controller!!.getIdentity(id)
 
     fun delete(path: String) {
-        controller.api.delete(session, path).execute()
+        controller?.api?.delete(session, path)?.execute()
     }
 
     fun cleanup() {

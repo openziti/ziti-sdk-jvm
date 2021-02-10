@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ dependencies {
     implementation deps.kotlin
     implementation "io.netty:netty-all:4.1.58.Final"
 
-    testImplementation deps.junit
+    testApi deps.jupiterApi
+    testImplementation deps.jupiter
     testImplementation deps.kotlinTest
     testImplementation "com.google.code.gson:gson:2.8.6"
 }
