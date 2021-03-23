@@ -48,7 +48,7 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.4.31"
+    id("org.jetbrains.kotlin.jvm") version "1.4.32"
     id("io.wusa.semver-git-plugin") version "2.3.7"
 }
 
