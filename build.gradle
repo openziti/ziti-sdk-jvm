@@ -48,6 +48,8 @@ buildscript {
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.4.32"
     id("io.wusa.semver-git-plugin") version "2.3.7"
+
+    id 'io.github.gradle-nexus.publish-plugin' version "1.0.0"
 }
 
 repositories {
@@ -63,8 +65,6 @@ ext {
 group = "org.openziti"
 
 semver {
-    //nextVersion = "patch"
-    snapshotSuffix = "pre"
     initialVersion = "0.1.0"
     tagType = io.wusa.TagType.LIGHTWEIGHT
     branches {
@@ -90,7 +90,7 @@ ext {
     gitBranch = semver.info.branch.name
 }
 
-version = semver.info
+version = "${semver.info}"
 
 subprojects {
     group = rootProject.group
@@ -106,9 +106,19 @@ subprojects {
     }
 }
 
+nexusPublishing {
+    repositories {
+        sonatype()
+    }
+}
+
 subprojects { p ->
     if (!p.identityPath.path.startsWith(":samples")) {
+
+        p.plugins.apply('maven')
         p.plugins.apply('maven-publish')
+        p.plugins.apply('signing')
+
         if (p.hasProperty('kotlin')) {
             p.plugins.apply('org.jetbrains.dokka')
         }
@@ -132,6 +142,8 @@ subprojects { p ->
                 }
 
                 scm {
+                    connection = "scm:git:https://github.com/openziti/ziti-jvm-sdk"
+                    developerConnection = "scm:git:ssh://github.com/openziti/ziti-jvm-sdk.git"
                     url = "https://github.com/openziti/ziti-sdk-jvm"
                 }
             }
