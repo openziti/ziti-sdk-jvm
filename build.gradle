@@ -18,11 +18,9 @@ buildscript {
     repositories {
         mavenCentral()
         google()
-        jcenter()
     }
     dependencies {
         classpath("com.android.tools.build:gradle:4.1.3")
-        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5")
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.4.30")
     }
 
@@ -60,9 +58,6 @@ repositories {
 ext {
     zitiBuildnum = System.getenv("BUILD_NUMBER") ?: "local"
     zitiBaseVersion = file("version").readLines()[0].trim()
-
-    bintrayOrg = System.getenv('BINTRAY_ORG') ?: 'openziti'
-    bintrayRepo = System.getenv('BINTRAY_REPO') ?: "maven"
 }
 
 group = "org.openziti"

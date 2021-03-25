@@ -16,9 +16,7 @@
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
-    id 'com.jfrog.bintray'
 }
-
 
 repositories {
     mavenCentral()
@@ -65,28 +63,6 @@ publishing {
             from components.java
             artifact sourcesJar
             artifact dokkaJar
-        }
-    }
-}
-
-bintray {
-    user = System.getProperty('bintray.user')
-    key = System.getProperty('bintray.key')
-    publications = ['zitiNetty']
-    publish = true
-
-    pkg {
-        userOrg = parent.bintrayOrg
-        repo = parent.bintrayRepo
-        name = 'ziti'
-        licenses = ['Apache-2.0']
-        websiteUrl = 'https://github.com/openziti/ziti-sdk-jvm/'
-        issueTrackerUrl = 'https://github.com/openziti/ziti-sdk-jvm/issues'
-        vcsUrl = 'https://github.com/openziti/ziti-sdk-jvm.git'
-        version {
-            name = project.version
-            desc = project.version
-            released = new Date()
         }
     }
 }

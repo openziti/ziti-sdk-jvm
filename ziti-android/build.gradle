@@ -22,7 +22,6 @@ buildscript {
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    id 'com.jfrog.bintray'
     id 'org.jetbrains.dokka'
 }
 
@@ -117,26 +116,3 @@ afterEvaluate {
         }
     }
 }
-
-bintray {
-    user = System.getProperty('bintray.user')
-    key = System.getProperty('bintray.key')
-    publications = ['zitiAndroid']
-    publish = true
-
-    pkg {
-        userOrg = parent.bintrayOrg
-        repo = parent.bintrayRepo
-        name = 'ziti'
-        licenses = ['Apache-2.0']
-        websiteUrl = 'https://github.com/openziti/ziti-sdk-jvm/'
-        issueTrackerUrl = 'https://github.com/openziti/ziti-sdk-jvm/issues'
-        vcsUrl = 'https://github.com/openziti/ziti-sdk-jvm.git'
-        version {
-            name = project.version
-            desc = project.version
-            released = new Date()
-        }
-    }
-}
-
