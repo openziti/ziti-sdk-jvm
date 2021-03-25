@@ -16,30 +16,30 @@
 
 package org.openziti.net.dns
 
-import com.google.gson.JsonObject
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
-import org.openziti.api.InterceptConfig
-import org.openziti.api.Service
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class ZitiDNSManagerTest {
     @Test
     fun testDNSevents() {
         val events = mutableListOf<DNSResolver.DNSEvent>()
-        ZitiDNSManager.subscribe { events.add(it) }
-
-        val dns = JsonObject().apply {
-            addProperty("port", 80)
-            addProperty("hostname", "test.dns.ziti")
+        val block = CountDownLatch(1)
+        ZitiDNSManager.subscribe {
+            events.add(it)
+            block.countDown()
         }
-        ZitiDNSManager.registerService(
-            Service(id = "id", name = "name", encryptionRequired = false, permissions = emptySet(),
-                config = mapOf(InterceptConfig to dns), postureSets = null)
-        )
 
+        ZitiDNSManager.registerHostname("test.dns.ziti")
+
+        block.await(10, TimeUnit.SECONDS)
         assertEquals(1, events.size)
         assertEquals("test.dns.ziti", events.first().hostname)
         assertFalse(events.first().removed)
-        assertArrayEquals(byteArrayOf(169.toByte(), 254.toByte(), 1, 2), events.first().ip.address)
+        assertArrayEquals(byteArrayOf(100.toByte(), 64.toByte(), 1, 2), events.first().ip.address)
     }
 }

@@ -16,6 +16,7 @@
 
 package org.openziti
 
+import org.openziti.api.Service
 import org.openziti.impl.ZitiImpl
 import org.openziti.net.ZitiSocketFactory
 import org.openziti.net.dns.DNSResolver
@@ -82,4 +83,7 @@ object Ziti {
 
     @JvmStatic
     fun setApplicationInfo(id: String, version: String) = ZitiImpl.setApplicationInfo(id, version)
+
+    @JvmStatic
+    fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = ZitiImpl.getServiceFor(host, port)
 }

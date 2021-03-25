@@ -16,12 +16,14 @@
 
 package org.openziti.net.dns
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.util.IPAddress
+import org.openziti.api.PortRange
 import org.openziti.api.Service
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -32,56 +34,31 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
 
-internal object ZitiDNSManager : DNSResolver, ServiceMapper {
+internal object ZitiDNSManager : DNSResolver {
 
-    internal val PREFIX = byteArrayOf(0xa9.toByte(), 0xfe.toByte())
+    internal val PREFIX = byteArrayOf(100.toByte(), 64.toByte())
 
     internal val postfix = AtomicInteger(0x0101) // start with 1.1 postfix
 
     internal val host2Ip = mutableMapOf<String, InetAddress>()
-    internal val addr2serviceId = mutableMapOf<InetSocketAddress, String>()
-    internal val serviceId2addr = mutableMapOf<String, InetSocketAddress>()
+
     internal val dnsBroadCast = MutableSharedFlow<DNSResolver.DNSEvent>()
 
-    internal fun registerService(service: Service): InetSocketAddress? {
-
-        service.dns?.hostname?.toLowerCase(Locale.getDefault())?.let { hostname ->
-
-            val ip = when {
-                IPAddress.isValidIPv4(hostname) -> Inet4Address.getByName(hostname)
-                IPAddress.isValidIPv6(hostname) -> Inet6Address.getByName(hostname)
-                else -> host2Ip.getOrPut(hostname) { nextAddr(hostname) }
-            }
-
-            runBlocking {
-                dnsBroadCast.emit(DNSResolver.DNSEvent(hostname, ip, false))
-            }
-
-            service.dns?.port?.let { port ->
-                val addr = InetSocketAddress(ip, port)
-
-                addr2serviceId.put(addr, service.id)
-                serviceId2addr.put(service.id, addr)
-
-                return addr
-            }
+    internal fun registerHostname(hostname: String): InetAddress {
+        val ip = when {
+            IPAddress.isValidIPv4(hostname) -> Inet4Address.getByName(hostname)
+            IPAddress.isValidIPv6(hostname) -> Inet6Address.getByName(hostname)
+            else -> host2Ip.getOrPut(hostname) { nextAddr(hostname) }
         }
-
-        return null
-    }
-
-    internal fun unregisterService(service: Service) {
-        val addr = serviceId2addr.get(service.id)
-        if (addr != null) {
-            addr2serviceId.remove(addr)
-            runBlocking {
-                GlobalScope.launch {
-                    dnsBroadCast.emit(DNSResolver.DNSEvent(service.dns?.hostname, addr.address, true))
+        runBlocking {
+            GlobalScope.launch(Dispatchers.IO) {
+                if (! dnsBroadCast.tryEmit(DNSResolver.DNSEvent(hostname, ip, false))) {
+                    println("try emit failed")
                 }
             }
         }
+        return ip
     }
-
     override fun resolve(hostname: String): InetAddress? = host2Ip.get(hostname.toLowerCase(Locale.getDefault()))
 
     override fun subscribe(sub: (DNSResolver.DNSEvent) -> Unit) {
@@ -92,9 +69,7 @@ internal object ZitiDNSManager : DNSResolver, ServiceMapper {
 
     override fun subscribe(sub: Consumer<DNSResolver.DNSEvent>) = subscribe{sub.accept(it)}
 
-    override fun getServiceIdByAddr(addr: InetSocketAddress): String? = addr2serviceId.get(addr)
-
-    internal fun nextAddr(dnsname: String): InetAddress {
+    private fun nextAddr(dnsname: String): InetAddress {
         var nextPostfix = postfix.incrementAndGet()
 
         if ((nextPostfix and 0xFF) == 0) {

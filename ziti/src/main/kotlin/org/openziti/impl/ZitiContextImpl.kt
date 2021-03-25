@@ -30,6 +30,7 @@ import org.openziti.net.nio.AsychChannelSocket
 import org.openziti.posture.PostureService
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
+import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URI
@@ -79,8 +80,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val servicesLoaded = CompletableDeferred<Unit>()
     private val servicesByName = mutableMapOf<String, Service>()
     private val servicesById = mutableMapOf<String, Service>()
-    private val servicesByAddr = mutableMapOf<InetSocketAddress, Service>()
-    private val addrById = mutableMapOf<String, InetSocketAddress>()
+
+    private val servicesByAddr = mutableMapOf<InetAddress, MutableMap<PortRange,Service>>()
+
+    // TODO private val addrById = mutableMapOf<String, InetSocketAddress>()
 
     data class SessionKey (val serviceId: String, val type: SessionType)
     private val networkSessions = ConcurrentHashMap<SessionKey, Session>()
@@ -142,6 +145,16 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     internal fun dial(host: String, port: Int): ZitiConnection {
         val service = getService(host, port)
         return dial(service.name)
+    }
+
+    internal fun dial(host: InetAddress, port: Int): ZitiConnection {
+        val ports = servicesByAddr.get(host) ?: throw ZitiException(Errors.ServiceNotAvailable)
+
+        for ((range, s) in ports) {
+            if (range.contains(port)) return dialById(s.id)
+        }
+
+        throw ZitiException(Errors.ServiceNotAvailable)
     }
 
     override fun connect(host: String, port: Int): Socket {
@@ -313,16 +326,30 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     }
 
-    internal fun getService(name: String): Service {
+    override fun getService(name: String): Service {
         checkServicesLoaded()
         return servicesByName.get(name) ?: throw ZitiException(Errors.ServiceNotAvailable)
+    }
+
+    internal fun getService(host: InetAddress, port: Int): Service {
+        checkServicesLoaded()
+
+        servicesByAddr.get(host)?.let {
+            for ((range, service) in it) {
+                if (range.contains(port)) return service
+            }
+        }
+
+        throw ZitiException(Errors.ServiceNotAvailable)
     }
 
     internal fun getService(host: String, port: Int): Service {
         checkServicesLoaded()
 
-        return servicesByName.values.find {
-            it.dns?.hostname == host && it.dns?.port == port
+        return servicesByName.values.find { svc ->
+            svc.interceptConfig?.let {
+                it.addresses.contains(host) && it.portRanges.any { r -> port in r.low..r.high }
+            } ?: false
         } ?: throw ZitiException(Errors.ServiceNotAvailable)
     }
 
@@ -400,10 +427,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         for (rid in removeIds) {
             servicesById.remove(rid)?.let {
                 servicesByName.remove(it.name)
-                addrById.remove(it.id)?.let { addr ->
-                    servicesByAddr.remove(addr)
-                }
-                ZitiDNSManager.unregisterService(it)
                 launch {
                     serviceCh.emit(ZitiContext.ServiceEvent(it, ZitiContext.ServiceUpdate.Unavailable))
                 }
@@ -423,11 +446,16 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             }
             servicesById.put(s.id, s)
 
-            ZitiDNSManager.registerService(s)?.let { addr ->
-                addrById.put(s.id, addr)
-                servicesByAddr.put(addr, s)
+            val addresses = s.interceptConfig?.addresses ?: emptyArray()
+            val ports = s.interceptConfig?.portRanges ?: emptyArray()
 
-                d("[${name()}] service[${s.name}] => $addr")
+            for (a in addresses) {
+                val ip = ZitiDNSManager.registerHostname(a)
+                val rangeMap = servicesByAddr.getOrPut(ip){ mutableMapOf() }
+
+                for (pr in ports) {
+                    rangeMap.put(pr, s)
+                }
             }
 
             s.postureSets?.forEach {

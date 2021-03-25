@@ -26,7 +26,8 @@ import com.google.gson.stream.JsonWriter
 import org.openziti.util.SystemInfo
 import java.util.*
 
-internal const val InterceptConfig = "ziti-tunneler-client.v1"
+internal const val ClientV1Cfg = "ziti-tunneler-client.v1"
+internal const val InterceptV1Cfg = "intercept.v1"
 internal enum class SessionType {
     Dial,
     Bind
@@ -37,6 +38,12 @@ enum class PostureQueryType {
     MAC,
     DOMAIN,
     PROCESS
+}
+
+enum class InterceptProtocol {
+    tcp,
+    udp,
+    sctp
 }
 
 internal data class ClientInfo(val sdkInfo: Map<*, *>, val envInfo: SystemInfo, val configTypes: Array<String>)
@@ -64,19 +71,38 @@ internal class ApiSession(
 
 internal class ServiceUpdates(val lastChangeAt: Date)
 
-data class ServiceDNS(val hostname: String, val port: Int)
+private data class ClientV1Config(val hostname: String, val port: Int)
+
+data class PortRange(val low: Int, val high: Int) {
+    fun contains(port: Int) = (port in low..high)
+}
+
+data class InterceptConfig(
+    val protocols: Array<InterceptProtocol>,
+    val addresses: Array<String>,
+    val portRanges: Array<PortRange>,
+    val dialOptions: Map<String,Any> = emptyMap(),
+    val sourceIp: String? = null
+)
+
 class Service internal constructor(
-    internal val id: String, val name: String,
+    internal val id: String,
+    val name: String,
     val encryptionRequired: Boolean,
     internal val permissions: Set<SessionType>,
-
-    @SerializedName("postureQueries")
-    internal val postureSets: Array<PostureSet>?,
-
-    internal val config: Map<String,JsonObject>) {
-
-    val dns: ServiceDNS?
-        get() = getConfig(InterceptConfig, ServiceDNS::class.java)
+    @SerializedName("postureQueries") internal val postureSets: Array<PostureSet>?,
+    internal val config: Map<String,JsonObject>
+) {
+    val interceptConfig: InterceptConfig?
+        get() =
+            getConfig(InterceptV1Cfg, InterceptConfig::class.java) ?:
+            getConfig(ClientV1Cfg, ClientV1Config::class.java)?.let {
+                InterceptConfig(
+                    protocols = arrayOf(InterceptProtocol.tcp),
+                    addresses = arrayOf(it.hostname),
+                    portRanges = arrayOf(PortRange(it.port, it.port))
+                )
+            }
 
     fun <C> getConfig(configType: String, cls: Class<out C>): C? = Gson().fromJson(config[configType],cls)
 }

@@ -58,6 +58,7 @@ interface ZitiContext: Identity {
     fun serviceUpdates(): Flow<ServiceEvent>
     fun getId(): ApiIdentity?
 
+    fun getService(name: String): Service
     fun getServiceTerminators(service: Service): Collection<ServiceTerminator>
 
     /**
@@ -108,4 +109,5 @@ interface ZitiContext: Identity {
     fun openServer(): AsynchronousServerSocketChannel
 
     fun destroy()
+
 }

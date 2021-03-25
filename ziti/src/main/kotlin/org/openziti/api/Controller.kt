@@ -287,6 +287,6 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     private fun getClientInfo(): ClientInfo = ClientInfo(
         sdkInfo = SdkInfo + mapOf("appID" to ZitiImpl.appId, "appVersion" to ZitiImpl.appVersion),
         envInfo = SystemInfoProvider().getSystemInfo(),
-        configTypes = arrayOf(InterceptConfig)
+        configTypes = arrayOf(InterceptV1Cfg, ClientV1Cfg)
     )
 }
