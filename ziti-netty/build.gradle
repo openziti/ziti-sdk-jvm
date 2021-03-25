@@ -16,6 +16,8 @@
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.dokka'
+    id 'maven-publish'
 }
 
 repositories {
@@ -66,3 +68,5 @@ publishing {
         }
     }
 }
+
+apply from: rootProject.file('publish.gradle')

@@ -108,45 +108,9 @@ subprojects {
 
 nexusPublishing {
     repositories {
-        sonatype()
-    }
-}
-
-subprojects { p ->
-    if (!p.identityPath.path.startsWith(":samples")) {
-
-        p.plugins.apply('maven')
-        p.plugins.apply('maven-publish')
-        p.plugins.apply('signing')
-
-        if (p.hasProperty('kotlin')) {
-            p.plugins.apply('org.jetbrains.dokka')
-        }
-
-        p.publishing.publications.whenObjectAdded { pub ->
-            println("adding ${pub.name} to ${p.name}")
-            pub.pom {
-                licenses {
-                    license {
-                        name = "The Apache Software License, Version 2.0"
-                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-                        distribution = "repo"
-                    }
-                }
-                developers {
-                    developer {
-                        id = "advdev"
-                        name = "NetFoundry Advanced Development Team"
-                        email = "adv-dev@netfoundry.io"
-                    }
-                }
-
-                scm {
-                    connection = "scm:git:https://github.com/openziti/ziti-jvm-sdk"
-                    developerConnection = "scm:git:ssh://github.com/openziti/ziti-jvm-sdk.git"
-                    url = "https://github.com/openziti/ziti-sdk-jvm"
-                }
-            }
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
         }
     }
 }
