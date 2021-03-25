@@ -22,9 +22,11 @@ jobs:
         run: ./gradlew :showInfo
       - name: Build with Gradle
         run: ./gradlew build assemble
-      - name: Publish to Bintray
+      - name: Publish to Sonatype
         env:
-          bintrayUser: ${{ secrets.BINTRAY_USER }}
-          bintrayKey: ${{ secrets.BINTRAY_API_KEY }}
-        run: ./gradlew bintrayUpload -Dbintray.user=${bintrayUser} -Dbintray.key=${bintrayKey}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
+        run: ./gradlew -i publishToSonatype
 
