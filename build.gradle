@@ -18,11 +18,9 @@ buildscript {
     repositories {
         mavenCentral()
         google()
-        jcenter()
     }
     dependencies {
         classpath("com.android.tools.build:gradle:4.1.3")
-        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5")
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.4.30")
     }
 
@@ -50,6 +48,8 @@ buildscript {
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.4.32"
     id("io.wusa.semver-git-plugin") version "2.3.7"
+
+    id 'io.github.gradle-nexus.publish-plugin' version "1.0.0"
 }
 
 repositories {
@@ -60,16 +60,11 @@ repositories {
 ext {
     zitiBuildnum = System.getenv("BUILD_NUMBER") ?: "local"
     zitiBaseVersion = file("version").readLines()[0].trim()
-
-    bintrayOrg = System.getenv('BINTRAY_ORG') ?: 'openziti'
-    bintrayRepo = System.getenv('BINTRAY_REPO') ?: "maven"
 }
 
 group = "org.openziti"
 
 semver {
-    //nextVersion = "patch"
-    snapshotSuffix = "pre"
     initialVersion = "0.1.0"
     tagType = io.wusa.TagType.LIGHTWEIGHT
     branches {
@@ -95,7 +90,7 @@ ext {
     gitBranch = semver.info.branch.name
 }
 
-version = semver.info
+version = "${semver.info}"
 
 subprojects {
     group = rootProject.group
@@ -111,35 +106,11 @@ subprojects {
     }
 }
 
-subprojects { p ->
-    if (!p.identityPath.path.startsWith(":samples")) {
-        p.plugins.apply('maven-publish')
-        if (p.hasProperty('kotlin')) {
-            p.plugins.apply('org.jetbrains.dokka')
-        }
-
-        p.publishing.publications.whenObjectAdded { pub ->
-            println("adding ${pub.name} to ${p.name}")
-            pub.pom {
-                licenses {
-                    license {
-                        name = "The Apache Software License, Version 2.0"
-                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-                        distribution = "repo"
-                    }
-                }
-                developers {
-                    developer {
-                        id = "advdev"
-                        name = "NetFoundry Advanced Development Team"
-                        email = "adv-dev@netfoundry.io"
-                    }
-                }
-
-                scm {
-                    url = "https://github.com/openziti/ziti-sdk-jvm"
-                }
-            }
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
         }
     }
 }
