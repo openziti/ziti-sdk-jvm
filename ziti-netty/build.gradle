@@ -20,6 +20,10 @@ plugins {
     id 'maven-publish'
 }
 
+ext {
+    description "Netty Adapter for Ziti"
+}
+
 repositories {
     mavenCentral()
 }
