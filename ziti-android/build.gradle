@@ -28,6 +28,10 @@ plugins {
 
 apply plugin: 'com.kezong.fat-aar'
 
+ext {
+    description "Ziti SDK for Android"
+}
+
 android {
     compileSdkVersion 30
     ndkVersion "21.3.6528147"

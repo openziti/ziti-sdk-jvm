@@ -21,6 +21,10 @@ plugins {
     id 'maven-publish'
 }
 
+ext {
+    description "Ziti SDK for JVM"
+}
+
 dependencies {
     implementation deps.kotlin
     implementation deps.kotlinCoroutines
