@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,9 @@ import org.openziti.Ziti
 import org.openziti.ZitiAddress
 import org.openziti.ZitiContext
 import org.openziti.netty.ZitiChannelFactory
+import org.openziti.netty.ZitiResolverGroup
 import org.openziti.netty.ZitiServerChannelFactory
+import java.net.URL
 import java.nio.charset.StandardCharsets
 
 object HttpSample {
@@ -40,16 +42,26 @@ object HttpSample {
     class clientInit: ChannelInitializer<Channel>(){
         override fun initChannel(ch: Channel) {
             ch.pipeline()
+                .addLast(object: ChannelInboundHandlerAdapter(){
+                    override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable?) {
+                        println("exception: $cause")
+                        ctx.close()
+                    }
+                })
                 .addLast(HttpClientCodec())
                 .addLast(HttpContentDecompressor())
                 .addLast(object : SimpleChannelInboundHandler<HttpObject>(){
                     override fun channelRead0(ctx: ChannelHandlerContext, msg: HttpObject) {
                         when (msg) {
-                            is HttpResponse -> println("================\n$msg\n================\n")
-                            is HttpContent -> {
-                                println(msg.content().toString(StandardCharsets.UTF_8))
+                            is HttpResponse -> {
+                                println("================\n$msg\n================\n")
                                 ctx.close()
                             }
+                            is HttpContent -> {
+                                print(msg.content().toString(StandardCharsets.UTF_8))
+                                ctx.close()
+                            }
+                            else -> println("$msg")
                         }
                     }
                 })
@@ -57,25 +69,44 @@ object HttpSample {
     }
 
     class client: CliktCommand("client") {
-        val service by option("-s","--service", help = "ziti service to dial").required()
-        val hostname by option( "-H", "--hostname")
+        val service by option("-s","--service",
+            help = "ziti service to dial (not needed if hostname:port in given URL is intercepted)")
+        val url by argument(name = "URL")
 
         override fun run() {
-            val clt = Bootstrap()
-//                .group(NioEventLoopGroup())
-//                .channel(NioSocketChannel::class.java)
-                .group(DefaultEventLoopGroup())
+            val uri = URL(url)
+            val port = if (uri.port == -1) uri.defaultPort else uri.port
+
+            val loopGroup = DefaultEventLoopGroup()
+            val bootstrap = Bootstrap()
+                .group(loopGroup)
+                .resolver(ZitiResolverGroup(ziti))
                 .channelFactory(ZitiChannelFactory(ziti))
                 .handler(clientInit())
-                .connect(ZitiAddress.Dial(service)).sync().channel()
-                .writeAndFlush(
-                    DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/json").apply {
-                        headers().add("host", hostname ?: service)
+
+            try {
+                val cltFuture = service?.let {
+                    bootstrap.connect(ZitiAddress.Dial(it))
+                } ?: bootstrap.connect(uri.host, port)
+
+                val clt = cltFuture.sync().channel()
+                clt.writeAndFlush(
+                    DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri.path).apply {
+                        headers().add("host", uri.host)
                     }
-                )
-                .sync()
+                ).sync().await()
+
+                clt.closeFuture().sync()
+            } catch (ex: Throwable) {
+                println("exception $ex")
+            } finally {
+                loopGroup.shutdownGracefully().addListener {
+                    ziti.destroy()
+                }
+            }
         }
     }
+
     class server: CliktCommand("server") {
         val service by argument("service", "ziti service to bind to")
 
@@ -116,7 +147,7 @@ object HttpSample {
             subcommands(server(), client())
         }
         override fun run() {
-            ziti = Ziti.newContext(idFile, charArrayOf())
+           ziti = Ziti.newContext(idFile, charArrayOf())
         }
     }
 
