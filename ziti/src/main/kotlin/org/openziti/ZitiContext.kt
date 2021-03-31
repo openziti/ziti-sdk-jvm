@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.Flow
 import org.openziti.api.Service
 import org.openziti.api.ServiceTerminator
 import org.openziti.identity.Identity
+import java.net.InetSocketAddress
 import java.net.Socket
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
@@ -58,7 +59,8 @@ interface ZitiContext: Identity {
     fun serviceUpdates(): Flow<ServiceEvent>
     fun getId(): ApiIdentity?
 
-    fun getService(name: String): Service
+    fun getService(addr: InetSocketAddress): Service?
+    fun getService(name: String): Service?
     fun getServiceTerminators(service: Service): Collection<ServiceTerminator>
 
     /**

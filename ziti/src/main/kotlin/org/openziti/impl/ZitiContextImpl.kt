@@ -78,7 +78,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val serviceCh: MutableSharedFlow<ZitiContext.ServiceEvent> = MutableSharedFlow()
 
     private val servicesLoaded = CompletableDeferred<Unit>()
-    private val servicesByName = mutableMapOf<String, Service>()
+    private val servicesByName = ConcurrentHashMap<String, Service>()
     private val servicesById = mutableMapOf<String, Service>()
 
     private val servicesByAddr = mutableMapOf<InetAddress, MutableMap<PortRange,Service>>()
@@ -143,7 +143,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
 
     internal fun dial(host: String, port: Int): ZitiConnection {
-        val service = getService(host, port)
+        val service = getService(host, port) ?: throw ZitiException(Errors.ServiceNotAvailable)
         return dial(service.name)
     }
 
@@ -151,7 +151,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         val ports = servicesByAddr.get(host) ?: throw ZitiException(Errors.ServiceNotAvailable)
 
         for ((range, s) in ports) {
-            if (range.contains(port)) return dialById(s.id)
+            if (range.contains(port)) return dial(s.name)
         }
 
         throw ZitiException(Errors.ServiceNotAvailable)
@@ -160,7 +160,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun connect(host: String, port: Int): Socket {
         checkEnabled()
         val ch = open()
-        val s = getService(host, port)
+        val s = getService(host, port) ?: throw ZitiException(Errors.ServiceNotAvailable)
         ch.connect(ZitiAddress.Dial(s.name)).get()
         return AsychChannelSocket(ch)
     }
@@ -326,9 +326,11 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     }
 
-    override fun getService(name: String): Service {
+    override fun getService(addr: InetSocketAddress): Service? = getService(addr.hostName, addr.port)
+
+    override fun getService(name: String): Service? {
         checkServicesLoaded()
-        return servicesByName.get(name) ?: throw ZitiException(Errors.ServiceNotAvailable)
+        return servicesByName.get(name)
     }
 
     internal fun getService(host: InetAddress, port: Int): Service {
@@ -343,14 +345,14 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         throw ZitiException(Errors.ServiceNotAvailable)
     }
 
-    internal fun getService(host: String, port: Int): Service {
+    internal fun getService(host: String, port: Int): Service? {
         checkServicesLoaded()
 
         return servicesByName.values.find { svc ->
             svc.interceptConfig?.let {
                 it.addresses.contains(host) && it.portRanges.any { r -> port in r.low..r.high }
             } ?: false
-        } ?: throw ZitiException(Errors.ServiceNotAvailable)
+        }
     }
 
     internal fun nextConnId() = connCounter.incrementAndGet()

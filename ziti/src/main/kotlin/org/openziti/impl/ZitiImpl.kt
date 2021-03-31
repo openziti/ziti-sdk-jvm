@@ -117,13 +117,9 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return loadContext(ks, alias)
     }
 
-    fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? {
-        for (c in contexts) {
-            c.runCatching { c.getService(host, port) }.onSuccess { return Pair(c, it) }
-        }
-
-        return null
-    }
+    fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = contexts.map { c ->
+            c.getService(host, port)?.let { Pair(c, it) }
+        }.filterNotNull().firstOrNull()
 
     fun connect(addr: SocketAddress): ZitiConnection {
         when (addr) {
