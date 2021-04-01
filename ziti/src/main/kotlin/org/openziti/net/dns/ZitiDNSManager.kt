@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ internal object ZitiDNSManager : DNSResolver {
 
     internal val PREFIX = byteArrayOf(100.toByte(), 64.toByte())
 
-    internal val postfix = AtomicInteger(0x0101) // start with 1.1 postfix
+    const val startPostfix = 0x0101
+    internal val postfix = AtomicInteger(startPostfix) // start with 1.1 postfix
 
     internal val host2Ip = mutableMapOf<String, InetAddress>()
 
@@ -52,9 +53,7 @@ internal object ZitiDNSManager : DNSResolver {
         }
         runBlocking {
             GlobalScope.launch(Dispatchers.IO) {
-                if (! dnsBroadCast.tryEmit(DNSResolver.DNSEvent(hostname, ip, false))) {
-                    println("try emit failed")
-                }
+                dnsBroadCast.emit(DNSResolver.DNSEvent(hostname, ip, false))
             }
         }
         return ip
@@ -63,6 +62,9 @@ internal object ZitiDNSManager : DNSResolver {
 
     override fun subscribe(sub: (DNSResolver.DNSEvent) -> Unit) {
         GlobalScope.launch {
+            host2Ip.forEach { h, ip ->
+                sub(DNSResolver.DNSEvent(h, ip, false))
+            }
             dnsBroadCast.collect { sub(it) }
         }
     }
@@ -78,5 +80,10 @@ internal object ZitiDNSManager : DNSResolver {
 
         val ip = PREFIX + byteArrayOf(nextPostfix.shr(8).and(0xff).toByte(), (nextPostfix and 0xFF).toByte())
         return InetAddress.getByAddress(dnsname, ip)
+    }
+
+    internal fun reset() {
+        host2Ip.clear()
+        postfix.set(startPostfix)
     }
 }
