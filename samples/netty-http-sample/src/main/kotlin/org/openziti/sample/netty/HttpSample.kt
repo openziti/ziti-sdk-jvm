@@ -26,6 +26,7 @@ import io.netty.bootstrap.Bootstrap
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.ssl.SslHandler
 import org.openziti.Ziti
 import org.openziti.ZitiAddress
 import org.openziti.ZitiContext
@@ -34,23 +35,24 @@ import org.openziti.netty.ZitiResolverGroup
 import org.openziti.netty.ZitiServerChannelFactory
 import java.net.URL
 import java.nio.charset.StandardCharsets
+import javax.net.ssl.SSLContext
 
 object HttpSample {
 
     lateinit var ziti: ZitiContext
 
-    class clientInit: ChannelInitializer<Channel>(){
+    class clientInit(val host: String, val port: Int, val tls: Boolean): ChannelInitializer<Channel>(){
+        val sslCtx = SSLContext.getDefault()
         override fun initChannel(ch: Channel) {
-            ch.pipeline()
-                .addLast(object: ChannelInboundHandlerAdapter(){
-                    override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable?) {
-                        println("exception: $cause")
-                        ctx.close()
-                    }
-                })
-                .addLast(HttpClientCodec())
-                .addLast(HttpContentDecompressor())
-                .addLast(object : SimpleChannelInboundHandler<HttpObject>(){
+            ch.pipeline().apply {
+                if (tls) {
+                    val engine = sslCtx.createSSLEngine(host, port)
+                    engine.useClientMode = true
+                    addLast(SslHandler(engine))
+                }
+                addLast(HttpClientCodec())
+                addLast(HttpContentDecompressor())
+                addLast(object : SimpleChannelInboundHandler<HttpObject>(){
                     override fun channelRead0(ctx: ChannelHandlerContext, msg: HttpObject) {
                         when (msg) {
                             is HttpResponse -> {
@@ -65,6 +67,8 @@ object HttpSample {
                         }
                     }
                 })
+
+            }
         }
     }
 
@@ -75,6 +79,7 @@ object HttpSample {
 
         override fun run() {
             val uri = URL(url)
+            val tls = uri.protocol == "https"
             val port = if (uri.port == -1) uri.defaultPort else uri.port
 
             val loopGroup = DefaultEventLoopGroup()
@@ -82,7 +87,7 @@ object HttpSample {
                 .group(loopGroup)
                 .resolver(ZitiResolverGroup(ziti))
                 .channelFactory(ZitiChannelFactory(ziti))
-                .handler(clientInit())
+                .handler(clientInit(uri.host, port, tls))
 
             try {
                 val cltFuture = service?.let {
