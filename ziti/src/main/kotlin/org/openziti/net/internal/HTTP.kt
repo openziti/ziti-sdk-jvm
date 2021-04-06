@@ -16,7 +16,7 @@
 
 package org.openziti.net.internal
 
-import org.openziti.net.dns.ZitiDNSManager
+import org.openziti.Ziti
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.lang.reflect.Field
@@ -72,15 +72,13 @@ internal object HTTP: Logged by ZitiLog() {
         override fun openConnection(u: URL): URLConnection {
             val port = if (u.port == -1) u.defaultPort else u.port
 
-            ZitiDNSManager.resolve(u.host)?.let {
-                ZitiDNSManager.getServiceIdByAddr(InetSocketAddress(it, port))?.let {
-                    when(u.protocol) {
-                        "https" -> return ZitiHTTPSConnection(u)
-                        "http" -> return ZitiHTTPConnection(u)
+            Ziti.getServiceFor(u.host, port)?.let {
+                when(u.protocol) {
+                    "https" -> return ZitiHTTPSConnection(u)
+                    "http" -> return ZitiHTTPConnection(u)
 
-                        // should not be here
-                        else -> throw IllegalArgumentException("invalid scheme")
-                    }
+                    // should not be here
+                    else -> throw IllegalArgumentException("invalid scheme")
                 }
             }
 

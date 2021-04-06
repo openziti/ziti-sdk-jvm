@@ -17,6 +17,7 @@
 package org.openziti.impl
 
 import org.openziti.*
+import org.openziti.api.Service
 import org.openziti.identity.Enroller
 import org.openziti.identity.KeyStoreIdentity
 import org.openziti.identity.findIdentityAlias
@@ -116,28 +117,21 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return loadContext(ks, alias)
     }
 
+    fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = contexts.map { c ->
+            c.getService(host, port)?.let { Pair(c, it) }
+        }.filterNotNull().firstOrNull()
+
     fun connect(addr: SocketAddress): ZitiConnection {
         when (addr) {
             is InetSocketAddress -> {
-                val serviceId = ZitiDNSManager.getServiceIdByAddr(addr)
-                // if this address was assigned by DNS mananger
-                if (serviceId != null) {
-                    for (c in contexts) {
-                        try {
-                            return c.dialById(serviceId)
-                        } catch (ex: Exception) {
-                            d { "service @[$addr] not available for ${c.name()}" }
-                        }
-                    }
-                } else {
-                    for (c in contexts) {
-                        try {
-                            return c.dial(addr.hostName, addr.port)
-                        } catch (ex: Exception) {
-                            d { "service @[$addr] not available for ${c.name()}" }
-                        }
+                for (c in contexts) {
+                    try {
+                        return c.dial(addr.address, addr.port)
+                    } catch (ex: Exception) {
+                        d { "service @[$addr] not available for ${c.name()}" }
                     }
                 }
+
 
                 e { "service @[$addr] not available in any contexts" }
                 throw ZitiException(Errors.ServiceNotAvailable)

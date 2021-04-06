@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,12 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
     AbstractChannel(parent),
     Logged by ZitiLog() {
 
+    lateinit var connectPromise: ChannelPromise
+
     override fun doBeginRead() {
         d("starting read")
-        val buf = ByteBuffer.allocate(1024)
+        val buf = ByteBuffer.allocate(16 * 1024)
+
         peer.read(buf, this, object : CompletionHandler<Int, ZitiChannel>{
             override fun completed(len: Int, c: ZitiChannel) {
                 t("received $len bytes")
@@ -48,7 +51,7 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
                     }
                     return
                 }
-
+                c.pipeline().fireChannelReadComplete()
                 peer.read(buf, c, this)
             }
 
@@ -59,7 +62,7 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
     }
 
     override fun isActive(): Boolean {
-        return peer.isOpen
+        return peer.isOpen && this::connectPromise.isInitialized && connectPromise.isSuccess
     }
 
     override fun isCompatible(loop: EventLoop?): Boolean {
@@ -75,7 +78,7 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
     }
 
     override fun doClose() {
-        peer.close()
+        runCatching { peer.close() }
     }
 
     override fun newUnsafe(): AbstractUnsafe = AsyncUnsafe()
@@ -124,6 +127,10 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
 
     private inner class AsyncUnsafe: AbstractChannel.AbstractUnsafe() {
         override fun connect(remoteAddress: SocketAddress?, localAddress: SocketAddress?, promise: ChannelPromise) {
+            connectPromise = promise
+            connectPromise.addListener {
+                if (it.isSuccess) pipeline().fireChannelActive()
+            }
             peer.connect(remoteAddress, promise, object : CompletionHandler<Void, ChannelPromise>{
                 override fun completed(result: Void?, attachment: ChannelPromise) { promise.trySuccess() }
                 override fun failed(exc: Throwable, attachment: ChannelPromise) { promise.tryFailure(exc) }

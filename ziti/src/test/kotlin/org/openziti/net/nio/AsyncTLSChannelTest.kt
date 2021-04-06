@@ -49,7 +49,8 @@ class AsyncTLSChannelTest {
 
     @After
     fun tearDown() {
-        ch.runCatching { close() }
+        if (::ch.isInitialized)
+            ch.runCatching { close() }
     }
 
     @Test

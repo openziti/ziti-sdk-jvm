@@ -16,13 +16,16 @@
 
 package org.openziti.net
 
+import com.google.gson.Gson
 import com.goterl.lazycode.lazysodium.utils.Key
 import com.goterl.lazycode.lazysodium.utils.KeyPair
 import com.goterl.lazycode.lazysodium.utils.SessionPair
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import org.openziti.Errors
 import org.openziti.ZitiAddress
 import org.openziti.ZitiConnection
+import org.openziti.ZitiException
 import org.openziti.api.Session
 import org.openziti.api.SessionType
 import org.openziti.crypto.Crypto
@@ -35,9 +38,7 @@ import org.openziti.net.nio.writeCompletely
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import org.openziti.util.transfer
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.net.ConnectException
 import java.net.InetSocketAddress
 import java.net.SocketAddress
@@ -113,8 +114,14 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
         val addr = when (remote) {
             is InetSocketAddress -> {
-                val s = ctx.getService(remote.hostName, remote.port)
-                ZitiAddress.Dial(s.name)
+                val s = ctx.getService(remote.hostName, remote.port) ?: throw UnresolvedAddressException()
+                ZitiAddress.Dial(
+                    service = s.name,
+                    appData = DialData(
+                        dstProtocol = Protocol.TCP,
+                        dstIp = remote.address?.hostAddress,
+                        dstHostname = remote.hostString,
+                        dstPort = remote.port.toString()))
             }
             is ZitiAddress.Dial -> remote
             else -> throw UnsupportedAddressTypeException()
@@ -136,7 +143,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
         ctx.launch {
             ctx.runCatching {
-                val service = getService(serviceName)
+                val service = getService(serviceName) ?: throw ZitiException(Errors.ServiceNotAvailable)
                 val ns = getNetworkSession(serviceName, SessionType.Dial)
 
                 val kp = if (service.encryptionRequired) Crypto.newKeyPair() else null
@@ -181,9 +188,9 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     }
 
     override fun close() {
-        shutdownOutput()
-        shutdownInput()
-        closeInternal()
+        runCatching { shutdownOutput() }
+        runCatching { shutdownInput() }
+        runCatching { closeInternal() }
     }
 
     override fun shutdownOutput(): AsynchronousSocketChannel = runBlocking {
@@ -192,7 +199,6 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 setHeader(Header.ConnId, connId)
                 setHeader(Header.FlagsHeader, ZitiProtocol.EdgeFlags.FIN)
                 setHeader(Header.SeqHeader, seq.getAndIncrement())
-
             }
             d{"sending FIN conn = $connId"}
 
@@ -348,14 +354,14 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     override suspend fun receive(msg: Result<Message>) {
         msg.onSuccess {
-            recieveMsg(it)
+            receiveMsg(it)
         }.onFailure {
             state.set(State.closed)
             close()
         }
     }
 
-    private suspend fun recieveMsg(msg: Message) {
+    private suspend fun receiveMsg(msg: Message) {
         v{"conn[$connId] received message[${msg.content}] with seq[${msg.getIntHeader(Header.SeqHeader)}]"}
         when (msg.content) {
             ZitiProtocol.ContentType.StateClosed -> {
@@ -449,6 +455,23 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             }
             (remote.callerId ?: ctx.getId()?.name)?.let {
                     setHeader(Header.CallerIdHeader, it)
+            }
+
+            remote.appData?.let { obj ->
+                val header = when(obj) {
+                    is ByteArray -> obj
+                    is String -> obj.toByteArray(UTF_8)
+                    is Externalizable ->
+                        runCatching {
+                            val out = ByteArrayOutputStream()
+                            obj.writeExternal(ObjectOutputStream(out))
+                            out.toByteArray()
+                        }.onFailure {
+                            w { "failed to serialize provided app_data: ${it.localizedMessage}" }
+                        }.getOrNull()
+                    else -> Gson().toJson(obj).toByteArray(UTF_8)
+                }
+                header?.let { setHeader(Header.AppDataHeader, it) }
             }
         }
 

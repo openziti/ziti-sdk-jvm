@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,11 @@ sealed class ZitiAddress: SocketAddress() {
      */
 
     data class Dial @JvmOverloads constructor (
-        val service: String, val identity: String? = null, val callerId: String? = null)
-        : ZitiAddress()
+        val service: String,
+        val appData: Any? = null,
+        val identity: String? = null,
+        val callerId: String? = null
+    ) : ZitiAddress()
 
     data class Bind  @JvmOverloads constructor(
         val service: String, val identity: String? = null, val useEdgeId: Boolean = false)

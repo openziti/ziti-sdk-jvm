@@ -26,7 +26,7 @@ buildscript {
 
     ext.versions = [
             kotlin: '1.4.32',
-            coroutines: '1.4.2',
+            coroutines: '1.4.3',
             slf4j: '1.7.30',
             lazysodium: '4.3.2',
             jupiter: '5.7.1'
@@ -59,7 +59,6 @@ repositories {
 
 ext {
     zitiBuildnum = System.getenv("BUILD_NUMBER") ?: "local"
-    zitiBaseVersion = file("version").readLines()[0].trim()
 }
 
 group = "org.openziti"
@@ -85,7 +84,6 @@ semver {
 }
 
 ext {
-    gitInfo = semver.info
     gitCommit = semver.info.shortCommit
     gitBranch = semver.info.branch.name
 }
@@ -102,7 +100,7 @@ subprojects {
     }
 
     tasks.withType(PublishToMavenRepository).all {
-        onlyIf { !gitInfo.dirty }
+        onlyIf { !semver.info.dirty }
     }
 }
 

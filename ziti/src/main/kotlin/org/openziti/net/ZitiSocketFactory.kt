@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,16 @@ import javax.net.SocketFactory
 internal class ZitiSocketFactory: SocketFactory() {
     object ZitiConnector: AsyncSocketImpl.Connector, Logged by ZitiLog() {
         override fun connect(addr: SocketAddress, timeout: Int): AsynchronousSocketChannel {
+            val sockAddr = addr as InetSocketAddress
             for (ctx in Ziti.getContexts()) {
                 val ctxImpl = ctx as ZitiContextImpl
-                val sockAddr = addr as InetSocketAddress
                 try {
-                    val s = ctxImpl.getService(addr.hostName, addr.port)
-                    return doConnect(ctx.open(), addr, timeout)
-                } catch (ex: Exception) {}
+                    val s = ctxImpl.getService(sockAddr)
+                    if (s != null)
+                        return doConnect(ctx.open(), sockAddr, timeout)
+                } catch (ex: Exception) {
+                    w{"${ctx.name()}: $ex"}
+                }
             }
 
             i{"no ZitiContext provides service for $addr"}

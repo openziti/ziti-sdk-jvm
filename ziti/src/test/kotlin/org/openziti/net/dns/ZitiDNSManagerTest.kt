@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,52 @@
 
 package org.openziti.net.dns
 
-import com.google.gson.JsonObject
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Test
-import org.openziti.api.InterceptConfig
-import org.openziti.api.Service
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class ZitiDNSManagerTest {
+
+    @After
+    fun tearDown() {
+        ZitiDNSManager.reset()
+    }
+
     @Test
     fun testDNSevents() {
         val events = mutableListOf<DNSResolver.DNSEvent>()
-        ZitiDNSManager.subscribe { events.add(it) }
-
-        val dns = JsonObject().apply {
-            addProperty("port", 80)
-            addProperty("hostname", "test.dns.ziti")
+        val block = CountDownLatch(1)
+        ZitiDNSManager.subscribe {
+            events.add(it)
+            block.countDown()
         }
-        ZitiDNSManager.registerService(
-            Service(id = "id", name = "name", encryptionRequired = false, permissions = emptySet(),
-                config = mapOf(InterceptConfig to dns), postureSets = null)
-        )
 
+        ZitiDNSManager.registerHostname("test.dns.ziti")
+
+        assertTrue(block.await(10, TimeUnit.SECONDS))
         assertEquals(1, events.size)
         assertEquals("test.dns.ziti", events.first().hostname)
         assertFalse(events.first().removed)
-        assertArrayEquals(byteArrayOf(169.toByte(), 254.toByte(), 1, 2), events.first().ip.address)
+        assertArrayEquals(byteArrayOf(100.toByte(), 64.toByte(), 1, 2), events.first().ip.address)
+    }
+
+    @Test
+    fun testSubscribeLater() {
+        ZitiDNSManager.registerHostname("test1.dns.ziti")
+        ZitiDNSManager.registerHostname("test2.dns.ziti")
+
+        val block = CountDownLatch(2)
+        ZitiDNSManager.subscribe {
+            println(it)
+            block.countDown()
+        }
+
+        assertTrue(block.await(1, TimeUnit.SECONDS))
+
     }
 }
