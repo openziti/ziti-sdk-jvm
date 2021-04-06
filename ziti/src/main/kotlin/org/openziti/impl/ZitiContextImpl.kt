@@ -17,8 +17,10 @@
 package org.openziti.impl
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.selects.whileSelect
 import org.openziti.*
 import org.openziti.api.*
 import org.openziti.identity.Identity
@@ -109,11 +111,21 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun getStatus() = statusCh.value
     override fun statusUpdates() = statusCh
 
+    @ExperimentalCoroutinesApi
     override fun serviceUpdates(): Flow<ZitiContext.ServiceEvent> = flow {
         emitAll(servicesByName.values.map {
             ZitiContext.ServiceEvent(it, ZitiContext.ServiceUpdate.Available)
         }.asFlow())
-        emitAll(serviceCh)
+
+        val ch = produce { serviceCh.collect { send(it) } }
+        whileSelect {
+            supervisor.onJoin { false }
+            ch.onReceive {
+                emit(it)
+                true
+            }
+        }
+        ch.cancel()
     }
 
     override fun getServiceTerminators(service: Service): Collection<ServiceTerminator> = runBlocking {
@@ -422,6 +434,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     internal fun processServiceUpdates(services: Collection<Service>) {
+        val events = mutableListOf<ZitiContext.ServiceEvent>()
+
         val currentIds = services.map { it.id }.toCollection(mutableSetOf())
         // check removed access
 
@@ -429,9 +443,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         for (rid in removeIds) {
             servicesById.remove(rid)?.let {
                 servicesByName.remove(it.name)
-                launch {
-                    serviceCh.emit(ZitiContext.ServiceEvent(it, ZitiContext.ServiceUpdate.Unavailable))
-                }
+                events.add(ZitiContext.ServiceEvent(it, ZitiContext.ServiceUpdate.Unavailable))
             }
 
             networkSessions.remove(SessionKey(rid, SessionType.Dial))
@@ -442,8 +454,11 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         for (s in services) {
             val oldV = servicesByName.put(s.name, s)
             if (oldV == null) {
-                launch {
-                    serviceCh.emit(ZitiContext.ServiceEvent(s, ZitiContext.ServiceUpdate.Available))
+                events.add(ZitiContext.ServiceEvent(s, ZitiContext.ServiceUpdate.Available))
+            } else {
+                if (oldV.permissions != s.permissions ||
+                    oldV.config != s.config) {
+                    events.add(ZitiContext.ServiceEvent(s, ZitiContext.ServiceUpdate.ConfigurationChange))
                 }
             }
             servicesById.put(s.id, s)
@@ -471,6 +486,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             postureService.getPosture().forEach {
                 controller.sendPostureResp(it)
             }
+
+            serviceCh.emitAll(events.asFlow())
         }
 
         servicesLoaded.complete(Unit)
