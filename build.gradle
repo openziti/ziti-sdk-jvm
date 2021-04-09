@@ -69,7 +69,7 @@ semver {
     branches {
         branch {
             regex = "main"
-            incrementer = "NO_VERSION_INCREMENTER"
+            incrementer = "PATCH_INCREMENTER"
             formatter = { info -> "${info.version.major}.${info.version.minor}.${info.version.patch}" }
         }
         branch {
