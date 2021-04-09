@@ -16,6 +16,7 @@
 
 package org.openziti
 
+import kotlinx.coroutines.flow.Flow
 import org.openziti.api.Service
 import org.openziti.impl.ZitiImpl
 import org.openziti.net.ZitiSocketFactory
@@ -86,4 +87,6 @@ object Ziti {
 
     @JvmStatic
     fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = ZitiImpl.getServiceFor(host, port)
+
+    fun serviceUpdates(): Flow<Pair<ZitiContext, ZitiContext.ServiceEvent>> = ZitiImpl.serviceUpdates()
 }

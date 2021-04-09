@@ -16,13 +16,18 @@
 
 package org.openziti.impl
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.openziti.*
 import org.openziti.api.Service
 import org.openziti.identity.Enroller
 import org.openziti.identity.KeyStoreIdentity
 import org.openziti.identity.findIdentityAlias
 import org.openziti.identity.loadKeystore
-import org.openziti.net.dns.ZitiDNSManager
 import org.openziti.net.internal.Sockets
 import org.openziti.util.Logged
 import org.openziti.util.Version
@@ -37,6 +42,8 @@ internal object ZitiImpl : Logged by ZitiLog() {
     internal val contexts = mutableListOf<ZitiContextImpl>()
     internal var appId = ""
     internal var appVersion = ""
+
+    internal val serviceEvents = MutableSharedFlow<Pair<ZitiContext, ZitiContext.ServiceEvent>>()
 
     internal val onAndroid: Boolean by lazy {
         try {
@@ -54,8 +61,13 @@ internal object ZitiImpl : Logged by ZitiLog() {
     internal fun loadContext(ks: KeyStore, alias: String?): ZitiContextImpl {
         val idName = alias ?: findIdentityAlias(ks)
         val id = KeyStoreIdentity(ks, idName)
-        return ZitiContextImpl(id, true).also {
-            contexts.add(it)
+        return ZitiContextImpl(id, true).also { ctx ->
+            contexts.add(ctx)
+            GlobalScope.launch {
+                ctx.serviceUpdates().collect {
+                    serviceEvents.emit(Pair(ctx, it))
+                }
+            }
         }
     }
 
@@ -157,4 +169,6 @@ internal object ZitiImpl : Logged by ZitiLog() {
         appId = id
         appVersion = version
     }
+
+    fun serviceUpdates(): Flow<Pair<ZitiContext, ZitiContext.ServiceEvent>> = serviceEvents.asSharedFlow()
 }
