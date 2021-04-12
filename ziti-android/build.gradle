@@ -69,11 +69,8 @@ android {
 
 
 repositories {
-    jcenter()
     google()
-    maven { // needed to lazysodium-android
-        url = "https://dl.bintray.com/terl/lazysodium-maven"
-    }
+    mavenCentral()
 }
 
 dependencies {
@@ -81,7 +78,7 @@ dependencies {
         exclude module:"lazysodium-java"
         exclude module:"jna"
     }
-    embed("com.goterl.lazycode:lazysodium-android:${versions.lazysodium}@aar")
+    embed("com.goterl:lazysodium-android:${versions.lazysodium}@aar")
     embed('net.java.dev.jna:jna:5.7.0@aar')
 
     implementation deps.kotlin
