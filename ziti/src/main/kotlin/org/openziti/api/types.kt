@@ -37,7 +37,8 @@ enum class PostureQueryType {
     OS,
     MAC,
     DOMAIN,
-    PROCESS
+    PROCESS,
+    MFA
 }
 
 enum class InterceptProtocol {
@@ -66,7 +67,8 @@ internal class ApiSession(
     val identity: Identity,
     val updatedAt: Date,
     val expiresAt: Date,
-    val expirationSeconds: Int
+    val expirationSeconds: Int,
+    val authQueries: Array<AuthQueryMFA>?
 )
 
 internal class ServiceUpdates(val lastChangeAt: Date)
@@ -129,7 +131,7 @@ data class PostureQueryProcess (
 )
 
 data class PostureQuery (
-    val queryType: PostureQueryType,
+    val queryType: PostureQueryType?,
     val id: String,
     val isPassing: Boolean,
     val process: PostureQueryProcess?
