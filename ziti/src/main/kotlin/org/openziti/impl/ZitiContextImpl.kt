@@ -552,7 +552,15 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean, inte
         return controller.getMFAEnrollment()!!
     }
 
-    override suspend fun verifyMFA(code: String): Any? {
+    override suspend fun verifyMFA(code: String) {
         return controller.verifyMFA(code)
+    }
+
+    override suspend fun removeMFA(code: String) {
+        controller.removeMFA(code)
+    }
+
+    override suspend fun getMFARecoveryCodes(code: String, newCodes: Boolean): Array<String> {
+        return controller.getMFARecoveryCodes(code, newCodes)
     }
 }

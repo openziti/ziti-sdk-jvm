@@ -123,6 +123,14 @@ interface ZitiContext: Identity {
         enrollMFA()
     }.asCompletableFuture()
 
-    suspend fun verifyMFA(code: String): Any?
+    suspend fun verifyMFA(code: String)
     fun verifyMFAAsync(code: String) = GlobalScope.async { verifyMFA(code) }.asCompletableFuture()
+
+    suspend fun removeMFA(code: String)
+    fun removeMFAAsync(code: String) =
+        GlobalScope.async { removeMFA(code) }.asCompletableFuture()
+
+    suspend fun getMFARecoveryCodes(code: String, newCodes: Boolean): Array<String>
+    fun getMFARecoveryCodesAsync(code: String, newCodes: Boolean) =
+        GlobalScope.async { getMFARecoveryCodes(code, newCodes) }.asCompletableFuture()
 }

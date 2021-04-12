@@ -75,11 +75,20 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         @POST("/current-identity/mfa")
         fun postMFA(): Deferred<Response<Unit>>
 
+        @DELETE("/current-identity/mfa")
+        fun removeMFA(@Header("mfa-validation-code") code: String): Deferred<Response<Unit>>
+
         @POST("/authenticate/mfa")
         fun authMFA(@Body code: MFACode): Deferred<Response<Unit>>
 
         @POST("/current-identity/mfa/verify")
         fun verifyMFA(@Body code: MFACode): Deferred<Response<Unit>>
+
+        @GET("/current-identity/mfa/recovery-codes")
+        fun getMFACodes(@Header("mfa-validation-code") code: String): Deferred<Response<MFARecoveryCodes>>
+
+        @POST("/current-identity/mfa/recovery-codes")
+        fun newMFACodes(@Body code: MFACode): Deferred<Response<Unit>>
 
         @GET("/current-api-session/service-updates")
         fun getServiceUpdates(): Deferred<Response<ServiceUpdates>>
@@ -244,6 +253,20 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     internal suspend fun authMFA(code: String) {
         runCatching { api.authMFA(MFACode(code)).await() }
             .getOrElse { convertError(it) }
+    }
+
+    internal suspend fun removeMFA(code: String) {
+        runCatching { api.removeMFA(code).await() }
+            .getOrElse { convertError(it) }
+    }
+
+    internal suspend fun getMFARecoveryCodes(code: String, newCodes: Boolean): Array<String> {
+        if (newCodes) {
+            api.newMFACodes(MFACode(code)).await()
+        }
+
+        val codes = api.getMFACodes(code)
+        return codes.await().data?.recoveryCodes ?: emptyArray()
     }
 
     private fun <T> pagingRequest(req: (offset: Int) -> Deferred<Response<Collection<T>>>) = flow {

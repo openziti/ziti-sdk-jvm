@@ -40,3 +40,7 @@ data class MFAEnrollment (
 data class MFACode (
     val code: String
 )
+
+data class MFARecoveryCodes (
+    val recoveryCodes: Array<String>
+)

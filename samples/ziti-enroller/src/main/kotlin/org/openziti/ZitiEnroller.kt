@@ -18,6 +18,7 @@ package org.openziti
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
@@ -65,6 +66,9 @@ object ZitiEnroller {
             it.exists()
         }
 
+        val showCodes by option(help = "display recovery codes").flag(default = false)
+        val newCodes by option(help = "generate new recovery codes").flag(default = false)
+
         override fun run() {
             val ztx = Ziti.newContext(idFile, charArrayOf(), object : Ziti.AuthHandler{
                 override fun getCode(ztx: ZitiContext, mfaType: MFAType, provider: String) =
@@ -94,6 +98,16 @@ object ZitiEnroller {
 
             runBlocking {
                 j.join()
+
+                if (showCodes || newCodes) {
+                    print("""enter OTP to ${if (newCodes) "generate" else "show"} recovery codes: """)
+                    val code = readLine()
+                    val recCodes = ztx.getMFARecoveryCodes(code!!, newCodes)
+                    for (rc in recCodes) {
+                        println(rc)
+                    }
+                }
+
                 ztx.destroy()
             }
 
