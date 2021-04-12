@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.openziti.crypto
 
-import com.goterl.lazycode.lazysodium.LazySodium
-import com.goterl.lazycode.lazysodium.utils.Key
-import com.goterl.lazycode.lazysodium.utils.KeyPair
-import com.goterl.lazycode.lazysodium.utils.SessionPair
+import com.goterl.lazysodium.LazySodium
+import com.goterl.lazysodium.utils.Key
+import com.goterl.lazysodium.utils.KeyPair
+import com.goterl.lazysodium.utils.SessionPair
 import java.util.*
 
 object Crypto {

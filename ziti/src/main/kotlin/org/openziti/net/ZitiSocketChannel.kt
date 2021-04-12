@@ -17,9 +17,9 @@
 package org.openziti.net
 
 import com.google.gson.Gson
-import com.goterl.lazycode.lazysodium.utils.Key
-import com.goterl.lazycode.lazysodium.utils.KeyPair
-import com.goterl.lazycode.lazysodium.utils.SessionPair
+import com.goterl.lazysodium.utils.Key
+import com.goterl.lazysodium.utils.KeyPair
+import com.goterl.lazysodium.utils.SessionPair
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.openziti.Errors
