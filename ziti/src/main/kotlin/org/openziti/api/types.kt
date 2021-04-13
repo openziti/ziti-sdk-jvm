@@ -73,17 +73,28 @@ internal class ServiceUpdates(val lastChangeAt: Date)
 
 private data class ClientV1Config(val hostname: String, val port: Int)
 
-data class PortRange(val low: Int, val high: Int) {
+data class PortRange(val low: Int, val high: Int): Comparable<PortRange> {
     fun contains(port: Int) = (port in low..high)
+
+    override fun toString(): String = if (low == high) low.toString() else "$low-$high"
+    override fun compareTo(other: PortRange): Int {
+        val ord = low.compareTo(other.low)
+        return if (ord == 0) high.compareTo(other.high) else ord
+    }
 }
 
+fun <T> Array<T>.display() = joinToString(prefix = "[", postfix = "]")
 data class InterceptConfig(
     val protocols: Array<InterceptProtocol>,
     val addresses: Array<String>,
     val portRanges: Array<PortRange>,
     val dialOptions: Map<String,Any> = emptyMap(),
     val sourceIp: String? = null
-)
+) {
+    override fun toString(): String {
+        return """${protocols.display()}:${addresses.display()}:${portRanges.display()}"""
+    }
+}
 
 class Service internal constructor(
     internal val id: String,
