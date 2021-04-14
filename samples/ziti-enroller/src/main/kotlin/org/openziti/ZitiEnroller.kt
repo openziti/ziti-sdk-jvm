@@ -32,12 +32,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.openziti.api.MFAType
 import org.openziti.identity.Enroller
-import java.io.File
 import java.io.FileNotFoundException
 import java.net.InetAddress
 import java.security.KeyStore
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
 
 object ZitiEnroller {
 
@@ -99,12 +97,20 @@ object ZitiEnroller {
             runBlocking {
                 j.join()
 
+
+                val mfaEnrolled = ztx.isMFAEnrolled()
+                println("MFA enrolled: $mfaEnrolled")
+
                 if (showCodes || newCodes) {
-                    print("""enter OTP to ${if (newCodes) "generate" else "show"} recovery codes: """)
-                    val code = readLine()
-                    val recCodes = ztx.getMFARecoveryCodes(code!!, newCodes)
-                    for (rc in recCodes) {
-                        println(rc)
+                    if (mfaEnrolled) {
+                        print("""enter OTP to ${if (newCodes) "generate" else "show"} recovery codes: """)
+                        val code = readLine()
+                        val recCodes = ztx.getMFARecoveryCodes(code!!, newCodes)
+                        for (rc in recCodes) {
+                            println(rc)
+                        }
+                    } else {
+                        println("cannot show recovery codes: not enrolled in MFA")
                     }
                 }
 

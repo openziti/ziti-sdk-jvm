@@ -70,6 +70,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean, inte
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + supervisor
 
+    private val apiSF = MutableStateFlow<ApiSession?>(null)
     private var apiSession: ApiSession? = null
 
     private val controller: Controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager())
@@ -541,6 +542,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean, inte
         runBlocking {
             statusCh.takeWhile { it != ZitiContext.Status.Active }.collect()
         }
+    }
+
+    override fun isMFAEnrolled(): Boolean {
+        return apiSession?.authQueries?.isNotEmpty() ?: false
     }
 
     override suspend fun enrollMFA(): MFAEnrollment {
