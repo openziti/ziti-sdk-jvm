@@ -17,6 +17,7 @@
 package org.openziti
 
 import kotlinx.coroutines.flow.Flow
+import org.openziti.api.MFAType
 import org.openziti.api.Service
 import org.openziti.impl.ZitiImpl
 import org.openziti.net.ZitiSocketFactory
@@ -26,6 +27,7 @@ import org.openziti.net.nio.AsyncTLSSocketFactory
 import java.io.File
 import java.net.SocketAddress
 import java.security.KeyStore
+import java.util.concurrent.CompletionStage
 import javax.net.SocketFactory
 import javax.net.ssl.SSLSocketFactory
 
@@ -33,6 +35,11 @@ import javax.net.ssl.SSLSocketFactory
  * Main API entry point.
  */
 object Ziti {
+
+    @FunctionalInterface
+    interface AuthHandler {
+        fun getCode(ztx: ZitiContext, mfaType: MFAType, provider: String): CompletionStage<String>
+    }
 
     /**
      * Load Ziti identity from the file.
@@ -44,7 +51,8 @@ object Ziti {
      * @param pwd password to access the file (only needed for .jks or .pfx/.p12 if they are protected by password)
      */
     @JvmStatic
-    fun newContext(idFile: File, pwd: CharArray): ZitiContext = ZitiImpl.loadContext(idFile, pwd, null)
+    @JvmOverloads
+    fun newContext(idFile: File, pwd: CharArray, auth: AuthHandler? = null): ZitiContext = ZitiImpl.loadContext(idFile, pwd, null, auth)
 
     /**
      * Load Ziti identity from the file.
@@ -53,16 +61,19 @@ object Ziti {
      * @param pwd password to access the file (only needed for .jks or .pfx/.p12 if they are protected by password)
      */
     @JvmStatic
-    fun newContext(fname: String, pwd: CharArray): ZitiContext = newContext(File(fname), pwd)
+    @JvmOverloads
+    fun newContext(fname: String, pwd: CharArray, auth: AuthHandler? = null): ZitiContext = newContext(File(fname), pwd, auth)
 
     @JvmStatic
     fun removeContext(ctx: ZitiContext) = ZitiImpl.removeContext(ctx)
 
     @JvmStatic
-    fun init(fname: String, pwd: CharArray, seamless: Boolean) = ZitiImpl.init(File(fname), pwd, seamless)
+    @JvmOverloads
+    fun init(fname: String, pwd: CharArray, seamless: Boolean, auth: AuthHandler? = null) = ZitiImpl.init(File(fname), pwd, seamless, auth)
 
     @JvmStatic
-    fun init(ks: KeyStore, seamless: Boolean) =  ZitiImpl.init(ks, seamless)
+    @JvmOverloads
+    fun init(ks: KeyStore, seamless: Boolean, auth: AuthHandler? = null) =  ZitiImpl.init(ks, seamless, auth)
 
     @JvmStatic
     fun enroll(ks: KeyStore, jwt: ByteArray, name: String): ZitiContext = ZitiImpl.enroll(ks, jwt, name)

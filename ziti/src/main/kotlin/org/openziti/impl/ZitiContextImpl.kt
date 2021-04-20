@@ -19,6 +19,7 @@ package org.openziti.impl
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.selects.whileSelect
 import org.openziti.*
@@ -51,7 +52,7 @@ import org.openziti.api.Identity as ApiIdentity
  * Object maintaining current Ziti session.
  *
  */
-internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : ZitiContext, Identity by id,
+internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean, internal val auth: Ziti.AuthHandler?) : ZitiContext, Identity by id,
     CoroutineScope, Logged by ZitiLog() {
 
     private var _enabled: Boolean by Delegates.observable(enabled) { _, _, isEnabled ->
@@ -187,6 +188,30 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 e("failed to login, cannot continue")
                 updateStatus(ZitiContext.Status.NotAuthorized(it))
                 throw it
+            }
+
+            val mfa = apiSession?.authQueries?.find { it.typeId == MFAType.MFA && it.provider == "ziti" }
+            mfa?.let {
+                if (auth == null) {
+                    val ex = ZitiException(
+                        Errors.NotAuthorized,
+                        IllegalStateException("identity requires MFA, but callback was not provided by the app")
+                    )
+                    updateStatus(ZitiContext.Status.NotAuthorized(ex))
+                    throw ex
+                }
+            }
+
+            if (mfa != null) {
+                updateStatus(ZitiContext.Status.Authenticating)
+                runCatching {
+                    val codeF = auth!!.getCode(this, mfa.typeId!!, mfa.provider)
+                    val code = codeF.await()
+                    controller.authMFA(code)
+                }.getOrElse {
+                    updateStatus(ZitiContext.Status.NotAuthorized(it))
+                    throw it
+                }
             }
 
             updateStatus(ZitiContext.Status.Active)
@@ -516,5 +541,26 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         runBlocking {
             statusCh.takeWhile { it != ZitiContext.Status.Active }.collect()
         }
+    }
+
+    override suspend fun enrollMFA(): MFAEnrollment {
+
+        val mfaEnrollment = runCatching { controller.getMFAEnrollment() }.getOrThrow()
+        if (mfaEnrollment != null) return mfaEnrollment
+
+        controller.postMFA()
+        return controller.getMFAEnrollment()!!
+    }
+
+    override suspend fun verifyMFA(code: String) {
+        return controller.verifyMFA(code)
+    }
+
+    override suspend fun removeMFA(code: String) {
+        controller.removeMFA(code)
+    }
+
+    override suspend fun getMFARecoveryCodes(code: String, newCodes: Boolean): Array<String> {
+        return controller.getMFARecoveryCodes(code, newCodes)
     }
 }

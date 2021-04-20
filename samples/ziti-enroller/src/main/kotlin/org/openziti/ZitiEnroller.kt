@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,31 @@
 package org.openziti
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.file
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.openziti.api.MFAType
 import org.openziti.identity.Enroller
+import java.io.File
 import java.io.FileNotFoundException
 import java.net.InetAddress
 import java.security.KeyStore
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 
 object ZitiEnroller {
 
-    private class Cli : CliktCommand(name = "ziti-enroller") {
+    private class enroll: CliktCommand() {
         val jwt by option(help = "Enrollment token (JWT file). Required").file().required().validate {
             it.exists() || throw FileNotFoundException("jwt[${it.path}] not found")
         }
@@ -45,6 +58,93 @@ object ZitiEnroller {
             enroller.enroll(null, store, InetAddress.getLocalHost().hostName)
 
             store.store(out.outputStream(), charArrayOf())
+        }
+    }
+
+    private class verify: CliktCommand(help = "verify identity file. OTP will be requested if identity is enrolled in MFA") {
+        val idFile by option(help = "identity configuration file.").file().required().validate {
+            it.exists()
+        }
+
+        val showCodes by option(help = "display recovery codes").flag(default = false)
+        val newCodes by option(help = "generate new recovery codes").flag(default = false)
+
+        override fun run() {
+            val ztx = Ziti.newContext(idFile, charArrayOf(), object : Ziti.AuthHandler{
+                override fun getCode(ztx: ZitiContext, mfaType: MFAType, provider: String) =
+                    CompletableFuture.supplyAsync {
+                        print("Enter MFA code for $mfaType/$provider[${ztx.getId()?.name}]: ")
+                        val code = readLine()
+                        code!!
+                    }
+            })
+
+            val j = GlobalScope.launch  {
+                ztx.statusUpdates().collect {
+                    println("status: $it")
+                    when(it) {
+                        ZitiContext.Status.Loading, ZitiContext.Status.Authenticating -> {}
+                        ZitiContext.Status.Active -> {
+                            println("verification success!")
+                            cancel()
+                        }
+                        is ZitiContext.Status.NotAuthorized -> {
+                            cancel("verification failed!", it.ex)
+                        }
+                        else -> cancel("unexpected status")
+                    }
+                }
+            }
+
+            runBlocking {
+                j.join()
+
+                if (showCodes || newCodes) {
+                    print("""enter OTP to ${if (newCodes) "generate" else "show"} recovery codes: """)
+                    val code = readLine()
+                    val recCodes = ztx.getMFARecoveryCodes(code!!, newCodes)
+                    for (rc in recCodes) {
+                        println(rc)
+                    }
+                }
+
+                ztx.destroy()
+            }
+
+        }
+    }
+
+    private class mfa: CliktCommand(help = "Enroll identity in MFA") {
+        val idFile by option(help = "identity configuration file.").file().required().validate {
+            it.exists()
+        }
+
+        override fun run() {
+            val ztx = Ziti.newContext(idFile, charArrayOf())
+
+            val j = GlobalScope.launch {
+                ztx.statusUpdates().takeWhile { it != ZitiContext.Status.Active }.collectLatest { println(it) }
+                val mfa = ztx.enrollMFA()
+                println(mfa)
+
+                print("Enter OTP code: ")
+                val code = readLine()
+                ztx.verifyMFA(code!!.trim())
+            }
+            runBlocking { j.join() }
+
+            ztx.destroy()
+        }
+
+    }
+
+    private class Cli : CliktCommand(name = "ziti-enroller") {
+
+        init {
+            subcommands(enroll(), verify(), mfa())
+        }
+
+        override fun run() {
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,8 @@ private val errorMap = mapOf(
     "REQUIRES_CERT_AUTH" to Errors.NotAuthorized,
     "UNAUTHORIZED" to Errors.NotAuthorized,
     "INVALID_AUTH" to Errors.NotAuthorized,
-    "INVALID_POSTURE" to Errors.InsufficientSecurity
+    "INVALID_POSTURE" to Errors.InsufficientSecurity,
+    "MFA_INVALID_TOKEN" to Errors.InsufficientSecurity
 )
 
 fun getZitiError(err: String): Errors = errorMap.getOrElse(err) { Errors.WTF(err) }

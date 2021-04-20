@@ -16,7 +16,11 @@
 
 package org.openziti
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.future.asCompletableFuture
+import org.openziti.api.MFAEnrollment
 import org.openziti.api.Service
 import org.openziti.api.ServiceTerminator
 import org.openziti.identity.Identity
@@ -24,6 +28,7 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
+import java.util.concurrent.Future
 import org.openziti.api.Identity as ApiIdentity
 
 /**
@@ -44,6 +49,7 @@ interface ZitiContext: Identity {
 
     sealed class Status {
         object Loading: Status()
+        object Authenticating: Status()
         object Active: Status()
         object Disabled: Status()
         class NotAuthorized(val ex: Throwable): Status()
@@ -112,4 +118,19 @@ interface ZitiContext: Identity {
 
     fun destroy()
 
+    suspend fun enrollMFA(): MFAEnrollment
+    fun enrollMFAAsync() = GlobalScope.async {
+        enrollMFA()
+    }.asCompletableFuture()
+
+    suspend fun verifyMFA(code: String)
+    fun verifyMFAAsync(code: String) = GlobalScope.async { verifyMFA(code) }.asCompletableFuture()
+
+    suspend fun removeMFA(code: String)
+    fun removeMFAAsync(code: String) =
+        GlobalScope.async { removeMFA(code) }.asCompletableFuture()
+
+    suspend fun getMFARecoveryCodes(code: String, newCodes: Boolean): Array<String>
+    fun getMFARecoveryCodesAsync(code: String, newCodes: Boolean) =
+        GlobalScope.async { getMFARecoveryCodes(code, newCodes) }.asCompletableFuture()
 }

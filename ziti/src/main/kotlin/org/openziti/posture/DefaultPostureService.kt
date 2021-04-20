@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@ package org.openziti.posture
 import org.openziti.api.PostureQuery
 import org.openziti.api.PostureQueryType
 import org.openziti.api.PostureResponse
+import org.openziti.util.Logged
+import org.openziti.util.ZitiLog
 import java.net.NetworkInterface
 
-internal class DefaultPostureService: PostureService {
+internal class DefaultPostureService: PostureService, Logged by ZitiLog() {
     internal val queries = mutableMapOf<String,PostureQuery>()
 
     object Provider: PostureServiceProvider {
@@ -56,7 +58,10 @@ internal class DefaultPostureService: PostureService {
         return when(q.queryType) {
             PostureQueryType.OS -> PostureResponse.OS(q.id, osName, osVersion, "")
             PostureQueryType.MAC -> PostureResponse.MAC(q.id, macs)
-            else -> null
+            else -> {
+                w{"unsupported posture type: $q"}
+                null
+            }
         }
     }
 }

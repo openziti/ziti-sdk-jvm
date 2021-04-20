@@ -28,7 +28,6 @@ import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import org.openziti.Errors
-import org.openziti.ZitiContext
 import org.openziti.ZitiException
 import org.openziti.getZitiError
 import org.openziti.impl.ZitiImpl
@@ -46,7 +45,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.IOException
 import java.net.URL
-import java.time.Instant
 import java.util.*
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
@@ -70,6 +68,27 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
 
         @DELETE("current-api-session")
         fun logout(): Deferred<Unit>
+
+        @GET("/current-identity/mfa")
+        fun getMFA(): Deferred<Response<MFAEnrollment>>
+
+        @POST("/current-identity/mfa")
+        fun postMFA(): Deferred<Response<Unit>>
+
+        @DELETE("/current-identity/mfa")
+        fun removeMFA(@Header("mfa-validation-code") code: String): Deferred<Response<Unit>>
+
+        @POST("/authenticate/mfa")
+        fun authMFA(@Body code: MFACode): Deferred<Response<Unit>>
+
+        @POST("/current-identity/mfa/verify")
+        fun verifyMFA(@Body code: MFACode): Deferred<Response<Unit>>
+
+        @GET("/current-identity/mfa/recovery-codes")
+        fun getMFACodes(@Header("mfa-validation-code") code: String): Deferred<Response<MFARecoveryCodes>>
+
+        @POST("/current-identity/mfa/recovery-codes")
+        fun newMFACodes(@Body code: MFACode): Deferred<Response<Unit>>
 
         @GET("/current-api-session/service-updates")
         fun getServiceUpdates(): Deferred<Response<ServiceUpdates>>
@@ -216,6 +235,40 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
             offset ->  api.getServiceTerminators(s.id, offset = offset)
     }
 
+    internal suspend fun postMFA() = api.postMFA().await().data
+
+    internal suspend fun getMFAEnrollment(): MFAEnrollment? =
+        runCatching { api.getMFA().await().data }
+            .onFailure {
+                if (it !is HttpException) throw it
+                if (it.code() != 404) throw it
+            }.getOrNull()
+
+    internal suspend fun verifyMFA(code: String) {
+        runCatching {
+            api.verifyMFA(MFACode(code)).await()
+        }.getOrElse { convertError(it) }
+    }
+
+    internal suspend fun authMFA(code: String) {
+        runCatching { api.authMFA(MFACode(code)).await() }
+            .getOrElse { convertError(it) }
+    }
+
+    internal suspend fun removeMFA(code: String) {
+        runCatching { api.removeMFA(code).await() }
+            .getOrElse { convertError(it) }
+    }
+
+    internal suspend fun getMFARecoveryCodes(code: String, newCodes: Boolean): Array<String> {
+        if (newCodes) {
+            api.newMFACodes(MFACode(code)).await()
+        }
+
+        val codes = api.getMFACodes(code)
+        return codes.await().data?.recoveryCodes ?: emptyArray()
+    }
+
     private fun <T> pagingRequest(req: (offset: Int) -> Deferred<Response<Collection<T>>>) = flow {
         var offset = 0
 
@@ -242,7 +295,6 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     }
 
     private fun convertError(t: Throwable): Nothing {
-        e("error: ${t.localizedMessage}")
         val errCode = when (t) {
             is HttpException -> getZitiError(getError(t.response()))
             is IOException -> Errors.ControllerUnavailable

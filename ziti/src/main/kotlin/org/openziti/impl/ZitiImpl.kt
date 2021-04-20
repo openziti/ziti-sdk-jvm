@@ -42,6 +42,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
     internal val contexts = mutableListOf<ZitiContextImpl>()
     internal var appId = ""
     internal var appVersion = ""
+    internal var authHandler: Ziti.AuthHandler? = null
 
     internal val serviceEvents = MutableSharedFlow<Pair<ZitiContext, ZitiContext.ServiceEvent>>()
 
@@ -58,10 +59,10 @@ internal object ZitiImpl : Logged by ZitiLog() {
         i("ZitiSDK version ${Version.version} @${Version.revision}(${Version.branch})")
     }
 
-    internal fun loadContext(ks: KeyStore, alias: String?): ZitiContextImpl {
+    internal fun loadContext(ks: KeyStore, alias: String?, authHandler: Ziti.AuthHandler?): ZitiContextImpl {
         val idName = alias ?: findIdentityAlias(ks)
         val id = KeyStoreIdentity(ks, idName)
-        return ZitiContextImpl(id, true).also { ctx ->
+        return ZitiContextImpl(id, true, authHandler).also { ctx ->
             contexts.add(ctx)
             GlobalScope.launch {
                 ctx.serviceUpdates().collect {
@@ -71,17 +72,17 @@ internal object ZitiImpl : Logged by ZitiLog() {
         }
     }
 
-    internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContextImpl {
+    internal fun loadContext(idFile: File, pwd: CharArray, alias: String?, auth: Ziti.AuthHandler?): ZitiContextImpl {
         val ks = loadKeystore(idFile, pwd)
-        return loadContext(ks, alias)
+        return loadContext(ks, alias, auth)
     }
 
-    fun init(file: File, pwd: CharArray, seamless: Boolean): Unit {
+    fun init(file: File, pwd: CharArray, seamless: Boolean, authHandler: Ziti.AuthHandler?): Unit {
         if (seamless) {
             initInternalNetworking()
         }
 
-        val ctx = loadContext(file, pwd, null)
+        val ctx = loadContext(file, pwd, null, authHandler)
         ctx.checkServicesLoaded()
     }
 
@@ -92,14 +93,15 @@ internal object ZitiImpl : Logged by ZitiLog() {
         }
     }
 
-    fun init(ks: KeyStore, seamless: Boolean): List<ZitiContext> {
+    fun init(ks: KeyStore, seamless: Boolean, authHandler: Ziti.AuthHandler?): List<ZitiContext> {
+        this.authHandler = authHandler
         if (seamless) {
             initInternalNetworking()
         }
 
         for (a in ks.aliases()) {
             if (isZitiIdentity(ks, a)) {
-                loadContext(ks, a)
+                loadContext(ks, a, authHandler)
             }
         }
 
@@ -126,7 +128,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
         val enroller = Enroller.fromJWT(String(jwt))
         val alias = enroller.enroll(null, ks, name)
 
-        return loadContext(ks, alias)
+        return loadContext(ks, alias, authHandler)
     }
 
     fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = contexts.map { c ->
