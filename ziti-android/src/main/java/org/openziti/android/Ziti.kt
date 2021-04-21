@@ -16,12 +16,14 @@
 
 package org.openziti.android
 
+import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.support.v4.content.FileProvider
 import android.support.v4.content.LocalBroadcastManager
@@ -32,13 +34,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.openziti.Ziti
 import org.openziti.ZitiContext
+import org.openziti.api.MFAType
 import org.openziti.net.dns.DNSResolver
 import org.openziti.util.Logged
 import org.openziti.util.Version
 import org.openziti.util.ZitiLog
 import java.net.URI
 import java.security.KeyStore
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.coroutines.CoroutineContext
@@ -46,9 +52,11 @@ import kotlin.coroutines.CoroutineContext
 /**
  *
  */
+@SuppressLint("StaticFieldLeak")
 object Ziti: CoroutineScope, Logged by ZitiLog() {
     const val IDENTITY_ADDED = "ziti.identity.added"
     const val IDENTITY_REMOVED = "ziti.identity.removed"
+    const val IDENTITY_MFA = "ziti.identity.mfa"
 
     private val supervisor = SupervisorJob()
     override val coroutineContext: CoroutineContext
@@ -61,8 +69,20 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
     const val ZitiNotificationChannel = "Ziti"
 
     lateinit var app: Context
+
     lateinit var zitiPref: SharedPreferences
     lateinit var keyStore: KeyStore
+    var currentActivity: Activity? = null
+
+    object MFAHandler: Ziti.AuthHandler {
+        override fun getCode(
+            ztx: ZitiContext,
+            mfaType: MFAType,
+            provider: String
+        ): CompletionStage<String> {
+            return CompletableFuture.completedFuture("TODO")
+        }
+    }
 
     @JvmStatic
     fun getDnsResolver(): DNSResolver = Impl.getDNSResolver()
@@ -75,6 +95,28 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
             app.getSystemService(NotificationManager::class.java)?.createNotificationChannel(
                 NotificationChannel(ZitiNotificationChannel, Ziti, NotificationManager.IMPORTANCE_HIGH)
             )
+        }
+
+        if (app is Application) {
+
+            app.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks{
+                override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+                override fun onActivityStarted(activity: Activity) {}
+                override fun onActivityResumed(activity: Activity) {
+                    currentActivity = activity
+                }
+
+                override fun onActivityPaused(activity: Activity) {
+                    if (activity == currentActivity) currentActivity = null
+                }
+
+                override fun onActivityStopped(activity: Activity) {
+                    if (activity == currentActivity) currentActivity = null
+                }
+
+                override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+                override fun onActivityDestroyed(activity: Activity) {}
+            })
         }
 
 

@@ -118,6 +118,8 @@ interface ZitiContext: Identity {
 
     fun destroy()
 
+    fun isMFAEnrolled(): Boolean
+
     suspend fun enrollMFA(): MFAEnrollment
     fun enrollMFAAsync() = GlobalScope.async {
         enrollMFA()

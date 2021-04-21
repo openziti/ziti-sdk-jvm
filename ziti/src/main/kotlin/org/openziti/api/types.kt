@@ -38,7 +38,8 @@ enum class PostureQueryType {
     MAC,
     DOMAIN,
     PROCESS,
-    MFA
+    MFA,
+    UKNOWN
 }
 
 enum class InterceptProtocol {
@@ -68,7 +69,7 @@ internal class ApiSession(
     val updatedAt: Date,
     val expiresAt: Date,
     val expirationSeconds: Int,
-    val authQueries: Array<AuthQueryMFA>?
+    val authQueries: Array<AuthQueryMFA>
 )
 
 internal class ServiceUpdates(val lastChangeAt: Date)
@@ -118,6 +119,15 @@ class Service internal constructor(
             }
 
     fun <C> getConfig(configType: String, cls: Class<out C>): C? = Gson().fromJson(config[configType],cls)
+
+    fun failingPostureChecks(): Map<PostureQueryType, Int> {
+        val failing = postureSets?.flatMap {
+            if (it.isPassing) emptyList()
+            else it.postureQueries.filter { it.queryType != null }.filter { !it.isPassing }
+        }?.groupBy{ it.queryType ?: PostureQueryType.UKNOWN }
+
+        return failing?.entries?.fold(mapOf()){ m, e -> m + (e.key to e.value.size) } ?: emptyMap()
+    }
 }
 
 data class ServiceTerminator internal constructor(
@@ -140,7 +150,7 @@ data class PostureQuery (
 internal data class PostureSet (
     val isPassing: Boolean,
     val policyId: String,
-    val postureQueries: Array<PostureQuery>?
+    val postureQueries: Array<PostureQuery>
 )
 
 @JsonAdapter(PostureResponseAdapter::class)
