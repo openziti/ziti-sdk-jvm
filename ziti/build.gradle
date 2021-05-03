@@ -41,7 +41,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:$jjwt_ver")
     implementation("io.jsonwebtoken:jjwt-impl:$jjwt_ver")
     implementation("io.jsonwebtoken:jjwt-orgjson:$jjwt_ver")
-    implementation('io.dropwizard.metrics:metrics-core:4.1.19')
+    implementation('io.dropwizard.metrics:metrics-core:4.1.21')
     implementation('org.bouncycastle:bcpkix-jdk15to18:1.68')
 
     implementation("com.goterl:lazysodium-java:${versions.lazysodium}") {
