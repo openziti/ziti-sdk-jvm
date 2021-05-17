@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
             val cf = ch.connect(addr)
             try {
                 if (timeout > 0) {
-                    cf.get(timeout.toLong(), TimeUnit.MILLISECONDS);
+                    cf.get(timeout.toLong(), TimeUnit.MILLISECONDS)
                 } else {
                     cf.get()
                 }
@@ -174,22 +174,19 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
                             }
                         })
 
-                    try {
+                    val result = runCatching {
                         val read = if (to > 0) rf.get(to, TimeUnit.MILLISECONDS) else rf.get()
                         if (read == -1) {
-                            return -1
+                            return@runCatching -1
                         }
                         inputLock.acquire()
                         val count1 = min(len, input.remaining())
                         input.get(b, off, count1)
                         inputLock.release()
-                        return count1
-                    } catch (toex: TimeoutException) {
-                        throw SocketTimeoutException(toex.message)
-                    } catch (exx: ExecutionException) {
-                        exx.cause?.let { throw it }
-                        throw exx
+                        count1
                     }
+
+                    return result.getOrElse { ex -> throwIOException(ex) }
                 }
             }
 
@@ -224,8 +221,13 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
         }
 
         override fun write(b: ByteArray, off: Int, len: Int) {
-            val wf = channel.write(ByteBuffer.wrap(b, off, len))
-            wf.get()
+            runCatching {
+                val wf = channel.write(ByteBuffer.wrap(b, off, len))
+                wf.get()
+            }.onFailure { ex ->
+                e(ex) { "unexpected exception during write[buf.len=${b.size}, off=$off, len=$len]" }
+                throwIOException(ex)
+            }
         }
     }
 
@@ -235,5 +237,16 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
 
     override fun sendUrgentData(data: Int) {
         outputStream.write(data)
+    }
+
+    private fun throwIOException(ex: Throwable): Nothing {
+        if (ex is IOException) throw ex
+
+        if (ex is TimeoutException) throw SocketTimeoutException(ex.message)
+
+        val cause = ex.cause
+        if (cause is IOException) throw cause
+
+        throw IOException("unexpected exception", ex)
     }
 }
