@@ -1,11 +1,8 @@
 .. image:: https://github.com/openziti/ziti-sdk-jvm/workflows/CI%20build/badge.svg
-    :target: https://github.com/openziti/ziti-sdk-jvm/actions
-
-.. image:: https://github.com/openziti/ziti-sdk-jvm/workflows/CI%20build/badge.svg
     :target: https://github.com/openziti/ziti-sdk-jvm/actions?query=workflow%3A%22CI+build%22
 
-.. image:: https://api.bintray.com/packages/openziti/maven/ziti/images/download.svg
-    :target: https://bintray.com/openziti/maven/ziti/_latestVersion
+.. image:: http://maven-badges.herokuapp.com/maven-central/org.openziti/ziti/badge.svg
+    :target: http://maven-badges.herokuapp.com/maven-central/org.openziti/ziti
 
 Ziti SDK for JVM
 =================
