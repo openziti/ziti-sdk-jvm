@@ -96,7 +96,6 @@ subprojects {
 
     repositories {
         mavenCentral()
-        jcenter()
     }
 
     tasks.withType(PublishToMavenRepository).all {
