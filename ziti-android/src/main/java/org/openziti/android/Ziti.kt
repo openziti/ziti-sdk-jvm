@@ -25,8 +25,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.support.v4.content.FileProvider
-import android.support.v4.content.LocalBroadcastManager
+import androidx.core.content.FileProvider
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import kotlinx.coroutines.CoroutineScope
