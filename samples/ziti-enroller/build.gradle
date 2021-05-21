@@ -29,6 +29,7 @@ dependencies {
     implementation project(path: ':ziti')
     implementation deps.kotlin
     implementation deps.kotlinCoroutines
+    implementation deps.kotlinCoroutines8
     implementation deps.slf4jSimple
 
 

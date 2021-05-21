@@ -74,16 +74,6 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
     lateinit var keyStore: KeyStore
     var currentActivity: Activity? = null
 
-    object MFAHandler: Ziti.AuthHandler {
-        override fun getCode(
-            ztx: ZitiContext,
-            mfaType: MFAType,
-            provider: String
-        ): CompletionStage<String> {
-            return CompletableFuture.completedFuture("TODO")
-        }
-    }
-
     @JvmStatic
     fun getDnsResolver(): DNSResolver = Impl.getDNSResolver()
 

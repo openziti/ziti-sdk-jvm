@@ -29,6 +29,7 @@ dependencies {
     implementation deps.kotlin
     implementation deps.kotlinCoroutines
     implementation deps.kotlinCoroutines8
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${versions.coroutines}")
 
     implementation deps.slf4jApi
 

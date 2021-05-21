@@ -17,6 +17,9 @@
 package org.openziti.impl
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.onFailure
+import kotlinx.coroutines.channels.onSuccess
 import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.future.await
@@ -52,7 +55,7 @@ import org.openziti.api.Identity as ApiIdentity
  * Object maintaining current Ziti session.
  *
  */
-internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean, internal val auth: Ziti.AuthHandler?) : ZitiContext, Identity by id,
+internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : ZitiContext, Identity by id,
     CoroutineScope, Logged by ZitiLog() {
 
     private var _enabled: Boolean by Delegates.observable(enabled) { _, _, isEnabled ->
@@ -80,6 +83,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean, inte
             = MutableStateFlow(if (enabled) ZitiContext.Status.Loading else ZitiContext.Status.Disabled)
 
     private val serviceCh: MutableSharedFlow<ZitiContext.ServiceEvent> = MutableSharedFlow()
+
+    private val authCode = kotlinx.coroutines.channels.Channel<String>(capacity = 1, BufferOverflow.DROP_OLDEST)
 
     private val servicesLoaded = CompletableDeferred<Unit>()
     private val servicesByName = ConcurrentHashMap<String, Service>()
@@ -111,23 +116,15 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean, inte
 
     override fun getId(): ApiIdentity? = apiSession?.identity
     override fun getStatus() = statusCh.value
-    override fun statusUpdates() = statusCh
+    override fun statusUpdates(): StateFlow<ZitiContext.Status> = statusCh
 
-    @ExperimentalCoroutinesApi
+    //@ExperimentalCoroutinesApi
     override fun serviceUpdates(): Flow<ZitiContext.ServiceEvent> = flow {
         emitAll(servicesByName.values.map {
             ZitiContext.ServiceEvent(it, ZitiContext.ServiceUpdate.Available)
         }.asFlow())
 
-        val ch = produce { serviceCh.collect { send(it) } }
-        whileSelect {
-            supervisor.onJoin { false }
-            ch.onReceive {
-                emit(it)
-                true
-            }
-        }
-        ch.cancel()
+        emitAll(serviceCh)
     }
 
     override fun getServiceTerminators(service: Service): Collection<ServiceTerminator> = runBlocking {
@@ -180,7 +177,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean, inte
     }
 
     fun start(): Job = launch {
-        runner()
+        runCatching { runner() }
+            .onFailure { cancel("ziti context failed", it) }
     }
 
     private suspend fun runner() {
@@ -192,27 +190,18 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean, inte
             }
 
             val mfa = apiSession?.authQueries?.find { it.typeId == MFAType.MFA && it.provider == "ziti" }
-            mfa?.let {
-                if (auth == null) {
-                    val ex = ZitiException(
-                        Errors.NotAuthorized,
-                        IllegalStateException("identity requires MFA, but callback was not provided by the app")
-                    )
-                    updateStatus(ZitiContext.Status.NotAuthorized(ex))
-                    throw ex
-                }
-            }
-
             if (mfa != null) {
-                updateStatus(ZitiContext.Status.Authenticating)
-                runCatching {
-                    val codeF = auth!!.getCode(this, mfa.typeId!!, mfa.provider)
-                    val code = codeF.await()
+                updateStatus(ZitiContext.Status.NeedsAuth(mfa.typeId ?: MFAType.CUSTOM, mfa.provider))
+                val success = runCatching {
+                    val code = authCode.receive()
                     controller.authMFA(code)
+                    true
                 }.getOrElse {
                     updateStatus(ZitiContext.Status.NotAuthorized(it))
-                    throw it
+                    false
                 }
+
+                if (!success) continue
             }
 
             updateStatus(ZitiContext.Status.Active)
@@ -546,6 +535,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean, inte
 
     override fun isMFAEnrolled(): Boolean {
         return apiSession?.authQueries?.isNotEmpty() ?: false
+    }
+
+    override fun authenticateMFA(code: String) {
+        authCode.trySend(code)
     }
 
     override suspend fun enrollMFA(): MFAEnrollment {
