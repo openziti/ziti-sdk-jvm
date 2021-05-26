@@ -23,9 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
-import okhttp3.ResponseBody
+import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import org.openziti.Errors
 import org.openziti.ZitiException
@@ -125,6 +123,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         fun delete(@Header("zt-session") session: String, @Path("p", encoded = true) path: String): Call<Response<Unit>>
     }
 
+    internal var apiPrefix: String = ""
     internal val api: API
     internal var apiSession: ApiSession? = null
 
@@ -138,16 +137,17 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     }
 
     val clt: OkHttpClient
+    val retrofit: Retrofit
     init {
         clt = OkHttpClient.Builder().apply {
             socketFactory(AsychChannelSocket.Factory())
             sslSocketFactory(AsyncTLSSocketFactory(sslContext), trustManager)
             cache(null)
-            addInterceptor(SessionInterceptor())
+            addInterceptor(ZitiInterceptor())
             addInterceptor(loggingInterceptor)
         }.build()
 
-        val retrofit = Retrofit.Builder()
+        retrofit = Retrofit.Builder()
             .baseUrl(endpoint)
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(CoroutineCallAdapterFactory())
@@ -157,7 +157,14 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         errorConverter = retrofit.responseBodyConverter(Response::class.java, emptyArray())
     }
 
-    suspend fun version() = api.version().await().data
+    suspend fun version(): ControllerVersion {
+        val ver = api.version().await().data!!
+        i { "controller[${retrofit.baseUrl()}] version(${ver.version}/${ver.revision})"}
+        val prefix = ver.apiVersions.run { get("edge-client") ?: get("edge") }?.get("v1")?.path
+
+        prefix?.let { apiPrefix = it } ?: w {"did not receive expected apiVersions mapping"}
+        return ver
+    }
 
     internal suspend fun currentApiSession(): ApiSession =
         api.currentApiSession().runCatching { await().data!! }.getOrElse { convertError(it) }
@@ -169,6 +176,8 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         }
 
         if (apiSession == null) {
+            runCatching { version() }.getOrElse { convertError(it) }
+
             val call = if (login == null)
                 api.authenticateCert(getClientInfo()) else
                 api.authenticate(login)
@@ -321,7 +330,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         else resp.message()
     }
 
-    inner class SessionInterceptor : Interceptor {
+    inner class ZitiInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
             val origReq = chain.request()
             val rb = origReq.newBuilder()
@@ -329,6 +338,11 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
                 rb.header("Accept", "application/json")
             }
             apiSession?.let { rb.header("zt-session", it.token) }
+            val newPath = "${apiPrefix}${origReq.url().encodedPath()}"
+            val newUrl = origReq.url().newBuilder()
+                .encodedPath(newPath)
+                .build()
+            rb.url(newUrl)
 
             val req = rb.build()
             d("${req.method()} ${req.url()} session=${apiSession?.id} t[${Thread.currentThread().name}]")
