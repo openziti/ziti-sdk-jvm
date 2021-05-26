@@ -16,12 +16,9 @@
 
 package org.openziti.impl
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.openziti.*
 import org.openziti.api.Service
 import org.openziti.identity.Enroller
@@ -64,6 +61,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return ZitiContextImpl(id, true).also { ctx ->
             contexts.add(ctx)
             ctx.launch {
+                ztxEvents.emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Loaded, ctx))
                 ctx.serviceUpdates().collect {
                     serviceEvents.emit(Pair(ctx, it))
                 }
@@ -76,7 +74,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return loadContext(ks, alias)
     }
 
-    fun init(file: File, pwd: CharArray, seamless: Boolean): Unit {
+    fun init(file: File, pwd: CharArray, seamless: Boolean) {
         if (seamless) {
             initInternalNetworking()
         }
@@ -88,6 +86,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
     fun removeContext(ctx: ZitiContext) {
         contexts.remove(ctx)
         if(ctx is ZitiContextImpl) {
+            runBlocking { ztxEvents.emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Removed, ctx)) }
             ctx.destroy()
         }
     }
@@ -171,4 +170,12 @@ internal object ZitiImpl : Logged by ZitiLog() {
     }
 
     fun serviceUpdates(): Flow<Pair<ZitiContext, ZitiContext.ServiceEvent>> = serviceEvents.asSharedFlow()
+
+    private val ztxEvents = MutableSharedFlow<Ziti.IdentityEvent>()
+    internal fun getEvents(): Flow<Ziti.IdentityEvent> = flow {
+        contexts.forEach {
+            emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Loaded, it))
+        }
+        emitAll(ztxEvents)
+    }
 }

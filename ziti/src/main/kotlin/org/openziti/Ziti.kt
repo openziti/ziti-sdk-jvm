@@ -36,6 +36,13 @@ import javax.net.ssl.SSLSocketFactory
  */
 object Ziti {
 
+    enum class IdentityEventType {
+        Loaded,
+        Removed
+    }
+
+    data class IdentityEvent(val type: IdentityEventType, val ztx: ZitiContext)
+
     /**
      * Load Ziti identity from the file.
      * The following formats of ziti identity files are supported:
@@ -65,6 +72,8 @@ object Ziti {
 
     @JvmStatic
     fun init(ks: KeyStore, seamless: Boolean) =  ZitiImpl.init(ks, seamless)
+
+    fun identityEvents(): Flow<IdentityEvent> = ZitiImpl.getEvents()
 
     @JvmStatic
     fun enroll(ks: KeyStore, jwt: ByteArray, name: String): ZitiContext = ZitiImpl.enroll(ks, jwt, name)
