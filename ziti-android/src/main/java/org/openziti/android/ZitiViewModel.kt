@@ -25,14 +25,11 @@ import org.openziti.ZitiContext
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- *
+ * Class to allow application components to consume Ziti data.
  */
 class ZitiViewModel(app: Application): AndroidViewModel(app) {
     private val contexts = MutableLiveData<List<ZitiContext>>()
-    private val app: Application
-        get() = getApplication()
-
-    val ztxMap = ConcurrentHashMap<String, ZitiContext>()
+    private val ztxMap = ConcurrentHashMap<String, ZitiContext>()
 
     init {
         viewModelScope.launch {
@@ -47,7 +44,14 @@ class ZitiViewModel(app: Application): AndroidViewModel(app) {
         }
     }
 
+    /**
+     * Live data of ZitiContextEvents.
+     */
     fun getIdentities() = Ziti.identities().asLiveData()
+
+    /**
+     * All current ZitiContext as LiveData
+     */
     fun allIdentities(): LiveData<List<ZitiContext>> = contexts
 
     override fun onCleared() {

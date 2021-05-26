@@ -25,7 +25,7 @@ import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 
 /**
- *
+ * Class to allow application to consume ZitiContext data exposed as LiveData
  */
 class ZitiContextViewModel(val ztx: ZitiContext): ViewModel(), Logged by ZitiLog() {
     private val nameData = MutableLiveData(ztx.name())
@@ -53,19 +53,36 @@ class ZitiContextViewModel(val ztx: ZitiContext): ViewModel(), Logged by ZitiLog
         }
     }
 
+    /**
+     * Factory class to create an instance of [ZitiContextViewModel].
+     *
+     * usage:
+     * ```
+     *   val ztxModel: ZitiContextViewModel by viewModels { ZitiContextViewModel.Factory(ztx) }
+     * ```
+     */
     @Suppress("UNCHECKED_CAST")
     class Factory(val ztx: ZitiContext): ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T =
             ZitiContextViewModel(ztx) as T
     }
 
+    /**
+     * Ziti Context Status as LiveData
+     */
     val status: LiveData<ZitiContext.Status>
         get() = ztx.statusUpdates().asLiveData()
 
 
+    /**
+     * Ziti Context name
+     */
     val name: LiveData<String>
         get() = nameData
 
+    /**
+     * Services provided by ZitiContext
+     */
     val services: LiveData<List<Service>>
         get() = servicesData
 
