@@ -37,7 +37,7 @@ dependencies {
     testApi deps.jupiterApi
     testImplementation deps.jupiter
     testImplementation deps.kotlinTest
-    testImplementation "com.google.code.gson:gson:2.8.6"
+    testImplementation "com.google.code.gson:gson:2.8.7"
 }
 
 compileKotlin {
