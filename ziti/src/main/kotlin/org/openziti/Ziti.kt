@@ -36,10 +36,12 @@ import javax.net.ssl.SSLSocketFactory
  */
 object Ziti {
 
-    @FunctionalInterface
-    interface AuthHandler {
-        fun getCode(ztx: ZitiContext, mfaType: MFAType, provider: String): CompletionStage<String>
+    enum class IdentityEventType {
+        Loaded,
+        Removed
     }
+
+    data class IdentityEvent(val type: IdentityEventType, val ztx: ZitiContext)
 
     /**
      * Load Ziti identity from the file.
@@ -51,8 +53,7 @@ object Ziti {
      * @param pwd password to access the file (only needed for .jks or .pfx/.p12 if they are protected by password)
      */
     @JvmStatic
-    @JvmOverloads
-    fun newContext(idFile: File, pwd: CharArray, auth: AuthHandler? = null): ZitiContext = ZitiImpl.loadContext(idFile, pwd, null, auth)
+    fun newContext(idFile: File, pwd: CharArray): ZitiContext = ZitiImpl.loadContext(idFile, pwd, null)
 
     /**
      * Load Ziti identity from the file.
@@ -61,19 +62,18 @@ object Ziti {
      * @param pwd password to access the file (only needed for .jks or .pfx/.p12 if they are protected by password)
      */
     @JvmStatic
-    @JvmOverloads
-    fun newContext(fname: String, pwd: CharArray, auth: AuthHandler? = null): ZitiContext = newContext(File(fname), pwd, auth)
+    fun newContext(fname: String, pwd: CharArray): ZitiContext = newContext(File(fname), pwd)
 
     @JvmStatic
     fun removeContext(ctx: ZitiContext) = ZitiImpl.removeContext(ctx)
 
     @JvmStatic
-    @JvmOverloads
-    fun init(fname: String, pwd: CharArray, seamless: Boolean, auth: AuthHandler? = null) = ZitiImpl.init(File(fname), pwd, seamless, auth)
+    fun init(fname: String, pwd: CharArray, seamless: Boolean) = ZitiImpl.init(File(fname), pwd, seamless)
 
     @JvmStatic
-    @JvmOverloads
-    fun init(ks: KeyStore, seamless: Boolean, auth: AuthHandler? = null) =  ZitiImpl.init(ks, seamless, auth)
+    fun init(ks: KeyStore, seamless: Boolean) =  ZitiImpl.init(ks, seamless)
+
+    fun identityEvents(): Flow<IdentityEvent> = ZitiImpl.getEvents()
 
     @JvmStatic
     fun enroll(ks: KeyStore, jwt: ByteArray, name: String): ZitiContext = ZitiImpl.enroll(ks, jwt, name)

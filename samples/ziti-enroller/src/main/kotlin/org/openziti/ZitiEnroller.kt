@@ -23,13 +23,11 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.file
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.future.asDeferred
 import org.openziti.api.MFAType
 import org.openziti.identity.Enroller
 import java.io.FileNotFoundException
@@ -67,56 +65,65 @@ object ZitiEnroller {
         val showCodes by option(help = "display recovery codes").flag(default = false)
         val newCodes by option(help = "generate new recovery codes").flag(default = false)
 
-        override fun run() {
-            val ztx = Ziti.newContext(idFile, charArrayOf(), object : Ziti.AuthHandler{
-                override fun getCode(ztx: ZitiContext, mfaType: MFAType, provider: String) =
-                    CompletableFuture.supplyAsync {
-                        print("Enter MFA code for $mfaType/$provider[${ztx.getId()?.name}]: ")
-                        val code = readLine()
-                        code!!
-                    }
-            })
+        fun readMFACode(type: MFAType, provider: String): Deferred<String> {
+            println("Enter MFA code $type/$provider: ")
+            return CompletableFuture.supplyAsync {
+                var s: String? = null
+                while(s == null) s = readLine()
+                s
+            }.asDeferred()
+        }
 
-            val j = GlobalScope.launch  {
-                ztx.statusUpdates().collect {
-                    println("status: $it")
-                    when(it) {
-                        ZitiContext.Status.Loading, ZitiContext.Status.Authenticating -> {}
-                        ZitiContext.Status.Active -> {
-                            println("verification success!")
-                            cancel()
+        override fun run() = runBlocking {
+            val ztx = Ziti.newContext(idFile, charArrayOf())
+
+            val j = coroutineScope {
+                launch  {
+                    ztx.statusUpdates().collect {
+                        println("status: $it")
+                        when(it) {
+                            ZitiContext.Status.Loading -> {}
+                            is ZitiContext.Status.NeedsAuth -> {
+                                println("identity is enrolled in MFA")
+                                val code = readMFACode(it.type, it.provider).await()
+                                ztx.authenticateMFA(code)
+                            }
+                            ZitiContext.Status.Active -> {
+                                println("verification success!")
+                                cancel()
+                            }
+                            is ZitiContext.Status.NotAuthorized -> {
+                                cancel("verification failed!", it.ex)
+                            }
+                            else -> cancel("unexpected status")
                         }
-                        is ZitiContext.Status.NotAuthorized -> {
-                            cancel("verification failed!", it.ex)
-                        }
-                        else -> cancel("unexpected status")
                     }
                 }
             }
 
-            runBlocking {
-                j.join()
+            j.join()
 
+            val mfaEnrolled = ztx.isMFAEnrolled()
+            println("MFA enrolled: $mfaEnrolled")
 
-                val mfaEnrolled = ztx.isMFAEnrolled()
-                println("MFA enrolled: $mfaEnrolled")
-
-                if (showCodes || newCodes) {
-                    if (mfaEnrolled) {
-                        print("""enter OTP to ${if (newCodes) "generate" else "show"} recovery codes: """)
-                        val code = readLine()
+            if (showCodes || newCodes) {
+                if (mfaEnrolled) {
+                    print("""enter OTP to ${if (newCodes) "generate" else "show"} recovery codes: """)
+                    val code = readLine()
+                    runCatching {
                         val recCodes = ztx.getMFARecoveryCodes(code!!, newCodes)
                         for (rc in recCodes) {
                             println(rc)
                         }
-                    } else {
-                        println("cannot show recovery codes: not enrolled in MFA")
+                    }.onFailure {
+                        println("invalid code submitted")
                     }
+                } else {
+                    println("cannot show recovery codes: not enrolled in MFA")
                 }
-
-                ztx.destroy()
             }
 
+            ztx.destroy()
         }
     }
 
@@ -125,10 +132,10 @@ object ZitiEnroller {
             it.exists()
         }
 
-        override fun run() {
+        override fun run() = runBlocking {
             val ztx = Ziti.newContext(idFile, charArrayOf())
 
-            val j = GlobalScope.launch {
+            val j = launch {
                 ztx.statusUpdates().takeWhile { it != ZitiContext.Status.Active }.collectLatest { println(it) }
                 val mfa = ztx.enrollMFA()
                 println(mfa)
@@ -137,7 +144,7 @@ object ZitiEnroller {
                 val code = readLine()
                 ztx.verifyMFA(code!!.trim())
             }
-            runBlocking { j.join() }
+            j.join()
 
             ztx.destroy()
         }

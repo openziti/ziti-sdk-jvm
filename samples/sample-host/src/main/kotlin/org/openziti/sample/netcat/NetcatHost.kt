@@ -18,10 +18,12 @@ package org.openziti.sample.netcat
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.openziti.Ziti
 import org.openziti.ZitiAddress
+import org.openziti.ZitiContext
 import java.lang.System.exit
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousServerSocketChannel
@@ -43,7 +45,7 @@ object NetcatHost {
         val ziti = Ziti.newContext(cfg, charArrayOf())
 
         runBlocking {
-            ziti.statusUpdates().collect { println(it) }
+            ziti.statusUpdates().takeWhile { it !is ZitiContext.Status.Active }.collect { println(it) }
         }
         while(true) {
             try {

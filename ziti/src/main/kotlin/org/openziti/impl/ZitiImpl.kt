@@ -16,12 +16,9 @@
 
 package org.openziti.impl
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.openziti.*
 import org.openziti.api.Service
 import org.openziti.identity.Enroller
@@ -42,7 +39,6 @@ internal object ZitiImpl : Logged by ZitiLog() {
     internal val contexts = mutableListOf<ZitiContextImpl>()
     internal var appId = ""
     internal var appVersion = ""
-    internal var authHandler: Ziti.AuthHandler? = null
 
     internal val serviceEvents = MutableSharedFlow<Pair<ZitiContext, ZitiContext.ServiceEvent>>()
 
@@ -59,12 +55,13 @@ internal object ZitiImpl : Logged by ZitiLog() {
         i("ZitiSDK version ${Version.version} @${Version.revision}(${Version.branch})")
     }
 
-    internal fun loadContext(ks: KeyStore, alias: String?, authHandler: Ziti.AuthHandler?): ZitiContextImpl {
+    internal fun loadContext(ks: KeyStore, alias: String?): ZitiContextImpl {
         val idName = alias ?: findIdentityAlias(ks)
         val id = KeyStoreIdentity(ks, idName)
-        return ZitiContextImpl(id, true, authHandler).also { ctx ->
+        return ZitiContextImpl(id, true).also { ctx ->
             contexts.add(ctx)
-            GlobalScope.launch {
+            ctx.launch {
+                ztxEvents.emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Loaded, ctx))
                 ctx.serviceUpdates().collect {
                     serviceEvents.emit(Pair(ctx, it))
                 }
@@ -72,36 +69,36 @@ internal object ZitiImpl : Logged by ZitiLog() {
         }
     }
 
-    internal fun loadContext(idFile: File, pwd: CharArray, alias: String?, auth: Ziti.AuthHandler?): ZitiContextImpl {
+    internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContextImpl {
         val ks = loadKeystore(idFile, pwd)
-        return loadContext(ks, alias, auth)
+        return loadContext(ks, alias)
     }
 
-    fun init(file: File, pwd: CharArray, seamless: Boolean, authHandler: Ziti.AuthHandler?): Unit {
+    fun init(file: File, pwd: CharArray, seamless: Boolean) {
         if (seamless) {
             initInternalNetworking()
         }
 
-        val ctx = loadContext(file, pwd, null, authHandler)
+        val ctx = loadContext(file, pwd, null)
         ctx.checkServicesLoaded()
     }
 
     fun removeContext(ctx: ZitiContext) {
         contexts.remove(ctx)
         if(ctx is ZitiContextImpl) {
+            runBlocking { ztxEvents.emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Removed, ctx)) }
             ctx.destroy()
         }
     }
 
-    fun init(ks: KeyStore, seamless: Boolean, authHandler: Ziti.AuthHandler?): List<ZitiContext> {
-        this.authHandler = authHandler
+    fun init(ks: KeyStore, seamless: Boolean): List<ZitiContext> {
         if (seamless) {
             initInternalNetworking()
         }
 
         for (a in ks.aliases()) {
             if (isZitiIdentity(ks, a)) {
-                loadContext(ks, a, authHandler)
+                loadContext(ks, a)
             }
         }
 
@@ -128,7 +125,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
         val enroller = Enroller.fromJWT(String(jwt))
         val alias = enroller.enroll(null, ks, name)
 
-        return loadContext(ks, alias, authHandler)
+        return loadContext(ks, alias)
     }
 
     fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = contexts.map { c ->
@@ -173,4 +170,12 @@ internal object ZitiImpl : Logged by ZitiLog() {
     }
 
     fun serviceUpdates(): Flow<Pair<ZitiContext, ZitiContext.ServiceEvent>> = serviceEvents.asSharedFlow()
+
+    private val ztxEvents = MutableSharedFlow<Ziti.IdentityEvent>()
+    internal fun getEvents(): Flow<Ziti.IdentityEvent> = flow {
+        contexts.forEach {
+            emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Loaded, it))
+        }
+        emitAll(ztxEvents)
+    }
 }
