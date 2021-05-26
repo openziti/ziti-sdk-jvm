@@ -25,26 +25,22 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import androidx.core.content.FileProvider
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
+import androidx.core.content.FileProvider
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import org.openziti.Ziti
 import org.openziti.ZitiContext
-import org.openziti.api.MFAType
 import org.openziti.net.dns.DNSResolver
 import org.openziti.util.Logged
 import org.openziti.util.Version
 import org.openziti.util.ZitiLog
 import java.net.URI
 import java.security.KeyStore
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.coroutines.CoroutineContext
@@ -63,12 +59,12 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
         get() = Dispatchers.IO + supervisor
 
     internal val Impl = org.openziti.Ziti
-    private var enrollmentClass: Class<out Activity> = EnrollmentActivity::class.java
+    internal var enrollmentClass: Class<out Activity> = EnrollmentActivity::class.java
 
     const val Ziti = "Ziti"
     const val ZitiNotificationChannel = "Ziti"
 
-    lateinit var app: Context
+    lateinit var app: Application
 
     lateinit var zitiPref: SharedPreferences
     lateinit var keyStore: KeyStore
@@ -78,37 +74,31 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
     fun getDnsResolver(): DNSResolver = Impl.getDNSResolver()
 
     @JvmStatic
-    fun init(app: Context, seamless: Boolean = true) {
-        this.app = app
+    fun init(ctx: Context, seamless: Boolean = true) {
+        this.app = ctx.applicationContext as Application
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            app.getSystemService(NotificationManager::class.java)?.createNotificationChannel(
-                NotificationChannel(ZitiNotificationChannel, Ziti, NotificationManager.IMPORTANCE_HIGH)
-            )
-        }
+        app.getSystemService(NotificationManager::class.java)?.createNotificationChannel(
+            NotificationChannel(ZitiNotificationChannel, Ziti, NotificationManager.IMPORTANCE_HIGH)
+        )
 
-        if (app is Application) {
+        app.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks{
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+            override fun onActivityStarted(activity: Activity) {}
+            override fun onActivityResumed(activity: Activity) {
+                currentActivity = activity
+            }
 
-            app.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks{
-                override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-                override fun onActivityStarted(activity: Activity) {}
-                override fun onActivityResumed(activity: Activity) {
-                    currentActivity = activity
-                }
+            override fun onActivityPaused(activity: Activity) {
+                if (activity == currentActivity) currentActivity = null
+            }
 
-                override fun onActivityPaused(activity: Activity) {
-                    if (activity == currentActivity) currentActivity = null
-                }
+            override fun onActivityStopped(activity: Activity) {
+                if (activity == currentActivity) currentActivity = null
+            }
 
-                override fun onActivityStopped(activity: Activity) {
-                    if (activity == currentActivity) currentActivity = null
-                }
-
-                override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-                override fun onActivityDestroyed(activity: Activity) {}
-            })
-        }
-
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+            override fun onActivityDestroyed(activity: Activity) {}
+        })
 
         val appId = app.packageName
         val appVer = app.packageManager.getPackageInfo(appId, 0).versionName
@@ -263,8 +253,11 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
         enrollmentClass = cls
     }
 
+    fun identities() = Impl.identityEvents()
+
     @JvmStatic
     fun getSocketFactory() = Impl.getSocketFactory()
+
     @JvmStatic
     fun getSSLSocketFactory() = Impl.getSSLSocketFactory()
 }
