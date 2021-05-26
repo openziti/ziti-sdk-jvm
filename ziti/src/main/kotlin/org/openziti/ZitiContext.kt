@@ -30,6 +30,7 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
+import java.util.concurrent.CompletionStage
 import org.openziti.api.Identity as ApiIdentity
 
 /**
@@ -38,7 +39,7 @@ import org.openziti.api.Identity as ApiIdentity
  * - connections to Ziti services
  * - binding for hosting Ziti services in the app
  */
-interface ZitiContext: Identity, CoroutineScope {
+interface ZitiContext: Identity {
 
     enum class ServiceUpdate {
         Available,
@@ -66,6 +67,8 @@ interface ZitiContext: Identity, CoroutineScope {
     fun statusUpdates(): StateFlow<Status>
 
     fun serviceUpdates(): Flow<ServiceEvent>
+
+    fun getIdentity(): Flow<ApiIdentity>
     fun getId(): ApiIdentity?
 
     fun getService(addr: InetSocketAddress): Service?
@@ -125,15 +128,14 @@ interface ZitiContext: Identity, CoroutineScope {
     fun authenticateMFA(code: String)
 
     suspend fun enrollMFA(): MFAEnrollment
-    fun enrollMFAAsync() = async { enrollMFA() }.asCompletableFuture()
+    fun enrollMFAAsync(): CompletionStage<MFAEnrollment>
 
     suspend fun verifyMFA(code: String)
-    fun verifyMFAAsync(code: String) = async { verifyMFA(code) }.asCompletableFuture()
+    fun verifyMFAAsync(code: String): CompletionStage<Unit>
 
     suspend fun removeMFA(code: String)
-    fun removeMFAAsync(code: String) = async { removeMFA(code) }.asCompletableFuture()
+    fun removeMFAAsync(code: String): CompletionStage<Unit>
 
     suspend fun getMFARecoveryCodes(code: String, newCodes: Boolean): Array<String>
-    fun getMFARecoveryCodesAsync(code: String, newCodes: Boolean) =
-        async { getMFARecoveryCodes(code, newCodes) }.asCompletableFuture()
+    fun getMFARecoveryCodesAsync(code: String, newCodes: Boolean): CompletionStage<Array<String>>
 }
