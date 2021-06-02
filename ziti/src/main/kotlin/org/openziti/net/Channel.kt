@@ -16,32 +16,11 @@
 
 package org.openziti.net
 
-import com.codahale.metrics.Meter
-import com.codahale.metrics.Timer
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import org.openziti.Errors
-import org.openziti.ZitiException
+import kotlinx.coroutines.Deferred
 import org.openziti.api.ApiSession
 import org.openziti.identity.Identity
 import org.openziti.impl.ChannelImpl
-import org.openziti.util.Logged
-import org.openziti.util.ZitiLog
 import java.io.Closeable
-import java.io.EOFException
-import java.io.IOException
-import java.net.ConnectException
-import java.nio.charset.StandardCharsets
-import java.time.Duration
-import java.time.Instant
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.channels.Channel as Chan
 
 internal fun Channel(addr: String, id: Identity, apiSession: () -> ApiSession?): Channel {
     val ch = ChannelImpl(addr, id, apiSession)

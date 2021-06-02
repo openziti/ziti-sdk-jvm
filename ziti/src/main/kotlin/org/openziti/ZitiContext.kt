@@ -26,6 +26,7 @@ import org.openziti.api.MFAType
 import org.openziti.api.Service
 import org.openziti.api.ServiceTerminator
 import org.openziti.identity.Identity
+import java.io.Writer
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.nio.channels.AsynchronousServerSocketChannel
@@ -138,4 +139,6 @@ interface ZitiContext: Identity {
 
     suspend fun getMFARecoveryCodes(code: String, newCodes: Boolean): Array<String>
     fun getMFARecoveryCodesAsync(code: String, newCodes: Boolean): CompletionStage<Array<String>>
+
+    fun dump(writer: Writer)
 }

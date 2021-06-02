@@ -41,6 +41,8 @@ import org.openziti.util.Version
 import org.openziti.util.ZitiLog
 import java.net.URI
 import java.security.KeyStore
+import java.security.cert.X509Certificate
+import java.util.concurrent.CompletableFuture
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.coroutines.CoroutineContext
@@ -124,11 +126,8 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
         }
 
         if (ctxList.isEmpty()) {
-            val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val builder =
                 Notification.Builder(app, ZitiNotificationChannel)
-            } else {
-                Notification.Builder(app)
-            }
 
             val notification = builder
                 .setSmallIcon(android.R.drawable.stat_sys_warning)
@@ -231,12 +230,51 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
 
         val logDir = app.externalCacheDir!!.resolve("logs")
         logDir.mkdirs()
-        val log = Runtime.getRuntime().exec("logcat -d -b crash,main").inputStream.bufferedReader().readText()
+        val logcat = Runtime.getRuntime().exec("logcat -d -b crash,main")
+        val log = CompletableFuture.supplyAsync { logcat.inputStream.bufferedReader().readText() }
+        val err = CompletableFuture.supplyAsync { logcat.errorStream.bufferedReader().readText() }
+        val logrc = CompletableFuture.supplyAsync { logcat.waitFor() }
 
         val logFile = logDir.resolve("log.zip")
         val zip = ZipOutputStream(logFile.outputStream())
+        zip.putNextEntry(ZipEntry("app.info"))
+        val writer = zip.writer()
+
+        writer.write(bodyString)
+        writer.flush()
+
+        zip.putNextEntry(ZipEntry("keystore.info"))
+        for (a in keyStore.aliases()) {
+            val entry = keyStore.getEntry(a, null)
+            val cert = when(entry) {
+                is KeyStore.TrustedCertificateEntry -> entry.trustedCertificate
+                is KeyStore.PrivateKeyEntry -> entry.certificate
+                else -> continue
+            }
+
+            writer.appendLine()
+            writer.appendLine("""
+                name: $a 
+                type: ${entry.javaClass.simpleName}
+                cert: ${cert.type} ${if (cert is X509Certificate) 
+                    "Subject: ${cert.subjectDN} Issuer: ${cert.issuerDN}" else ""} 
+                """.trimIndent())
+        }
+        writer.flush()
+
+        identities.forEach {
+            zip.putNextEntry(ZipEntry(it.name() + ".txt"))
+            it.dump(writer)
+            writer.flush()
+        }
+
         zip.putNextEntry(ZipEntry("ziti.log"))
-        zip.writer().write(log)
+        writer.appendLine("logcat result: ${logrc.get()}")
+        writer.write(log.get())
+        writer.appendLine()
+        writer.appendLine("logcat ERROR:")
+        writer.appendLine(err.get())
+        writer.flush()
         zip.finish()
         zip.flush()
         zip.close()
