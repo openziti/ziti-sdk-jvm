@@ -32,6 +32,7 @@ import org.openziti.net.nio.AsychChannelSocket
 import org.openziti.posture.PostureService
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
+import java.io.Writer
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -571,4 +572,24 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun getMFARecoveryCodesAsync(code: String, newCodes: Boolean) =
         async { getMFARecoveryCodes(code, newCodes) }.asCompletableFuture()
+
+    override fun dump(writer: Writer) {
+        writer.appendLine("""
+            id:         ${id.name()}
+            controller: ${id.controller()}
+            status:     ${getStatus()}
+            """.trimIndent())
+
+        writer.appendLine()
+        writer.appendLine("=== Services ===")
+        servicesByName.forEach { (name, s) ->
+            writer.appendLine("name: $name id: ${s.id} permissions: ${s.permissions.joinToString()} intercept: ${s.interceptConfig}")
+        }
+
+        writer.appendLine()
+        writer.appendLine("=== Channels ===")
+        channels.forEach { (name, ch) ->
+            writer.appendLine("ER: $name status: ${ch.state}")
+        }
+    }
 }
