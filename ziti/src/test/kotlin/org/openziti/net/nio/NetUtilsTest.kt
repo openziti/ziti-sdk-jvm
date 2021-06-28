@@ -16,8 +16,12 @@
 
 package org.openziti.net.nio
 
-import kotlinx.coroutines.*
-import org.junit.Assert.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
+import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
 import java.net.InetSocketAddress
 import java.net.SocketTimeoutException
@@ -83,38 +87,28 @@ class NetUtilsTest {
         runBlocking {
             val s = AsyncTLSChannel.open()
             s.connectSuspend(InetSocketAddress("google.com", 443), 1000)
+            assertIs<InetSocketAddress>(s.remoteAddress)
+            assertEquals(443, (s.remoteAddress as InetSocketAddress).port)
+            assertEquals("google.com", (s.remoteAddress as InetSocketAddress).hostName)
             s.close()
         }
     }
 
-    @Test
+    @Test(expected = SocketTimeoutException::class)
     fun testConnectSuspendTimeout() {
-        kotlin.runCatching {
-            runBlocking {
-                val s = AsyncTLSChannel.open()
-
-                s.connectSuspend(InetSocketAddress("10.10.10.10", 443), 1)
-
-                fail("connect should timeout")
-            }
-        }.onFailure {
-            assertIs<SocketTimeoutException>(it)
+        runBlocking {
+            val s = AsyncTLSChannel.open()
+            s.connectSuspend(InetSocketAddress("10.10.10.10", 443), 1)
+            fail("connect should timeout")
         }
     }
 
-    @Test
+    @Test(expected = UnresolvedAddressException::class)
     fun testConnectSuspendInvalidHost() {
         val s = AsyncTLSChannel.open()
-        kotlin.runCatching {
-            runBlocking {
-                s.connectSuspend(InetSocketAddress("not.a.real.domain.name", 443), 1000)
-                fail("should not get here")
-            }
-        }.onFailure {
-            s.close()
-            assertIs<UnresolvedAddressException>(it)
+        runBlocking {
+            s.connectSuspend(InetSocketAddress("not.a.real.domain.name", 443), 1000)
         }
-
     }
 
 }
