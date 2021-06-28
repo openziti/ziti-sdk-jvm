@@ -177,7 +177,11 @@ class PostureResponse (val id: String, val typeId: PostureQueryType, val data: D
     }
 }
 
-internal data class EdgeRouter(val name: String, val hostname: String, val urls: Map<String, String>)
+internal data class EdgeRouter(
+    val name: String,
+    val hostname: String,
+    val supportedProtocols: Map<String, String>,
+    @Deprecated("use supportedProtocols") val urls: Map<String, String>)
 
 internal data class Session(val id: String, val token: String, val service: Id, val type: SessionType,
                             var edgeRouters: Array<EdgeRouter>?) {
