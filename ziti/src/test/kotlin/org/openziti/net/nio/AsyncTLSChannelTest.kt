@@ -16,8 +16,7 @@
 
 package org.openziti.net.nio
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.hamcrest.CoreMatchers.startsWith
 import org.junit.After
 import org.junit.Assert.*
@@ -32,6 +31,8 @@ import java.nio.channels.InterruptedByTimeoutException
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLException
@@ -45,7 +46,7 @@ class AsyncTLSChannelTest {
     lateinit var ch: AsyncTLSChannel
 
     @Rule
-    @JvmField val timeout = Timeout.seconds(15)
+    @JvmField val timeout = Timeout.seconds(1500)
 
     @After
     fun tearDown() {
