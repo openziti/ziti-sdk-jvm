@@ -65,7 +65,6 @@ suspend fun AsynchronousSocketChannel.readSuspend(b: ByteBuffer, timeout: Long, 
 suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress) = connectSuspend(addr, Long.MAX_VALUE)
 
 suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress, timeout: Long) {
-    println(coroutineContext)
     val ch = this
 
     return withContext(coroutineContext) {
