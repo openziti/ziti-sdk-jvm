@@ -16,19 +16,99 @@
 
 package org.openziti.net.nio
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
+import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
-
-import org.junit.Assert.*
-import org.junit.Rule
 import java.net.InetSocketAddress
+import java.net.SocketTimeoutException
+import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousCloseException
 import java.nio.channels.AsynchronousSocketChannel
+import java.nio.channels.UnresolvedAddressException
+import java.nio.channels.spi.AsynchronousChannelProvider
+import kotlin.test.assertIs
 
 class NetUtilsTest {
-    @Test(expected = TimeoutCancellationException::class,timeout = 2000)
+
+    @Test(expected = SocketTimeoutException::class, timeout = 2000)
     fun test_connectSuspendWithTimeout(): Unit = runBlocking {
         val sock = AsynchronousSocketChannel.open()
-        sock.connectSuspend(InetSocketAddress("1.2.3.4", 4444), 1000)
+        val connectOp = async { sock.connectSuspend(InetSocketAddress("1.2.3.4", 4444), 1000) }
+        connectOp.await()
     }
+
+    @Test(expected = AsynchronousCloseException::class)
+    fun testGroupShutdown() {
+        val g = AsynchronousChannelProvider.provider().openAsynchronousChannelGroup(1) { r ->
+            Thread(r, "test thread")
+        }
+        val c = AsynchronousSocketChannel.open(g)
+
+        runBlocking {
+            supervisorScope {
+                c.connectSuspend(InetSocketAddress("google.com", 80), 1000)
+                val buf = ByteBuffer.allocate(1024)
+                val readOp = async { c.readSuspend(buf) }
+                delay(100)
+                g.shutdownNow()
+
+                readOp.await()
+            }
+        }
+    }
+
+    @Test(expected = AsynchronousCloseException::class)
+    fun testTlsGroupShutdown() {
+        val g = AsyncTLSChannel.Provider.openAsynchronousChannelGroup(1) { r ->
+            Thread(r, "test thread")
+        }
+        val c = AsyncTLSChannel.open(g)
+
+        runBlocking {
+            supervisorScope {
+                c.connectSuspend(InetSocketAddress("google.com", 443), 1000)
+                val buf = ByteBuffer.allocate(1024)
+                val readOp = async { c.readSuspend(buf) }
+                delay(100)
+                g.shutdownNow()
+
+                readOp.await()
+            }
+        }
+
+    }
+
+    @Test
+    fun testConnectSuspend() {
+        runBlocking {
+            val s = AsyncTLSChannel.open()
+            s.connectSuspend(InetSocketAddress("google.com", 443), 1000)
+            assertIs<InetSocketAddress>(s.remoteAddress)
+            assertEquals(443, (s.remoteAddress as InetSocketAddress).port)
+            assertEquals("google.com", (s.remoteAddress as InetSocketAddress).hostName)
+            s.close()
+        }
+    }
+
+    @Test(expected = SocketTimeoutException::class)
+    fun testConnectSuspendTimeout() {
+        runBlocking {
+            val s = AsyncTLSChannel.open()
+            s.connectSuspend(InetSocketAddress("10.10.10.10", 443), 1)
+            fail("connect should timeout")
+        }
+    }
+
+    @Test(expected = UnresolvedAddressException::class)
+    fun testConnectSuspendInvalidHost() {
+        val s = AsyncTLSChannel.open()
+        runBlocking {
+            s.connectSuspend(InetSocketAddress("not.a.real.domain.name", 443), 1000)
+        }
+    }
+
 }

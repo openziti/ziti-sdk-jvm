@@ -16,18 +16,19 @@
 
 package org.openziti.net.nio
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.SocketAddress
+import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
+import kotlin.coroutines.*
 
 internal class FutureHandler<A>: CompletionHandler<A, CompletableFuture<A>> {
     override fun completed(result: A?, f: CompletableFuture<A>) { f.complete(result) }
@@ -61,17 +62,30 @@ suspend fun AsynchronousSocketChannel.readSuspend(b: ByteBuffer, timeout: Long, 
     this.read(b, timeout, unit, it, ContinuationHandler())
 }
 
-suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress) = suspendCoroutine<Void> {
-    this.connect(addr, it, ContinuationHandler())
-}
+suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress) = connectSuspend(addr, Long.MAX_VALUE)
 
-suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress, timeout: Long): Void {
-    val d = GlobalScope.async(Dispatchers.IO) { connectSuspend(addr) }
-    try {
-        return withTimeout(timeout) { d.await() }
-    } catch (tox: TimeoutCancellationException) {
-        this.runCatching { close() }
-        throw tox
+suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress, timeout: Long) {
+    println(coroutineContext)
+    val ch = this
+
+    return withContext(coroutineContext) {
+        val result = CompletableDeferred<Void?>()
+        ch.connect(addr, result, DeferredHandler())
+        val timeoutDelay = launch {
+            delay(timeout)
+            if (!result.isCompleted) {
+                val ex = SocketTimeoutException("failed to connect in $timeout millis")
+                if (result.completeExceptionally(ex)) {
+                    ch.runCatching { close() }
+                }
+            }
+        }
+
+        try {
+            result.await()
+        } finally {
+            timeoutDelay.cancel()
+        }
     }
 }
 

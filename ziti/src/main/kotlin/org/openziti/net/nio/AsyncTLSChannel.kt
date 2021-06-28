@@ -17,9 +17,12 @@
 package org.openziti.net.nio
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.selects.select
 import org.openziti.util.*
 import java.io.EOFException
 import java.io.IOException
@@ -36,6 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import javax.net.ssl.*
 import javax.net.ssl.SSLEngineResult.HandshakeStatus.*
 import javax.net.ssl.SSLEngineResult.Status.*
+import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 
 /**
@@ -46,31 +50,57 @@ import kotlin.properties.Delegates
 class AsyncTLSChannel(
     ch: AsynchronousSocketChannel,
     val ssl: SSLContext,
-    provider: AsynchronousChannelProvider
-) : AsynchronousSocketChannel(provider), Logged by ZitiLog("async-tls/${counter.incrementAndGet()}") {
+    val group: AsynchronousChannelGroup,
+    private val id: Int = counter.incrementAndGet()
+) : AsynchronousSocketChannel(group.provider()), Logged by ZitiLog("async-tls/${id}"), CoroutineScope {
+
+    override val coroutineContext: CoroutineContext
 
     companion object {
-        const val SSL_BUFFER_SIZE = 32 * 1024
+        internal const val SSL_BUFFER_SIZE = 32 * 1024
         fun open(group: AsynchronousChannelGroup? = null) = Provider.openAsynchronousSocketChannel(group)
-        val counter = AtomicInteger()
+        internal val counter = AtomicInteger()
     }
 
-    class Group(p: AsynchronousChannelProvider) : AsynchronousChannelGroup(p) {
-        override fun shutdown() {}
-        override fun isShutdown(): Boolean = false
+    open class Group(val provider: AsynchronousChannelProvider, val dispatcher: CoroutineDispatcher) :
+        AsynchronousChannelGroup(provider), CoroutineScope {
 
-        override fun shutdownNow() {}
-        override fun awaitTermination(timeout: Long, unit: TimeUnit?): Boolean {
-            return false
+        override val coroutineContext: CoroutineContext = SupervisorJob() + dispatcher + CoroutineName("tls-group")
+        private val channels = ConcurrentHashMap<Int,AsyncTLSChannel>()
+        private var shut = false
+        override fun shutdown() { shut = true }
+        override fun isShutdown(): Boolean = shut
+
+        override fun shutdownNow() {
+            shutdown()
+            coroutineContext.cancelChildren()
+            coroutineContext.cancel()
         }
 
-        override fun isTerminated(): Boolean = false
+        @ExperimentalCoroutinesApi
+        override fun awaitTermination(timeout: Long, unit: TimeUnit): Boolean = runBlocking {
+            select {
+                coroutineContext.job.onJoin { true }
+                onTimeout(unit.toMillis(timeout)) { false }
+            }
+        }
+
+        override fun isTerminated(): Boolean = dispatcher.isActive
+
+        internal fun registerChannel(ch: AsyncTLSChannel) {
+            channels[ch.id()] = ch
+        }
+
+        internal fun unregisterChannel(ch: AsyncTLSChannel) {
+            channels.remove(ch.id())
+        }
     }
+
+    private object DefaultGroup: Group(Provider, Dispatchers.IO)
 
     object Provider : AsynchronousChannelProvider() {
         override fun openAsynchronousSocketChannel(group: AsynchronousChannelGroup?): AsynchronousSocketChannel {
-            val provider = group?.provider() ?: this
-            return AsyncTLSChannel(AsynchronousSocketChannel.open(), SSLContext.getDefault(), provider)
+            return AsyncTLSChannel(AsynchronousSocketChannel.open(), SSLContext.getDefault(), group ?: DefaultGroup)
         }
 
         override fun openAsynchronousServerSocketChannel(group: AsynchronousChannelGroup?): AsynchronousServerSocketChannel {
@@ -79,16 +109,16 @@ class AsyncTLSChannel(
 
         override fun openAsynchronousChannelGroup(
             nThreads: Int,
-            threadFactory: ThreadFactory?
-        ): AsynchronousChannelGroup = Group(this)
+            threadFactory: ThreadFactory
+        ): AsynchronousChannelGroup = Group(this, Executors.newFixedThreadPool(nThreads, threadFactory).asCoroutineDispatcher())
 
         override fun openAsynchronousChannelGroup(
-            executor: ExecutorService?,
+            executor: ExecutorService,
             initialSize: Int
-        ): AsynchronousChannelGroup = Group(this)
+        ): AsynchronousChannelGroup = Group(this, executor.asCoroutineDispatcher())
     }
 
-    constructor(ch: AsynchronousSocketChannel, ssl: SSLContext) : this(ch, ssl, Provider)
+    constructor(ch: AsynchronousSocketChannel, ssl: SSLContext) : this(ch, ssl, DefaultGroup)
     constructor(ssl: SSLContext) : this(AsynchronousSocketChannel.open(), ssl)
 
     enum class State {
@@ -98,6 +128,8 @@ class AsyncTLSChannel(
         connected,
         closed
     }
+
+    internal fun id() = id
 
     internal val handshake = CompletableDeferred<SSLSession>()
     private var state: State by Delegates.observable(State.initial) { _, ov, nv ->
@@ -115,6 +147,14 @@ class AsyncTLSChannel(
     private val closeWrite = AtomicBoolean(false)
 
     init {
+        require(group is Group){"group is not AsyncTLSChannel.Group"}
+        coroutineContext = SupervisorJob(group.coroutineContext.job) + group.dispatcher + CoroutineName("tls-$id")
+
+        coroutineContext.job.invokeOnCompletion {
+            group.unregisterChannel(this)
+        }
+
+        group.registerChannel(this)
         transport.remoteAddress?.let { state = State.connecting }
         handshake.invokeOnCompletion { ex ->
             if (ex == null) {
@@ -162,21 +202,15 @@ class AsyncTLSChannel(
         if (remote !is InetSocketAddress) {
             return CompletableFuture<Void?>().apply {
                 completeExceptionally(IllegalArgumentException(remote.toString()))
-            }
-        }
+            }        }
 
-        val result = CompletableFuture<Void?>()
-        GlobalScope.launch(Dispatchers.IO) {
-            kotlin.runCatching {
-                transport.connectSuspend(remote)
-                state = State.connecting
-            }.onSuccess {
-                result.complete(null)
-            }.onFailure {
-                result.completeExceptionally(it)
-            }
-        }
-        return result
+        return async {
+            println("connecting on ${Thread.currentThread()}")
+            transport.connectSuspend(remote)
+            state = State.connecting
+            null
+        }.asCompletableFuture()
+        // return result
     }
 
     override fun getLocalAddress(): SocketAddress = transport.localAddress
@@ -228,7 +262,7 @@ class AsyncTLSChannel(
             throw WritePendingException()
         }
 
-        GlobalScope.launch(Dispatchers.IO) {
+        launch {
             runCatching {
                 postConnect()
                 handshake.await()
@@ -249,7 +283,11 @@ class AsyncTLSChannel(
                 handler.completed(it.toLong(), attachment)
             }.onFailure {
                 writeOp.set(false)
-                handler.failed(it, attachment)
+                val ex = when(it) {
+                    is CancellationException -> AsynchronousCloseException()
+                    else -> it
+                }
+                handler.failed(ex, attachment)
             }
         }
     }
@@ -270,18 +308,19 @@ class AsyncTLSChannel(
     }
 
     override fun close() {
-        if (state != State.closed) {
+        if (state != State.closed && state != State.initial) {
             shutdownOutput()
             shutdownInput()
         }
         state = State.closed
+        cancel()
     }
 
     override fun shutdownOutput(): AsynchronousSocketChannel {
         when (state) {
-            State.initial,
+            State.initial -> throw NotYetConnectedException()
             State.connecting,
-            State.handshaking -> throw NotYetConnectedException()
+            State.handshaking,
             State.connected -> {}
             State.closed -> throw ClosedChannelException()
         }
@@ -291,12 +330,14 @@ class AsyncTLSChannel(
         }
 
         v { "closing outbound" }
-        GlobalScope.launch(Dispatchers.IO) {
+        launch {
             runCatching {
-                engine.closeOutbound()
-                val b = ByteBuffer.allocate(128)
-                engine.wrap(EMPTY, b)
-                transport.writeCompletely(b)
+                if (state == State.handshaking || state == State.connected) {
+                    engine.closeOutbound()
+                    val b = ByteBuffer.allocate(128)
+                    engine.wrap(EMPTY, b)
+                    transport.writeCompletely(b)
+                }
                 transport.shutdownOutput()
             }.onFailure {
                 v { "failed to write SSLCloseNotify: $it" }
@@ -343,7 +384,7 @@ class AsyncTLSChannel(
         val dsts = _dsts.sliceArray(offset until offset + length)
 
         if (plainReadBuf.hasRemaining()) {
-            GlobalScope.launch(Dispatchers.IO) {
+            launch {
                 val count = plainReadBuf.transfer(dsts)
                 readOp.set(false)
                 handler.completed(count, attachment)
@@ -351,11 +392,11 @@ class AsyncTLSChannel(
             return
         }
 
-        GlobalScope.launch(Dispatchers.IO) {
-            postConnect()
-            handshake.await()
-
+        launch {
             try {
+                postConnect()
+                handshake.await()
+
                 val inFlow = plainIn.receiveAsFlow()
                 val inBuf = if (timeout > 0)
                     withTimeout(timeout) { inFlow.firstOrNull() }
@@ -379,6 +420,7 @@ class AsyncTLSChannel(
                 readOp.set(false)
                 when (ex) {
                     is TimeoutCancellationException -> handler.failed(InterruptedByTimeoutException(), attachment)
+                    is CancellationException -> handler.failed(AsynchronousCloseException(), attachment)
                     else -> handler.failed(ex, attachment)
                 }
             } finally {
@@ -393,7 +435,7 @@ class AsyncTLSChannel(
 
     internal fun startHandshake() {
         if (state == State.connecting) {
-            GlobalScope.launch(Dispatchers.IO) {
+            launch(CoroutineName("postConnect")) {
                 postConnect()
             }
         }
@@ -432,7 +474,7 @@ class AsyncTLSChannel(
         }
     }
 
-    private fun readInternal() = GlobalScope.launch(Dispatchers.IO) {
+    private fun readInternal() = launch {
         v("start reading loop()")
         val sslInBuf = ByteBuffer.allocateDirect(SSL_BUFFER_SIZE * 2).apply { flip() }
         var plainBuf = ByteBuffer.allocate(SSL_BUFFER_SIZE)

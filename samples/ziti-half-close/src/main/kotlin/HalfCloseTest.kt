@@ -27,7 +27,10 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
 
 object HalfCloseTest {
-    class Server(val sock: AsynchronousServerSocketChannel) : CompletionHandler<AsynchronousSocketChannel, Any?> {
+    class Server(val sock: AsynchronousServerSocketChannel) : CompletionHandler<AsynchronousSocketChannel, Any?>, CoroutineScope {
+
+        override val coroutineContext = SupervisorJob() + Dispatchers.IO
+
         val deferred = CompletableDeferred<Unit>()
 
         fun start() {
@@ -39,7 +42,7 @@ object HalfCloseTest {
             runBlocking { deferred.complete(Unit) }
         }
 
-        fun runClient(clt: AsynchronousSocketChannel) = GlobalScope.launch(Dispatchers.IO) {
+        fun runClient(clt: AsynchronousSocketChannel) = launch {
             val buf = ByteBuffer.allocate(1024)
             var done = false
             println("client[${clt.remoteAddress}] connected")
@@ -62,7 +65,7 @@ object HalfCloseTest {
                 }
             } catch(ex: Exception) {
                 ex.printStackTrace()
-                clt.close()
+                clt.runCatching { close() }
             }
         }
 
@@ -76,11 +79,13 @@ object HalfCloseTest {
         }
     }
 
-    class Client(val sock: AsynchronousSocketChannel) {
-        suspend fun run(addr: SocketAddress) {
+    class Client(val sock: AsynchronousSocketChannel): CoroutineScope {
+        override val coroutineContext = SupervisorJob() + Dispatchers.IO
+
+        fun run(addr: SocketAddress) = runBlocking(coroutineContext) {
             sock.connectSuspend(addr)
 
-            val reader = GlobalScope.launch(Dispatchers.IO) {
+            val reader = launch {
                 val readBuf = ByteBuffer.allocate(1024)
                 while(true) {
                     readBuf.clear()
@@ -102,12 +107,13 @@ object HalfCloseTest {
                 delay(300)
             }
 
-            sock.shutdownOutput()
+            sock.runCatching { shutdownOutput() }
 
             reader.join()
             println("reader joined")
         }
     }
+
     @JvmStatic
     fun main(args: Array<String>) {
 
@@ -124,16 +130,14 @@ object HalfCloseTest {
         println("server is listening on $addr")
 
         val clientSock = ztx.open()
-        runBlocking {
-            kotlin.runCatching {
-                val clientAddr = ZitiAddress.Dial(a.service, "test-terminator")
-                Client(clientSock).run(clientAddr)
-            }
-
-            println("stopping server side")
-            s.stop()
-            println("stopping ziti context")
-            ztx.destroy()
+        kotlin.runCatching {
+            val clientAddr = ZitiAddress.Dial(a.service, "test-terminator")
+            Client(clientSock).run(clientAddr)
         }
+
+        println("stopping server side")
+        s.stop()
+        println("stopping ziti context")
+        ztx.destroy()
     }
 }

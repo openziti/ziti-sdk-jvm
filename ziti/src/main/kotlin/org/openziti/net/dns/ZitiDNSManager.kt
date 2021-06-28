@@ -16,25 +16,23 @@
 
 package org.openziti.net.dns
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.bouncycastle.util.IPAddress
-import org.openziti.api.PortRange
-import org.openziti.api.Service
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
-import java.net.InetSocketAddress
-import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
 
-internal object ZitiDNSManager : DNSResolver {
+internal object ZitiDNSManager : DNSResolver, CoroutineScope {
+
+    override val coroutineContext = SupervisorJob() + Dispatchers.IO
 
     internal val PREFIX = byteArrayOf(100.toByte(), 64.toByte())
 
@@ -51,17 +49,15 @@ internal object ZitiDNSManager : DNSResolver {
             IPAddress.isValidIPv6(hostname) -> Inet6Address.getByName(hostname)
             else -> host2Ip.getOrPut(hostname) { nextAddr(hostname) }
         }
-        runBlocking {
-            GlobalScope.launch(Dispatchers.IO) {
-                dnsBroadCast.emit(DNSResolver.DNSEvent(hostname, ip, false))
-            }
+        launch {
+            dnsBroadCast.emit(DNSResolver.DNSEvent(hostname, ip, false))
         }
         return ip
     }
-    override fun resolve(hostname: String): InetAddress? = host2Ip.get(hostname.toLowerCase(Locale.getDefault()))
+    override fun resolve(hostname: String): InetAddress? = host2Ip.get(hostname.lowercase())
 
     override fun subscribe(sub: (DNSResolver.DNSEvent) -> Unit) {
-        GlobalScope.launch {
+        launch {
             host2Ip.forEach { h, ip ->
                 sub(DNSResolver.DNSEvent(h, ip, false))
             }
