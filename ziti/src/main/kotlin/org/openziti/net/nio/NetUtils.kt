@@ -73,7 +73,7 @@ suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress, timeou
         val timeoutDelay = launch {
             delay(timeout)
             if (!result.isCompleted) {
-                val ex = SocketTimeoutException("failed to connect in $timeout millis")
+                val ex = SocketTimeoutException("failed to connect to $addr in $timeout millis")
                 if (result.completeExceptionally(ex)) {
                     ch.runCatching { close() }
                 }

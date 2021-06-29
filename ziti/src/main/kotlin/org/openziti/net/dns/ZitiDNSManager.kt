@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.bouncycastle.util.IPAddress
+import java.io.Writer
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -81,5 +82,11 @@ internal object ZitiDNSManager : DNSResolver, CoroutineScope {
     internal fun reset() {
         host2Ip.clear()
         postfix.set(startPostfix)
+    }
+
+    override fun dump(writer: Writer) {
+        for ((h,ip) in host2Ip) {
+            writer.appendLine("$h -> $ip")
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.openziti.net.dns
 
+import java.io.Writer
 import java.net.InetAddress
 import java.util.function.Consumer
 
@@ -25,4 +26,6 @@ interface DNSResolver {
     data class DNSEvent(val hostname: String?, val ip: InetAddress, val removed: Boolean)
     fun subscribe(sub: (DNSEvent) -> Unit)
     fun subscribe(sub: Consumer<DNSEvent>)
+
+    fun dump(writer: Writer)
 }
