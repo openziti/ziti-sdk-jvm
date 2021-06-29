@@ -19,15 +19,12 @@ package org.openziti.net
 import org.openziti.net.nio.AsyncTLSChannel
 import org.openziti.net.nio.connectSuspend
 import org.openziti.net.nio.readSuspend
-import org.openziti.net.nio.writeSuspend
-import org.openziti.util.Logged
-import org.openziti.util.ZitiLog
+import org.openziti.net.nio.writeCompletely
 import java.io.Closeable
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.URI
 import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousSocketChannel
 import javax.net.ssl.SSLContext
 
 internal interface Transport : Closeable {
@@ -47,22 +44,14 @@ internal interface Transport : Closeable {
     suspend fun write(buf: ByteBuffer)
     suspend fun read(buf: ByteBuffer, full: Boolean = true): Int
 
-    class TLS(host: String, port: Int, sslContext: SSLContext) : Transport, Logged by ZitiLog("ziti-tls") {
-        val socket: AsynchronousSocketChannel
+    class TLS(host: String, port: Int, sslContext: SSLContext) : Transport {
+        val socket = AsyncTLSChannel(sslContext)
         val addr = InetSocketAddress(InetAddress.getByName(host), port)
-        init {
-            v { "connecting to $host:$port on t[${Thread.currentThread().name}" }
-            socket = AsyncTLSChannel(sslContext)
-        }
 
-        override suspend fun connect(timeout: Long) {
-            socket.connectSuspend(addr, timeout)
-        }
+        override suspend fun connect(timeout: Long) = socket.connectSuspend(addr, timeout)
 
         override suspend fun write(buf: ByteBuffer) {
-            while(buf.hasRemaining()) {
-                socket.writeSuspend(buf)
-            }
+            socket.writeCompletely(buf)
         }
 
         override suspend fun read(buf: ByteBuffer, full: Boolean): Int {
@@ -77,14 +66,10 @@ internal interface Transport : Closeable {
             return res
         }
 
-        override fun close() {
-            socket.close()
-        }
+        override fun close() = socket.close()
 
         override fun isClosed(): Boolean = !socket.isOpen
 
-        override fun toString(): String {
-            return "TLS:${socket.remoteAddress}"
-        }
+        override fun toString(): String = "TLS:${socket.remoteAddress}"
     }
 }

@@ -268,6 +268,10 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
             writer.flush()
         }
 
+        zip.putNextEntry(ZipEntry("ziti_dns.info"))
+        getDnsResolver().dump(writer)
+        writer.flush()
+
         zip.putNextEntry(ZipEntry("ziti.log"))
         writer.appendLine("logcat result: ${logrc.get()}")
         writer.write(log.get())

@@ -65,7 +65,6 @@ suspend fun AsynchronousSocketChannel.readSuspend(b: ByteBuffer, timeout: Long, 
 suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress) = connectSuspend(addr, Long.MAX_VALUE)
 
 suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress, timeout: Long) {
-    println(coroutineContext)
     val ch = this
 
     return withContext(coroutineContext) {
@@ -74,7 +73,7 @@ suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress, timeou
         val timeoutDelay = launch {
             delay(timeout)
             if (!result.isCompleted) {
-                val ex = SocketTimeoutException("failed to connect in $timeout millis")
+                val ex = SocketTimeoutException("failed to connect to $addr in $timeout millis")
                 if (result.completeExceptionally(ex)) {
                     ch.runCatching { close() }
                 }

@@ -67,6 +67,9 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         @DELETE("current-api-session")
         fun logout(): Deferred<Unit>
 
+        @GET("/current-identity/edge-routers")
+        fun getEdgeRouters(): Deferred<Response<Collection<EdgeRouter>>>
+
         @GET("/current-identity/mfa")
         fun getMFA(): Deferred<Response<MFAEnrollment>>
 
@@ -302,6 +305,8 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     internal suspend fun sendPostureResp(pr: PostureResponse) {
         api.sendPosture(pr).await()
     }
+
+    internal suspend fun getEdgeRouters() = api.getEdgeRouters().await().data ?: emptyList()
 
     private fun convertError(t: Throwable): Nothing {
         val errCode = when (t) {

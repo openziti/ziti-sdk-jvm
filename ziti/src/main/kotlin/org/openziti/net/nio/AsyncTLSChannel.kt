@@ -205,7 +205,6 @@ class AsyncTLSChannel(
             }        }
 
         return async {
-            println("connecting on ${Thread.currentThread()}")
             transport.connectSuspend(remote)
             state = State.connecting
             null

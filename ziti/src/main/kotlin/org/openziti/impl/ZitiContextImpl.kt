@@ -71,6 +71,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         get() = Dispatchers.IO + supervisor
 
     private val apiSession = MutableStateFlow<ApiSession?>(null)
+    private val currentEdgeRouters = MutableStateFlow<Collection<EdgeRouter>>(emptyList())
 
     private val controller: Controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager())
     private val postureService = PostureService()
@@ -312,6 +313,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                     d("[${id.name()}] got ${services.size} services on t[${Thread.currentThread().name}]")
                 }
             }
+
+            controller.runCatching { getEdgeRouters() }
+                .onSuccess {
+                    i{"current edge routers = $it"}
+                    currentEdgeRouters.value = it }
+                .onFailure { w("failed to get current edge routers: $it") }
 
             oneUpdate.join()
             oneUpdate.invokeOnCompletion {
@@ -585,9 +592,14 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         servicesByName.forEach { (name, s) ->
             writer.appendLine("name: $name id: ${s.id} permissions: ${s.permissions.joinToString()} intercept: ${s.interceptConfig}")
         }
+        writer.flush()
 
         writer.appendLine()
-        writer.appendLine("=== Channels ===")
+        writer.appendLine("=== Available Edge Routers[${currentEdgeRouters.value.size}] ===")
+        currentEdgeRouters.value.forEach {
+            writer.appendLine(it.toString())
+        }
+        writer.appendLine("=== Channels[${channels.size}] ===")
         channels.forEach { (name, ch) ->
             writer.appendLine("ER: $name status: ${ch.state}")
         }
