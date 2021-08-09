@@ -38,11 +38,11 @@ class ZitiDNSManagerTest {
             block.countDown()
         }
 
-        ZitiDNSManager.registerHostname("test.dns.ziti")
+        ZitiDNSManager.registerHostname("Test.dns.ziti")
 
         assertTrue(block.await(10, TimeUnit.SECONDS))
         assertEquals(1, events.size)
-        assertEquals("test.dns.ziti", events.first().hostname)
+        assertEquals("Test.dns.ziti", events.first().hostname)
         assertFalse(events.first().removed)
         assertArrayEquals(byteArrayOf(100.toByte(), 64.toByte(), 1, 2), events.first().ip.address)
     }
@@ -59,6 +59,23 @@ class ZitiDNSManagerTest {
         }
 
         assertTrue(block.await(1, TimeUnit.SECONDS))
+    }
 
+    @Test
+    fun testResolveNormalization() {
+        ZitiDNSManager.registerHostname("TEST.dns.ziti")
+        ZitiDNSManager.registerHostname("test2.dns.ziti")
+
+        val addr1 = ZitiDNSManager.resolve("test.dns.ziti")
+        val addr2 = ZitiDNSManager.resolve("TEST2.dns.ziti")
+        val addr3 = ZitiDNSManager.resolve("does not exist")
+
+        assertNotNull(addr1);
+        assertEquals("TEST.dns.ziti", addr1?.getHostName())
+
+        assertNotNull(addr2);
+        assertEquals("test2.dns.ziti", addr2?.getHostName())
+
+        assertNull(addr3);
     }
 }

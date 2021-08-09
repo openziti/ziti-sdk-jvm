@@ -48,7 +48,7 @@ internal object ZitiDNSManager : DNSResolver, CoroutineScope {
         val ip = when {
             IPAddress.isValidIPv4(hostname) -> Inet4Address.getByName(hostname)
             IPAddress.isValidIPv6(hostname) -> Inet6Address.getByName(hostname)
-            else -> host2Ip.getOrPut(hostname) { nextAddr(hostname) }
+            else -> host2Ip.getOrPut(hostname.lowercase()) { nextAddr(hostname) }
         }
         launch {
             dnsBroadCast.emit(DNSResolver.DNSEvent(hostname, ip, false))
