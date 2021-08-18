@@ -32,7 +32,7 @@ dependencies {
     api(project(':ziti'))
 
     implementation deps.kotlin
-    implementation "io.netty:netty-all:4.1.65.Final"
+    implementation "io.netty:netty-all:4.1.67.Final"
 
     testApi deps.jupiterApi
     testImplementation deps.jupiter
