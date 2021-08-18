@@ -225,7 +225,7 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
                 val wf = channel.write(ByteBuffer.wrap(b, off, len))
                 wf.get()
             }.onFailure { ex ->
-                e(ex) { "unexpected exception during write[buf.len=${b.size}, off=$off, len=$len]" }
+                w{ "unexpected exception[${ex.message}] during write[buf.len=${b.size}, off=$off, len=$len]" }
                 throwIOException(ex)
             }
         }

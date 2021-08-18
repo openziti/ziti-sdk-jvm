@@ -227,7 +227,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     fun stop() {
-        val copy = channels.values
+        val copy = channels.values.toList()
         channels.clear()
 
         runBlocking {
