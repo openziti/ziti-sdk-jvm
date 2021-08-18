@@ -199,6 +199,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
 
     fun shutdown() {
         clt.dispatcher().executorService().shutdown()
+        clt.connectionPool().evictAll()
     }
 
     internal fun createIdentity(name: String, type: String = "Device", enrollment: String = "ott"): Id {
@@ -327,12 +328,16 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
 
         val errorBody = resp.errorBody()
 
-        return if (errorBody != null) {
+        val msg = if (errorBody != null) {
+
             val body = errorConverter.convert(errorBody)
+            errorBody.close()
+
             w{"request failed with ${body?.error}"}
             body?.error?.code.toString()
         }
         else resp.message()
+        return msg
     }
 
     inner class ZitiInterceptor : Interceptor {

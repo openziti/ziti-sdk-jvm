@@ -31,15 +31,13 @@ object HalfCloseTest {
 
         override val coroutineContext = SupervisorJob() + Dispatchers.IO
 
-        val deferred = CompletableDeferred<Unit>()
-
         fun start() {
             sock.accept(null, this)
         }
 
         fun stop() {
-            sock.close()
-            runBlocking { deferred.complete(Unit) }
+            kotlin.runCatching { sock.close() }
+            cancel()
         }
 
         fun runClient(clt: AsynchronousSocketChannel) = launch {
@@ -119,25 +117,31 @@ object HalfCloseTest {
 
         val ztx = Ziti.newContext(args[0], charArrayOf())
 
-        val serverSocket = ztx.openServer()
-        val a = ZitiAddress.Bind(args[1], "test-terminator")
+        try {
+            val serverSocket = ztx.openServer()
+            val a = ZitiAddress.Bind(args[1], "test-terminator")
 
-        serverSocket.bind(a)
-        val addr = serverSocket.localAddress
+            serverSocket.bind(a)
+            val addr = serverSocket.localAddress
 
-        val s = Server(serverSocket)
-        s.start()
-        println("server is listening on $addr")
+            val s = Server(serverSocket)
+            s.start()
+            println("server is listening on $addr")
 
-        val clientSock = ztx.open()
-        kotlin.runCatching {
-            val clientAddr = ZitiAddress.Dial(a.service, "test-terminator")
-            Client(clientSock).run(clientAddr)
+            val clientSock = ztx.open()
+            kotlin.runCatching {
+                val clientAddr = ZitiAddress.Dial(a.service, identity = "test-terminator")
+                Client(clientSock).run(clientAddr)
+            }
+
+            println("stopping server side")
+            s.stop()
+            runBlocking {
+                s.coroutineContext.job.join()
+            }
+        } finally {
+            println("stopping ziti context")
+            ztx.destroy()
         }
-
-        println("stopping server side")
-        s.stop()
-        println("stopping ziti context")
-        ztx.destroy()
     }
 }
