@@ -46,7 +46,7 @@ _____
         <dependency>
            <groupId>org.openziti</groupId>
            <artifactId>ziti</artifactId>
-			<version>[0,)</version>
+           <version>[0,)</version>
         </dependency>
      </dependencies>
      ....
