@@ -35,7 +35,7 @@ class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, 
     internal val listeners = mutableMapOf<HandshakeCompletedListener, CompletableFuture<Unit>>()
 
     constructor(addr: InetSocketAddress, localAddr: InetSocketAddress?, ssl: SSLContext):
-            this(AsynchronousSocketChannel.open(), addr.hostName, addr.port, ssl) {
+            this(AsynchronousSocketChannel.open(), addr.hostString, addr.port, ssl) {
         localAddr?.let {
             asyncTls.bind(it)
         }
