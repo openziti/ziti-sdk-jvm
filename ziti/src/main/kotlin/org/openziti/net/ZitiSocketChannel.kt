@@ -114,7 +114,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
         val addr = when (remote) {
             is InetSocketAddress -> {
-                val s = ctx.getService(remote.hostName, remote.port) ?: throw UnresolvedAddressException()
+                val s = ctx.getService(remote.hostString, remote.port) ?: throw UnresolvedAddressException()
                 ZitiAddress.Dial(
                     service = s.name,
                     appData = DialData(

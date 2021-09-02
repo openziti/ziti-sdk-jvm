@@ -366,7 +366,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     }
 
-    override fun getService(addr: InetSocketAddress): Service? = getService(addr.hostName, addr.port)
+    override fun getService(addr: InetSocketAddress): Service? = getService(addr.hostString, addr.port)
 
     override fun getService(name: String): Service? {
         checkServicesLoaded()

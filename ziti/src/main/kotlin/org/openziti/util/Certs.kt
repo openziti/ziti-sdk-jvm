@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.openziti.util
 
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo
 import org.bouncycastle.openssl.PEMKeyPair
 import org.bouncycastle.openssl.PEMParser
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
@@ -89,8 +90,15 @@ fun readCerts(pemInput: Reader) = PemReader(pemInput).use { reader ->
 
 fun readKey(input: Reader): PrivateKey {
     val parser = PEMParser(input)
-    val po = parser.readObject() as PEMKeyPair
-    return JcaPEMKeyConverter().getKeyPair(po).private
+    val po = parser.readObject()// as PEMKeyPair
+
+    val pk = when(po) {
+        is PEMKeyPair -> JcaPEMKeyConverter().getKeyPair(po).private
+        is PrivateKeyInfo -> JcaPEMKeyConverter().getPrivateKey(po)
+        else -> error("unsupported key format")
+    }
+
+    return pk
 }
 
 internal class PrivateKeySigner(val key: PrivateKey, val sigAlg: String) : ContentSigner {

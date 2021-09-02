@@ -173,7 +173,7 @@ class AsyncTLSChannel(
             state = State.handshaking
 
             val addr = transport.remoteAddress as InetSocketAddress
-            sslParams.serverNames = listOf(SNIHostName(addr.hostName))
+            sslParams.serverNames = listOf(SNIHostName(addr.hostString))
             engine.sslParameters = sslParams
             engine.useClientMode = true
             engine.beginHandshake()
