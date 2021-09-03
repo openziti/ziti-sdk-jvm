@@ -531,7 +531,7 @@ class AsyncTLSChannel(
             v{ "engine.handshakeStatus = ${engine.handshakeStatus}" }
             when (engine.handshakeStatus!!) {
                 NEED_TASK ->
-                    runCatching { CompletableFuture.supplyAsync { engine.delegatedTask.run() }.await() }
+                    runCatching { CompletableFuture.supplyAsync { engine.delegatedTask?.run() }.await() }
                         .onFailure {
                             handshake.completeExceptionally(it)
                             return@continueHS
