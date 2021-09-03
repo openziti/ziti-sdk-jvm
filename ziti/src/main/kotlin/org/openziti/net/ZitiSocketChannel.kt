@@ -282,7 +282,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                         receiveBuff.flip()
                         break
                     }
-                    data = receiveQueue.poll()
+                    data = receiveQueue.tryReceive().getOrNull()
                 } while (data != null)
 
                 t { "transferred $count" }

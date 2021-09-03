@@ -17,6 +17,7 @@
 package org.openziti.util
 
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.onSuccess
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
@@ -47,7 +48,9 @@ internal class BufferPool(val capacity: Int, val bufferSize: Int, val direct: Bo
     }
 
     suspend fun get(): ByteBuffer {
-        pool.poll()?.let { return it }
+        pool.tryReceive().onSuccess {
+            return it
+        }
 
         if (leftToAlloc.decrementAndGet() >= 0) {
             return if (direct) ByteBuffer.allocateDirect(bufferSize) else ByteBuffer.allocate(bufferSize)
@@ -59,6 +62,6 @@ internal class BufferPool(val capacity: Int, val bufferSize: Int, val direct: Bo
     fun put(b: ByteBuffer) {
         require(b.capacity() == bufferSize){"wrong buffer returned"}
         b.clear()
-        pool.offer(b)
+        pool.trySend(b)
     }
 }

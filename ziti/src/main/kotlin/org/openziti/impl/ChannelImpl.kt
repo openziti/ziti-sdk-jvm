@@ -85,7 +85,7 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
 
     override fun connectNow(): Deferred<Channel.State> {
         d{"forcing connect"}
-        reconnectSignal.offer(Unit)
+        reconnectSignal.trySend(Unit)
         return async { chState.filter { it is Channel.State.Connected }.first() }
     }
 
@@ -171,7 +171,7 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
         }
 
         var count = 0
-        while(txChan.poll() != null) {
+        while(txChan.tryReceive().isSuccess) {
             count++
         }
         if (count > 0) d{"dropped $count undelivered messages"}

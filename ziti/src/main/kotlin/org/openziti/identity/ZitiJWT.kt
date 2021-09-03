@@ -51,10 +51,10 @@ class ZitiJWT(cl: Claims, val serverKey: Key) {
 
     companion object {
         fun fromJWT(jwt: String): ZitiJWT {
-            val jwtParser = Jwts.parser()
             val tm = JwtTrustManager()
 
-            jwtParser.setSigningKeyResolver(KeyResolver(tm))
+            val jwtParser = Jwts.parserBuilder()
+                .setSigningKeyResolver(KeyResolver(tm)).build()
 
             val claims = jwtParser.parse(jwt).body as Claims
             return ZitiJWT(claims, tm.serverKey)

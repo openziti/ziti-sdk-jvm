@@ -77,7 +77,6 @@ class AsyncTLSChannel(
             coroutineContext.cancel()
         }
 
-        @ExperimentalCoroutinesApi
         override fun awaitTermination(timeout: Long, unit: TimeUnit): Boolean = runBlocking {
             select {
                 coroutineContext.job.onJoin { true }

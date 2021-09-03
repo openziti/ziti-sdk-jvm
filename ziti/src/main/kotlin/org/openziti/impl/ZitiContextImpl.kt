@@ -402,7 +402,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     internal suspend fun getChannel(ns: Session): Channel {
         val ers = ns.edgeRouters ?: throw ZitiException(Errors.EdgeRouterUnavailable)
 
-        val addrList = ers.map { it.urls["tls"] }.filterNotNull()
+        val addrList = ers.map { it.supportedProtocols["tls"] }.filterNotNull()
 
         val chMap = sortedMapOf<Long,Channel>()
         val unconnected = mutableListOf<Channel>()
@@ -434,7 +434,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     internal fun connectAll(routers: Collection<EdgeRouter>) = launch {
         routers.forEach {
-            it.urls["tls"]?.let {
+            it.supportedProtocols["tls"]?.let {
                 getChannel(it)
             }
         }

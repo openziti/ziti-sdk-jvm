@@ -16,7 +16,7 @@
 
 package org.openziti.net.nio
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.startsWith
 import org.junit.After
 import org.junit.Assert.*
@@ -31,13 +31,10 @@ import java.nio.channels.InterruptedByTimeoutException
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLException
 import javax.net.ssl.SSLHandshakeException
-import javax.net.ssl.TrustManager
 import kotlin.random.Random
 import kotlin.test.Test
 
@@ -193,7 +190,7 @@ User-Agent: HTTPie/1.0.2
 
 
 """
-        val wc = ch.write(StandardCharsets.US_ASCII.encode(req)).get(1, TimeUnit.SECONDS)
+        val wc = ch.write(StandardCharsets.US_ASCII.encode(req)).get(5, TimeUnit.SECONDS)
         assertEquals(req.length, wc)
 
         val resp = ByteBuffer.allocate(128)
