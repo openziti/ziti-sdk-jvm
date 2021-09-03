@@ -22,5 +22,11 @@ jobs:
           cache: gradle
       - name: Check
         run: ./gradlew check
+      - name: test artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: ziti/build/test-results/test/*.xml
+
       - name: Build
         run: ./gradlew build assemble
