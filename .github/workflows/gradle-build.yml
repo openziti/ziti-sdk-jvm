@@ -23,6 +23,7 @@ jobs:
       - name: Check
         run: ./gradlew check
       - name: test artifacts
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: test-results
