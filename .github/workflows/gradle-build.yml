@@ -22,6 +22,7 @@ jobs:
           cache: gradle
       - name: Check
         run: ./gradlew check
+        timeout-minutes: 10
       - name: test artifacts
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
