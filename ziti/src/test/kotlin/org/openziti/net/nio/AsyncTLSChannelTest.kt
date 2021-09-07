@@ -43,7 +43,7 @@ class AsyncTLSChannelTest {
     lateinit var ch: AsyncTLSChannel
 
     @Rule
-    @JvmField val timeout = Timeout.seconds(1500)
+    @JvmField val timeout = Timeout.seconds(15)
 
     @After
     fun tearDown() {
