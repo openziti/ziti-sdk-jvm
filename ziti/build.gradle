@@ -95,6 +95,15 @@ tasks {
         property("branch", gitBranch)
     }
 
+    task fatJar(type: Jar) {
+        manifest.from jar.manifest
+        classifier = 'all'
+        from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
+            exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/**/module-info.class'
+        }
+        with jar
+    }
+
     sourceSets.main {
         resources.srcDir(files(generatedResourcesDir).builtBy(versionProps))
     }
@@ -119,6 +128,7 @@ tasks.register('dokkaJar', Jar) {
 artifacts {
     archives(sourcesJar)
     archives(dokkaJar)
+    archives(fatJar)
 }
 
 publishing {
