@@ -69,7 +69,7 @@ class SyncSocketChannel(provider: SelectorProvider?) : SocketChannel(provider),
                      dsts,
                      offset,
                      length,
-                     10000,
+                     -1, // No read timeout set from here - delegate to underlying channel
                      TimeUnit.MILLISECONDS,
                      this,
                      object : CompletionHandler<Long, CoroutineScope> {
@@ -102,7 +102,7 @@ class SyncSocketChannel(provider: SelectorProvider?) : SocketChannel(provider),
                     srcs,
                     offset,
                     length,
-                    10000,
+                    -1,  // No read timeout set from here - delegate to underlying channel
                     TimeUnit.MILLISECONDS,
                     this,
                     object : CompletionHandler<Long, CoroutineScope> {
