@@ -166,7 +166,7 @@ class Enroller(
             msg.let { throw IllegalArgumentException(it) }
         }
         else {
-            val ct = conn.getHeaderField("Content-Type").toLowerCase()
+            val ct = conn.getHeaderField("Content-Type").lowercase()
             val certs = when (ct) {
                 "application/x-pem-file" -> {
                     readCerts(conn.inputStream.reader()).toTypedArray()

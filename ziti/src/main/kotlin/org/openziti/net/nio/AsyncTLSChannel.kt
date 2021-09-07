@@ -77,7 +77,6 @@ class AsyncTLSChannel(
             coroutineContext.cancel()
         }
 
-        @ExperimentalCoroutinesApi
         override fun awaitTermination(timeout: Long, unit: TimeUnit): Boolean = runBlocking {
             select {
                 coroutineContext.job.onJoin { true }
@@ -531,7 +530,7 @@ class AsyncTLSChannel(
             v{ "engine.handshakeStatus = ${engine.handshakeStatus}" }
             when (engine.handshakeStatus!!) {
                 NEED_TASK ->
-                    runCatching { CompletableFuture.supplyAsync { engine.delegatedTask.run() }.await() }
+                    runCatching { CompletableFuture.supplyAsync { engine.delegatedTask?.run() }.await() }
                         .onFailure {
                             handshake.completeExceptionally(it)
                             return@continueHS
@@ -539,12 +538,14 @@ class AsyncTLSChannel(
 
                 NEED_WRAP -> {
                     while (engine.handshakeStatus == NEED_WRAP) {
-                        engine.wrap(EMPTY, hsBuf)
+                        val res = engine.wrap(EMPTY, hsBuf)
+                        t{"wrap: $res buf[$hsBuf]"}
                     }
 
                     hsBuf.flip()
                     kotlin.runCatching {
-                        transport.writeSuspend(hsBuf)
+                        transport.writeCompletely(hsBuf)
+                        hsBuf.clear()
                     }.onFailure {
                         handshake.completeExceptionally(it)
                         return@continueHS
@@ -552,7 +553,9 @@ class AsyncTLSChannel(
                 }
                 NEED_UNWRAP -> {
                     while (engine.handshakeStatus == NEED_UNWRAP) {
-                        if (engine.unwrap(inBuf, hsBuf).status == BUFFER_UNDERFLOW)
+                        val res = engine.unwrap(inBuf, hsBuf)
+                        t{"unwrap: $res"}
+                        if (res.status == BUFFER_UNDERFLOW)
                             return
                     }
                 }

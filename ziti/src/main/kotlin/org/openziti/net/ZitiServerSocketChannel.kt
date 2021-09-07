@@ -221,7 +221,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
     suspend fun receive(msg: Message) {
         when(msg.content) {
             ZitiProtocol.ContentType.Dial -> {
-                if (!incoming.offer(msg)) { // backlog is full
+                if (incoming.trySend(msg).isFailure) { // backlog is full
                     val reject = Message(ZitiProtocol.ContentType.DialFailed)
                         .setHeader(Header.ConnId, connId)
                         .setHeader(Header.ReplyFor, msg.seqNo)

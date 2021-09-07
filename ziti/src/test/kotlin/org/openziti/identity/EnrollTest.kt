@@ -25,9 +25,9 @@ import org.openziti.api.Identity
 import java.net.URI
 import java.net.URL
 import java.security.KeyStore
+import kotlin.io.path.createTempFile
 import kotlin.math.absoluteValue
 import kotlin.random.Random
-import kotlin.test.Ignore
 
 /**
  */
@@ -112,7 +112,7 @@ class EnrollTest {
 
         val e = ks.getEntry(alias, KeyStore.PasswordProtection(charArrayOf()))
 
-        val ksFile = createTempFile(tn.methodName, ".p12")
+        val ksFile = createTempFile(tn.methodName, ".p12").toFile()
         val p12pwd = generateSequence {
             Random.nextInt().absoluteValue
         }.take(14).map { it.toString(16) }.joinToString("")
@@ -123,14 +123,14 @@ class EnrollTest {
             load(ksFile.inputStream(), p12pwd.toCharArray())
         }
 
-        val identiity = KeyStoreIdentity(ks1, alias)
+        val identity = KeyStoreIdentity(ks1, alias)
         //verify login with cert
 
-        assertEquals("ctrlURI URL", controllerURL.toString(), identiity.controller())
-        assertNotNull("Name", identiity.name())
+        assertEquals("ctrlURI URL", controllerURL.toString(), identity.controller())
+        assertNotNull("Name", identity.name())
 
         val controller =
-            Controller(URI.create(identiity.controller()).toURL(), identiity.sslContext(), identiity.trustManager())
+            Controller(URI.create(identity.controller()).toURL(), identity.sslContext(), identity.trustManager())
         val loginResp = controller.login()
         assertNotNull("login with device cert", loginResp.token)
         controller.logout()

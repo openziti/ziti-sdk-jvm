@@ -100,6 +100,11 @@ tasks {
     }
 }
 
+tasks.withType(Test).forEach {
+    it.systemProperty('org.slf4j.simpleLogger.defaultLogLevel','TRACE')
+    it.systemProperty('org.slf4j.simpleLogger.showDateTime', 'true')
+}
+
 tasks.register('sourcesJar', Jar) {
     from sourceSets.main.java.srcDirs
     from sourceSets.main.kotlin.srcDirs
