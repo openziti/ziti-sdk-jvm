@@ -171,15 +171,16 @@ class SyncSocketChannel(provider: SelectorProvider?) : SocketChannel(provider),
             try {
                 val s = ctxImpl.getService(sockAddr)
                 if (s != null) {
-                    channelImpl = ZitiSocketFactory.ZitiConnector.doConnect(ctx.open(), sockAddr, 10000)
+                    channelImpl = ctx.open()
+                    channelImpl.connect(sockAddr).get()
                     break
                 }
             } catch (ex: Exception) {
-                ZitiSocketFactory.ZitiConnector.w { "${ctx.name()}: $ex" }
+                w { "${ctx.name()}: $ex" }
             }
         }
         if (!isConnected) {
-            ZitiSocketFactory.ZitiConnector.i { "no ZitiContext provides service for $addr" }
+            i { "no ZitiContext provides service for $addr" }
             throw ConnectException()
         }
         return true
