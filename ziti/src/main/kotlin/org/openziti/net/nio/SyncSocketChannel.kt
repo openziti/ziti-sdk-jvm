@@ -45,7 +45,7 @@ class SyncSocketChannel(provider: SelectorProvider?) : SocketChannel(provider),
     }
 
     override fun implCloseSelectableChannel() {
-        if(this::channelImpl.isInitialized) {
+        if (this::channelImpl.isInitialized) {
             channelImpl.close()
         }
     }
@@ -56,65 +56,45 @@ class SyncSocketChannel(provider: SelectorProvider?) : SocketChannel(provider),
 
     override fun read(dst: ByteBuffer?): Int {
         validateConnection()
-        return channelImpl.read(dst).get()
+        if (null == dst) return 0
+
+        return runBlocking {
+            channelImpl.readSuspend(dst)
+        }
     }
 
-    override fun read(dsts: Array<out ByteBuffer>?, offset: Int, length: Int): Long {
+    override fun read(dsts: Array<out ByteBuffer>, offset: Int, length: Int): Long {
         validateConnection()
-        var response: Long
+        var response: Long = 0
 
         runBlocking {
-             response = suspendCoroutine { cont ->
-                 channelImpl.read(
-                     dsts,
-                     offset,
-                     length,
-                     -1, // No read timeout set from here - delegate to underlying channel
-                     TimeUnit.MILLISECONDS,
-                     this,
-                     object : CompletionHandler<Long, CoroutineScope> {
-                         override fun completed(result: Long?, attachment: CoroutineScope?) {
-                             cont.resume(result ?: -1)
-                         }
-
-                         override fun failed(exc: Throwable?, attachment: CoroutineScope?) {
-                             if (null != exc) cont.resumeWithException(exc)
-                             else cont.resumeWithException(IllegalStateException("Channel read failed without an exception"))
-                         }
-                     })
-             }
+            for (i in offset until offset + length - 1) {
+                response += channelImpl.readSuspend(dsts[offset]).toLong()
+            }
         }
+
         return response
     }
 
     override fun write(src: ByteBuffer?): Int {
         validateConnection()
-        return channelImpl.write(src).get()
+
+        if (null == src) return 0
+
+        return runBlocking {
+            channelImpl.writeSuspend(src)
+        }
     }
 
     override fun write(srcs: Array<out ByteBuffer>?, offset: Int, length: Int): Long {
         validateConnection()
-        var response: Long
+        var response: Long = 0
+
+        if (null == srcs) return 0;
 
         runBlocking {
-            response = suspendCoroutine { cont ->
-                channelImpl.write(
-                    srcs,
-                    offset,
-                    length,
-                    -1,  // No read timeout set from here - delegate to underlying channel
-                    TimeUnit.MILLISECONDS,
-                    this,
-                    object : CompletionHandler<Long, CoroutineScope> {
-                        override fun completed(result: Long?, attachment: CoroutineScope?) {
-                            cont.resume(result ?: -1)
-                        }
-
-                        override fun failed(exc: Throwable?, attachment: CoroutineScope?) {
-                            if (null != exc) cont.resumeWithException(exc)
-                            else cont.resumeWithException(IllegalStateException("Channel read failed without an exception"))
-                        }
-                    })
+            for (i in offset until offset + length - 1) {
+                response += channelImpl.writeSuspend(srcs[i]).toLong()
             }
         }
         return response
@@ -186,7 +166,7 @@ class SyncSocketChannel(provider: SelectorProvider?) : SocketChannel(provider),
         return true
     }
 
-    override fun finishConnect(): Boolean  = true // NOOP
+    override fun finishConnect(): Boolean = true // NOOP
 
     override fun getRemoteAddress(): SocketAddress {
         return channelImpl.remoteAddress
