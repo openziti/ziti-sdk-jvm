@@ -69,7 +69,7 @@ class SyncSocketChannel(provider: SelectorProvider?) : SocketChannel(provider),
 
         runBlocking {
             for (i in offset until offset + length - 1) {
-                response += channelImpl.readSuspend(dsts[offset]).toLong()
+                response += channelImpl.readSuspend(dsts[i]).toLong()
             }
         }
 
