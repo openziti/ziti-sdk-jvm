@@ -82,7 +82,7 @@ class SyncSocketChannel(provider: SelectorProvider?) : SocketChannel(provider),
         if (null == src) return 0
 
         return runBlocking {
-            channelImpl.writeSuspend(src)
+            channelImpl.writeCompletely(src)
         }
     }
 
@@ -94,7 +94,7 @@ class SyncSocketChannel(provider: SelectorProvider?) : SocketChannel(provider),
 
         runBlocking {
             for (i in offset until offset + length - 1) {
-                response += channelImpl.writeSuspend(srcs[i]).toLong()
+                response += channelImpl.writeCompletely(srcs[i]).toLong()
             }
         }
         return response
