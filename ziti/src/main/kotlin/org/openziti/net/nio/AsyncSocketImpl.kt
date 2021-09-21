@@ -205,12 +205,23 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
         if (optID == SocketOptions.SO_TIMEOUT) {
             return timeout.get()
         }
+
+        // Urgent data is not supported
+        if (optID == SocketOptions.SO_OOBINLINE) {
+            return false
+        }
+
         return null
     }
 
     override fun setOption(optID: Int, value: Any?) {
         if (optID == SocketOptions.SO_TIMEOUT) {
             timeout.set((value as Number).toInt())
+        }
+
+        // Urgent data is not supported
+        if (optID == SocketOptions.SO_OOBINLINE) {
+            throw SocketException("SO_OOBINLINE is not supported")
         }
     }
 
