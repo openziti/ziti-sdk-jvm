@@ -40,5 +40,7 @@ internal object Sockets : Logged by ZitiLog() {
             }
         }
     }
+
+    fun isInitialized() = initialized.get()
 }
 

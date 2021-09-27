@@ -117,6 +117,8 @@ internal object ZitiImpl : Logged by ZitiLog() {
         }
     }
 
+    fun isSeamless(): Boolean = Sockets.isInitialized()
+
     private fun initInternalNetworking() {
         Sockets.init()
     }
