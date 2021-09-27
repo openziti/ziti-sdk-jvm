@@ -14,22 +14,30 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ziti-jvm'
-include 'ziti'
-include 'ziti-netty'
-include 'ziti-springboot'
+package org.openziti.sample.springboot
 
-if (properties.buildForAndroid == "true") {
-    include 'ziti-android'
+import org.openziti.springboot.ZitiTomcatCustomizer
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RestController
+
+
+@SpringBootApplication(
+    scanBasePackageClasses = [
+        ZitiTomcatCustomizer::class,
+        HelloController::class
+    ]
+)
+class ZitiSpringBootApplication
+
+
+@RestController
+class HelloController {
+    @GetMapping("/")
+    fun index(): String {
+        return "Greetings from ZprIng booTI"
+    }
 }
 
-include ':samples:ziti-enroller'
-include ':samples:ziti-half-close'
-include ':samples:sample'
-include ':samples:http-sample'
-include ':samples:sample-host'
-include ':samples:ziti-netty-samples'
-include ':samples:terminators-sample'
-include ':samples:sample-okhttp'
-include ':samples:ziti-spring-boot'
+
 

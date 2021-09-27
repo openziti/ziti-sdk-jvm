@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ziti-jvm'
-include 'ziti'
-include 'ziti-netty'
-include 'ziti-springboot'
+package org.openziti.sample.springboot
 
-if (properties.buildForAndroid == "true") {
-    include 'ziti-android'
+import org.springframework.boot.runApplication
+
+object Main {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        runApplication<ZitiSpringBootApplication>(*args)
+    }
 }
-
-include ':samples:ziti-enroller'
-include ':samples:ziti-half-close'
-include ':samples:sample'
-include ':samples:http-sample'
-include ':samples:sample-host'
-include ':samples:ziti-netty-samples'
-include ':samples:terminators-sample'
-include ':samples:sample-okhttp'
-include ':samples:ziti-spring-boot'
-
