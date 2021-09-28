@@ -95,7 +95,7 @@ tasks {
         property("branch", gitBranch)
     }
 
-    task fatJar(type: Jar) {
+    task fullJar(type: Jar) {
         manifest.from jar.manifest
         classifier = 'all'
         from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
@@ -128,7 +128,7 @@ tasks.register('dokkaJar', Jar) {
 artifacts {
     archives(sourcesJar)
     archives(dokkaJar)
-    archives(fatJar)
+    archives(fullJar)
 }
 
 publishing {
@@ -137,7 +137,7 @@ publishing {
             from components.java
             artifact sourcesJar
             artifact dokkaJar
-            artifact fatJar
+            artifact fullJar
         }
     }
 }
