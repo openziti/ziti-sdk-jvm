@@ -29,6 +29,7 @@ import org.openziti.net.ZitiServerSocketChannel
 import org.openziti.net.ZitiSocketChannel
 import org.openziti.net.dns.ZitiDNSManager
 import org.openziti.net.nio.AsychChannelSocket
+import org.openziti.net.nio.connectSuspend
 import org.openziti.posture.PostureService
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
@@ -39,13 +40,16 @@ import java.net.Socket
 import java.net.URI
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
-import java.time.Duration
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 import kotlin.random.Random
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
 import org.openziti.api.Identity as ApiIdentity
 
 /**
@@ -64,7 +68,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    private var refreshDelay = Duration.ofMinutes(1).toMillis()
+    private var refreshDelay = TimeUnit.MINUTES.toMillis(1)
 
     private val supervisor = SupervisorJob()
     override val coroutineContext: CoroutineContext
@@ -137,12 +141,22 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     override fun setEnabled(v: Boolean) { _enabled = v }
-    private fun checkEnabled() = _enabled || throw ZitiException(Errors.ServiceNotAvailable)
+    private fun checkEnabled() {
+        _enabled || throw ZitiException(Errors.ServiceNotAvailable)
+    }
 
     override fun dial(serviceName: String): ZitiConnection {
+        return dial(ZitiAddress.Dial(serviceName))
+    }
+
+    override fun dial(dialAddr: ZitiAddress.Dial): ZitiConnection {
+        return runBlocking { dialSuspend(dialAddr) }
+    }
+
+    override suspend fun dialSuspend(dialAddr: ZitiAddress.Dial): ZitiConnection {
         checkEnabled()
         val conn = open() as ZitiSocketChannel
-        conn.connect(ZitiAddress.Dial(serviceName)).get()
+        conn.connectSuspend(dialAddr)
         return conn
     }
 
@@ -171,7 +185,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         checkEnabled()
         val ch = open()
         val s = getService(host, port) ?: throw ZitiException(Errors.ServiceNotAvailable)
-        ch.connect(ZitiAddress.Dial(s.name)).get()
+        runBlocking { ch.connectSuspend(ZitiAddress.Dial(s.name)) }
         return AsychChannelSocket(ch)
     }
 
@@ -362,6 +376,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         checkServicesLoaded()
 
         val service = servicesByName.get(name) ?: throw ZitiException(Errors.ServiceNotAvailable)
+        if (!service.permissions.contains(st)) throw ZitiException(Errors.ServiceNotAvailable)
+
         return getNetworkSession(service, st)
 
     }

@@ -16,11 +16,8 @@
 
 package org.openziti
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.future.asCompletableFuture
 import org.openziti.api.MFAEnrollment
 import org.openziti.api.MFAType
 import org.openziti.api.Service
@@ -80,6 +77,9 @@ interface ZitiContext: Identity {
      * connect to Ziti service.
      */
     fun dial(serviceName: String): ZitiConnection
+    fun dial(dialAddr: ZitiAddress.Dial): ZitiConnection
+
+    suspend fun dialSuspend(dialAddr: ZitiAddress.Dial): ZitiConnection
 
     /**
      * connect to Ziti service identified by intercept host and port.
