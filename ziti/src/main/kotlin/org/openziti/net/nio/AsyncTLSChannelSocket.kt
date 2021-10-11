@@ -17,6 +17,7 @@
 package org.openziti.net.nio
 
 import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.runBlocking
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.InetSocketAddress
@@ -40,7 +41,7 @@ class AsyncTLSChannelSocket(transport: AsynchronousSocketChannel, host: String, 
             asyncTls.bind(it)
         }
 
-        asyncTls.connect(addr).get()
+        runBlocking { asyncTls.connectSuspend(addr) }
     }
 
     override fun startHandshake() = asyncTls.startHandshake()

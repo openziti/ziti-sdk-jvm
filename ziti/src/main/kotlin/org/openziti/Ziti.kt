@@ -25,9 +25,9 @@ import org.openziti.net.dns.DNSResolver
 import org.openziti.net.dns.ZitiDNSManager
 import org.openziti.net.nio.AsyncTLSSocketFactory
 import java.io.File
+import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.security.KeyStore
-import java.util.concurrent.CompletionStage
 import javax.net.SocketFactory
 import javax.net.ssl.SSLSocketFactory
 
@@ -101,6 +101,9 @@ object Ziti {
 
     @JvmStatic
     fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = ZitiImpl.getServiceFor(host, port)
+
+    fun getServiceFor(addr: InetSocketAddress): Pair<ZitiContext, Service>? = ZitiImpl.getServiceFor(addr)
+
 
     fun serviceUpdates(): Flow<Pair<ZitiContext, ZitiContext.ServiceEvent>> = ZitiImpl.serviceUpdates()
 }

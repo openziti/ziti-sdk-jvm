@@ -31,8 +31,12 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
     AbstractChannel(parent),
     Logged by ZitiLog() {
 
-    lateinit var connectPromise: ChannelPromise
-
+    private var active = false
+    init {
+        if (parent != null && peer.isOpen) {
+            active = true
+        }
+    }
     override fun doBeginRead() {
         d("starting read")
         val buf = ByteBuffer.allocate(16 * 1024)
@@ -62,7 +66,7 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
     }
 
     override fun isActive(): Boolean {
-        return peer.isOpen && this::connectPromise.isInitialized && connectPromise.isSuccess
+        return active && peer.isOpen
     }
 
     override fun isCompatible(loop: EventLoop?): Boolean {
@@ -78,6 +82,7 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
     }
 
     override fun doClose() {
+        active = false
         runCatching { peer.close() }
     }
 
@@ -127,9 +132,11 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
 
     private inner class AsyncUnsafe: AbstractChannel.AbstractUnsafe() {
         override fun connect(remoteAddress: SocketAddress?, localAddress: SocketAddress?, promise: ChannelPromise) {
-            connectPromise = promise
-            connectPromise.addListener {
-                if (it.isSuccess) pipeline().fireChannelActive()
+            promise.addListener {
+                if (it.isSuccess) {
+                    active = true
+                    pipeline().fireChannelActive()
+                }
             }
             peer.connect(remoteAddress, promise, object : CompletionHandler<Void, ChannelPromise>{
                 override fun completed(result: Void?, attachment: ChannelPromise) { promise.trySuccess() }
