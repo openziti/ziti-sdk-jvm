@@ -29,7 +29,7 @@ buildscript {
             coroutines: '1.5.2',
             slf4j: '1.7.32',
             lazysodium: '5.0.1',
-            jupiter: '5.8.0'
+            jupiter: '5.8.1'
     ]
 
     ext.deps = [
