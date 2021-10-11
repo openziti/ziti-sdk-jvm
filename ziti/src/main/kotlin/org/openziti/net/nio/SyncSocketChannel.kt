@@ -152,7 +152,7 @@ class SyncSocketChannel(provider: SelectorProvider?) : SocketChannel(provider),
                 val s = ctxImpl.getService(sockAddr)
                 if (s != null) {
                     channelImpl = ctx.open()
-                    channelImpl.connect(sockAddr).get()
+                    runBlocking { channelImpl.connectSuspend(sockAddr) }
                     break
                 }
             } catch (ex: Exception) {
