@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import org.openziti.net.Protocol
 import org.openziti.util.SystemInfo
 import java.util.*
 
@@ -97,8 +98,8 @@ data class PortRange(val low: Int, val high: Int): Comparable<PortRange> {
 
 fun <T> Array<T>.display() = joinToString(prefix = "[", postfix = "]")
 data class InterceptConfig(
-    val protocols: Array<InterceptProtocol>,
-    val addresses: Array<String>,
+    val protocols: Array<Protocol>,
+    val addresses: Array<InterceptAddress>,
     val portRanges: Array<PortRange>,
     val dialOptions: Map<String,Any> = emptyMap(),
     val sourceIp: String? = null
@@ -121,8 +122,8 @@ class Service internal constructor(
             getConfig(InterceptV1Cfg, InterceptConfig::class.java) ?:
             getConfig(ClientV1Cfg, ClientV1Config::class.java)?.let {
                 InterceptConfig(
-                    protocols = arrayOf(InterceptProtocol.tcp),
-                    addresses = arrayOf(it.hostname),
+                    protocols = arrayOf(Protocol.TCP),
+                    addresses = arrayOf(it.hostname.asInterceptAddr()),
                     portRanges = arrayOf(PortRange(it.port, it.port))
                 )
             }

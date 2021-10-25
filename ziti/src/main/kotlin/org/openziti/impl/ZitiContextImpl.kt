@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,17 @@ import kotlinx.coroutines.selects.select
 import org.openziti.*
 import org.openziti.api.*
 import org.openziti.identity.Identity
-import org.openziti.net.Channel
-import org.openziti.net.ZitiServerSocketChannel
-import org.openziti.net.ZitiSocketChannel
+import org.openziti.net.*
 import org.openziti.net.dns.ZitiDNSManager
 import org.openziti.net.nio.AsychChannelSocket
 import org.openziti.net.nio.connectSuspend
+import org.openziti.net.routing.RouteManager
 import org.openziti.posture.PostureService
+import org.openziti.util.IPUtil
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.io.Writer
-import java.net.InetAddress
-import java.net.InetSocketAddress
-import java.net.Socket
-import java.net.URI
+import java.net.*
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.*
@@ -47,9 +44,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 import kotlin.random.Random
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
 import org.openziti.api.Identity as ApiIdentity
 
 /**
@@ -381,6 +375,45 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         return getNetworkSession(service, st)
 
     }
+    private fun getDnsTarget(addr: InetSocketAddress): String? {
+        if (addr.address != null) {
+            return ZitiDNSManager.lookup(addr.address)
+        } else if (IPUtil.isValidIPv4(addr.hostString)) {
+            return null
+        } else {
+            return addr.hostString
+        }
+    }
+
+    private fun getIPtarget(addr: InetSocketAddress): InetAddress? {
+        if (addr.address != null) return addr.address
+
+        if (IPUtil.isValidIPv4(addr.hostString)) return Inet4Address.getByName(addr.hostString)
+        if (IPUtil.isValidIPv6(addr.hostString)) return Inet6Address.getByName(addr.hostString)
+        return null
+    }
+
+    internal fun getDialAddress(addr: InetSocketAddress, proto: Protocol = Protocol.TCP): ZitiAddress.Dial? {
+        val targetAddr = getDnsTarget(addr) ?: getIPtarget(addr) ?: return null
+
+        val service = servicesById.values.firstOrNull { s ->
+            s.interceptConfig?.let { cfg ->
+                cfg.protocols.contains(proto) &&
+                        cfg.portRanges.any { it.contains(addr.port) } &&
+                        cfg.addresses.any { it.matches(targetAddr) }
+            } ?: false
+        } ?: return null
+
+        return ZitiAddress.Dial(
+            service = service.name,
+            callerId = name(),
+            appData = DialData(
+                dstProtocol = proto,
+                dstHostname = if (targetAddr is String) targetAddr else null,
+                dstIp = if (targetAddr is InetAddress) targetAddr.hostAddress else null,
+                dstPort = addr.port.toString()
+            ))
+    }
 
     override fun getService(addr: InetSocketAddress): Service? = getService(addr.hostString, addr.port)
 
@@ -406,7 +439,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         return servicesByName.values.find { svc ->
             svc.interceptConfig?.let {
-                it.addresses.contains(host) && it.portRanges.any { r -> port in r.low..r.high }
+                it.addresses.any { it.matches(host) } && it.portRanges.any { r -> port in r.low..r.high }
             } ?: false
         }
     }
@@ -493,6 +526,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             networkSessions.remove(SessionKey(rid, SessionType.Bind))
         }
 
+        val rtMgr = RouteManager()
         // update
         for (s in services) {
             val oldV = servicesByName.put(s.name, s)
@@ -510,13 +544,27 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             val ports = s.interceptConfig?.portRanges ?: emptyArray()
 
             for (a in addresses) {
-                val ip = ZitiDNSManager.registerHostname(a)
-                val rangeMap = servicesByAddr.getOrPut(ip){ mutableMapOf() }
+                val route = when(a) {
+                    is DNSName -> {
+                        val ip = ZitiDNSManager.registerHostname(a.name)
+                        CIDRBlock(ip, 32)
+                    }
+                    is CIDRBlock -> a
+                    is DomainName -> {
+                        ZitiDNSManager.registerDomain(a.name)
+                        null
+                    }
+                }
 
-                for (pr in ports) {
-                    rangeMap.put(pr, s)
+//
+//                for (pr in ports) {
+//                    rangeMap.put(pr, s)
+//                }
+                route?.let {
+                    rtMgr.addRoute(it)
                 }
             }
+
 
             s.postureSets?.forEach {
                 it.postureQueries.forEach {
