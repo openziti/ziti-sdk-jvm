@@ -514,11 +514,19 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         val currentIds = services.map { it.id }.toCollection(mutableSetOf())
         // check removed access
+        val rtMgr = RouteManager()
 
         val removeIds = servicesById.keys.filter { !currentIds.contains(it) }
         for (rid in removeIds) {
             servicesById.remove(rid)?.let {
                 servicesByName.remove(it.name)
+                it.interceptConfig?.addresses?.forEach {
+                    when(it) {
+                        is CIDRBlock -> rtMgr.removeRoute(it)
+                        is DNSName -> ZitiDNSManager.unregisterHostname(it.name)
+                        is DomainName -> ZitiDNSManager.unregisterDomain(it.name)
+                    }
+                }
                 events.add(ZitiContext.ServiceEvent(it, ZitiContext.ServiceUpdate.Unavailable))
             }
 
@@ -526,7 +534,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             networkSessions.remove(SessionKey(rid, SessionType.Bind))
         }
 
-        val rtMgr = RouteManager()
         // update
         for (s in services) {
             val oldV = servicesByName.put(s.name, s)
@@ -540,31 +547,31 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             }
             servicesById.put(s.id, s)
 
-            val addresses = s.interceptConfig?.addresses ?: emptyArray()
-            val ports = s.interceptConfig?.portRanges ?: emptyArray()
+            val addresses = s.interceptConfig?.addresses ?: emptySet()
+            val oldAddresses = oldV?.interceptConfig?.addresses ?: emptySet()
 
-            for (a in addresses) {
-                val route = when(a) {
-                    is DNSName -> {
-                        val ip = ZitiDNSManager.registerHostname(a.name)
-                        CIDRBlock(ip, 32)
-                    }
-                    is CIDRBlock -> a
+            val removedAddresses = oldAddresses - addresses
+            removedAddresses.forEach {
+                when(it) {
+                    is CIDRBlock -> rtMgr.removeRoute(it)
+                    is DNSName -> ZitiDNSManager.unregisterHostname(it.name)
+                    is DomainName -> ZitiDNSManager.unregisterDomain(it.name)
+                }
+            }
+
+            val addedAddresses = addresses - oldAddresses
+            addedAddresses.forEach {
+                val route = when(it) {
+                    is DNSName -> CIDRBlock(ZitiDNSManager.registerHostname(it.name), 32)
+                    is CIDRBlock -> it
                     is DomainName -> {
-                        ZitiDNSManager.registerDomain(a.name)
+                        ZitiDNSManager.registerDomain(it.name)
                         null
                     }
                 }
 
-//
-//                for (pr in ports) {
-//                    rangeMap.put(pr, s)
-//                }
-                route?.let {
-                    rtMgr.addRoute(it)
-                }
+                route?.let { rtMgr.addRoute(it) }
             }
-
 
             s.postureSets?.forEach {
                 it.postureQueries.forEach {
