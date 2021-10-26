@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.openziti
 
 import kotlinx.coroutines.flow.Flow
-import org.openziti.api.MFAType
 import org.openziti.api.Service
 import org.openziti.impl.ZitiImpl
 import org.openziti.net.ZitiSocketFactory
@@ -104,6 +103,7 @@ object Ziti {
 
     fun getServiceFor(addr: InetSocketAddress): Pair<ZitiContext, Service>? = ZitiImpl.getServiceFor(addr)
 
+    fun findDialInfo(addr: InetSocketAddress): Pair<ZitiContext, SocketAddress>? = ZitiImpl.findDialInfo(addr)
 
     fun serviceUpdates(): Flow<Pair<ZitiContext, ZitiContext.ServiceEvent>> = ZitiImpl.serviceUpdates()
 }
