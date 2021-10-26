@@ -14,14 +14,27 @@
  * limitations under the License.
  */
 
-package org.openziti.net.dns
+package org.openziti.net.routing
 
-import java.io.Writer
-import java.net.InetAddress
+import org.openziti.api.CIDRBlock
+import java.util.*
 
-interface DNSResolver {
-    fun resolve(hostname: String): InetAddress?
-    fun lookup(addr: InetAddress): String?
-
-    fun dump(writer: Writer)
+interface RouteManager {
+    fun addRoute(cidr: CIDRBlock)
+    fun removeRoute(cidr: CIDRBlock)
 }
+
+private object NoopRouteManager: RouteManager {
+    override fun addRoute(cidr: CIDRBlock) {}
+    override fun removeRoute(cidr: CIDRBlock) {}
+}
+
+private object Loader {
+    val routeManager: RouteManager
+    init {
+        val loader = ServiceLoader.load(RouteManager::class.java)
+        routeManager = loader.firstOrNull() ?: NoopRouteManager
+    }
+}
+
+fun RouteManager(): RouteManager = Loader.routeManager

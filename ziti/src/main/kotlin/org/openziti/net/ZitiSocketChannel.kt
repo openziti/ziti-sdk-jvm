@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,16 +113,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     override fun <A : Any?> connect(remote: SocketAddress, attachment: A, handler: CompletionHandler<Void, in A>) {
 
         val addr = when (remote) {
-            is InetSocketAddress -> {
-                val s = ctx.getService(remote.hostString, remote.port) ?: throw UnresolvedAddressException()
-                ZitiAddress.Dial(
-                    service = s.name,
-                    appData = DialData(
-                        dstProtocol = Protocol.TCP,
-                        dstIp = remote.address?.hostAddress,
-                        dstHostname = remote.hostString,
-                        dstPort = remote.port.toString()))
-            }
+            is InetSocketAddress -> ctx.getDialAddress(remote, Protocol.TCP) ?: throw UnresolvedAddressException()
             is ZitiAddress.Dial -> remote
             else -> throw UnsupportedAddressTypeException()
         }
@@ -171,7 +162,9 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     override fun isOpen(): Boolean = state.get() != State.closed
 
-    override fun bind(local: SocketAddress?): AsynchronousSocketChannel = this // NOOP
+    override fun bind(local: SocketAddress?): AsynchronousSocketChannel {
+        return this
+    }
 
     override fun shutdownInput(): AsynchronousSocketChannel {
         when(state.get()) {

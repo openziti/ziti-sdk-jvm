@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,5 +173,15 @@ internal object ZitiImpl : Logged by ZitiLog() {
             emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Loaded, it))
         }
         emitAll(ztxEvents)
+    }
+
+    fun findDialInfo(addr: InetSocketAddress): Pair<ZitiContext, SocketAddress>? {
+        for (c in contexts) {
+            val dial = c.getDialAddress(addr)
+            if (dial != null) {
+                return c to dial
+            }
+        }
+        return null
     }
 }
