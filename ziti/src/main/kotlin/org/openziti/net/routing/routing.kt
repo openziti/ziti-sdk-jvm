@@ -33,7 +33,7 @@ private object Loader {
     val routeManager: RouteManager
     init {
         val loader = ServiceLoader.load(RouteManager::class.java)
-        routeManager = loader.findFirst().orElseGet { NoopRouteManager }
+        routeManager = loader.firstOrNull() ?: NoopRouteManager
     }
 }
 
