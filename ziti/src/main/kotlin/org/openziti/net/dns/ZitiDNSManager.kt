@@ -108,7 +108,7 @@ internal object ZitiDNSManager : DNSResolver {
         return null
     }
 
-    override fun lookup(addr: InetAddress): String?  = ip2host[addr]?.name ?: addr.hostAddress
+    override fun lookup(addr: InetAddress): String?  = ip2host[addr]?.name
 
     private fun nextAddr(dnsname: String, domain: Domain? = null): Entry {
         var nextPostfix = postfix.incrementAndGet()
