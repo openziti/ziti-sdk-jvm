@@ -45,7 +45,7 @@ fun String.asInterceptAddr(): InterceptAddress {
         val ip = if (prefix.contains('.')) { // IPv4
             Inet4Address.getByName(prefix)
         } else { // IPv6
-            Inet6Address.getByName(prefix);
+            Inet6Address.getByName(prefix)
         }
         return CIDRBlock(ip, bits.toInt())
     } else if (IPUtil.isValidIPv4(addr)) {
@@ -62,26 +62,8 @@ sealed class InterceptAddress {
 }
 
 data class CIDRBlock(val ip: InetAddress, val bits: Int): InterceptAddress() {
-    val cidrAddress = ip.address.map { (it.toInt() and 0xFF).toByte() }.toByteArray()
-    val mask = ByteArray(cidrAddress.size)
-    init {
-        var idx = 0
-        var b = bits
-        while (b > 0) {
-            if (b >= 8) {
-                mask[idx] = 0xFF.toByte()
-                b -= 8
-            } else {
-                mask[idx] = (0xFF shl (8 - b)).toByte()
-                b = 0
-            }
-            idx++
-        }
-
-        for (i in 0 until mask.size) {
-            cidrAddress[i] = (cidrAddress[i].toInt() and mask[i].toInt()).toByte()
-        }
-    }
+    val cidrAddress = IPUtil.toCanonicalCIDR(ip, bits)
+    val mask = IPUtil.maskForPrefix(ip.address.size, bits)
 
     override fun matches(addr: Any): Boolean {
         val addrBytes =
@@ -95,10 +77,13 @@ data class CIDRBlock(val ip: InetAddress, val bits: Int): InterceptAddress() {
         if (addrBytes.size != mask.size) return false
 
         for (i in 0 until mask.size) {
-            if ((mask[i].toInt() and addrBytes[i].toInt()) != mask[i].toInt() and cidrAddress[i].toInt()) return false
+            if ((mask[i].toInt() and addrBytes[i].toInt()) != cidrAddress.address[i].toInt()) return false
         }
         return true
     }
+
+    fun includes(other: CIDRBlock): Boolean =
+        bits <= other.bits && matches(other.ip)
 }
 
 data class DNSName(val name: String): InterceptAddress() {
