@@ -397,6 +397,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         val targetAddr = getDnsTarget(addr) ?: getIPtarget(addr) ?: return null
 
         val service = servicesById.values.firstOrNull { s ->
+            s.permissions.contains(SessionType.Dial) &&
             s.interceptConfig?.let { cfg ->
                 cfg.protocols.contains(proto) &&
                         cfg.portRanges.any { it.contains(addr.port) } &&
