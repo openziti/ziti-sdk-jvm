@@ -17,6 +17,7 @@
 package org.openziti.util
 
 import java.net.Inet6Address
+import java.net.InetAddress
 
 object IPUtil {
     @JvmStatic
@@ -47,5 +48,24 @@ object IPUtil {
     fun toIPv6(host: String): ByteArray {
         require (host.isEmpty() || host[0] != '[')
         return Inet6Address.getByName(host).address
+    }
+
+    @JvmStatic
+    fun maskForPrefix(size: Int, prefix: Int): ByteArray {
+        return ByteArray(size) { idx ->
+            if (idx < prefix / 8) 0xff.toByte()
+            else if (idx == prefix / 8) (0xff shl ((idx + 1) * 8 - prefix)).toByte()
+            else 0
+        }
+    }
+
+    @JvmStatic
+    fun toCanonicalCIDR(ip: InetAddress, bits: Int): InetAddress {
+        val bytes = ByteArray(ip.address.size)
+        val mask = maskForPrefix(bytes.size, bits)
+        for (i in bytes.indices) {
+            bytes[i] = (mask[i].toInt() and ip.address[i].toInt()).toByte()
+        }
+        return InetAddress.getByAddress(bytes)
     }
 }
