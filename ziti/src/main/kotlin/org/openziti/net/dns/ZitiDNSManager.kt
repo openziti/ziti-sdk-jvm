@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,59 +16,101 @@
 
 package org.openziti.net.dns
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import org.bouncycastle.util.IPAddress
+import org.openziti.util.IPUtil
 import java.io.Writer
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.function.Consumer
 
+internal object ZitiDNSManager : DNSResolver {
 
-internal object ZitiDNSManager : DNSResolver, CoroutineScope {
+    class Domain(val name: String)
 
-    override val coroutineContext = SupervisorJob() + Dispatchers.IO
+    class Entry(val name: String, val addr: InetAddress, val domain: Domain? = null)
 
     internal val PREFIX = byteArrayOf(100.toByte(), 64.toByte())
 
     const val startPostfix = 0x0101
     internal val postfix = AtomicInteger(startPostfix) // start with 1.1 postfix
 
-    internal val host2Ip = mutableMapOf<String, InetAddress>()
-
-    internal val dnsBroadCast = MutableSharedFlow<DNSResolver.DNSEvent>()
+    internal val host2Ip = mutableMapOf<String, Entry>()
+    internal val ip2host = mutableMapOf<InetAddress, Entry>()
+    internal val domains = mutableMapOf<String, Domain>()
 
     internal fun registerHostname(hostname: String): InetAddress {
         val ip = when {
-            IPAddress.isValidIPv4(hostname) -> Inet4Address.getByName(hostname)
-            IPAddress.isValidIPv6(hostname) -> Inet6Address.getByName(hostname)
-            else -> host2Ip.getOrPut(hostname) { nextAddr(hostname) }
-        }
-        launch {
-            dnsBroadCast.emit(DNSResolver.DNSEvent(hostname, ip, false))
+            IPUtil.isValidIPv4(hostname) -> Inet4Address.getByName(hostname)
+            IPUtil.isValidIPv6(hostname) -> Inet6Address.getByName(hostname)
+            else -> {
+                val entry = host2Ip.getOrPut(hostname) {
+                    val e = nextAddr(hostname)
+                    ip2host[e.addr] = e
+                    e
+                }
+                entry.addr
+            }
         }
         return ip
     }
-    override fun resolve(hostname: String): InetAddress? = host2Ip.get(hostname.lowercase())
 
-    override fun subscribe(sub: (DNSResolver.DNSEvent) -> Unit) {
-        launch {
-            host2Ip.forEach { h, ip ->
-                sub(DNSResolver.DNSEvent(h, ip, false))
+    internal fun unregisterHostname(hostname: String) {
+        val e = host2Ip.remove(hostname)
+        e?.let { ip2host.remove(e.addr) }
+    }
+
+    internal fun registerDomain(domainName: String) {
+        val key = when {
+            domainName.startsWith("*.") -> domainName.substring(2)
+            domainName.startsWith(".") -> domainName.substring(1)
+            else -> domainName
+        }.lowercase()
+
+        domains.putIfAbsent(key, Domain("*.$key"))
+    }
+
+    internal fun unregisterDomain(domainName: String) {
+        val key = when {
+            domainName.startsWith("*.") -> domainName.substring(2)
+            domainName.startsWith(".") -> domainName.substring(1)
+            else -> domainName
+        }.lowercase()
+
+        val domain = domains.remove(key)
+
+        if (domain != null) {
+            val entries = host2Ip.values.filter { it.domain === domain }
+            entries.forEach {
+                host2Ip.remove(it.name)
+                ip2host.remove(it.addr)
             }
-            dnsBroadCast.collect { sub(it) }
         }
     }
 
-    override fun subscribe(sub: Consumer<DNSResolver.DNSEvent>) = subscribe{sub.accept(it)}
+    override fun resolve(hostname: String): InetAddress? = resolveOrAssign(hostname.lowercase())
 
-    private fun nextAddr(dnsname: String): InetAddress {
+    private fun resolveOrAssign(hostname: String): InetAddress? {
+        host2Ip[hostname]?.let { return it.addr }
+
+        var name = hostname
+        do {
+            domains[name]?.let {
+                // found matching
+                val entry = nextAddr(hostname, it)
+                ip2host[entry.addr] = entry
+                host2Ip[hostname] = entry
+                return entry.addr
+            }
+
+            name = name.substringAfter('.', "")
+        } while (name.isNotEmpty())
+
+        return null
+    }
+
+    override fun lookup(addr: InetAddress): String?  = ip2host[addr]?.name
+
+    private fun nextAddr(dnsname: String, domain: Domain? = null): Entry {
         var nextPostfix = postfix.incrementAndGet()
 
         if ((nextPostfix and 0xFF) == 0) {
@@ -76,11 +118,12 @@ internal object ZitiDNSManager : DNSResolver, CoroutineScope {
         }
 
         val ip = PREFIX + byteArrayOf(nextPostfix.shr(8).and(0xff).toByte(), (nextPostfix and 0xFF).toByte())
-        return InetAddress.getByAddress(dnsname, ip)
+        return Entry(dnsname, InetAddress.getByAddress(dnsname, ip), domain)
     }
 
     internal fun reset() {
         host2Ip.clear()
+        ip2host.clear()
         postfix.set(startPostfix)
     }
 

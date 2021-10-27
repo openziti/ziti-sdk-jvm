@@ -16,6 +16,7 @@
 
 package org.openziti.net.nio
 
+import kotlinx.coroutines.runBlocking
 import org.openziti.net.internal.Sockets
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
@@ -40,22 +41,15 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
         fun connect(addr: SocketAddress, timeout: Int): AsynchronousSocketChannel
 
         fun doConnect(ch: AsynchronousSocketChannel, addr: SocketAddress, timeout: Int): AsynchronousSocketChannel {
-            val cf = ch.connect(addr)
             try {
-                if (timeout > 0) {
-                    cf.get(timeout.toLong(), TimeUnit.MILLISECONDS)
-                } else {
-                    cf.get()
+                runBlocking {
+                    if (timeout > 0) {
+                        ch.connectSuspend(addr, timeout.toLong())
+                    } else {
+                        ch.connectSuspend(addr)
+                    }
                 }
-            } catch (xx: ExecutionException) {
-                val cause = xx.cause
-                if (cause is IOException) {
-                    throw cause
-                }
-
-                throw IOException(cause)
             } catch (tox: TimeoutException) {
-                cf.cancel(true)
                 throw SocketTimeoutException(tox.localizedMessage)
             }
             return ch
@@ -122,11 +116,9 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
                 }
             }
         } else {
-            val cf = channel.connect(address)
-            if (timeout > 0) {
-                cf.get(timeout.toLong(), TimeUnit.MILLISECONDS)
-            } else {
-                cf.get()
+            val longTO = if (timeout > 0) timeout.toLong() else Long.MAX_VALUE
+            runBlocking {
+                channel.connectSuspend(address, longTO)
             }
         }
     }
@@ -233,8 +225,9 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
 
         override fun write(b: ByteArray, off: Int, len: Int) {
             runCatching {
-                val wf = channel.write(ByteBuffer.wrap(b, off, len))
-                wf.get()
+                runBlocking {
+                    channel.writeCompletely(ByteBuffer.wrap(b, off, len))
+                }
             }.onFailure { ex ->
                 w{ "unexpected exception[${ex.message}] during write[buf.len=${b.size}, off=$off, len=$len]" }
                 throwIOException(ex)

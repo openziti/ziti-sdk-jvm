@@ -20,8 +20,8 @@ buildscript {
         google()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.0.2")
-        classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.4.32")
+        classpath("com.android.tools.build:gradle:7.0.3")
+        classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.5.31")
     }
 
     ext.versions = [
@@ -29,7 +29,7 @@ buildscript {
             coroutines: '1.5.2',
             slf4j: '1.7.32',
             lazysodium: '5.0.1',
-            jupiter: '5.8.0'
+            jupiter: '5.8.1'
     ]
 
     ext.deps = [

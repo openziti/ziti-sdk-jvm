@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package org.openziti.net.dns
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import org.openziti.api.asInterceptAddr
 
 class ZitiDNSManagerTest {
 
@@ -30,35 +29,39 @@ class ZitiDNSManagerTest {
     }
 
     @Test
-    fun testDNSevents() {
-        val events = mutableListOf<DNSResolver.DNSEvent>()
-        val block = CountDownLatch(1)
-        ZitiDNSManager.subscribe {
-            events.add(it)
-            block.countDown()
+    fun cidrMatchTest() {
+        val addr = "10.64.127.155"
+
+        val cases = listOf(
+            "10.64.127.0/24" to true,
+            "10.64.127.0/25" to false,
+            "10.64.127.128/25" to true,
+            "10.65.127.0/24" to false
+        )
+
+        for ((i,r) in cases) {
+            val icpt = i.asInterceptAddr()
+            if (r) {
+                assertTrue("$i should match", icpt.matches(addr))
+            } else {
+                assertFalse("$i should NOT match", icpt.matches(addr))
+            }
         }
-
-        ZitiDNSManager.registerHostname("test.dns.ziti")
-
-        assertTrue(block.await(10, TimeUnit.SECONDS))
-        assertEquals(1, events.size)
-        assertEquals("test.dns.ziti", events.first().hostname)
-        assertFalse(events.first().removed)
-        assertArrayEquals(byteArrayOf(100.toByte(), 64.toByte(), 1, 2), events.first().ip.address)
     }
 
     @Test
-    fun testSubscribeLater() {
-        ZitiDNSManager.registerHostname("test1.dns.ziti")
-        ZitiDNSManager.registerHostname("test2.dns.ziti")
+    fun testWildcard() {
+        val domain = "bar.ziti"
+        ZitiDNSManager.registerDomain("*.$domain")
 
-        val block = CountDownLatch(2)
-        ZitiDNSManager.subscribe {
-            println(it)
-            block.countDown()
-        }
+        val valid = ZitiDNSManager.resolve("FOO.$domain")
+        assertNotNull(valid)
+        assertEquals("foo.$domain", ZitiDNSManager.lookup(valid!!))
 
-        assertTrue(block.await(1, TimeUnit.SECONDS))
+        val invalid = ZitiDNSManager.resolve("foo.${domain}.com")
+        assertNull(invalid)
 
+        ZitiDNSManager.unregisterDomain(domain)
+        assertNull(ZitiDNSManager.resolve("FOO.$domain"))
     }
 }

@@ -75,7 +75,9 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
             throw BindException("no permission to bind to service[${local.service}]")
         }
 
-        val service = servResult.getOrNull()!! // never null
+        val service = servResult.getOrNull() ?:
+            throw BindException("no permission to bind to service[${local.service}]")
+
         if (!service.permissions.contains(SessionType.Bind)) {
             throw BindException("no permission to bind to service[${service.name}]")
         }

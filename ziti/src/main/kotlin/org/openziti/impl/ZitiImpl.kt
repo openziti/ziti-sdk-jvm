@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.openziti.identity.Enroller
 import org.openziti.identity.KeyStoreIdentity
 import org.openziti.identity.findIdentityAlias
 import org.openziti.identity.loadKeystore
+import org.openziti.net.dns.ZitiDNSManager
 import org.openziti.net.internal.Sockets
 import org.openziti.util.Logged
 import org.openziti.util.Version
@@ -130,6 +131,10 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return loadContext(ks, alias)
     }
 
+    fun getServiceFor(addr: InetSocketAddress): Pair<ZitiContext, Service>? {
+        return ZitiDNSManager.lookup(addr.address)?.let { getServiceFor(it, addr.port) }
+    }
+
     fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = contexts.map { c ->
             c.getService(host, port)?.let { Pair(c, it) }
         }.filterNotNull().firstOrNull()
@@ -137,24 +142,13 @@ internal object ZitiImpl : Logged by ZitiLog() {
     fun connect(addr: SocketAddress): ZitiConnection {
         when (addr) {
             is InetSocketAddress -> {
-                for (c in contexts) {
-                    try {
-                        return c.dial(addr.address, addr.port)
-                    } catch (ex: Exception) {
-                        d { "service @[$addr] not available for ${c.name()}" }
-                    }
-                }
-
-
-                e { "service @[$addr] not available in any contexts" }
-                throw ZitiException(Errors.ServiceNotAvailable)
+                val (ztx, svc) = getServiceFor(addr) ?: throw ZitiException(Errors.ServiceNotAvailable)
+                return ztx.dial(svc.name)
             }
             is ZitiAddress.Dial -> {
                 for (c in contexts) {
-                    try {
-                        return c.open().apply { connect(addr).get() } as ZitiConnection
-                    } catch (ex: Exception) {
-                        i { "service @[$addr] not available for ${c.name()}" }
+                    c.getService(addr.service)?.let {
+                        return c.dial(addr)
                     }
                 }
 
@@ -179,5 +173,15 @@ internal object ZitiImpl : Logged by ZitiLog() {
             emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Loaded, it))
         }
         emitAll(ztxEvents)
+    }
+
+    fun findDialInfo(addr: InetSocketAddress): Pair<ZitiContext, SocketAddress>? {
+        for (c in contexts) {
+            val dial = c.getDialAddress(addr)
+            if (dial != null) {
+                return c to dial
+            }
+        }
+        return null
     }
 }
