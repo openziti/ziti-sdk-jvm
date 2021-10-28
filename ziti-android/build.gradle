@@ -31,6 +31,10 @@ plugins {
 
 apply plugin: 'com.kezong.fat-aar'
 
+ext.versions {
+    lazysodium: '5.0.1'
+}
+
 ext {
     description "Ziti SDK for Android"
 }
