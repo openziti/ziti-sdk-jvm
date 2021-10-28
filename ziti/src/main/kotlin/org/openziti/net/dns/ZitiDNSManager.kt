@@ -25,9 +25,15 @@ import java.util.concurrent.atomic.AtomicInteger
 
 internal object ZitiDNSManager : DNSResolver {
 
-    class Domain(val name: String)
+    internal class Domain(val name: String)
 
-    class Entry(val name: String, val addr: InetAddress, val domain: Domain? = null)
+    internal class Entry(val name: String, val addr: InetAddress, val domain: Domain? = null) {
+        private val repr by lazy {
+            domain?.let { "$addr [${it.name}]" } ?: addr.toString()
+        }
+
+        override fun toString() = repr
+    }
 
     internal val PREFIX = byteArrayOf(100.toByte(), 64.toByte())
 
