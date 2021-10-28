@@ -87,7 +87,7 @@ dependencies {
     implementation deps.kotlin
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${versions.coroutines}"
     implementation 'androidx.core:core-ktx:1.6.0'
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.3.1"
 
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
