@@ -21,9 +21,9 @@ plugins {
     id 'maven-publish'
 }
 
-ext.versions {
+ext.versions = [
     lazysodium: '5.1.1'
-}
+]
 
 ext {
     description "Ziti SDK for JVM"
