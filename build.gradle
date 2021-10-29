@@ -30,7 +30,8 @@ buildscript {
             kotlin: '1.5.31',
             coroutines: '1.5.2',
             slf4j: '1.7.32',
-            jupiter: '5.8.1'
+            jupiter: '5.8.1',
+            androidLifecycle: '2.4.0'
     ]
 
     ext.deps = [

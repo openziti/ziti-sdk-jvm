@@ -63,7 +63,7 @@ class ZitiContextViewModel(val ztx: ZitiContext): ViewModel(), Logged by ZitiLog
      */
     @Suppress("UNCHECKED_CAST")
     class Factory(val ztx: ZitiContext): ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T =
+        override fun <T : ViewModel> create(modelClass: Class<T>): T =
             ZitiContextViewModel(ztx) as T
     }
 

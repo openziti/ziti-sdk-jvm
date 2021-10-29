@@ -36,12 +36,12 @@ ext {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     ndkVersion "21.3.6528147"
 
     defaultConfig {
         minSdkVersion 26
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode 1
 
         buildConfigField "String", "GIT_COMMIT", "\"${semver.info.shortCommit}\""
@@ -87,8 +87,8 @@ dependencies {
     implementation deps.kotlin
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${versions.coroutines}"
     implementation 'androidx.core:core-ktx:1.6.0'
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.3.1"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${versions.androidLifecycle}"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:${versions.androidLifecycle}"
 
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
 
