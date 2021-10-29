@@ -137,5 +137,10 @@ internal object ZitiDNSManager : DNSResolver {
         for ((h,ip) in host2Ip) {
             writer.appendLine("$h -> $ip")
         }
+        writer.appendLine()
+        writer.appendLine("== Wildcard Domains ==")
+        domains.forEach { _, domain ->
+            writer.appendLine(domain.name)
+        }
     }
 }
