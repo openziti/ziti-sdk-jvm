@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,14 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.openziti.ZitiContext
 import org.openziti.net.dns.DNSResolver
+import org.openziti.util.DebugInfoProvider
 import org.openziti.util.Logged
 import org.openziti.util.Version
 import org.openziti.util.ZitiLog
+import java.io.PrintWriter
 import java.net.URI
 import java.security.KeyStore
-import java.security.cert.X509Certificate
-import java.util.concurrent.CompletableFuture
+import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.coroutines.CoroutineContext
@@ -132,11 +133,11 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
             val notification = builder
                 .setSmallIcon(android.R.drawable.stat_sys_warning)
                 .setContentTitle("Ziti Status")
-                .setPriority(Notification.PRIORITY_HIGH)
                 .setContentText("Application is not enrolled with Ziti Network")
                 .setContentIntent(
                     PendingIntent.getActivity(
-                    app, 0x7171, getEnrollmentIntent(), PendingIntent.FLAG_CANCEL_CURRENT))
+                        app, 0x7171, getEnrollmentIntent(),
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
                 .build()
 
             app.getSystemService(NotificationManager::class.java)?.apply {
@@ -230,55 +231,26 @@ object Ziti: CoroutineScope, Logged by ZitiLog() {
 
         val logDir = app.externalCacheDir!!.resolve("logs")
         logDir.mkdirs()
-        val logcat = Runtime.getRuntime().exec("logcat -d -b crash,main")
-        val log = CompletableFuture.supplyAsync { logcat.inputStream.bufferedReader().readText() }
-        val err = CompletableFuture.supplyAsync { logcat.errorStream.bufferedReader().readText() }
-        val logrc = CompletableFuture.supplyAsync { logcat.waitFor() }
 
         val logFile = logDir.resolve("log.zip")
         val zip = ZipOutputStream(logFile.outputStream())
-        zip.putNextEntry(ZipEntry("app.info"))
         val writer = zip.writer()
 
-        writer.write(bodyString)
-        writer.flush()
-
-        zip.putNextEntry(ZipEntry("keystore.info"))
-        for (a in keyStore.aliases()) {
-            val entry = keyStore.getEntry(a, null)
-            val cert = when(entry) {
-                is KeyStore.TrustedCertificateEntry -> entry.trustedCertificate
-                is KeyStore.PrivateKeyEntry -> entry.certificate
-                else -> continue
+        val infoProviders = ServiceLoader.load(DebugInfoProvider::class.java)
+        for (p in infoProviders) {
+            for (name in p.names()) {
+                zip.putNextEntry(ZipEntry(name))
+                p.runCatching { dump(name, writer) }
+                    .onFailure {
+                        writer.appendLine()
+                        writer.appendLine("== WARNING ==")
+                        writer.appendLine("Provider[${p.javaClass.name}] has thrown an exception[$it]")
+                        it.printStackTrace(PrintWriter(writer))
+                    }
+                writer.flush()
             }
-
-            writer.appendLine()
-            writer.appendLine("""
-                name: $a 
-                type: ${entry.javaClass.simpleName}
-                cert: ${cert.type} ${if (cert is X509Certificate) 
-                    "Subject: ${cert.subjectDN} Issuer: ${cert.issuerDN}" else ""} 
-                """.trimIndent())
-        }
-        writer.flush()
-
-        identities.forEach {
-            zip.putNextEntry(ZipEntry(it.name() + ".txt"))
-            it.dump(writer)
-            writer.flush()
         }
 
-        zip.putNextEntry(ZipEntry("ziti_dns.info"))
-        getDnsResolver().dump(writer)
-        writer.flush()
-
-        zip.putNextEntry(ZipEntry("ziti.log"))
-        writer.appendLine("logcat result: ${logrc.get()}")
-        writer.write(log.get())
-        writer.appendLine()
-        writer.appendLine("logcat ERROR:")
-        writer.appendLine(err.get())
-        writer.flush()
         zip.finish()
         zip.flush()
         zip.close()
