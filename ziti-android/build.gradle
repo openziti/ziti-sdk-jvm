@@ -31,10 +31,6 @@ plugins {
 
 apply plugin: 'com.kezong.fat-aar'
 
-ext.versions = [
-    lazysodium: '5.0.1'
-]
-
 ext {
     description "Ziti SDK for Android"
 }
@@ -85,7 +81,7 @@ dependencies {
         exclude module:"lazysodium-java"
         exclude module:"jna"
     }
-    embed("com.goterl:lazysodium-android:${versions.lazysodium}@aar")
+    embed("com.goterl:lazysodium-android:${versions.lazysodiumAndroid}@aar")
     embed('net.java.dev.jna:jna:5.8.0@aar')
 
     implementation deps.kotlin
