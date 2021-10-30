@@ -16,3 +16,4 @@
 
 org.openziti.util.ZtxInfoProvider
 org.openziti.util.DnsInfoProvider
+org.openziti.util.ThreadDumpProvider

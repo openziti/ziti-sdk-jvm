@@ -38,3 +38,17 @@ class DnsInfoProvider: DebugInfoProvider {
         Ziti.getDNSResolver().dump(output)
     }
 }
+
+class ThreadDumpProvider: DebugInfoProvider {
+    override fun names() = listOf("thread_dump.txt")
+
+    override fun dump(name: String, output: Writer) {
+        Thread.getAllStackTraces().forEach { t, trace ->
+            output.appendLine("Thread: ${t}")
+            trace.forEach {
+                output.appendLine("  $it")
+            }
+            output.appendLine()
+        }
+    }
+}
