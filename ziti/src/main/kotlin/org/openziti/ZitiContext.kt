@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,9 +56,10 @@ interface ZitiContext: Identity {
         class Unavailable(val ex: Exception): Status()
         class Impaired(val ex: Exception): Status()
 
-        override fun toString() = this::class.java.simpleName
+        override fun toString(): String = this::class.java.simpleName
     }
 
+    fun isEnabled(): Boolean
     fun setEnabled(v: Boolean)
 
     fun getStatus(): Status

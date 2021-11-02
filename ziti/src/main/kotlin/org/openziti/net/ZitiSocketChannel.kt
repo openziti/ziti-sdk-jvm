@@ -112,6 +112,8 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     override fun <A : Any?> connect(remote: SocketAddress, attachment: A, handler: CompletionHandler<Void, in A>) {
 
+        ctx.isEnabled() || throw ShutdownChannelGroupException()
+
         val addr = when (remote) {
             is InetSocketAddress -> ctx.getDialAddress(remote, Protocol.TCP) ?: throw UnresolvedAddressException()
             is ZitiAddress.Dial -> remote
