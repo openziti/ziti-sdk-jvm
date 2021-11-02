@@ -115,7 +115,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun getStatus() = statusCh.value
     override fun statusUpdates(): StateFlow<ZitiContext.Status> = statusCh
 
-    //@ExperimentalCoroutinesApi
     override fun serviceUpdates(): Flow<ZitiContext.ServiceEvent> = flow {
         emitAll(servicesByName.values.map {
             ZitiContext.ServiceEvent(it, ZitiContext.ServiceUpdate.Available)
@@ -134,6 +133,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
+    override fun isEnabled() = _enabled
     override fun setEnabled(v: Boolean) { _enabled = v }
     private fun checkEnabled() {
         _enabled || throw ZitiException(Errors.ServiceNotAvailable)
@@ -344,6 +344,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     fun logout() = runBlocking { controller.logout() }
 
     fun checkServicesLoaded() = runBlocking {
+        checkEnabled()
         try {
             withTimeout(30_000) {
                 servicesLoaded.await()
@@ -394,6 +395,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     internal fun getDialAddress(addr: InetSocketAddress, proto: Protocol = Protocol.TCP): ZitiAddress.Dial? {
+        isEnabled() || return null
+
         val targetAddr = getDnsTarget(addr) ?: getIPtarget(addr) ?: return null
 
         val service = servicesById.values.firstOrNull { s ->
@@ -593,12 +596,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     override fun open(): AsynchronousSocketChannel {
-        checkActive()
+        checkEnabled()
         return ZitiSocketChannel(this)
     }
 
     override fun openServer(): AsynchronousServerSocketChannel {
-        checkActive()
+        checkEnabled()
         return ZitiServerSocketChannel(this)
     }
 
@@ -607,14 +610,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         return "${id?.name ?: name()}[${id?.id}]@${controller()}"
     }
 
-    private fun checkActive() {
-        if (getStatus() == ZitiContext.Status.Active)
-            return
-
+    suspend internal fun waitForActive() {
+        checkEnabled()
         // wait for active
-        runBlocking {
-            statusCh.takeWhile { it != ZitiContext.Status.Active }.collect()
-        }
+        statusCh.takeWhile { it != ZitiContext.Status.Active }.collect()
     }
 
     override fun isMFAEnrolled(): Boolean {
