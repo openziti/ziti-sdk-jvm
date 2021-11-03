@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,15 @@ package org.openziti.api
 
 import com.google.gson.JsonObject
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import okhttp3.*
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import org.openziti.Errors
 import org.openziti.ZitiException
@@ -311,6 +314,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
 
     private fun convertError(t: Throwable): Nothing {
         val errCode = when (t) {
+            is CancellationException -> throw t
             is HttpException -> getZitiError(getError(t.response()))
             is IOException -> Errors.ControllerUnavailable
             else -> Errors.WTF(t.toString())
