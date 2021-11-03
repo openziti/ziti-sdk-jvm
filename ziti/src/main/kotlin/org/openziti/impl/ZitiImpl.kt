@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.openziti.*
 import org.openziti.api.Service
-import org.openziti.identity.Enroller
+import org.openziti.identity.*
 import org.openziti.identity.KeyStoreIdentity
 import org.openziti.identity.findIdentityAlias
 import org.openziti.identity.loadKeystore
@@ -70,9 +70,24 @@ internal object ZitiImpl : Logged by ZitiLog() {
         }
     }
 
+
     internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContextImpl {
         val ks = loadKeystore(idFile, pwd)
         return loadContext(ks, alias)
+    }
+
+    internal fun loadContext(idString: String): ZitiContextImpl {
+        val ks = loadKeystore(idString);
+        return loadContext(ks, null);
+    }
+
+    fun init(c: String, seamless: Boolean) {
+        if (seamless) {
+            initInternalNetworking()
+        }
+
+        val ctx = loadContext(c)
+        ctx.checkServicesLoaded()
     }
 
     fun init(file: File, pwd: CharArray, seamless: Boolean) {
