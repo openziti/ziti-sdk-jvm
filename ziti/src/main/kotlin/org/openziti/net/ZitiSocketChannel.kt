@@ -21,7 +21,9 @@ import com.goterl.lazysodium.utils.Key
 import com.goterl.lazysodium.utils.KeyPair
 import com.goterl.lazysodium.utils.SessionPair
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.sync.Mutex
 import org.openziti.Errors
 import org.openziti.ZitiAddress
 import org.openziti.ZitiConnection
@@ -110,6 +112,42 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     override fun isClosed() = !isOpen
 
+    private var connectOp: Job? = null
+    private var readOp: Job? = null
+    private var writeOp: Job? = null
+    private val readMutex = Mutex()
+    private val writeMutex = Mutex()
+
+    internal suspend fun <A: Any?> connectInternal(addr: ZitiAddress.Dial, attachment: A, handler: CompletionHandler<Void, in A>) {
+        ctx.runCatching {
+            val service = getService(serviceName) ?: throw ZitiException(Errors.ServiceNotAvailable)
+            val ns = getNetworkSession(serviceName, SessionType.Dial)
+
+            val kp = if (service.encryptionRequired) Crypto.newKeyPair() else null
+
+            val ch = ctx.getChannel(ns)
+            ch.registerReceiver(connId, this@ZitiSocketChannel)
+            doZitiHandshake(ch, addr, ns, kp)
+            ch
+        }.onSuccess {
+            chPromise.complete(it)
+            handler.completed(null, attachment)
+        }.onFailure {
+            e(it){"failed to connect"}
+            if (!chPromise.completeExceptionally(it)) {
+                chPromise.runCatching { await().deregisterReceiver(connId) }
+            }
+            if (it is CancellationException) {
+                handler.failed(it.cause ?: AsynchronousCloseException(), attachment)
+            }
+            else {
+                handler.failed(it, attachment)
+                close()
+            }
+        }
+    }
+
+
     override fun <A : Any?> connect(remote: SocketAddress, attachment: A, handler: CompletionHandler<Void, in A>) {
 
         ctx.isEnabled() || throw ShutdownChannelGroupException()
@@ -134,26 +172,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             State.connecting
         }
 
-        ctx.launch {
-            ctx.runCatching {
-                val service = getService(serviceName) ?: throw ZitiException(Errors.ServiceNotAvailable)
-                val ns = getNetworkSession(serviceName, SessionType.Dial)
-
-                val kp = if (service.encryptionRequired) Crypto.newKeyPair() else null
-
-                val ch = ctx.getChannel(ns)
-                chPromise.complete(ch)
-                ch.registerReceiver(connId, this@ZitiSocketChannel)
-                doZitiHandshake(ch, addr, ns, kp)
-            }.onSuccess {
-                handler.completed(null, attachment)
-            }.onFailure {
-                e(it){"failed to connect"}
-                chPromise.completeExceptionally(it)
-                close()
-                handler.failed(it, attachment)
-            }
-        }
+        connectOp = ctx.launch { connectInternal(addr, attachment, handler) }
     }
 
     override fun connect(remote: SocketAddress): Future<Void> {
@@ -183,28 +202,30 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     }
 
     override fun close() {
+        connectOp?.cancel("close")
+        writeOp?.cancel("close")
+        readOp?.cancel("close")
+
         runCatching { shutdownOutput() }
         runCatching { shutdownInput() }
         runCatching { closeInternal() }
     }
 
-    override fun shutdownOutput(): AsynchronousSocketChannel = runBlocking {
+    override fun shutdownOutput(): AsynchronousSocketChannel {
         if (state.get() == State.connected && sentFin.compareAndSet(false, true)) {
             val finMsg = Message(ZitiProtocol.ContentType.Data).apply {
                 setHeader(Header.ConnId, connId)
                 setHeader(Header.FlagsHeader, ZitiProtocol.EdgeFlags.FIN)
                 setHeader(Header.SeqHeader, seq.getAndIncrement())
             }
-            d{"sending FIN conn = $connId"}
+            d { "sending FIN conn = $connId" }
 
-            runCatching {
-                channel.SendSynch(finMsg)
-            }.onFailure {
-                e(it){"failed to send FIN message"}
+            ctx.launch {
+                channel.runCatching { SendSynch(finMsg) }
+                    .onFailure { w{ "failed to send FIN message: $it" } }
             }
         }
-
-        this@ZitiSocketChannel
+        return this
     }
 
     internal fun closeInternal(): AsynchronousSocketChannel {
@@ -217,12 +238,11 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                         setHeader(Header.ConnId, connId)
                     }
                     d("closing conn = ${this.connId}")
-                    runBlocking {
-                        runCatching {
-                            channel.SendSynch(closeMsg)
-                        }.onFailure {
-                            w { "failed to send StateClosed message: $it" }
-                        }
+                    ctx.launch {
+                        channel.runCatching { SendSynch(closeMsg) }
+                            .onFailure {
+                                w { "failed to send StateClosed message: $it" }
+                            }
                     }
                     state.set(State.closed)
                 }
@@ -250,43 +270,58 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     }
 
     override fun <A : Any?> read(dsts: Array<out ByteBuffer>, offset: Int, length: Int,
-        to: Long, unit: TimeUnit,
-        att: A, handler: CompletionHandler<Long, in A>) {
+                                 to: Long, unit: TimeUnit,
+                                 att: A, handler: CompletionHandler<Long, in A>) {
         t{"reading state=$state"}
+
+        readMutex.tryLock() || throw ReadPendingException()
+
         val slice = dsts.sliceArray(offset until offset + length)
         val copied = receiveBuff.transfer(slice)
         if (copied > 0) {
             t{"reading completed[$copied]"}
+            readMutex.unlock()
             handler.completed(copied, att)
             return
         }
 
-        ctx.launch {
+        val rop = ctx.async {
             var count = 0L
             t { "waiting for data with $receiveBuff" }
 
-            try {
-                var data: ByteArray? = receiveQueue.receive()
-                do {
-                    val dataBuf = ByteBuffer.wrap(data)
-                    count += dataBuf.transfer(slice)
-                    if (dataBuf.hasRemaining()) {
-                        t { "saving ${dataBuf.remaining()} for later" }
-                        receiveBuff.compact()
-                        receiveBuff.put(dataBuf)
-                        receiveBuff.flip()
-                        break
-                    }
-                    data = receiveQueue.tryReceive().getOrNull()
-                } while (data != null)
+            var data: ByteArray? = receiveQueue.receive()
+            do {
+                val dataBuf = ByteBuffer.wrap(data)
+                count += dataBuf.transfer(slice)
+                if (dataBuf.hasRemaining()) {
+                    t { "saving ${dataBuf.remaining()} for later" }
+                    receiveBuff.compact()
+                    receiveBuff.put(dataBuf)
+                    receiveBuff.flip()
+                    break
+                }
+                data = receiveQueue.tryReceive().getOrNull()
+            } while (data != null)
 
-                t { "transferred $count" }
+            t { "transferred $count" }
+            count
+        }
+
+        readOp = rop
+
+        rop.invokeOnCompletion {
+            readOp = null
+            readMutex.unlock()
+
+            if (it == null) {
+                val count = rop.getCompleted()
                 handler.completed(count, att)
-
-            } catch (e1: Exception) {
-                if (count > 0) handler.completed(count, att)
-                else if (e1 is ClosedReceiveChannelException) handler.completed(-1, att)
-                else handler.failed(e1, att)
+            } else if (it is ClosedReceiveChannelException) {
+                handler.completed(-1, att)
+            } else if (it is CancellationException) {
+                handler.failed(AsynchronousCloseException(), att)
+            } else {
+                handler.failed(it, att)
             }
         }
     }
@@ -318,9 +353,11 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             else -> error("should not be here")
         }
 
+        writeMutex.tryLock() || throw WritePendingException()
+
         val srcs = _srcs.slice(offset until offset + length)
 
-        ctx.async {
+        val wop = ctx.async {
             var sent = 0L
             for (b in srcs) {
                 var data = ByteArray(b.remaining())
@@ -337,11 +374,22 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 v("sending $dataMessage")
                 channel.Send(dataMessage)
             }
-            handler.completed(sent, att)
-        }.invokeOnCompletion { ex ->
-            if (ex is TimeoutCancellationException) {
+            sent
+        }
+        writeOp = wop
+
+        wop.invokeOnCompletion { ex ->
+            writeOp = null
+            writeMutex.unlock()
+
+            if (ex == null) {
+                val sent = wop.getCompleted()
+                handler.completed(sent, att)
+            } else if (ex is TimeoutCancellationException) {
                 handler.failed(InterruptedByTimeoutException(), att)
-            } else if (ex != null) {
+            } else if (ex is CancellationException) {
+                handler.failed(AsynchronousCloseException(), att)
+            } else {
                 handler.failed(ex, att)
             }
         }
