@@ -76,12 +76,12 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return loadContext(ks, alias)
     }
 
-    internal fun loadContext(idString: String): ZitiContextImpl {
-        val ks = loadKeystore(idString);
+    internal fun loadContext(id: ByteArray): ZitiContextImpl {
+        val ks = loadKeystore(id);
         return loadContext(ks, null);
     }
 
-    fun init(c: String, seamless: Boolean) {
+    fun init(c: ByteArray, seamless: Boolean) {
         if (seamless) {
             initInternalNetworking()
         }

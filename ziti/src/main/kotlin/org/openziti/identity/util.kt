@@ -62,11 +62,11 @@ internal fun keystoreFromConfig(id: IdentityConfig): KeyStore {
     return ks
 
 }
-internal fun loadKeystore(i: String): KeyStore {
+internal fun loadKeystore(i: ByteArray): KeyStore {
     val log = ZitiLog()
 
     try {
-        val id = IdentityConfig.load(i.reader());
+        val id = IdentityConfig.load(i.inputStream().reader());
         return keystoreFromConfig(id);
     } catch (ex: Exception) {
         log.w("failed to load identity config: ${ex.localizedMessage}")
