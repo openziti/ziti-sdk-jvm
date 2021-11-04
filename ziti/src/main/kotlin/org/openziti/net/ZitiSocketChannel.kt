@@ -40,7 +40,10 @@ import org.openziti.net.nio.writeCompletely
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import org.openziti.util.transfer
-import java.io.*
+import java.io.ByteArrayOutputStream
+import java.io.Externalizable
+import java.io.IOException
+import java.io.ObjectOutputStream
 import java.net.ConnectException
 import java.net.InetSocketAddress
 import java.net.SocketAddress
@@ -90,9 +93,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
 
     val state = AtomicReference(State.initial)
     val connId: Int = ctx.nextConnId()
-    val chPromise = CompletableDeferred<Channel>()
-    val channel: Channel
-        get() = runBlocking { chPromise.await() }
+    val channel = CompletableDeferred<Channel>()
 
     val seq = AtomicInteger(1)
     lateinit var serviceName: String
@@ -130,17 +131,17 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             doZitiHandshake(ch, addr, ns, kp)
             ch
         }.onSuccess {
-            chPromise.complete(it)
+            channel.complete(it)
             handler.completed(null, attachment)
         }.onFailure {
-            e(it){"failed to connect"}
-            if (!chPromise.completeExceptionally(it)) {
-                chPromise.runCatching { await().deregisterReceiver(connId) }
+            if (!channel.completeExceptionally(it)) {
+                deregister()
             }
             if (it is CancellationException) {
+                w{ "connect was cancelled"}
                 handler.failed(it.cause ?: AsynchronousCloseException(), attachment)
-            }
-            else {
+            } else {
+                e(it) {"failed to connect"}
                 handler.failed(it, attachment)
                 close()
             }
@@ -196,9 +197,17 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             else -> return this
         }
 
-        runCatching { channel.deregisterReceiver(connId) }
+        deregister()
         runCatching { receiveQueue.close() }
         return this
+    }
+
+    private fun deregister() {
+        ctx.launch {
+            channel.runCatching {
+                await().deregisterReceiver(connId)
+            }
+        }
     }
 
     override fun close() {
@@ -221,7 +230,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             d { "sending FIN conn = $connId" }
 
             ctx.launch {
-                channel.runCatching { SendSynch(finMsg) }
+                channel.runCatching { await().SendSynch(finMsg) }
                     .onFailure { w{ "failed to send FIN message: $it" } }
             }
         }
@@ -239,9 +248,9 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                     }
                     d("closing conn = ${this.connId}")
                     ctx.launch {
-                        channel.runCatching { SendSynch(closeMsg) }
+                        channel.runCatching { await().SendSynch(closeMsg) }
                             .onFailure {
-                                w { "failed to send StateClosed message: $it" }
+                                w { "failed to send StateClosed message: ${it.localizedMessage}" }
                             }
                     }
                     state.set(State.closed)
@@ -372,7 +381,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 dataMessage.setHeader(Header.SeqHeader, seq.getAndIncrement())
                 sent += data.size
                 v("sending $dataMessage")
-                channel.Send(dataMessage)
+                channel.await().Send(dataMessage)
             }
             sent
         }
@@ -411,7 +420,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 state.set(State.closed)
                 t{"signaling EOF"}
                 receiveQueue.close()
-                channel.deregisterReceiver(connId)
+                deregister()
             }
             ZitiProtocol.ContentType.Data -> {
                 t{"received data(${msg.body.size} bytes) for conn[$connId]"}
@@ -439,7 +448,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 e{"unexpected message type[${msg.content}] for conn[$connId]"}
                 state.set(State.closed)
                 receiveQueue.close(IllegalStateException())
-                channel.deregisterReceiver(connId)
+                deregister()
             }
         }
     }
@@ -459,32 +468,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         }
     }
 
-    override fun getInputStream(): InputStream {
-        return object : InputStream() {
-            override fun read(): Int {
-                val b = byteArrayOf(-1)
-                if (read(b, 0, 1) == -1) {
-                    return -1
-                }
-
-                return (b[0].toInt() and 0xff)
-            }
-
-            override fun read(b: ByteArray, off: Int, len: Int): Int = runBlocking {
-                receive(b, off, len)
-            }
-        }
-    }
-
-    override fun getOutputStream(): OutputStream = object : OutputStream() {
-        override fun write(b: Int) = write(byteArrayOf(b.toByte()))
-
-        override fun write(b: ByteArray, off: Int, len: Int) = runBlocking {
-            send(b, off, len)
-        }
-    }
-
-    internal suspend fun doZitiHandshake(channel: Channel, remote: ZitiAddress.Dial, ns: Session, kp: KeyPair?) {
+    internal suspend fun doZitiHandshake(ch: Channel, remote: ZitiAddress.Dial, ns: Session, kp: KeyPair?) {
         val connectMsg = Message(ZitiProtocol.ContentType.Connect, ns.token.toByteArray(UTF_8)).apply {
             setHeader(Header.ConnId, connId)
             setHeader(Header.SeqHeader, 0)
@@ -519,7 +503,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         }
 
         d("starting network connection ${ns.id}/$connId")
-        val reply = channel.SendAndWait(connectMsg)
+        val reply = ch.SendAndWait(connectMsg)
         when (reply.content) {
             ZitiProtocol.ContentType.StateConnected -> {
                 val peerPk = reply.getHeader(Header.PublicKeyHeader)
@@ -527,7 +511,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                     crypto.complete(null)
                 } else {
                     setupCrypto(Crypto.kx(kp, Key.fromBytes(peerPk), false))
-                    startCrypto()
+                    startCrypto(ch)
                 }
 
                 local = ZitiAddress.Session(ns.id, serviceName, null)
@@ -551,13 +535,13 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         crypto.complete(keys?.let { Crypto.newStream(it) })
     }
 
-    internal suspend fun startCrypto() {
+    internal suspend fun startCrypto(ch: Channel) {
         crypto.await()?.let {
             val header = it.header()
             val headerMessage = Message(ZitiProtocol.ContentType.Data, header)
                 .setHeader(Header.ConnId, connId)
                 .setHeader(Header.SeqHeader, seq.getAndIncrement())
-            channel.Send(headerMessage)
+            ch.Send(headerMessage)
         }
     }
 
