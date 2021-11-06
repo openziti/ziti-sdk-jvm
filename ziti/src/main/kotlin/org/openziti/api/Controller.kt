@@ -32,8 +32,6 @@ import org.openziti.Errors
 import org.openziti.ZitiException
 import org.openziti.getZitiError
 import org.openziti.impl.ZitiImpl
-import org.openziti.net.nio.AsychChannelSocket
-import org.openziti.net.nio.AsyncTLSSocketFactory
 import org.openziti.util.Logged
 import org.openziti.util.SystemInfoProvider
 import org.openziti.util.Version
@@ -47,6 +45,7 @@ import retrofit2.http.*
 import java.io.IOException
 import java.net.URL
 import java.util.*
+import javax.net.SocketFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
@@ -146,8 +145,8 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     val retrofit: Retrofit
     init {
         clt = OkHttpClient.Builder().apply {
-            socketFactory(AsychChannelSocket.Factory())
-            sslSocketFactory(AsyncTLSSocketFactory(sslContext), trustManager)
+            socketFactory(SocketFactory.getDefault())
+            sslSocketFactory(sslContext.socketFactory, trustManager)
             cache(null)
             addInterceptor(ZitiInterceptor())
             addInterceptor(loggingInterceptor)
