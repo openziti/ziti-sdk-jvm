@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.openziti
 
 import kotlinx.coroutines.runBlocking
 import java.io.Closeable
-import java.io.InputStream
-import java.io.OutputStream
 
 /**
  * Object representing established Ziti connection.
@@ -32,9 +30,6 @@ interface ZitiConnection: Closeable {
 
     fun write(data: ByteArray) = runBlocking { send(data) }
     fun read(out: ByteArray, off: Int, len: Int): Int = runBlocking { receive(out, off, len) }
-
-    fun getInputStream(): InputStream
-    fun getOutputStream(): OutputStream
 
     fun isClosed(): Boolean
 }

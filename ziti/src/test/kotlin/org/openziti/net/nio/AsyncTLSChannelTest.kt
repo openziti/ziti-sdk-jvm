@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.openziti.net.nio
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.hamcrest.CoreMatchers.startsWith
 import org.junit.After
 import org.junit.Assert.*
@@ -26,6 +26,7 @@ import org.junit.rules.Timeout
 import org.openziti.identity.ZitiTestHelper
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousCloseException
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.InterruptedByTimeoutException
 import java.nio.charset.StandardCharsets
@@ -70,6 +71,28 @@ class AsyncTLSChannelTest {
         }
 
         verifyConnection(ch)
+    }
+
+    @Test(expected = AsynchronousCloseException::class)
+    fun readCancel(): Unit {
+        runBlocking {
+            ch = AsyncTLSChannel.open() as AsyncTLSChannel
+            ch.connectSuspend(InetSocketAddress("httpbin.org", 443), 1000)
+
+            ch.startHandshake()
+            ch.getSession()
+
+            val readOp = async(Dispatchers.IO) {
+                ch.readSuspend(ByteBuffer.allocate(128))
+            }
+
+            delay(100)
+            ch.close()
+
+            withTimeout(1000) {
+                readOp.await()
+            }
+        }
     }
 
     @Test
