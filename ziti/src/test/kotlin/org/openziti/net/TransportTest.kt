@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import javax.net.ssl.SSLContext
@@ -48,6 +49,13 @@ User-Agent: ziti/1.0.2
             val lines = resp.toString().reader().readLines()
             assertThat(lines[0], CoreMatchers.startsWith("HTTP/1.1 200 OK"))
             t.close()
+        }
+    }
+
+    @Test(timeout = 20000, expected = SocketTimeoutException::class)
+    fun testCancel() {
+        runBlocking {
+            Transport.dial("tls://100.127.255.64:443", SSLContext.getDefault(), 10)
         }
     }
 }
