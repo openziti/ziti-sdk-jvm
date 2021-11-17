@@ -71,14 +71,13 @@ internal object ZitiImpl : Logged by ZitiLog() {
     }
 
     internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContextImpl {
+        initInternalNetworking(false)
         val ks = loadKeystore(idFile, pwd)
         return loadContext(ks, alias)
     }
 
     fun init(file: File, pwd: CharArray, seamless: Boolean) {
-        if (seamless) {
-            initInternalNetworking()
-        }
+        initInternalNetworking(seamless)
 
         val ctx = loadContext(file, pwd, null)
         ctx.checkServicesLoaded()
@@ -93,9 +92,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
     }
 
     fun init(ks: KeyStore, seamless: Boolean): List<ZitiContext> {
-        if (seamless) {
-            initInternalNetworking()
-        }
+        initInternalNetworking(seamless)
 
         for (a in ks.aliases()) {
             if (isZitiIdentity(ks, a)) {
@@ -118,10 +115,10 @@ internal object ZitiImpl : Logged by ZitiLog() {
         }
     }
 
-    fun isSeamless(): Boolean = Sockets.isInitialized()
+    fun isSeamless(): Boolean = Sockets.isSeamless()
 
-    private fun initInternalNetworking() {
-        Sockets.init()
+    private fun initInternalNetworking(seamless: Boolean) {
+        Sockets.init(seamless)
     }
 
     fun enroll(ks: KeyStore, jwt: ByteArray, name: String): ZitiContext {

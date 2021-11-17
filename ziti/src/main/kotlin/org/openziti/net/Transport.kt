@@ -17,9 +17,11 @@
 package org.openziti.net
 
 import kotlinx.coroutines.*
+import org.openziti.net.internal.SSLEngineWrapper
 import org.openziti.net.nio.readSuspend
 import org.openziti.net.nio.writeCompletely
 import tlschannel.ClientTlsChannel
+import tlschannel.HeapBufferAllocator
 import tlschannel.async.AsynchronousTlsChannel
 import tlschannel.async.AsynchronousTlsChannelGroup
 import java.io.Closeable
@@ -99,10 +101,16 @@ internal interface Transport : Closeable {
             internal fun connectAsync(address: InetSocketAddress, ssl: SSLContext): Deferred<AsynchronousTlsChannel> {
                 val deferred = CompletableDeferred<AsynchronousTlsChannel>()
                 val sockCh = SocketChannel.open()
+                val sslEngine = ssl.createSSLEngine(address.hostString, address.port).apply {
+                    useClientMode = true
+                }
                 val f = CompletableFuture.supplyAsync {
                     sockCh.connect(address)
                     sockCh.configureBlocking(false)
-                    val tlsCh = ClientTlsChannel.newBuilder(sockCh, ssl).build()
+                    val tlsCh = ClientTlsChannel.newBuilder(sockCh, SSLEngineWrapper(sslEngine))
+                        .withEncryptedBufferAllocator(HeapBufferAllocator())
+                        .withPlainBufferAllocator(HeapBufferAllocator())
+                        .build()
                     AsynchronousTlsChannel(asyncGroup, tlsCh, sockCh)
                 }
                 f.whenComplete { ch, ex ->

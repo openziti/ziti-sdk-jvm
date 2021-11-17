@@ -146,7 +146,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     init {
         clt = OkHttpClient.Builder().apply {
             socketFactory(Sockets.bypassSocketFactory())
-            sslSocketFactory(sslContext.socketFactory, trustManager)
+            sslSocketFactory(Sockets.bypassSSLSocketFactory(sslContext), trustManager)
             cache(null)
             addInterceptor(ZitiInterceptor())
             addInterceptor(loggingInterceptor)
