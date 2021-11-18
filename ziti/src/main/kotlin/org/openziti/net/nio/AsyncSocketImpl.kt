@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.openziti.net.nio
 
-import kotlinx.coroutines.runBlocking
 import org.openziti.net.internal.Sockets
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
@@ -42,15 +41,16 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
 
         fun doConnect(ch: AsynchronousSocketChannel, addr: SocketAddress, timeout: Int): AsynchronousSocketChannel {
             try {
-                runBlocking {
-                    if (timeout > 0) {
-                        ch.connectSuspend(addr, timeout.toLong())
-                    } else {
-                        ch.connectSuspend(addr)
-                    }
+                val connOp = ch.connect(addr)
+                if (timeout > 0) {
+                    connOp.get(timeout.toLong(), TimeUnit.MILLISECONDS)
+                } else {
+                    connOp.get()
                 }
             } catch (tox: TimeoutException) {
                 throw SocketTimeoutException(tox.localizedMessage)
+            } catch (xex: ExecutionException) {
+                throw IOException(xex.cause)
             }
             return ch
         }
@@ -117,8 +117,10 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
             }
         } else {
             val longTO = if (timeout > 0) timeout.toLong() else Long.MAX_VALUE
-            runBlocking {
-                channel.connectSuspend(address, longTO)
+            channel.connect(address).runCatching {
+                get(longTO, TimeUnit.MILLISECONDS)
+            }.onFailure {
+                throwIOException(it)
             }
         }
     }
@@ -224,13 +226,14 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
         }
 
         override fun write(b: ByteArray, off: Int, len: Int) {
-            runCatching {
-                runBlocking {
-                    channel.writeCompletely(ByteBuffer.wrap(b, off, len))
+            val buf = ByteBuffer.wrap(b, off, len)
+            while(buf.hasRemaining()) {
+                channel.write(buf).runCatching {
+                    get(timeout.toLong(), TimeUnit.MILLISECONDS)
+                }.onFailure { ex ->
+                    w { "unexpected exception[${ex.message}] during write[buf.len=${b.size}, off=$off, len=$len]" }
+                    throwIOException(ex)
                 }
-            }.onFailure { ex ->
-                w{ "unexpected exception[${ex.message}] during write[buf.len=${b.size}, off=$off, len=$len]" }
-                throwIOException(ex)
             }
         }
     }
