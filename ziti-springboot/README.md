@@ -33,4 +33,4 @@ class HelloController {
 }
 ```
 
-Try the complete sample in [../samples/ziti-spring-boot]
+Try the [complete sample](../samples/ziti-spring-boot)
