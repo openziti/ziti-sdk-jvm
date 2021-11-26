@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ziti-jvm'
-include 'ziti'
-include 'ziti-netty'
-include 'ziti-springboot'
+package org.openziti.springboot
 
-if (properties.buildForAndroid == "true") {
-    include 'ziti-android'
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.stereotype.Component
+
+/**
+ * Simple Ziti service configuration consisting of Ziti identity and service name.
+ */
+@Component
+@ConfigurationProperties(prefix = "ziti")
+class ZitiProperties {
+    var id: String = ""
+    var serviceName: String = ""
 }
-
-include ':samples:ziti-enroller'
-include ':samples:ziti-half-close'
-include ':samples:sample'
-include ':samples:http-sample'
-include ':samples:sample-host'
-include ':samples:ziti-netty-samples'
-include ':samples:terminators-sample'
-include ':samples:sample-okhttp'
-include ':samples:ziti-spring-boot'
-
