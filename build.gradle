@@ -30,7 +30,7 @@ buildscript {
             kotlin: '1.6.0',
             coroutines: '1.5.2',
             slf4j: '1.7.32',
-            jupiter: '5.8.1',
+            jupiter: '5.8.2',
             androidxCore: '1.7.0',
             androidxLifecycle: '2.4.0'
     ]
