@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ziti-jvm'
-include 'ziti'
-include 'ziti-netty'
-include 'ziti-springboot'
+package org.openziti.net.internal
 
-if (properties.buildForAndroid == "true") {
-    include 'ziti-android'
+import javax.net.SocketFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
+
+interface BypassProvider {
+    fun getSocketFactory(): SocketFactory
+    fun getSSLSocketFactory(ssl: SSLContext): SSLSocketFactory
 }
-
-include ':samples:ziti-enroller'
-include ':samples:ziti-half-close'
-include ':samples:sample'
-include ':samples:http-sample'
-include ':samples:sample-host'
-include ':samples:ziti-netty-samples'
-include ':samples:terminators-sample'
-include ':samples:sample-okhttp'
-include ':samples:ziti-spring-boot'
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,5 +41,5 @@ sealed class ZitiAddress: SocketAddress() {
         val service: String, val identity: String? = null, val useEdgeId: Boolean = false)
         : ZitiAddress()
 
-    internal data class Session(val id: String, val service: String, val callerId: String?): ZitiAddress()
+    data class Session internal constructor(internal val id: String, val service: String, val callerId: String?): ZitiAddress()
 }

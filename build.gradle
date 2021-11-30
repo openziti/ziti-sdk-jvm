@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,16 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:7.0.3")
-        classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.5.31")
+        classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.6.0")
     }
 
     ext.versions = [
             lazysodiumJava: '5.1.1',
             lazysodiumAndroid: '5.0.2',
-            kotlin: '1.5.31',
+            kotlin: '1.6.0',
             coroutines: '1.5.2',
             slf4j: '1.7.32',
-            jupiter: '5.8.1',
+            jupiter: '5.8.2',
             androidxCore: '1.7.0',
             androidxLifecycle: '2.4.0'
     ]
@@ -49,7 +49,7 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.5.31"
+    id("org.jetbrains.kotlin.jvm") version "1.6.0"
     id("io.wusa.semver-git-plugin") version "2.3.7"
 
     id 'io.github.gradle-nexus.publish-plugin' version "1.1.0"
@@ -80,7 +80,7 @@ semver {
             incrementer = "PATCH_INCREMENTER"
             formatter = { info ->
                 def v = info.version
-                """${v.major}.${v.minor}.${v.patch}-${v.suffix?.count ?: "0"}.${v.suffix?.sha}-${info.branch.id}"""
+                """${v.major}.${v.minor}.${v.patch}-${info.branch.id}-${v.suffix?.count ?: "0"}.${v.suffix?.sha}"""
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import kotlinx.coroutines.withContext
 import java.net.SocketAddress
 import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousByteChannel
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
@@ -54,7 +55,7 @@ suspend fun AsynchronousServerSocketChannel.acceptSuspend() = suspendCoroutine<A
     this.accept(it, ContinuationHandler())
 }
 
-suspend fun AsynchronousSocketChannel.readSuspend(b: ByteBuffer) = suspendCoroutine<Int> {
+suspend fun AsynchronousByteChannel.readSuspend(b: ByteBuffer) = suspendCoroutine<Int> {
     this.read(b, it, ContinuationHandler())
 }
 
@@ -88,11 +89,11 @@ suspend fun AsynchronousSocketChannel.connectSuspend(addr: SocketAddress, timeou
     }
 }
 
-suspend fun AsynchronousSocketChannel.writeSuspend(b: ByteBuffer) = suspendCoroutine<Int> {
+suspend fun AsynchronousByteChannel.writeSuspend(b: ByteBuffer) = suspendCoroutine<Int> {
     this.write(b, it, ContinuationHandler())
 }
 
-suspend fun AsynchronousSocketChannel.writeCompletely(b: ByteBuffer): Int {
+suspend fun AsynchronousByteChannel.writeCompletely(b: ByteBuffer): Int {
     var res = 0
     while (b.hasRemaining()) {
         res += this.writeSuspend(b)
