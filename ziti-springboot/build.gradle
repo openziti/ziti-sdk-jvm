@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,14 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'org.jetbrains.dokka'
     id 'maven-publish'
+
+    id("org.jetbrains.kotlin.plugin.spring") version "1.6.0"
+
 }
 
 ext {
-    description "Netty Adapter for Ziti"
+    description "Ziti adapter for Spring Boot"
+    springbootVersion = '2.6.1'
 }
 
 repositories {
@@ -29,15 +33,13 @@ repositories {
 }
 
 dependencies {
-    api(project(':ziti'))
-
     implementation deps.kotlin
-    implementation "io.netty:netty-all:4.1.70.Final"
+    implementation("org.springframework.boot:spring-boot:${springbootVersion}")
+    implementation("org.springframework.boot:spring-boot-autoconfigure:${springbootVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-tomcat:${springbootVersion}")
 
-    testApi deps.jupiterApi
-    testImplementation deps.jupiter
-    testImplementation deps.kotlinTest
-    testImplementation "com.google.code.gson:gson:2.8.9"
+    implementation(project(":ziti"))
+
 }
 
 compileKotlin {
