@@ -18,13 +18,15 @@ package org.openziti.identity
 
 import com.google.gson.Gson
 import java.io.File
+import java.io.Reader
 
 internal class IdentityConfig(val ztAPI: String, val id: Id) {
     internal class Id(val key: String, val cert: String, val ca: String?)
 
     companion object {
-        fun load(f: File): IdentityConfig =
-            Gson().fromJson(f.reader(), IdentityConfig::class.java)
+        fun load(r: Reader): IdentityConfig = Gson().fromJson(r, IdentityConfig::class.java)
+
+        fun load(f: File): IdentityConfig = load(f.reader());
 
         fun load(path: String): IdentityConfig = load(File(path))
     }

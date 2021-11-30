@@ -73,6 +73,9 @@ object Ziti {
     fun init(ks: KeyStore, seamless: Boolean) =  ZitiImpl.init(ks, seamless)
 
     @JvmStatic
+    fun init(identity: ByteArray, seamless: Boolean) =  ZitiImpl.init(identity, seamless)
+
+    @JvmStatic
     fun isSeamless() = ZitiImpl.isSeamless()
 
     fun identityEvents(): Flow<IdentityEvent> = ZitiImpl.getEvents()

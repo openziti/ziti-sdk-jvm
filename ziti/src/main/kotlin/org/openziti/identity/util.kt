@@ -62,14 +62,33 @@ internal fun keystoreFromConfig(id: IdentityConfig): KeyStore {
     return ks
 
 }
+internal fun loadKeystore(i: ByteArray): KeyStore {
+    val log = ZitiLog()
+
+    try {
+        val id = IdentityConfig.load(i.inputStream().reader());
+        return keystoreFromConfig(id);
+    } catch (ex: Exception) {
+        log.w("failed to load identity config: ${ex.localizedMessage}")
+    }
+
+    throw IllegalArgumentException("unsupported format")
+}
 
 internal fun loadKeystore(f: File, pwd: CharArray): KeyStore {
     val log = ZitiLog()
+
+    if (!f.exists() || !f.canRead()) {
+        throw IllegalArgumentException("Failed to parse keystore.  ${f.absolutePath} does not exist or can not be read")
+    }
+
     val ks = KeyStore.getInstance("PKCS12")
     try {
         ks.load(f.inputStream(), pwd)
         return ks
     } catch (ex: Exception) {
+        log.t("Failed to parse identity file as a keystore, trying to load it as a plain identity" +
+                " config instead: ${ex.localizedMessage}")
         //w("failed to load $f as PKCS12 key store: $ex")
     }
 
