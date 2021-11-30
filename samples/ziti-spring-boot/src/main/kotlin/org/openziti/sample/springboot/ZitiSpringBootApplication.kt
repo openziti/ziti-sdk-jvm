@@ -20,6 +20,7 @@ import org.openziti.springboot.ZitiTomcatCustomizer
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 
 @SpringBootApplication(
@@ -34,8 +35,8 @@ class ZitiSpringBootApplication
 @RestController
 class HelloController {
     @GetMapping("/")
-    fun index(): String {
-        return "Greetings from ZprIng booTI"
+    fun index(req: HttpServletRequest): String {
+        return "Greetings from ZprIng booTI, ${req.remoteAddr}"
     }
 }
 
