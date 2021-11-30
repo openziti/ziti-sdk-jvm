@@ -70,7 +70,6 @@ internal object ZitiImpl : Logged by ZitiLog() {
         }
     }
 
-
     internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContextImpl {
         initInternalNetworking(false)
         val ks = loadKeystore(idFile, pwd)
@@ -83,9 +82,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
     }
 
     fun init(c: ByteArray, seamless: Boolean) {
-        if (seamless) {
-            initInternalNetworking()
-        }
+        initInternalNetworking(seamless)
 
         val ctx = loadContext(c)
         ctx.checkServicesLoaded()
