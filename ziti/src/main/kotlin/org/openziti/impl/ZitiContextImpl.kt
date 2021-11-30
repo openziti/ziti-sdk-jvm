@@ -379,7 +379,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private fun getDnsTarget(addr: InetSocketAddress): String? {
         if (addr.hostString != null ) {
             if (IPUtil.isValidIPv4(addr.hostString)) {
-                return ZitiDNSManager.lookup(addr.address)
+                val ip = addr.address ?: InetAddress.getByName(addr.hostString)
+                return ZitiDNSManager.lookup(ip)
             } else {
                 return addr.hostString
             }
