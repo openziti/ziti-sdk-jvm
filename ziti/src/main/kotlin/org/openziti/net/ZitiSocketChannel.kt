@@ -59,11 +59,13 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.text.Charsets.UTF_8
 import kotlinx.coroutines.channels.Channel as Chan
 
-internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
+internal class ZitiSocketChannel private constructor(internal val ctx: ZitiContextImpl, val connId: Int):
     AsynchronousSocketChannel(Provider),
     Channel.MessageReceiver,
     ZitiConnection,
-    Logged by ZitiLog() {
+    Logged by ZitiLog("ziti-conn[${ctx.name()}/${connId}]") {
+
+    constructor(ztx:ZitiContextImpl): this(ztx, ztx.nextConnId())
 
     object Provider: AsynchronousChannelProvider() {
         override fun openAsynchronousSocketChannel(group: AsynchronousChannelGroup?): AsynchronousSocketChannel =
@@ -92,7 +94,6 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     override var timeout: Long = 0
 
     val state = AtomicReference(State.initial)
-    val connId: Int = ctx.nextConnId()
     val channel = CompletableDeferred<Channel>()
 
     val seq = AtomicInteger(1)
@@ -120,31 +121,44 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     private val writeMutex = Mutex()
 
     internal suspend fun <A: Any?> connectInternal(addr: ZitiAddress.Dial, attachment: A, handler: CompletionHandler<Void, in A>) {
-        ctx.runCatching {
+        d{"connecting to $serviceName"}
+
+        val (service,ns) = ctx.runCatching {
             val service = getService(serviceName) ?: throw ZitiException(Errors.ServiceNotAvailable)
-            val ns = getNetworkSession(serviceName, SessionType.Dial)
+            val ns = getNetworkSession(service, SessionType.Dial)
+            service to ns
+        }.getOrElse {
+            w{"failed to connect: $it"}
+            channel.completeExceptionally(it)
+            close()
+            handler.failed(it, attachment)
+            return
+        }
 
-            val kp = if (service.encryptionRequired) Crypto.newKeyPair() else null
+        d{"using session[${ns.id}]"}
+        val ch = ctx.runCatching { getChannel(ns) }.getOrElse {
+            w{"failed to connect: $it"}
+            channel.completeExceptionally(it)
+            close()
+            handler.failed(it, attachment)
+            return
+        }
 
-            val ch = ctx.getChannel(ns)
-            ch.registerReceiver(connId, this@ZitiSocketChannel)
-            doZitiHandshake(ch, addr, ns, kp)
-            ch
-        }.onSuccess {
-            channel.complete(it)
-            handler.completed(null, attachment)
-        }.onFailure {
-            if (!channel.completeExceptionally(it)) {
-                deregister()
-            }
+        d{"using ch[$ch]"}
+        channel.complete(ch)
+        ch.registerReceiver(connId, this)
+        val kp = if (service.encryptionRequired) Crypto.newKeyPair() else null
+        runCatching { doZitiHandshake(ch, addr, ns, kp) }.onFailure {
             if (it is CancellationException) {
-                w{ "connect was cancelled"}
-                handler.failed(it.cause ?: AsynchronousCloseException(), attachment)
+                d{"connect was canceled"}
+                handler.failed(AsynchronousCloseException(), attachment)
             } else {
-                e(it) {"failed to connect"}
-                handler.failed(it, attachment)
+                w{"failed to connect: $it"}
                 close()
+                handler.failed(it, attachment)
             }
+        }.onSuccess {
+            handler.completed(null, attachment)
         }
     }
 
@@ -152,14 +166,6 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
     override fun <A : Any?> connect(remote: SocketAddress, attachment: A, handler: CompletionHandler<Void, in A>) {
 
         ctx.isEnabled() || throw ShutdownChannelGroupException()
-
-        val addr = when (remote) {
-            is InetSocketAddress -> ctx.getDialAddress(remote, Protocol.TCP) ?: throw UnresolvedAddressException()
-            is ZitiAddress.Dial -> remote
-            else -> throw UnsupportedAddressTypeException()
-        }
-
-        serviceName = addr.service
 
         state.getAndUpdate { st ->
             when(st) {
@@ -173,7 +179,23 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             State.connecting
         }
 
-        connectOp = ctx.launch { connectInternal(addr, attachment, handler) }
+        d{"connecting to $remote"}
+        val addr = when (remote) {
+            is InetSocketAddress -> ctx.getDialAddress(remote, Protocol.TCP) ?: throw UnresolvedAddressException()
+            is ZitiAddress.Dial -> remote
+            else -> throw UnsupportedAddressTypeException()
+        }
+
+        serviceName = addr.service
+
+        val conOp = ctx.launch { connectInternal(addr, attachment, handler) }
+        conOp.invokeOnCompletion { ex ->
+            if (ex != null)
+                e{" failed to connect: $ex"}
+            else
+                d{"connected"}
+        }
+        connectOp = conOp
     }
 
     override fun connect(remote: SocketAddress): Future<Void> {
@@ -227,11 +249,15 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 setHeader(Header.FlagsHeader, ZitiProtocol.EdgeFlags.FIN)
                 setHeader(Header.SeqHeader, seq.getAndIncrement())
             }
-            d { "sending FIN conn = $connId" }
+            d("sending FIN")
 
-            ctx.launch {
-                channel.runCatching { await().SendSynch(finMsg) }
-                    .onFailure { w{ "failed to send FIN message: $it" } }
+            ctx.async {
+                val ch = channel.getCompleted()
+                ch.SendSynch(finMsg)
+            }.invokeOnCompletion { ex ->
+                if (ex != null) {
+                    w { "failed to send FIN message: $ex" }
+                }
             }
         }
         return this
@@ -247,17 +273,20 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                         setHeader(Header.ConnId, connId)
                     }
                     d("closing conn = ${this.connId}")
-                    ctx.launch {
-                        channel.runCatching { await().SendSynch(closeMsg) }
-                            .onFailure {
-                                w { "failed to send StateClosed message: ${it.localizedMessage}" }
-                            }
+                    ctx.async {
+                        val ch = channel.getCompleted()
+                        ch.SendSynch(closeMsg)
+                    }.invokeOnCompletion {
+                        it?.let {
+                            w { "failed to send StateClosed message: ${it.localizedMessage}" }
+                        }
                     }
                     state.set(State.closed)
                 }
                 State.closed -> {}
                 else -> {}
             }
+            ctx.close(this)
         }
         return this
     }
@@ -292,6 +321,11 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             readMutex.unlock()
             handler.completed(copied, att)
             return
+        }
+
+        if (state.get() == State.closed) {
+            readMutex.unlock()
+            throw ClosedChannelException()
         }
 
         val rop = ctx.async {
@@ -362,6 +396,8 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             else -> error("should not be here")
         }
 
+        channel.isCompleted || throw NotYetConnectedException()
+
         writeMutex.tryLock() || throw WritePendingException()
 
         val srcs = _srcs.slice(offset until offset + length)
@@ -372,7 +408,7 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 var data = ByteArray(b.remaining())
                 b.get(data)
 
-                crypto.await()?.let {
+                crypto.getCompleted()?.let {
                     data = it.encrypt(data)
                 }
 
@@ -408,7 +444,6 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         msg.onSuccess {
             receiveMsg(it)
         }.onFailure {
-            state.set(State.closed)
             close()
         }
     }
@@ -417,10 +452,10 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
         v{"conn[$connId] received message[${msg.content}] with seq[${msg.getIntHeader(Header.SeqHeader)}]"}
         when (msg.content) {
             ZitiProtocol.ContentType.StateClosed -> {
-                state.set(State.closed)
                 t{"signaling EOF"}
                 receiveQueue.close()
                 deregister()
+                close()
             }
             ZitiProtocol.ContentType.Data -> {
                 t{"received data(${msg.body.size} bytes) for conn[$connId]"}
@@ -446,9 +481,9 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
             }
             else -> {
                 e{"unexpected message type[${msg.content}] for conn[$connId]"}
-                state.set(State.closed)
                 receiveQueue.close(IllegalStateException())
                 deregister()
+                close()
             }
         }
     }
@@ -519,13 +554,11 @@ internal class ZitiSocketChannel(internal val ctx: ZitiContextImpl):
                 state.set(State.connected)
             }
             ZitiProtocol.ContentType.StateClosed -> {
-                state.set(State.closed)
                 val err = reply.body.toString(UTF_8)
                 w("connection rejected: $err")
                 throw ConnectException(err)
             }
             else -> {
-                state.set(State.closed)
                 throw IOException("Invalid response type")
             }
         }

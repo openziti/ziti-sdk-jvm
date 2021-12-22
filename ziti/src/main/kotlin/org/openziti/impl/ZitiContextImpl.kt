@@ -83,16 +83,16 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     private val servicesLoaded = CompletableDeferred<Unit>()
     private val servicesByName = ConcurrentHashMap<String, Service>()
-    private val servicesById = mutableMapOf<String, Service>()
+    private val servicesById = ConcurrentHashMap<String, Service>()
 
     private val servicesByAddr = mutableMapOf<InetAddress, MutableMap<PortRange,Service>>()
-
-    // TODO private val addrById = mutableMapOf<String, InetSocketAddress>()
 
     data class SessionKey (val serviceId: String, val type: SessionType)
     private val networkSessions = ConcurrentHashMap<SessionKey, Session>()
 
     private val connCounter = AtomicInteger(0)
+
+    private val connections = sortedMapOf<Int, ZitiConnection>()
 
     init {
         this._enabled = enabled
@@ -358,8 +358,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         checkEnabled()
 
         d("getNetworkSession(${service.name})")
-        checkServicesLoaded()
-
         return networkSessions.getOrPut(SessionKey(service.id, st)) {
             val netSession = controller.createNetSession(service, st)
             t("received $netSession for service[${service.name}]")
@@ -368,8 +366,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     internal suspend fun getNetworkSession(name: String, st: SessionType): Session {
-        checkServicesLoaded()
-
         val service = servicesByName.get(name) ?: throw ZitiException(Errors.ServiceNotAvailable)
         if (!service.permissions.contains(st)) throw ZitiException(Errors.ServiceNotAvailable)
 
@@ -379,7 +375,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private fun getDnsTarget(addr: InetSocketAddress): String? {
         if (addr.hostString != null ) {
             if (IPUtil.isValidIPv4(addr.hostString)) {
-                return ZitiDNSManager.lookup(addr.address)
+                val ip = addr.address ?: InetAddress.getByName(addr.hostString)
+                return ZitiDNSManager.lookup(ip)
             } else {
                 return addr.hostString
             }
@@ -424,25 +421,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun getService(addr: InetSocketAddress): Service? = getService(addr.hostString, addr.port)
 
     override fun getService(name: String): Service? {
-        checkServicesLoaded()
         return servicesByName.get(name)
     }
 
-    internal fun getService(host: InetAddress, port: Int): Service {
-        checkServicesLoaded()
-
-        servicesByAddr.get(host)?.let {
-            for ((range, service) in it) {
-                if (range.contains(port)) return service
-            }
-        }
-
-        throw ZitiException(Errors.ServiceNotAvailable)
-    }
-
     internal fun getService(host: String, port: Int): Service? {
-        checkServicesLoaded()
-
         return servicesByName.values.find { svc ->
             svc.interceptConfig?.let {
                 it.addresses.any { it.matches(host) } && it.portRanges.any { r -> port in r.low..r.high }
@@ -476,7 +458,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             d{"selected $selected"}
             return selected
         } else {
-            coroutineScope { launch { connectAll(unconnected) } }
+            unconnected.forEach { it.tryConnect() }
             return chMap.entries.first().value
         }
     }
@@ -500,7 +482,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         return select {
             for (ch in chList) {
-                ch.connectNow().onAwait { ch }
+                ch.connectAsync().onAwait { ch }
             }
         }
     }
@@ -599,7 +581,13 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun open(): AsynchronousSocketChannel {
         checkEnabled()
-        return ZitiSocketChannel(this)
+        return ZitiSocketChannel(this).also {
+            connections[it.connId] = it
+        }
+    }
+
+    internal fun close(conn: ZitiSocketChannel) {
+        connections.remove(conn.connId)
     }
 
     override fun openServer(): AsynchronousServerSocketChannel {
@@ -675,6 +663,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         writer.appendLine("=== Channels[${channels.size}] ===")
         channels.forEach { (name, ch) ->
             writer.appendLine("ER: $name status: ${ch.state}")
+        }
+        writer.appendLine("=== Connections[${connections.size}] ===")
+        connections.forEach { (id, conn) ->
+            writer.appendLine("conn[$id]: $conn")
         }
     }
 }
