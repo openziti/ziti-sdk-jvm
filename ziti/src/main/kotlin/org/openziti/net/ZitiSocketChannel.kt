@@ -444,7 +444,6 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
         msg.onSuccess {
             receiveMsg(it)
         }.onFailure {
-//            state.set(State.closed)
             close()
         }
     }
@@ -453,7 +452,6 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
         v{"conn[$connId] received message[${msg.content}] with seq[${msg.getIntHeader(Header.SeqHeader)}]"}
         when (msg.content) {
             ZitiProtocol.ContentType.StateClosed -> {
-                // state.set(State.closed)
                 t{"signaling EOF"}
                 receiveQueue.close()
                 deregister()
@@ -483,7 +481,6 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
             }
             else -> {
                 e{"unexpected message type[${msg.content}] for conn[$connId]"}
-//                state.set(State.closed)
                 receiveQueue.close(IllegalStateException())
                 deregister()
                 close()
