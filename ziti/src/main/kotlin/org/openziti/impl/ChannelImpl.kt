@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.openziti.impl
 
 import com.codahale.metrics.Timer
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.onSuccess
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
@@ -83,9 +84,14 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
         recMutex.withLock { receivers.remove(id) }
     }
 
-    override fun connectNow(): Deferred<Channel.State> {
-        d{"forcing connect"}
-        reconnectSignal.trySend(Unit)
+    override fun tryConnect() {
+        reconnectSignal.trySend(Unit).onSuccess {
+            d{"forced re-connect"}
+        }
+    }
+
+    override fun connectAsync(): Deferred<Channel.State> {
+        tryConnect()
         return async { chState.filter { it is Channel.State.Connected }.first() }
     }
 
@@ -100,8 +106,8 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
 
                     d{"delaying connect $backoffDelay ms (retry=$retryCount)"}
                     select<Unit> {
-                        async { delay(backoffDelay) }.onAwait {}
-                        async { reconnectSignal.receive() }.onAwait{}
+                        async { delay(backoffDelay) }.onAwait { d("reconnecting after timeout") }
+                        async { reconnectSignal.receive() }.onAwait{ d("reconnecting on-demand") }
                     }
                 }
                 retryCount++
