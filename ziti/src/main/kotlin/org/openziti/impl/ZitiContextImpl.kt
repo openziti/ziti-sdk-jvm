@@ -40,6 +40,7 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
@@ -422,6 +423,18 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun getService(name: String): Service? {
         return servicesByName.get(name)
+    }
+
+    override fun getService(name: String, timeout: Long): Service {
+        return getService(name) ?: runCatching {
+            runBlocking {
+                withTimeout(timeout) {
+                    serviceUpdates().filter {
+                        it.type == ZitiContext.ServiceUpdate.Available && it.service.name == name
+                    }.first().service
+                }
+            }
+        }.getOrElse { throw TimeoutException("failed to get service[$name] in ${timeout}ms") }
     }
 
     internal fun getService(host: String, port: Int): Service? {

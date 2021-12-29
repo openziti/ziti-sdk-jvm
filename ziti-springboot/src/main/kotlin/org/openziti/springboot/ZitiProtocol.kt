@@ -26,6 +26,8 @@ import org.openziti.ZitiContext
 class ZitiProtocol: AbstractHttp11JsseProtocol<Nio2Channel>(ZitiEndpoint()) {
     private val log = LogFactory.getLog(ZitiProtocol::class.java)
 
+    private val SERVICE_TIMEOUT = 10_000L
+
     lateinit var ztx: ZitiContext
     lateinit var service: String
 
@@ -33,16 +35,17 @@ class ZitiProtocol: AbstractHttp11JsseProtocol<Nio2Channel>(ZitiEndpoint()) {
 
     override fun getNamePrefix(): String {
         return if (isSSLEnabled()) {
-            "https-" + getSslImplementationShortName()+ "-ziti";
+            "https-" + getSslImplementationShortName()+ "-ziti"
         } else {
-            "http-ziti";
+            "http-ziti"
         }
     }
 
     override fun start() {
         (endpoint as ZitiEndpoint).also {
+            val svc = ztx.getService(service, SERVICE_TIMEOUT)
             it.server = ztx.openServer()
-            it.zitiAddress = ZitiAddress.Bind(service)
+            it.zitiAddress = ZitiAddress.Bind(svc.name)
         }
         super.start()
     }
