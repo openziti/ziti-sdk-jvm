@@ -90,7 +90,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${versions.androidxLifecycle}"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:${versions.androidxLifecycle}"
 
-    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
     testImplementation deps.jupiterApi
     testImplementation deps.jupiter
