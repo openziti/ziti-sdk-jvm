@@ -113,7 +113,7 @@ Note:
 Android Support
 ---------------
 Easiest way to start developing on Android with Ziti is to create your repo from
-our `template project <https://github.com/openziti/ziti-android-app>`_
+our `template project <https://openziti.github.io/ziti-android-app/README.html>`_
 or just look at the code for inspiration.
 
 
