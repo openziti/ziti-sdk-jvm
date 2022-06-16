@@ -15,6 +15,10 @@
 */
 package jdbc.postgres;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -25,7 +29,19 @@ import org.openziti.Ziti;
 
 public class App {
 	public static void main(String[] args) throws Exception {
-		Ziti.init("c:/temp/java-identity.json", "".toCharArray(), false);
+		
+		String identityLocation = null;
+		if (args.length > 0) {
+			identityLocation = args[0];
+		} else {
+			identityLocation = "/tmp/java-identity.json";
+		}
+		
+		if(Files.notExists(Paths.get(identityLocation))) {
+			throw new Exception("Identity file NOT FOUND. The first argument should be a path to the identity file. If not supplied the default path ["+identityLocation+"] is used.");
+		}
+		
+		Ziti.init(identityLocation, "".toCharArray(), false);
 		
 		String url = "jdbc:postgresql://zitified-postgres/simpledb";
 		Properties props = new Properties();

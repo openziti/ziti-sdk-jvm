@@ -20,7 +20,7 @@ repositories {
 
 dependencies {
     // This dependency is used by the application.
-  	implementation 'org.openziti:ziti:0.+'
+  	implementation 'org.openziti:ziti:0.23.7'
   	implementation 'org.postgresql:postgresql:+'
 }
 
