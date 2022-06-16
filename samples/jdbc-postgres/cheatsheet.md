@@ -1,11 +1,19 @@
-# Cheetsheet
+# Cheatsheet
 
 This is the list of commands run to get a ziti environment setup running with docker compose for this sample.
 
 ## SETUP work
-* clone the ziti repo
-    git clone git@github.com:openziti/ziti.git
+* Java 11+ installed and on the path (run: java -version and confirm)
+* This example uses the docker-compose environment. To replicate you need the compose file and docker/docker-compose installed
 
+    # clone the ziti repo
+    git clone git@github.com:openziti/ziti.git
+    
+    # -- OR --
+    # download the docker-compose file 
+    curl https://raw.githubusercontent.com/openziti/ziti/release-next/quickstart/docker/docker-compose.yml > /tmp/docker-compose.yml
+    curl https://raw.githubusercontent.com/openziti/ziti/release-next/quickstart/docker/.env > /tmp/.env
+    
 * modify docker compose file
 
       postgres-db:
@@ -13,7 +21,6 @@ This is the list of commands run to get a ziti environment setup running with do
         #ports:
         #  - 5432:5432
         networks:
-          - ziticontrol
           - zitiblue
         volumes:
           - ./data/db:/var/lib/postgresql/data
@@ -24,14 +31,15 @@ This is the list of commands run to get a ziti environment setup running with do
     
 * launch the docker environment
 
-    docker-compose down -v
-    clear; docker-compose -f /home/cd/git/github/openziti/ziti/quickstart/docker/docker-compose.yml up
+    # use the project name of 'pg' (for postgres) when starting docker-compose
+    docker-compose -f /tmp/docker-compose.yml -p pg down -v
+    clear; docker-compose -f /tmp/docker-compose.yml -p pg up
     
 * bootstrap postgres
 
-    docker exec -it -u root docker_ziti-private-blue_1 /bin/bash
+    docker exec -it -u root pg_ziti-private-blue_1 /bin/bash
     apt update && apt install postgresql-client -y --fix-missing
-    psql -h postgres-db -U postgres
+    PGPASSWORD=postgres psql -h postgres-db -U postgres 
 
 * issue these commands once connected to postgres
 
@@ -39,6 +47,7 @@ This is the list of commands run to get a ziti environment setup running with do
     CREATE DATABASE simpledb;
     ALTER DATABASE simpledb OWNER TO postgres;
     \connect simpledb;
+    
     CREATE TABLE simpletable(chardata varchar(100), somenumber int);
 
     INSERT INTO simpletable VALUES('a', 1);
@@ -60,61 +69,47 @@ This is the list of commands run to get a ziti environment setup running with do
 
 ## ZITI BOOTSTRAPPING
 
-* install the latest ziti cli and add it to your path by passing 'yes' to the getLatestZiti function
+* exec into the controller using docker
 
-    source <(wget -qO- https://raw.githubusercontent.com/openziti/ziti/release-next/quickstart/docker/image/ziti-cli-functions.sh); getLatestZiti yes
+    docker exec -it pg_ziti-controller_1 bash
 
-* login to the local ziti instance (NOTE: you'll need/want to add a hosts entry for ziti-edge-controller or figure out some other way to make `ziti-edge-controller` and `ziti-edge-router` addressible)
+* login to the local ziti instance
 
     ziti edge login ziti-edge-controller:1280 -u admin -p admin
+    -- or --
+    zitiLogin
 
 ### CLEANUP COMMANDS:
 
 Not needed unless you want to try again without recreating docker
 
     ziti edge delete service private-postgres
-    ziti edge delete config private-postgres-cfg
+    ziti edge delete config private-postgres-intercept.v1
+    ziti edge delete config private-postgres-host.v1
     ziti edge delete service-policy postgres-dial-policy
+    ziti edge delete service-policy postgres-bind-policy
+
     ziti edge delete edge-router-policy public-router-access
     ziti edge delete identity tunneler-id 
     ziti edge delete identity java-identity
     
 ### CREATE/UPDATE COMMANDS:
 
-    ziti edge login ziti-edge-controller:1280 -u admin -p admin
-
-    ziti edge create config private-postgres-cfg ziti-tunneler-client.v1 '{ "hostname" : "zitified-postgres", "port" : 5432 }'
-    ziti edge create service private-postgres --configs private-postgres-cfg -a "private-postgres-services"
-    ziti edge create terminator "private-postgres" "ziti-private-blue" tcp:postgres-db:5432
-
+    ziti edge create config private-postgres-intercept.v1 intercept.v1 '{"protocols":["tcp"],"addresses":["zitified-postgres"], "portRanges":[{"low":5432, "high":5432}]}'
+    ziti edge create config private-postgres-host.v1 host.v1 '{"protocol":"tcp", "address":"postgres-db","port":5432 }'
+    ziti edge create service private-postgres --configs private-postgres-intercept.v1,private-postgres-host.v1 -a "private-postgres-services"
     ziti edge create service-policy postgres-dial-policy Dial --identity-roles '#postgres-clients' --service-roles '#private-postgres-services'
-
-    ziti edge create edge-router-policy public-router-access --identity-roles "#postgres-clients" --edge-router-roles "#public-edge-routers"
-    ziti edge create service-edge-router-policy blue-router-service-access --edge-router-roles "#public-edge-routers" --service-roles "#private-postgres-services"
-
-    ziti edge update edge-router ziti-edge-router -a "public-edge-routers"
-    ziti edge update edge-router ziti-fabric-router-br -a "bluerouters"
-    ziti edge update edge-router ziti-private-blue -a "bluerouters"
-
-### CREATE TUNNELER ID for testing
-
-(replace the path accordingly)
-
-    ziti edge create identity user tunneler-id -o tunneler-id.jwt -a "postgres-clients"
-    ziti-tunnel enroll tunneler-id.jwt -o /mnt/v/temp/tunneler-id.json
-        
-### TEST IDENTITY HAS ACCESS TO POSTGRES
-
-(replace the path accordingly)
-
-    ziti-tunnel proxy -i /mnt/v/temp/tunneler-id.json private-postgres:5432 -v
+    ziti edge create service-policy postgres-bind-policy Bind --identity-roles '@ziti-private-blue' --service-roles '#private-postgres-services'
 
 ### CREATE JAVA ID for SDK demo
 
 (replace the path accordingly)
 
     ziti edge create identity user java-identity -o java-identity.jwt -a "postgres-clients" 
-    ziti-tunnel enroll java-identity.jwt -o /mnt/v/temp/java-identity.json
+    ziti edge enroll java-identity.jwt -o java-identity.json
+    
+    # exit docker
+    docker cp pg_ziti-controller_1:/openziti/java-identity.json .
 
 ### Easy way of adding ziti-edge-controller/ziti-edge-router to you hosts file if you wish
 
