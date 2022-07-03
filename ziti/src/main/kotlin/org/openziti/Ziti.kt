@@ -24,6 +24,7 @@ import org.openziti.net.dns.DNSResolver
 import org.openziti.net.dns.ZitiDNSManager
 import org.openziti.net.nio.AsyncTLSSocketFactory
 import java.io.File
+import java.io.InputStream
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.security.KeyStore
@@ -62,6 +63,15 @@ object Ziti {
      */
     @JvmStatic
     fun newContext(fname: String, pwd: CharArray): ZitiContext = newContext(File(fname), pwd)
+
+    /**
+     * Load Ziti identity from the input stream.
+     * The following formats of ziti identity files are supported:
+     * @param stream input stream with the ziti identity
+     * @param pwd password to access the keystore (only needed for .jks or .pfx/.p12 if they are protected by password)
+     */
+    @JvmStatic
+    fun newContext(stream: InputStream, pwd: CharArray): ZitiContext = ZitiImpl.loadContext(stream, pwd, null)
 
     @JvmStatic
     fun removeContext(ctx: ZitiContext) = ZitiImpl.removeContext(ctx)
