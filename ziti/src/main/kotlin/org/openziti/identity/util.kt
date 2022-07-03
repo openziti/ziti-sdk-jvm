@@ -22,6 +22,7 @@ import org.openziti.util.ZitiLog
 import org.openziti.util.readCerts
 import org.openziti.util.readKey
 import java.io.File
+import java.io.InputStream
 import java.net.URI
 import java.security.KeyStore
 
@@ -66,8 +67,8 @@ internal fun loadKeystore(i: ByteArray): KeyStore {
     val log = ZitiLog()
 
     try {
-        val id = IdentityConfig.load(i.inputStream().reader());
-        return keystoreFromConfig(id);
+        val id = IdentityConfig.load(i.inputStream().reader())
+        return keystoreFromConfig(id)
     } catch (ex: Exception) {
         log.w("failed to load identity config: ${ex.localizedMessage}")
     }
@@ -82,16 +83,14 @@ internal fun loadKeystore(f: File, pwd: CharArray): KeyStore {
         throw IllegalArgumentException("Failed to parse keystore.  ${f.absolutePath} does not exist or can not be read")
     }
 
-    val ks = KeyStore.getInstance("PKCS12")
-    try {
-        ks.load(f.inputStream(), pwd)
+    val ks = loadKeystore(f.inputStream(), pwd, log)
+    if (ks != null) {
         return ks
-    } catch (ex: Exception) {
-        log.t("Failed to parse identity file as a keystore, trying to load it as a plain identity" +
-                " config instead: ${ex.localizedMessage}")
-        //w("failed to load $f as PKCS12 key store: $ex")
     }
 
+    log.t(
+        "Trying to load it as a plain identity config"
+    )
     try {
         val id = IdentityConfig.load(f)
         return keystoreFromConfig(id)
@@ -100,4 +99,28 @@ internal fun loadKeystore(f: File, pwd: CharArray): KeyStore {
     }
 
     throw IllegalArgumentException("unsupported format")
+}
+
+internal fun loadKeystore(stream: InputStream, pwd: CharArray): KeyStore {
+    val log = ZitiLog()
+    val ks = loadKeystore(stream, pwd, log);
+    if (ks != null) {
+        return ks
+    }
+
+    throw IllegalArgumentException("unsupported format")
+}
+
+internal fun loadKeystore(stream: InputStream, pwd: CharArray, log: ZitiLog): KeyStore? {
+    val ks = KeyStore.getInstance("PKCS12")
+    return try {
+        ks.load(stream, pwd)
+        ks
+    } catch (ex: Exception) {
+        log.t(
+            "Failed to parse identity file as a keystore: ${ex.localizedMessage}"
+        )
+        //w("failed to load $f as PKCS12 key store: $ex")
+        null
+    }
 }

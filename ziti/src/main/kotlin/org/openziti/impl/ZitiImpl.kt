@@ -31,6 +31,7 @@ import org.openziti.util.Logged
 import org.openziti.util.Version
 import org.openziti.util.ZitiLog
 import java.io.File
+import java.io.InputStream
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.net.URI
@@ -73,6 +74,12 @@ internal object ZitiImpl : Logged by ZitiLog() {
     internal fun loadContext(idFile: File, pwd: CharArray, alias: String?): ZitiContextImpl {
         initInternalNetworking(false)
         val ks = loadKeystore(idFile, pwd)
+        return loadContext(ks, alias)
+    }
+
+    internal fun loadContext(stream: InputStream, pwd: CharArray, alias: String?): ZitiContextImpl {
+        initInternalNetworking(false)
+        val ks = loadKeystore(stream, pwd)
         return loadContext(ks, alias)
     }
 
