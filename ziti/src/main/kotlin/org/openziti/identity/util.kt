@@ -103,7 +103,7 @@ internal fun loadKeystore(f: File, pwd: CharArray): KeyStore {
 
 internal fun loadKeystore(stream: InputStream, pwd: CharArray): KeyStore {
     val log = ZitiLog()
-    val ks = loadKeystore(stream, pwd, log);
+    val ks = loadKeystore(stream, pwd, log)
     if (ks != null) {
         return ks
     }
