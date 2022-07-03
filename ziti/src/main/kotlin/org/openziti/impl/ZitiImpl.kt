@@ -84,8 +84,8 @@ internal object ZitiImpl : Logged by ZitiLog() {
     }
 
     internal fun loadContext(id: ByteArray): ZitiContextImpl {
-        val ks = loadKeystore(id);
-        return loadContext(ks, null);
+        val ks = loadKeystore(id)
+        return loadContext(ks, null)
     }
 
     fun init(c: ByteArray, seamless: Boolean) {
