@@ -1,0 +1,33 @@
+plugins {
+	id 'java'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+ext {
+   javaMainClass = "com.example.restservice.SimpleClient"
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation('org.openziti:ziti:0.23.12')
+	implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+	implementation 'org.slf4j:slf4j-api:1.7.36'
+	implementation 'org.slf4j:slf4j-simple:1.7.36'
+}
+
+task runWithJavaExec(type: JavaExec) {
+    group = "Execution"
+    description = "Run the OpenZiti demo client"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = javaMainClass
+}
+
+test {
+	useJUnitPlatform()
+}

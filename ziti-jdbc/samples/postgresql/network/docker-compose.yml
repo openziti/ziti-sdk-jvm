@@ -1,0 +1,70 @@
+version: '2.4'
+services:
+  ziti-controller:
+    image: "${ZITI_IMAGE}:${ZITI_VERSION}"
+    env_file:
+      - ./.env
+    ports:
+      - "1280:1280"
+    networks:
+      ziti:
+        aliases:
+          - ziti-edge-controller
+    volumes:
+      - ziti-fs:/openziti
+    entrypoint:
+      - "/openziti/scripts/run-controller.sh"
+
+  ziti-edge-router:
+    image: "${ZITI_IMAGE}:${ZITI_VERSION}"
+    depends_on:
+      - ziti-controller
+    environment:
+      - ZITI_CONTROLLER_RAWNAME="${ZITI_CONTROLLER_RAWNAME}"
+      - ZITI_EDGE_CONTROLLER_RAWNAME="${ZITI_EDGE_CONTROLLER_RAWNAME}"
+      - ZITI_EDGE_ROUTER_RAWNAME=ziti-edge-router
+      - ZITI_EDGE_ROUTER_ROLES=public
+    ports:
+      - "3022:3022"
+    networks:
+      ziti:
+        aliases:
+          - ziti-edge-router
+    volumes:
+      - ziti-fs:/openziti
+    entrypoint: /bin/bash
+    command: "/openziti/scripts/run-router.sh edge"
+
+  postgres-db:
+    image: postgres
+    #ports:
+    #  - 5432:5432
+    networks:
+      - ziti
+    volumes:
+     # Uncomment to save sql data between container restarts
+     # - ./data/db:/var/lib/postgresql/data
+      - ./postgres-setup.sh:/docker-entrypoint-initdb.d/postgres-setup.sh
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  database-tunneler:
+    image: 'netfoundry/ziti-tunnel:latest'
+    depends_on:
+      - ziti-edge-router
+    networks:
+      - ziti
+    volumes:
+      - ./tunnel:/netfoundry
+    environment:
+      - NF_REG_NAME=databaseTunneler
+    command:
+      - host
+
+networks:
+  ziti:
+    driver: bridge
+volumes:
+  ziti-fs:
