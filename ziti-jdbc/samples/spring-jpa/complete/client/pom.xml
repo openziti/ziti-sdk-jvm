@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.example</groupId>
+	<artifactId>openziti-service-client-initial</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>openziti-service-client-complete</name>
+	<description>Demo project for OpenZiti and Spring Boot</description>
+	<dependencies>
+		<dependency>
+			<groupId>org.openziti</groupId>
+			<artifactId>ziti</artifactId>
+			<version>0.23.13</version>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>4.10.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.36</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.36</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<release>11</release>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
+
+				<configuration>
+					<executable>java</executable>
+					<arguments>
+						<argument>--add-opens java.base/java.net=ALL-UNNAMED</argument>
+						<argument>-classpath</argument>
+						<classpath />
+						<argument>com.example.restservice.SimpleClient</argument>
+					</arguments>
+<!--					<mainClass>com.example.restservice.SimpleClient</mainClass>-->
+<!--					<arguments>-->
+<!--						<argument>&#45;&#45;add-opens java.base/java.net=ALL-UNNAMED</argument>-->
+<!--					</arguments>-->
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
