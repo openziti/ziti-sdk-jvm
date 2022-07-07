@@ -11,7 +11,7 @@ ziti edge enroll -j /openziti/network-setup/client.jwt
 #ziti edge enroll -j /openziti/network-setup/database.jwt
 
 echo Adding databases attribute to identity for postgres router
-ziti edge update identity ziti-database-router -a databases
+ziti edge update identity ziti-edge-router -a databases
 
 echo Creating demo-service
 ziti edge create config demo-service-config ziti-tunneler-client.v1 '{"hostname": "example.web","port": 8080}'

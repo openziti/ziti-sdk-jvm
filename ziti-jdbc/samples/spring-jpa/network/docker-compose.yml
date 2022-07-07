@@ -18,7 +18,7 @@ services:
   example-network-init-container:
     image: "${ZITI_IMAGE}:${ZITI_VERSION}"
     depends_on:
-      - ziti-database-router
+      - ziti-edge-router
     environment:
       - ZITI_CONTROLLER_RAWNAME="${ZITI_CONTROLLER_RAWNAME}"
       - ZITI_EDGE_CONTROLLER_RAWNAME="${ZITI_EDGE_CONTROLLER_RAWNAME}"
@@ -38,39 +38,6 @@ services:
       - "/openziti/scripts/run-with-ziti-cli.sh"
     command: 
       - "/openziti/network-setup/network-setup.sh"
-
-  ziti-database-router:
-    image: "${ZITI_IMAGE}:${ZITI_VERSION}"
-    depends_on:
-      - ziti-controller
-    environment:
-      - ZITI_CONTROLLER_RAWNAME="${ZITI_CONTROLLER_RAWNAME}"
-      - ZITI_EDGE_CONTROLLER_RAWNAME="${ZITI_EDGE_CONTROLLER_RAWNAME}"
-      - ZITI_EDGE_ROUTER_RAWNAME=ziti-database-router
-      - ZITI_EDGE_ROUTER_ROLES=databases
-    #ports:
-    #  - "3022:3022"
-    networks:
-      - zitiblue
-      - zitired
-    volumes:
-      - ziti-fs:/openziti
-    entrypoint: /bin/bash
-    command: "/openziti/scripts/run-router.sh edge"
-
-#  ziti-tunneler:
-#    image: 'netfoundry/ziti-tunnel:todtest'
-#    depends_on:
-#      - ziti-edge-router
-#    networks:
-#      - zitiblue
-#    volumes:
-#      - .:/netfoundry
-#    environment:
-#      - NF_REG_NAME=database
-#      - NF_REG_WAIT=240
-#    command:
-#      - host
 
 volumes:
   postgres-fs:
