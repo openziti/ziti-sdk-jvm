@@ -38,3 +38,9 @@ out/
 !/.idea/copyright/
 !/.idea/copyright/*
 
+#
+# Transient Sample Files
+#
+ziti-jdbc/samples/spring-jpa/network/*.json
+ziti-jdbc/samples/spring-jpa/network/*.jwt
+ziti-jdbc/samples/spring-jpa/network/simplified-docker-compose.yml
