@@ -47,8 +47,8 @@ The zdbc driver needs your ziti network identity to connect. There are three way
 1. Configure the Squirrel-Sql PostgreSQL driver
     1. Add the PostgreSQL jar file to the driver's `Extra Class Path`
     1. Click 'List Drivers' and select `org.openziti.jdbc.ZitiDriver` in the `Class Name` field
-    <br>![Edit Driver](/images/Driver-Edit.png)
-    <br>![Configure Driver](/images/Driver-Details.png)
+    <br>![Edit Driver](images/Driver-Edit.png)
+    <br>![Configure Driver](images/Driver-Details.png)
 1. Create a PostgreSQL alias with the following values
     1. Name: `Ziti example PostgreSQL`
     1. Driver: `PostgreSQL`
@@ -56,11 +56,11 @@ The zdbc driver needs your ziti network identity to connect. There are three way
     1. User Name: `postgres`
     1. Password: `postgres`
     1. The Ziti Identity file is provided via driver properties.  Click the Properties button and set the zitiIdentityFile property to the java-identity.json file created during the network setup
-    <br>![Create Alias](/images/Alias-Create.png)
-    <br>![Alias Details](/images/Alias-Details.png)
-    <br>![Open Properties](/images/Alias-OpenProps.png)
-    <br>![Open Properties](/images/Alias-SelectProps.png)
-    <br>![Set Property](/images/Alias-SetProp.png)
+    <br>![Create Alias](images/Alias-Create.png)
+    <br>![Alias Details](images/Alias-Details.png)
+    <br>![Open Properties](images/Alias-OpenProps.png)
+    <br>![Open Properties](images/Alias-SelectProps.png)
+    <br>![Set Property](images/Alias-SetProp.png)
 
 # Example of integrating into a Java application
 This repository includes a coupld of examples using Java to connect to a dark database.
