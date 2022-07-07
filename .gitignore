@@ -35,6 +35,9 @@ build/
 *.iml
 out/
 
+**/.idea/*
+**/target/*
+
 !/.idea/copyright/
 !/.idea/copyright/*
 
