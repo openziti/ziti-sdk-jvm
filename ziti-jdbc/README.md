@@ -34,6 +34,7 @@ The zdbc driver needs your ziti network identity to connect. There are three way
 ## Requirements
 1. A Ziti network and database: (https://github.com/openziti/ziti-sdk-jvm/blob/main/samples/jdbc-postgres/cheatsheet.md) 
 1. Squirrel-Sql client: (http://squirrel-sql.sourceforge.net/#installation)
+1. Postgresql JDBC driver: (https://search.maven.org/artifact/org.postgresql/postgresql)
 1. Ziti ZDBC wrapper full jar: (this project): (https://search.maven.org/search?q=g:org.openziti&a=ziti-jdbc&l:full)
 
 ## Step by Step
@@ -52,7 +53,7 @@ The zdbc driver needs your ziti network identity to connect. There are three way
 1. Create a PostgreSQL alias with the following values
     1. Name: `Ziti example PostgreSQL`
     1. Driver: `PostgreSQL`
-    1. URL: `zdbc:postgresql://zitified-postgres/simpledb`
+    1. URL: `jdbc:zity:postgresql://zitified-postgres/simpledb`
     1. User Name: `postgres`
     1. Password: `postgres`
     1. The Ziti Identity file is provided via driver properties.  Click the Properties button and set the zitiIdentityFile property to the java-identity.json file created during the network setup
@@ -64,5 +65,5 @@ The zdbc driver needs your ziti network identity to connect. There are three way
 
 # Example of integrating into a Java application
 This repository includes a coupld of examples using Java to connect to a dark database.
-* (samples/postgresql/README.md): Postgresql example using the JDBC DriverManager to connect to a dark database.
-* (samples/spring-jpa/README.md): A learning excercise adding spring-data-jpa and spring-data-rest to host a dark http server that connects to a dark postgres database
+* [samples/postgresql/README.md](samples/postgresql/README.md): Postgresql example using the JDBC DriverManager to connect to a dark database.
+* [samples/spring-jpa/README.md](samples/spring-jpa/README.md): A learning excercise adding spring-data-jpa and spring-data-rest to host a dark http server that connects to a dark postgres database
