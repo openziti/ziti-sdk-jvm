@@ -18,6 +18,7 @@ rootProject.name = 'ziti-jvm'
 include 'ziti'
 include 'ziti-netty'
 include 'ziti-springboot'
+include 'ziti-springboot-client'
 
 if (properties.buildForAndroid == "true") {
     include 'ziti-android'
@@ -32,4 +33,5 @@ include ':samples:ziti-netty-samples'
 include ':samples:terminators-sample'
 include ':samples:sample-okhttp'
 include ':samples:ziti-spring-boot'
+include ':samples:ziti-spring-boot-client'
 

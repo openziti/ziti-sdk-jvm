@@ -29,6 +29,7 @@ import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.security.KeyStore
 import javax.net.SocketFactory
+import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
 
 /**
@@ -98,6 +99,9 @@ object Ziti {
 
     @JvmStatic
     fun getSSLSocketFactory(): SSLSocketFactory = AsyncTLSSocketFactory()
+
+    @JvmStatic
+    fun getSSLSocketFactory(ctx: SSLContext): SSLSocketFactory = AsyncTLSSocketFactory(ctx)
 
     @JvmStatic
     fun getDNSResolver(): DNSResolver = ZitiDNSManager

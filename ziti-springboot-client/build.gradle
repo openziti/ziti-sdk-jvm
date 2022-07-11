@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2018-2021 NetFoundry Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+    id 'java'
+    id 'org.jetbrains.dokka'
+    id 'maven-publish'
+
+}
+
+ext {
+    description "Ziti adapter for Spring Boot Client(s)"
+    springbootVersion = '2.6.1'
+    apacheHttpClientVerion = '4.5.13'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.springframework.boot:spring-boot:${springbootVersion}")
+    implementation("org.springframework.boot:spring-boot-autoconfigure:${springbootVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-web:${springbootVersion}")
+    implementation("org.apache.httpcomponents:httpclient:${apacheHttpClientVerion}")
+    implementation("commons-beanutils:commons-beanutils:1.9.4")
+
+    compileOnly('org.projectlombok:lombok:1.18.24')
+    annotationProcessor('org.projectlombok:lombok:1.18.24')
+
+    implementation(project(":ziti"))
+
+}
+
+tasks.register('sourcesJar', Jar) {
+    from sourceSets.main.java.srcDirs
+    classifier "sources"
+}
+
+tasks.register('dokkaJar', Jar) {
+    classifier('javadoc')
+    from dokkaJavadoc.outputDirectory
+}
+
+artifacts {
+    archives(sourcesJar)
+    archives(dokkaJar)
+}
+
+publishing {
+    publications {
+        zitiNetty(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact dokkaJar
+        }
+    }
+}
+
+apply from: rootProject.file('publish.gradle')
