@@ -35,4 +35,4 @@ include ':samples:terminators-sample'
 include ':samples:sample-okhttp'
 include ':samples:ziti-spring-boot'
 include ':samples:ziti-spring-boot-client'
-
+include ':samples:ziti-jdbc-postgresql'

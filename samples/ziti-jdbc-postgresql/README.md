@@ -9,17 +9,17 @@ This project contains a simple java application that uses the [OpenZiti](https:/
 # Building the sample
 Compilation is done using the Maven build tooling.
 
-1. Change into the postgresql sample directory
-1. execute `mvn clean compile`
+1. Change into the `ziti-sdk-jvm/samples/ziti-jdbc-postgresql` sample directory
+1. execute `../../gradlew -PbuildForAndroid=false build`
 
 # Setting up the example Ziti network
 The network directory in the source repository contains a script to start and configure an OpenZiti network for this sample.  You can read the [network README.md](network/README.md) for instructions, or just change into the `network` subdirectory and run `setup.sh` if you're feeling lucky.
 
 # Running the example
-Running the example is done using the Maven exec plugin. If you ran the network setup script, then you can run the example from the sample directory using:
+Running the example is done using the gradle run facility. If you ran the network setup script, then you can run the example from the sample directory using:
 
 ```
-mvn exec:java
+../../gradlew -PbuildForAndroid=false run
 ```
 
 ## Example Output

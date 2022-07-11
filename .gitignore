@@ -47,3 +47,6 @@ out/
 ziti-jdbc/samples/spring-jpa/network/*.json
 ziti-jdbc/samples/spring-jpa/network/*.jwt
 ziti-jdbc/samples/spring-jpa/network/simplified-docker-compose.yml
+
+samples/ziti-jdbc-postgresql/network/databaseClient.json
+samples/ziti-jdbc-postgresql/network/tunnel
