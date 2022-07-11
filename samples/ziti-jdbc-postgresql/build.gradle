@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry Inc.
+ * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ziti-jvm'
-include 'ziti'
-include 'ziti-netty'
-include 'ziti-springboot'
-include 'ziti-jdbc'
-
-if (properties.buildForAndroid == "true") {
-    include 'ziti-android'
+plugins {
+	id 'java'
 }
 
-include ':samples:ziti-enroller'
-include ':samples:ziti-half-close'
-include ':samples:sample'
-include ':samples:http-sample'
-include ':samples:sample-host'
-include ':samples:ziti-netty-samples'
-include ':samples:terminators-sample'
-include ':samples:sample-okhttp'
-include ':samples:ziti-spring-boot'
-include ':samples:ziti-jdbc-postgresql'
+ext {
+   javaMainClass = "org.openziti.jdbc.PostgresqlExample"
+}
 
+dependencies {
+	implementation project(':ziti-jdbc')
+	implementation project(':ziti')
+        implementation 'org.postgresql:postgresql:42.2.23'
+        implementation deps.slf4jSimple
+}
+
+task runWithJavaExec(type: JavaExec) {
+    group = "Execution"
+    description = "Run the ZDBC example"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = javaMainClass
+    args 'network/databaseClient.json'
+}
