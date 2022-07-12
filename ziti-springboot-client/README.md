@@ -6,7 +6,7 @@ Project goals:
 
 ## Configuration
 To enable auto configuration of the Ziti beans add `@EnableZitiHttpClient` to either a @Configuration class or your main application
-```
+```java
 @SpringBootApplication
 @EnableZitiHttpClient
 public class SampleApplication {
@@ -21,7 +21,7 @@ All ziti related beans are created with a prefix of `ziti`. Overriding any of th
 
 ### Simple Ziti file based context
 To connect using a ziti connection add a ziti section to your config:
-```
+```yaml
 spring:
   ziti:
     httpclient:
@@ -30,12 +30,16 @@ spring:
 ```
 the file `client.zid` must be an enrolled token.
 Then to use the ziti rest template you autowire it as usual but with a qualifier.
-```
+```java
+@Configuration
+public class RestTemplateCaller {
+
   @Autowired
   public RestTemplateCaller(@Qualifier("zitiRestTemplate") RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
   }
 
+}
 ```
 The ziti rest template is now ready to use just like any other rest template but it will resolve addresses and connect to services through your ziti controller.
 Highly recommended not to use it for other public/external services even if it works to do so.
@@ -43,7 +47,7 @@ To read more about ziti services please see [ziti service](https://openziti.gith
 
 ### Ziti identity from other sources
 To override the socket factory in order to provide your own identity you can do the following:
-```
+```java
 @Configuration
 public class SampleConfiguration {
 
@@ -52,7 +56,7 @@ public class SampleConfiguration {
   @Bean("zitiConnectionSocketFactory")
   public ZitiConnectionSocketFactory connectionSocketFactory() throws IOException {
     if (zitiConnectionSocketFactory == null) {
-      try (InputStream is = <<.....>> ) {
+      try (InputStream is = /* insert input stream creation here */ ) {
         zitiConnectionSocketFactory = new ZitiConnectionSocketFactory(is);
       }
     }
@@ -71,7 +75,7 @@ One such example would be to read from a secrets manager or a vault where the id
 
 ### Overriding RestTemplate or RestTemplateBuilder features
 The configuration can also include a RestTemplate or RestTemplateBuilder bean in order to customize it.
-```
+```java
 @Configuration
 public class SampleConfiguration {
 
@@ -84,7 +88,7 @@ public class SampleConfiguration {
 }
 ```
 or
-```
+```java
 @Configuration
 public class SampleConfiguration {
 
