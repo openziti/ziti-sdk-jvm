@@ -39,6 +39,7 @@ Then to use the ziti rest template you autowire it as usual but with a qualifier
 ```
 The ziti rest template is now ready to use just like any other rest template but it will resolve addresses and connect to services through your ziti controller.
 Highly recommended not to use it for other public/external services even if it works to do so.
+To read more about ziti services please see [ziti service](https://openziti.github.io/ziti/services/overview.html).
 
 ### Ziti identity from other sources
 To override the socket factory in order to provide your own identity you can do the following:
@@ -107,6 +108,10 @@ Autowire the 'zitiRestTemplate' into your application and use it to connect to z
 Try the [complete sample](../samples/ziti-spring-boot-client)
 
 ### Reference Documentation
+* [ziti service](https://openziti.github.io/ziti/services/overview.html)
 
 For further reference, please consider the following sections:
 * [Using RestTemplate in Spring](https://springframework.guru/using-resttemplate-in-spring/)
+
+An example of running a service is in our samples
+* Ziti Spring Server [sample](../samples/ziti-spring-boot)

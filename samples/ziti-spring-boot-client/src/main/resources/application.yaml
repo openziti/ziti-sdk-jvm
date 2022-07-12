@@ -1,7 +1,7 @@
 
 logging:
   level:
-    org.openziti: TRACE
+    org.openziti: WARN
 server:
   port: 0
 
