@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2018-2022 NetFoundry, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+	id 'java'
+}
+
+ext {
+   javaMainClass = "com.example.restservice.SimpleClient"
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation('org.openziti:ziti:0.23.12')
+	implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+	implementation 'org.slf4j:slf4j-api:1.7.36'
+	implementation 'org.slf4j:slf4j-simple:1.7.36'
+}
+
+task runWithJavaExec(type: JavaExec) {
+    group = "Execution"
+    description = "Run the OpenZiti demo client"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = javaMainClass
+}

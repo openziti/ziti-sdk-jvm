@@ -35,6 +35,19 @@ build/
 *.iml
 out/
 
+**/.idea/*
+**/target/*
+
 !/.idea/copyright/
 !/.idea/copyright/*
 
+#
+# Transient Sample Files
+#
+samples/ziti-jdbc-spring-jpa/network/*.json
+samples/ziti-jdbc-spring-jpa/network/*.jwt
+samples/ziti-jdbc-spring-jpa/network/simplified-docker-compose.yml
+samples/ziti-jdbc-spring-jpa/network/.env
+
+samples/ziti-jdbc-postgresql/network/databaseClient.json
+samples/ziti-jdbc-postgresql/network/tunnel

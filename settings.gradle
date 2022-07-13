@@ -19,6 +19,7 @@ include 'ziti'
 include 'ziti-netty'
 include 'ziti-springboot'
 include 'ziti-springboot-client'
+include 'ziti-jdbc'
 
 if (properties.buildForAndroid == "true") {
     include 'ziti-android'
@@ -34,4 +35,8 @@ include ':samples:terminators-sample'
 include ':samples:sample-okhttp'
 include ':samples:ziti-spring-boot'
 include ':samples:ziti-spring-boot-client'
-
+include ':samples:ziti-jdbc-postgresql'
+include ':samples:ziti-jdbc-spring-jpa:initial:server'
+include ':samples:ziti-jdbc-spring-jpa:initial:client'
+include ':samples:ziti-jdbc-spring-jpa:complete:server'
+include ':samples:ziti-jdbc-spring-jpa:complete:client'
