@@ -1,0 +1,12 @@
+
+logging:
+  level:
+    org.openziti: WARN
+server:
+  port: 0
+
+spring:
+  ziti:
+    httpclient:
+      identity:
+        file: classpath:client1.zid
