@@ -386,7 +386,7 @@ If all is working then you should see this in the client output:
 
 # Dig Deeper
 * **OpenZiti documentation:** https://openziti.github.io/ziti/overview.html
-* **OpenZiti ZDBC Driver: ** https://github.com/openziti-test-kitchen/zdbc
+* **OpenZiti ZDBC Driver:** https://github.com/openziti-test-kitchen/zdbc
 * **OpenZiti Github project:** https://github.com/openziti
 * **NetFoundry hosted OpenZiti NaaS offering:** https://netfoundry.io
 
