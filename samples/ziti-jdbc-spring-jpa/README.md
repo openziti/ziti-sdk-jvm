@@ -43,13 +43,13 @@ The `initial` and `complete`directories contain:
 This exercise will use a very simple OpenZiti network.
 
 <p align="center">
-<img id="exerciseNetworkImage" src="images/DemoNetwork.png" alt="exercise OpenZiti Network" width="300"/>
+<img id="exerciseNetworkImage" src="images/example-network.png" alt="exercise OpenZiti Network" width="300"/>
 </p>
 
 It isn't important right now to understand all components of the OpenZiti network. The important things you need to know are:
 1. The controller manages the network. It is responsible for configuration, authentication, and authorization of components that connect to the OpenZiti network.
 2. The router delivers traffic from the client to the server and back again.
-3. The tunneler provides access to the Postgres database running in docker
+3. The public edge router provides access to the Postgres database running in docker
 
 Want to know more about OpenZiti? Head over to https://openziti.github.io/ziti/overview.html#overview-of-a-ziti-network.
 
