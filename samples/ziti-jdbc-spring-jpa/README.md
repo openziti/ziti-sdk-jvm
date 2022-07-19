@@ -1,7 +1,7 @@
 # Connecting to a dark database using ZDBC and Spring JPA
-In this example, we will take the dark web application you built in [Hosting an OpenZiti service using Spring boot](https://blogs.oracle.com/javamagazine/post/java-zero-trust-openziti) and extend it to store greetings in a dark postgres database.  
+In this exercise, we will take the dark web application you built in [Hosting an OpenZiti service using Spring boot](https://blogs.oracle.com/javamagazine/post/java-zero-trust-openziti) and extend it to store greetings in a dark postgres database.  
 
-You didn't do that example?   That's OK, this sample works as a stand-alone exercise too.
+You didn't do that exercise? That's OK, this sample works as a stand-alone exercise too.
 
 ## What you will need to get started
 * About 30 minutes
@@ -11,20 +11,39 @@ You didn't do that example?   That's OK, this sample works as a stand-alone exer
 * Access to a Linux environment with Bash 
   * A VM or WSL2 works for Windows users 
 
+## What you will build
+At the end of this exercise you will have a web application that:
+* Listens only on the OpenZiti network overlay
+* Uses JPA to store greeting content into a database that listens only on the OpenZiti network overlay
+
+You will also have a simple Java application that acts as a client to send and retrieve greeting data.
+
 ## Get the code
-The code can be downloaded from [here](https://github.com/openziti-test-kitchen/zdbc) or clone it using Git:
+The code is part of the OpenZiti Java SDK.  The SDK source can be downloaded from [here](https://github.com/openziti/ziti-sdk-jvm) or clone it using Git:
 ```shell
- git clone https://github.com/openziti-test-kitchen/zdbc.git
+ git clone https://github.com/openziti/ziti-sdk-jvm.git
 ```
+
+This README and the code for the exercise is in `<repository>/samples/ziti-jdbc-spring-jpa`.
 
 Like most Spring guides, you can start from scratch and complete each step, or you can bypass basic 
 setup steps that are already familiar to you. Either way, you end up with working code.
 
+## Code Layout
+The code is broken down into three top level directories:
+* **network:** Contains files necessary to start an OpenZiti network for this exercise
+* **initial:** Contains the skeleton of the exercise. This is a dark stateless server and a simple client to interact with it.
+* **complete:** Contains a completed exercise. 
+
+The `initial` and `complete`directories contain:
+* **client:** Client code that can be used to interact with the dark service
+* **server:** A spring boot project that runs the serve
+
 # Create the test OpenZiti network
-This example will use a very simple OpenZiti network.
+This exercise will use a very simple OpenZiti network.
 
 <p align="center">
-<img id="exampleNetworkImage" src="images/DemoNetwork.png" alt="Example OpenZiti Network" width="300"/>
+<img id="exerciseNetworkImage" src="images/DemoNetwork.png" alt="exercise OpenZiti Network" width="300"/>
 </p>
 
 It isn't important right now to understand all components of the OpenZiti network. The important things you need to know are:
@@ -36,42 +55,54 @@ Want to know more about OpenZiti? Head over to https://openziti.github.io/ziti/o
 
 Let's get into it and create the test network!
 
-## Get the OpenZiti quickstart simplified docker compose file
-OpenZiti provides a minimal docker compose file that runs the controller and one edge router.
-
-Open a terminal and change into the `<repository>/samples/spring-jpa/network` directory.
-
-Leave this terminal window open when you're done. You'll be using it to start and stop your ziti network. 
-
-```shell
-# Pull the docker compose file
-curl -o simplified-docker-compose.yml https://raw.githubusercontent.com/openziti/ziti/release-next/quickstart/docker/simplified-docker-compose.yml
-
-#Pull the docker environment file
-curl -o .env https://raw.githubusercontent.com/openziti/ziti/release-next/quickstart/docker/.env
-```
+## The OpenZiti quickstart simplified docker compose and environment files
+OpenZiti provides a minimal docker compose environment that runs the controller and one edge router. 
+The `startup.sh` script will automatically download these into the `network` folder for you if you are missing them.
 
 ## Start the OpenZiti network
-Starting and configuring the OpenZiti network is done with a script.  From the `<repository>/samples/spring-jpa/network`
-directory:
+Starting and configuring the OpenZiti network is done with a script.
 
+1. Open a terminal and change into the `<repository>/samples/ziti-jdbc-spring-jpa/network` directory.
+2. Leave this terminal window open when you're done. You'll be using it to start and stop your ziti network.
+3. Run:
 ```shell
-./express-network-config.sh
+./startup.sh
 ```
 
-The docker compose environment will write out three identity files (client.json, private-service.json, and database.json) that you will need for the Java code.
+The docker compose environment will create out two identity files (client.json and private-service.json) in the 
+`network` directory. These are the credentials that the client and service will use to connect to the OpenZiti network.
 
-This repository includes a file called [NETWORK-README.md](network/NETWORK-README.md) if you want to learn more about what the script is doing and why.
+This repository includes a file called [README.md](network/README.md) if you want to learn more about what the script is doing and why.
 
 # Resetting the OpenZiti demo network
 You may want to stop and clean up your OpenZiti demo network when you're done with this article or things have gone really off the rails.  
-From the `<repository>/samples/spring-jpa/network` directory:
+From the `<repository>/samples/ziti-jdbc-spring-jpa/network` directory:
 
 ```shell
 ./teardown.sh
 ```
 
-# Connect to a dark database
+# Test the network
+This is an optional step to verify that the OpenZiti network is up and running correctly. This test will use the
+`initial` client and server applications to exchange some data.
+
+1. Start the server. Open a terminal and change directory into `<repository>/samples/ziti-jdbc-spring-jpa/initial/server`
+```shell
+../../../../gradlew -PbuildForAndroid=false bootRun
+```
+2. Start the client. Open a terminal and change directory into `<repository>/samples/ziti-jdbc-spring-jpa/initial/client`
+```shell
+../../../../gradlew -PbuildForAndroid=false clean build run
+```
+
+If all is working then you should see this in the client output:
+```
+[main] INFO com.example.restservice.SimpleClient - Response Body: {"id":5,"content":"Hello, InitialExample!"}
+```
+
+Now that the network is up and running it's time to start working on the project!
+
+# Configure the project for Spring JPA
 There are a handful changes that need to be made to connect to a database over your OpenZiti network:
 
 1. Add the OpenZiti zdbc dependency
@@ -79,32 +110,25 @@ There are a handful changes that need to be made to connect to a database over y
 3. Add a JPA repository to store Greeting content
 4. Add application properties to configure the JPA data provider
 
-The example code contains an initial/server project. Pull that up in your favorite editor and follow along.
+The exercise code contains a `<repository>/samples/ziti-jdbc-spring-jpa/initial/server` skeleton project. 
+Pull that up in your favorite editor and follow along.
 
-## Add the OpenZiti zdbc dependency
+## Add the OpenZiti ZDBC dependency
 ZDBC is a JDBC driver provided by the OpenZiti project. The driver wraps the JDBC driver for your favorite database, 
 automatically configuring it to connect over your OpenZiti network. 
-See the [ZDBC Readme](https://github.com/openziti-test-kitchen/zdbc) for more information and to see which JDBC drivers are supported and tested.
+See the [ZDBC Readme](https://github.com/openziti/ziti-sdk-jvm/blob/main/ziti-jdbc/README.md) for more information and 
+to see which JDBC drivers are supported.
 
 Add the following to build.gradle:
 ```kotlin
-implementation 'org.openziti:zdbc:0.1.12'
+implementation 'org.openziti:ziti-jdbc:0.23.15'
 ```
-
-If you prefer maven, add the following to pom.xml:
-```xml
-<dependency>
-         <groupId>org.openziti</groupId>
-         <artifactId>zdbc</artifactId>
-         <version>0.1.12</version>
-</dependency>
-```
-
 
 ## Add a greeting JPA repository
-We'll use [Spring JPA](https://spring.io/projects/spring-data-jpa) for persistence and [Spring Data Rest](https://spring.io/projects/spring-data-rest) to expose the repository as a REST API.  
+We'll use [Spring JPA](https://spring.io/projects/spring-data-jpa) for persistence and
+[Spring Data Rest](https://spring.io/projects/spring-data-rest) to expose the repository as a REST API.  
 
-First up we need to add some dependencies.
+First up we need to add these libraries as dependencies for our project.
 
 ### JPA and Database Dependencies
 Add the following dependencies to build.gradle:
@@ -115,26 +139,7 @@ implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 implementation 'org.postgresql:postgresql'
 ```
 
-If you prefer maven, add the following to pom.xml:
-```xml
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-data-jpa</artifactId>
-</dependency>
-
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-data-rest</artifactId>
-</dependency>
-
-<dependency>
-  <groupId>org.postgresql</groupId>
-  <artifactId>postgresql</artifactId>
-  <scope>runtime</scope>
-</dependency>
-```
-
-Now that the dependencies are in place, the next step is to create the JPA repository
+Now that the dependencies are in place, the next step is to create the JPA repository.
 
 ### Greeting JPA repository
 The `Greeting` class needs to be converted to a JPA Entity. 
@@ -163,7 +168,7 @@ public class Greeting {
 }
 ```
 
-Next up is a JPA repository for the `Greeting` entity.  Create this file in `src/main/java/com/example/restservice`
+Next up is a JPA repository for the `Greeting` entity.  Create this class next to `Greeting` in `src/main/java/com/exercise/restservice`
 
 ```java
 @RepositoryRestResource(collectionResourceRel = "greetings", path = "greetings")
@@ -178,6 +183,7 @@ The `RepositoryRestResource` annotation will expose it via REST for us.
 Open the application properties file: `src/main/resources/application.properties`
 
 JPA and ZDBC require a couple of properties to be added here
+
 ```properties
 # Tell spring to use the OpenZiti ZDBC driver
 spring.datasource.driverClassName=org.openziti.jdbc.ZitiDriver
@@ -194,42 +200,42 @@ Most of these are standard JPA properties. Some interesting ones:
 * **spring.datasource.driverClassName:** This property tells Spring to use the OpenZiti ZDBC driver for making database
 connections
 * **spring.datasource.url:** This is the JDBC url for your database.  URLs that start with `zdbc` or `jdbc:ziti` are 
-recognized by the OpenZiti ZDBC driver. The ZDBC driver will remove the OpenZiti part of the URL before delegating.  So 
-`jdbc:ziti:postgresql://host:port/db` will become `jdbc:postgresql://host:port/db` when it is forwarded to the Postgresql
-JDBC driver
+recognized by the OpenZiti ZDBC driver. The ZDBC driver will remove the OpenZiti part of the URL before delegating to 
+the Postgresql driver.  So `jdbc:ziti:postgresql://host:port/db` will become `jdbc:postgresql://host:port/db`.
 
 ## Run the application
-That’s all you need to do!  The OpenZiti Java SDK will connect to the test network, authenticate, 
+That’s all you need to do! The OpenZiti Java SDK will connect to the test network, authenticate, 
 and bind your service so that OpenZiti overlay network clients can connect to it. The OpenZiti ZDBC driver
 will connect to the postgres database running in docker to store and retrieve greetings.
 
-To run the application, enter the following in a terminal window (in your project directory)
+Open a terminal and change directory into `<repository>/samples/ziti-jdbc-spring-jpa/initial/server`
 ```shell
-./gradlew bootRun
+../../../../gradlew -PbuildForAndroid=false bootRun
 ```
 
-If you use maven, run the following in a terminal window in your project directory:
-```shell
-./mvnw spring-boot:run
-```
+If you skipped updating the skeleton, then use the project from `<repository>/samples/ziti-jdbc-spring-jpa/complete/server` instead.
+The command to run is the same.
 
 # Test your new Spring Boot service
 The Spring Boot service you have just created is now totally dark. It has no listening ports at all. 
 Go ahead - run `netstat` and find out for yourself!
 
 ```shell
+# No listening port for the application
 netstat -anp | grep 8080
+# No listening port for the Postgresql database
 netstat -anp | grep 5432
 ```
 You should find nothing `LISTENING`. Now, the only way to access it is via the OpenZiti network!
-Let’s write a simple client to connect to it and check that everything is working correctly.
+Let’s update the initial client to connect to it and check that everything is working correctly.
 
-## Connect to OpenZiti
-This example includes a client project that makes connections using the OpenZiti Java SDK. 
-Open the skeleton project `spring-jpa/initial/client` to follow along.
+# Update the client
+This exercise includes a client project that makes connections using the OpenZiti Java SDK. 
+Open the skeleton project `<repository>/samples/ziti-jdbc-spring-jpa/initial/client` to follow along.
 
 If you want to skip building the client then you can skip ahead to [Run The Client](#run-the-client).
 
+## OpenZiti SDK connection
 The Java SDK needs to be initialized with an OpenZiti identity. It is polite to destroy the context 
 once the code is done, so we’ll wrap it up in a `try/catch` with a `finally` block.
 
@@ -259,7 +265,7 @@ OpenZiti network.
 ## Configure the HTTP client
 We'll use the [OkHttp](https://square.github.io/okhttp/) HTTP client to make requests to the service.
 
-This client needs some configuration to know how to use OpenZiti:
+This client needs some configuration to know how to use OpenZiti.
 
 ```java
  private static OkHttpClient newHttpClient() throws Exception {
@@ -294,7 +300,7 @@ This client needs some configuration to know how to use OpenZiti:
 The client has a connection to the test OpenZiti network and OkHttp knows how to connect using the OpenZiti overlay.
 Sending requests works just like any website that does not use OpenZiti.
 
-### Save a greeting
+### Post a greeting
 Saving a greeting means sending an HTTP POST request to our service.
 
 ```java
@@ -327,16 +333,57 @@ Listing greetings means sending an HTTP GET request to our service.
     log.info("Response Headers: {}", resp.headers());
     log.info("Response Body: {}", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(resp.body().bytes())));
 ```
+
 ## Run The Client
-To run the client, run the following in a terminal window (in the client project):
+Open a terminal and change directory into `<repository>/samples/ziti-jdbc-spring-jpa/initial/client`.
+
+If you skipped updating the skeleton, then change into `<repository>/samples/ziti-jdbc-spring-jpa/complete/client` instead.
+
+Run this command:
 ```shell
-./gradlew build run
+../../../../gradlew -PbuildForAndroid=false clean build run
 ```
 
-If you use maven, run the following in a terminal window (in the client project):
-```shell
-./mvnw package exec:java
+This will post a greeting to the server, then list all greetings posted so far.
+
+If all is working then you should see this in the client output:
 ```
+[main] INFO com.example.restservice.SimpleClient - Posting greeting: hello from 07/19/2022 09:14:16
+[main] INFO com.example.restservice.SimpleClient - Response Body: 
+[main] INFO com.example.restservice.SimpleClient - Listing greetings
+[main] INFO com.example.restservice.SimpleClient - Response Body: {
+  "_embedded" : {
+    "greetings" : [{
+      "content" : "hello at 07/19/2022 09:14:16",
+      "_links" : {
+        "self" : {
+          "href" : "http://example.web:8080/greetings/4"
+        },
+        "greeting" : {
+          "href" : "http://example.web:8080/greetings/4"
+        }
+      }
+    } ]
+  },
+  "_links" : {
+    "self" : {
+      "href" : "http://example.web:8080/greetings"
+    },
+    "profile" : {
+      "href" : "http://example.web:8080/profile/greetings"
+    }
+  },
+  "page" : {
+    "size" : 20,
+    "totalElements" : 1,
+    "totalPages" : 1,
+    "number" : 0
+  }
+}
+
+[main] INFO com.example.restservice.SimpleClient - Response Body: {"id":5,"content":"Hello, InitialExample!"}
+```
+
 # Dig Deeper
 * **OpenZiti documentation:** https://openziti.github.io/ziti/overview.html
 * **OpenZiti ZDBC Driver: ** https://github.com/openziti-test-kitchen/zdbc

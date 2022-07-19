@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
+import java.text.SimpleDateFormat
+
 plugins {
 	id 'java'
 }
 
 ext {
    javaMainClass = "com.example.restservice.SimpleClient"
+   currentDateTime = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date())
 }
 
 repositories {
@@ -38,4 +41,5 @@ task runWithJavaExec(type: JavaExec) {
     description = "Run the OpenZiti demo client"
     classpath = sourceSets.main.runtimeClasspath
     mainClass = javaMainClass
+    args "-p","hello at ${currentDateTime}","-l"
 }

@@ -34,4 +34,10 @@ task runWithJavaExec(type: JavaExec) {
     description = "Run the OpenZiti demo client"
     classpath = sourceSets.main.runtimeClasspath
     mainClass = javaMainClass
+    args "-g","InitialExample"
+
+}
+
+task prepareKotlinBuildScriptModel {
+
 }
