@@ -3,12 +3,10 @@
 echo Creating identities
 ziti edge create identity device private-service -o /openziti/network-setup/private-service.jwt -a "services"
 ziti edge create identity device client -o /openziti/network-setup/client.jwt -a "clients"
-#ziti edge create identity device database -o /openziti/network-setup/database.jwt -a "databases"
 
 echo Enrolling identities
 ziti edge enroll -j /openziti/network-setup/private-service.jwt
 ziti edge enroll -j /openziti/network-setup/client.jwt
-#ziti edge enroll -j /openziti/network-setup/database.jwt
 
 echo Adding databases attribute to identity for postgres router
 ziti edge update identity ziti-edge-router -a databases
