@@ -19,13 +19,13 @@ plugins {
     id 'org.jetbrains.dokka'
     id 'maven-publish'
 
-    id("org.jetbrains.kotlin.plugin.spring") version "1.6.10"
+    id("org.jetbrains.kotlin.plugin.spring") version "1.7.10"
 
 }
 
 ext {
     description "Ziti adapter for Spring Boot"
-    springbootVersion = '2.6.1'
+    springbootVersion = '2.7.1'
 }
 
 repositories {
