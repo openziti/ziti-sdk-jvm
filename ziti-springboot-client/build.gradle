@@ -23,7 +23,7 @@ plugins {
 
 ext {
     description "Ziti adapter for Spring Boot Client(s)"
-    springbootVersion = '2.6.1'
+    springbootVersion = '2.7.1'
     apacheHttpClientVerion = '4.5.13'
 }
 
