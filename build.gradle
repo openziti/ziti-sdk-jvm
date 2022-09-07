@@ -28,7 +28,7 @@ buildscript {
             lazysodiumJava: '5.1.1',
             lazysodiumAndroid: '5.0.2',
             kotlin: '1.7.10',
-            coroutines: '1.6.0',
+            coroutines: '1.6.4',
             slf4j: '1.7.36',
             jupiter: '5.8.2',
             androidxCore: '1.7.0',
