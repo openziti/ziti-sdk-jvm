@@ -20,9 +20,7 @@ jobs:
         with:
           java-version: 11
           distribution: temurin
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+          cache: gradle
 
       - name: Check
         run: ./gradlew check
