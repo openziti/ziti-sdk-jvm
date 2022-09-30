@@ -32,12 +32,12 @@ dependencies {
     api(project(':ziti'))
 
     implementation deps.kotlin
-    implementation "io.netty:netty-all:4.1.70.Final"
+    implementation "io.netty:netty-all:4.1.82.Final"
 
     testApi deps.jupiterApi
     testImplementation deps.jupiter
     testImplementation deps.kotlinTest
-    testImplementation "com.google.code.gson:gson:2.8.9"
+    testImplementation "com.google.code.gson:gson:2.9.1"
 }
 
 compileKotlin {
