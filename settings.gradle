@@ -21,10 +21,6 @@ include 'ziti-springboot'
 include 'ziti-springboot-client'
 include 'ziti-jdbc'
 
-if (properties.buildForAndroid == "true") {
-    include 'ziti-android'
-}
-
 include ':samples:ziti-enroller'
 include ':samples:ziti-half-close'
 include ':samples:sample'
