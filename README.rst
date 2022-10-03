@@ -18,9 +18,9 @@ Release Notes
 
 Obtaining SDK
 ------------
-The recommended way to use the Ziti SDK for Java in your project is to add the dependency
+The recommended way to use the OpenZiti SDK for Java in your project is to add the dependency
 using your favorite build tool.
-Our artifacts are hosted on JCenter, so add JCenter repo and dependency to your project.
+Our artifacts are hosted on Maven Central, so add repo(if needed) and dependency to your project.
 Make sure to use latest version from the top of this page.
 
 Maven
@@ -36,8 +36,8 @@ _____
                 <enabled>false</enabled>
             </snapshots>
             <id>central</id>
-            <name>bintray</name>
-            <url>https://jcenter.bintray.com</url>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
          </repository>
      </repositories>
      ....
@@ -58,12 +58,12 @@ ______
 
    repositories {
        ...
-       jcenter()
+       mavenCentral()
    }
    ...
    dependencies {
       ...
-      implementation 'org.openziti:ziti:0.13+'
+      implementation 'org.openziti:ziti:+' // TODO fix version
    }
 
 Building from Source
@@ -109,13 +109,6 @@ Note:
 
    This allows enrolling and storing multiple identity keys and certificates in a single key store (pkcs#12 file).
    However, typically an application instance would only have a single enrollment or identity
-
-Android Support
----------------
-Easiest way to start developing on Android with Ziti is to create your repo from
-our `template project <https://openziti.github.io/ziti-android-app/README.html>`_
-or just look at the code for inspiration.
-
 
 
 Getting Help
