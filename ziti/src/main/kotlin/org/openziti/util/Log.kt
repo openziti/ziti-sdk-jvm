@@ -45,7 +45,7 @@ interface Logged {
 
 class ZitiLog(name: String, private val delegate: Logged = SLF4JLoggedImpl(name)) : Logged by delegate {
     constructor() :
-            this(getCaller().split(".").last())
+            this(getCaller())
 
     companion object {
         fun getCaller(): String {
