@@ -73,6 +73,7 @@ interface ZitiContext: Identity {
     fun getService(addr: InetSocketAddress): Service?
     fun getService(name: String): Service?
     fun getService(name: String, timeout: Long): Service
+    fun getService(addr: InetSocketAddress, timeout: Long): Service
     fun getServiceTerminators(service: Service): Collection<ServiceTerminator>
 
     /**

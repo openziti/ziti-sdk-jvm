@@ -437,12 +437,31 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }.getOrElse { throw TimeoutException("failed to get service[$name] in ${timeout}ms") }
     }
 
+    override fun getService(addr: InetSocketAddress, timeout: Long): Service = getService(addr.hostString, addr.port, timeout)
+
     internal fun getService(host: String, port: Int): Service? {
         return servicesByName.values.find { svc ->
             svc.interceptConfig?.let {
                 it.addresses.any { it.matches(host) } && it.portRanges.any { r -> port in r.low..r.high }
             } ?: false
         }
+    }
+
+    internal fun getService(host: String, port: Int, timeout: Long): Service {
+        return getService(host, port) ?: runCatching {
+            runBlocking {
+                withTimeout(timeout) {
+                    serviceUpdates().filter {
+                        it.type == ZitiContext.ServiceUpdate.Available &&
+                            servicesByName.get(it.service.name)?.let { svc ->
+                                svc.interceptConfig?.let {
+                                    it.addresses.any { it.matches(host) } && it.portRanges.any { r -> port in r.low..r.high }
+                                } ?: false
+                            } ?: false
+                    }.first().service
+                }
+            }
+        }.getOrElse { throw TimeoutException("failed to get service[$host:$port] in ${timeout}ms") }
     }
 
     internal fun nextConnId() = connCounter.incrementAndGet()
