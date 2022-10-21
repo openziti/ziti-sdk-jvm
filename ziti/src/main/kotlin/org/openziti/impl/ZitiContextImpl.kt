@@ -325,7 +325,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
             controller.runCatching { getEdgeRouters() }
                 .onSuccess {
-                    i{"current edge routers = $it"}
+                    d{"current edge routers = $it"}
                     currentEdgeRouters.value = it }
                 .onFailure { w("failed to get current edge routers: $it") }
 

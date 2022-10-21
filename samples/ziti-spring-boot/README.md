@@ -1,5 +1,13 @@
 # Getting Started
 
+
+This is an example of how to use the Spring Boot integration for Ziti.
+
+It provides a simple "hello world" HTTP endpoint as a Ziti service.
+
+Check application.properties for configuration options (you need to set up at least the identity file and the service name).
+
+
 ### Reference Documentation
 
 For further reference, please consider the following sections:
