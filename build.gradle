@@ -20,7 +20,6 @@ buildscript {
         google()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.3.0")
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.7.20")
     }
 
@@ -30,8 +29,6 @@ buildscript {
             coroutines: '1.6.4',
             slf4j: '2.0.3',
             jupiter: '5.9.1',
-            androidxCore: '1.9.0',
-            androidxLifecycle: '2.5.1'
     ]
 
     ext.deps = [
