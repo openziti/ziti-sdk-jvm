@@ -62,13 +62,13 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
     }
 
     override fun doBeginRead() {
-        d("starting read")
-        val buf = ByteBuffer.allocate(16 * 1024)
+        v("starting read")
+        val buf = ByteBuffer.allocate(READ_BUFFER_SIZE)
 
         try {
             peer.read(buf, buf, Reader(this))
         } catch (rpe: ReadPendingException) { // already reading
-            d{"readOp is already active"}
+            v("readOp is already active")
         } catch (ex: Exception) {
             e(ex){"readOp failed"}
             pipeline().fireExceptionCaught(ex)
@@ -157,5 +157,6 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
 
     companion object {
         val META = ChannelMetadata(false)
+        const val READ_BUFFER_SIZE = 64 * 1024
     }
 }
