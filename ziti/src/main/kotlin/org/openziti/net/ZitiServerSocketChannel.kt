@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry Inc.
+ * Copyright (c) 2018-2022 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
             State.closed -> throw ClosedChannelException()
         }
 
-        val servResult = runCatching { ctx.getService(local.service) }
+        val servResult = runCatching { ctx.getService(local.service, 5000L) }
         if (servResult.isFailure) {
             throw BindException("no permission to bind to service[${local.service}]")
         }

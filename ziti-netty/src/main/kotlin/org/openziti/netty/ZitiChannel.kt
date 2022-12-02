@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2022 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.net.SocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
+import java.nio.channels.ReadPendingException
 
 
 class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
@@ -37,32 +38,41 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
             active = true
         }
     }
-    override fun doBeginRead() {
-        d("starting read")
-        val buf = ByteBuffer.allocate(16 * 1024)
 
-        peer.read(buf, this, object : CompletionHandler<Int, ZitiChannel>{
-            override fun completed(len: Int, c: ZitiChannel) {
-                t("received $len bytes")
-                if (len > 0) {
-                    buf.flip()
-                    val b = Unpooled.copiedBuffer(buf)
-                    buf.clear()
-                    c.pipeline().fireChannelRead(b)
-                } else if (len == -1) {
-                    eventLoop().execute {
-                        unsafe().close(voidPromise())
-                    }
-                    return
+    private class Reader(val c: ZitiChannel): CompletionHandler<Int, ByteBuffer> {
+        override fun completed(len: Int, buf: ByteBuffer) {
+            c.t("received $len bytes")
+            if (len > 0) {
+                buf.flip()
+                val b = Unpooled.copiedBuffer(buf)
+                buf.clear()
+                c.pipeline().fireChannelRead(b)
+            } else if (len == -1) {
+                c.eventLoop().execute {
+                    c.unsafe().close(c.voidPromise())
                 }
-                c.pipeline().fireChannelReadComplete()
-                peer.read(buf, c, this)
+                return
             }
+            c.pipeline().fireChannelReadComplete()
+        }
 
-            override fun failed(exc: Throwable, c: ZitiChannel) {
-                c.pipeline().fireExceptionCaught(exc)
-            }
-        })
+        override fun failed(exc: Throwable, buf: ByteBuffer) {
+            c.pipeline().fireExceptionCaught(exc)
+        }
+    }
+
+    override fun doBeginRead() {
+        v("starting read")
+        val buf = ByteBuffer.allocate(READ_BUFFER_SIZE)
+
+        try {
+            peer.read(buf, buf, Reader(this))
+        } catch (rpe: ReadPendingException) { // already reading
+            v("readOp is already active")
+        } catch (ex: Exception) {
+            e(ex){"readOp failed"}
+            pipeline().fireExceptionCaught(ex)
+        }
     }
 
     override fun isActive(): Boolean {
@@ -147,5 +157,6 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
 
     companion object {
         val META = ChannelMetadata(false)
+        const val READ_BUFFER_SIZE = 64 * 1024
     }
 }

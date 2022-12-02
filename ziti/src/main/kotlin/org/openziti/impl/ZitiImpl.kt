@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry Inc.
+ * Copyright (c) 2018-2022 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,7 +152,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
     }
 
     fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = contexts.map { c ->
-            c.getService(host, port)?.let { Pair(c, it) }
+            c.getServiceForAddress(host, port)?.let { Pair(c, it) }
         }.filterNotNull().firstOrNull()
 
     fun connect(addr: SocketAddress): ZitiConnection {

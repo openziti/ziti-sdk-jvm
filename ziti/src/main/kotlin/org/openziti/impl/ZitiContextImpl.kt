@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry Inc.
+ * Copyright (c) 2018-2022 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,7 +162,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
 
     internal fun dial(host: String, port: Int): ZitiConnection {
-        val service = getService(host, port) ?: throw ZitiException(Errors.ServiceNotAvailable)
+        val service = getServiceForAddress(host, port) ?: throw ZitiException(Errors.ServiceNotAvailable)
         return dial(service.name)
     }
 
@@ -179,7 +179,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun connect(host: String, port: Int): Socket {
         checkEnabled()
         val ch = open()
-        val s = getService(host, port) ?: throw ZitiException(Errors.ServiceNotAvailable)
+        val s = getServiceForAddress(host, port) ?: throw ZitiException(Errors.ServiceNotAvailable)
         runBlocking { ch.connectSuspend(ZitiAddress.Dial(s.name)) }
         return AsychChannelSocket(ch)
     }
@@ -419,7 +419,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             ))
     }
 
-    override fun getService(addr: InetSocketAddress): Service? = getService(addr.hostString, addr.port)
+    override fun getService(addr: InetSocketAddress): Service? = getServiceForAddress(addr.hostString, addr.port)
 
     override fun getService(name: String): Service? {
         return servicesByName.get(name)
@@ -439,7 +439,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun getService(addr: InetSocketAddress, timeout: Long): Service = getService(addr.hostString, addr.port, timeout)
 
-    internal fun getService(host: String, port: Int): Service? {
+    internal fun getServiceForAddress(host: String, port: Int): Service? {
         return servicesByName.values.find { svc ->
             svc.interceptConfig?.let {
                 it.addresses.any { it.matches(host) } && it.portRanges.any { r -> port in r.low..r.high }
@@ -448,7 +448,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     internal fun getService(host: String, port: Int, timeout: Long): Service {
-        return getService(host, port) ?: runCatching {
+        return getServiceForAddress(host, port) ?: runCatching {
             runBlocking {
                 withTimeout(timeout) {
                     serviceUpdates().filter {
