@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry Inc.
+ * Copyright (c) 2018-2022 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.goterl.lazysodium.utils.KeyPair
 import com.goterl.lazysodium.utils.SessionPair
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.sync.Mutex
 import org.openziti.Errors
 import org.openziti.ZitiAddress
@@ -39,7 +38,6 @@ import org.openziti.net.nio.readSuspend
 import org.openziti.net.nio.writeCompletely
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
-import org.openziti.util.transfer
 import java.io.ByteArrayOutputStream
 import java.io.Externalizable
 import java.io.IOException
@@ -63,6 +61,8 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
     AsynchronousSocketChannel(Provider),
     Channel.MessageReceiver,
     ZitiConnection,
+    InputChannel<ZitiSocketChannel>,
+    CoroutineScope by ctx,
     Logged by ZitiLog("ziti-conn[${ctx.name()}/${connId}]") {
 
     constructor(ztx:ZitiContextImpl): this(ztx, ztx.nextConnId())
@@ -101,7 +101,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
     var remote: SocketAddress? = null
     var local: ZitiAddress? = null
     val receiveQueue = Chan<ByteArray>(16)
-    val receiveBuff: ByteBuffer = ByteBuffer.allocate(32 * 1024).apply { flip() }
+    override val inputSupport = InputChannel.InputSupport(receiveQueue)
     val crypto = CompletableDeferred<Crypto.SecretStream?>()
 
     override fun getLocalAddress(): SocketAddress? = local
@@ -113,11 +113,10 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
     override fun <T : Any?> setOption(name: SocketOption<T>?, value: T): AsynchronousSocketChannel = this
 
     override fun isClosed() = !isOpen
+    override fun isConnected() = isOpen && state.get() != State.initial
 
     private var connectOp: Job? = null
-    private var readOp: Job? = null
     private var writeOp: Job? = null
-    private val readMutex = Mutex()
     private val writeMutex = Mutex()
 
     internal suspend fun <A: Any?> connectInternal(addr: ZitiAddress.Dial, attachment: A, handler: CompletionHandler<Void, in A>) {
@@ -210,18 +209,12 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
         return this
     }
 
-    override fun shutdownInput(): AsynchronousSocketChannel {
+    override fun shutdownInput(): ZitiSocketChannel {
         when(state.get()) {
-            State.initial -> throw NotYetConnectedException()
-            State.connecting -> {} // connecting process failed
-            State.connected -> {}
-            State.closed -> return this
-            else -> return this
+            State.connecting, State.connected -> deregister()
+            else -> {}
         }
-
-        deregister()
-        runCatching { receiveQueue.close() }
-        return this
+        return super.shutdownInput()
     }
 
     private fun deregister() {
@@ -235,10 +228,11 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
     override fun close() {
         connectOp?.cancel("close")
         writeOp?.cancel("close")
-        readOp?.cancel("close")
+
+        deregister()
+        super<InputChannel>.close()
 
         runCatching { shutdownOutput() }
-        runCatching { shutdownInput() }
         runCatching { closeInternal() }
     }
 
@@ -292,82 +286,17 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
     }
 
     override
-    fun <A : Any?> read(dst: ByteBuffer, timeout: Long, unit: TimeUnit,
+    fun <A : Any?> read(
+        dst: ByteBuffer, timeout: Long, unit: TimeUnit,
         att: A, handler: CompletionHandler<Int, in A>
-    ) {
-        read(arrayOf(dst), 0, 1, timeout, unit, att, object : CompletionHandler<Long, A>{
-            override fun completed(result: Long, a: A) = handler.completed(result.toInt(), a)
-            override fun failed(exc: Throwable?, a: A) = handler.failed(exc, a)
-        })
-    }
+    ) = super<InputChannel>.read(dst, timeout, unit, att, handler)
 
-    override fun read(dst: ByteBuffer?): Future<Int> {
-        val result = CompletableFuture<Int>()
-        read(dst, result, FutureHandler())
-        return result
-    }
+    override fun read(dst: ByteBuffer): Future<Int> = super<InputChannel>.read(dst)
 
-    override fun <A : Any?> read(dsts: Array<out ByteBuffer>, offset: Int, length: Int,
-                                 to: Long, unit: TimeUnit,
-                                 att: A, handler: CompletionHandler<Long, in A>) {
-        t{"reading state=$state"}
-
-        readMutex.tryLock() || throw ReadPendingException()
-
-        val slice = dsts.sliceArray(offset until offset + length)
-        val copied = receiveBuff.transfer(slice)
-        if (copied > 0) {
-            t{"reading completed[$copied]"}
-            readMutex.unlock()
-            handler.completed(copied, att)
-            return
-        }
-
-        if (state.get() == State.closed) {
-            readMutex.unlock()
-            throw ClosedChannelException()
-        }
-
-        val rop = ctx.async {
-            var count = 0L
-            t { "waiting for data with $receiveBuff" }
-
-            var data: ByteArray? = receiveQueue.receive()
-            do {
-                val dataBuf = ByteBuffer.wrap(data)
-                count += dataBuf.transfer(slice)
-                if (dataBuf.hasRemaining()) {
-                    t { "saving ${dataBuf.remaining()} for later" }
-                    receiveBuff.compact()
-                    receiveBuff.put(dataBuf)
-                    receiveBuff.flip()
-                    break
-                }
-                data = receiveQueue.tryReceive().getOrNull()
-            } while (data != null)
-
-            t { "transferred $count" }
-            count
-        }
-
-        readOp = rop
-
-        rop.invokeOnCompletion {
-            readOp = null
-            readMutex.unlock()
-
-            if (it == null) {
-                val count = rop.getCompleted()
-                handler.completed(count, att)
-            } else if (it is ClosedReceiveChannelException) {
-                handler.completed(-1, att)
-            } else if (it is CancellationException) {
-                handler.failed(AsynchronousCloseException(), att)
-            } else {
-                handler.failed(it, att)
-            }
-        }
-    }
+    override fun <A : Any?> read(
+        dsts: Array<out ByteBuffer>, offset: Int, length: Int,
+        to: Long, unit: TimeUnit, att: A, handler: CompletionHandler<Long, in A>
+    ) = super<InputChannel>.read(dsts, offset, length, to, unit, att, handler)
 
     override
     fun <A : Any?> write(src: ByteBuffer, to: Long, unit: TimeUnit?, att: A, handler: CompletionHandler<Int, in A>) {
