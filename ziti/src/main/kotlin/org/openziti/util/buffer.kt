@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2022 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,37 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.onSuccess
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.min
 
 internal val EMPTY = ByteBuffer.wrap(byteArrayOf())
 
-internal fun ByteBuffer.transfer (dsts: Array<out ByteBuffer>): Long  {
+/**
+ * Transfer `min(this.remaining(), dst.remaining())` bytes from this buffer
+ * to `dst`
+ * @param dst destination buffer
+ * @return number of bytes copied over
+ */
+internal fun ByteBuffer.transferTo(dst: ByteBuffer): Int {
+    val initPosition = dst.position()
+    if (this.remaining() > dst.remaining()) {
+        val sub = this.slice().limit(dst.remaining())
+        dst.put(sub)
+        this.position(this.position() + sub.limit())
+    } else {
+        dst.put(this)
+    }
+    return dst.position() - initPosition
+}
+
+internal fun ByteBuffer.transferTo (dsts: Array<out ByteBuffer>): Long  {
     var copied = 0L
-    for (b in dsts) {
-        val count = min(b.remaining(), this.remaining())
-        while(b.hasRemaining() && hasRemaining()) {
-            b.put(this.get())
-        }
-        copied += count
+    for (d in dsts) {
+        copied += this.transferTo(d)
         if (!this.hasRemaining()) break
     }
     return copied
 }
 
-internal class BufferPool(val capacity: Int, val bufferSize: Int, val direct: Boolean = false) {
+internal class BufferPool(capacity: Int, val bufferSize: Int, val direct: Boolean = false) {
     private val leftToAlloc = AtomicInteger(capacity)
     private val pool: Channel<ByteBuffer>
     init {
