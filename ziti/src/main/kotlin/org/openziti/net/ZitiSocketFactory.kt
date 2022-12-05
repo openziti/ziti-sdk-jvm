@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2022 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.openziti.net
 
 import org.openziti.Ziti
+import org.openziti.ZitiContext
 import org.openziti.impl.ZitiContextImpl
 import org.openziti.net.nio.AsychChannelSocket
 import org.openziti.net.nio.AsyncSocketImpl
@@ -29,11 +30,21 @@ import javax.net.SocketFactory
 /**
  *
  */
-internal class ZitiSocketFactory: SocketFactory() {
-    object ZitiConnector: AsyncSocketImpl.Connector, Logged by ZitiLog() {
+internal class ZitiSocketFactory(val contexts: () -> Collection<ZitiContext> ): SocketFactory() {
+
+    constructor(ztx: ZitiContext): this(contexts = { setOf(ztx) })
+
+    constructor(): this(contexts = { Ziti.getContexts() })
+
+    class ZitiConnector(val contexts: () -> Collection<ZitiContext>): AsyncSocketImpl.Connector, Logged by ZitiLog() {
+
+        companion object {
+            val Default = ZitiConnector { Ziti.getContexts() }
+        }
+
         override fun connect(addr: SocketAddress, timeout: Int): AsynchronousSocketChannel {
             val sockAddr = addr as InetSocketAddress
-            for (ctx in Ziti.getContexts()) {
+            for (ctx in contexts()) {
                 val ctxImpl = ctx as ZitiContextImpl
                 try {
                     val s = ctxImpl.getService(sockAddr)
@@ -49,7 +60,7 @@ internal class ZitiSocketFactory: SocketFactory() {
         }
     }
 
-    override fun createSocket(): Socket = AsychChannelSocket(AsyncSocketImpl(ZitiConnector))
+    override fun createSocket(): Socket = AsychChannelSocket(AsyncSocketImpl(ZitiConnector(this.contexts)))
 
     override fun createSocket(p0: String?, p1: Int): Socket {
         error("not implemented")

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2022 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,5 +83,25 @@ class ZitiSocketFactoryTest {
         println(resp.headers())
         val respBody = Gson().fromJson(resp.body()?.byteStream()?.reader(), JsonObject::class.java)
         println(respBody)
+    }
+
+    @Test
+    fun testConnect() {
+        val req = "GET /json HTTP/1.1\r\n"+
+                "Accept: */*\r\n" +
+                "Accept-Encoding: gzip, deflate\r\n" +
+                "Connection: close\r\n" +
+                "Host: httpbin.org\r\n" +
+                "User-Agent: HTTPie/1.0.2\r\n" +
+                "\r\n"
+
+        val zock = ctx.connect("httpbin.ziti", 80)
+        zock.getOutputStream().writer().apply {
+            write(req)
+            flush()
+        }
+
+        val resp = zock.getInputStream().reader().readText()
+        println(resp)
     }
 }
