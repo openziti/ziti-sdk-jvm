@@ -146,7 +146,7 @@ interface InputChannel<A : InputChannel<A>>: Logged, CoroutineScope {
         inputSupport.readOp = rop
 
         rop.invokeOnCompletion {
-            t{ "read completed ${it}\n ${it?.cause}"}
+            t{ "read completed ${it}"}
             inputSupport.readOp = null
             inputSupport.mut.runCatching { unlock() }
 

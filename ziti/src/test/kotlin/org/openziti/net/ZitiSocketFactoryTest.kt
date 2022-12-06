@@ -101,7 +101,8 @@ class ZitiSocketFactoryTest {
             flush()
         }
 
-        val resp = zock.getInputStream().reader().readText()
+        val resp = zock.getInputStream().reader().readLines()
+        assert(resp[0].startsWith("HTTP/1.1 200"))
         println(resp)
     }
 }
