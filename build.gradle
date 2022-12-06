@@ -29,6 +29,7 @@ buildscript {
             coroutines: '1.6.4',
             slf4j: '2.0.4',
             jupiter: '5.9.1',
+            gson: '2.10',
     ]
 
     ext.deps = [
@@ -39,6 +40,7 @@ buildscript {
             kotlinCoroutinesTest: "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.coroutines}",
             slf4jApi: "org.slf4j:slf4j-api:${versions.slf4j}",
             slf4jSimple: "org.slf4j:slf4j-simple:${versions.slf4j}",
+            gson: "com.google.code.gson:gson:${versions.gson}",
             jupiterApi: "org.junit.jupiter:junit-jupiter-api:${versions.jupiter}",
             jupiter: "org.junit.jupiter:junit-jupiter-engine:${versions.jupiter}"
     ]
