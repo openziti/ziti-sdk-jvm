@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2022 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,13 +58,17 @@ class StreamImpl(pair: SessionPair): Crypto.SecretStream {
 
     override fun encrypt(b: ByteArray): ByteArray {
         val cipher = ByteArray(b.size + SecretStream.ABYTES)
-        Crypto.sodium.cryptoSecretStreamPush(txState, cipher, b, b.size.toLong(), SecretStream.TAG_MESSAGE)
+        if (!Crypto.sodium.cryptoSecretStreamPush(txState, cipher, b, b.size.toLong(), SecretStream.TAG_MESSAGE)) {
+            error("encryption failed")
+        }
         return cipher
     }
 
     override fun decrypt(b: ByteArray): ByteArray {
         val plain = ByteArray(b.size - SecretStream.ABYTES)
-        Crypto.sodium.cryptoSecretStreamPull(rxState, plain, null, b, b.size.toLong())
+        if (!Crypto.sodium.cryptoSecretStreamPull(rxState, plain, null, b, b.size.toLong())) {
+            error("decryption failure")
+        }
         return plain
     }
 }

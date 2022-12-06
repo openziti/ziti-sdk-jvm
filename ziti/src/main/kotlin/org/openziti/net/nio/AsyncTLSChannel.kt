@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2022 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -383,7 +383,7 @@ class AsyncTLSChannel(
 
         if (plainReadBuf.hasRemaining()) {
             launch {
-                val count = plainReadBuf.transfer(dsts)
+                val count = plainReadBuf.transferTo(dsts)
                 readOp.set(false)
                 handler.completed(count, attachment)
             }
@@ -402,7 +402,7 @@ class AsyncTLSChannel(
                     inFlow.firstOrNull()
 
                 if (inBuf != null) {
-                    val len = inBuf.transfer(dsts)
+                    val len = inBuf.transferTo(dsts)
                     if (inBuf.hasRemaining()) {
                         plainReadBuf.compact()
                         plainReadBuf.put(inBuf)

@@ -26,7 +26,6 @@ import org.openziti.api.*
 import org.openziti.identity.Identity
 import org.openziti.net.*
 import org.openziti.net.dns.ZitiDNSManager
-import org.openziti.net.nio.AsychChannelSocket
 import org.openziti.net.nio.connectSuspend
 import org.openziti.net.routing.RouteManager
 import org.openziti.posture.PostureService
@@ -178,10 +177,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun connect(host: String, port: Int): Socket {
         checkEnabled()
-        val ch = open()
-        val s = getServiceForAddress(host, port) ?: throw ZitiException(Errors.ServiceNotAvailable)
-        runBlocking { ch.connectSuspend(ZitiAddress.Dial(s.name)) }
-        return AsychChannelSocket(ch)
+        getService(host, port, 10000L) // throws timeout exception if no service loaded
+        val sock = ZitiSocketFactory(this).createSocket()
+        sock.connect(InetSocketAddress.createUnresolved(host, port))
+        return sock
     }
 
     fun start(): Job = launch {
