@@ -23,7 +23,7 @@ ext {
 }
 
 dependencies {
-	implementation('org.openziti:ziti:0.23.16')
+	implementation('org.openziti:ziti:0.23.17')
 	implementation 'com.squareup.okhttp3:okhttp:4.10.0'
 	implementation 'org.slf4j:slf4j-api:2.0.5'
 	implementation 'org.slf4j:slf4j-simple:2.0.5'
