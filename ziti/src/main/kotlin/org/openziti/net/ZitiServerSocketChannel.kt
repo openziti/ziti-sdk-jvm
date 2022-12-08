@@ -20,9 +20,11 @@ import com.goterl.lazysodium.utils.Key
 import com.goterl.lazysodium.utils.KeyPair
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.openziti.ZitiAddress
+import org.openziti.api.Service
 import org.openziti.api.SessionType
 import org.openziti.crypto.Crypto
 import org.openziti.impl.ZitiContextImpl
@@ -31,6 +33,7 @@ import org.openziti.net.nio.FutureHandler
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.io.IOException
+import java.lang.Math.min
 import java.net.BindException
 import java.net.SocketAddress
 import java.net.SocketOption
@@ -39,13 +42,14 @@ import java.nio.ByteOrder
 import java.nio.channels.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.Channel as Chan
 
 internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousServerSocketChannel(null),
     Channel.MessageReceiver, Logged by ZitiLog() {
 
-    var localAddr: ZitiAddress.Bind? = null
-    lateinit var channel: Channel
+    lateinit var localAddr: ZitiAddress.Bind
+    var channel: Channel? = null
     val connId: Int = ctx.nextConnId()
     var state: State = State.initial
     lateinit var incoming: Chan<Message>
@@ -61,91 +65,119 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
 
     override fun isOpen(): Boolean = state != State.closed
 
+    private fun checkService(): Service {
+        require(::localAddr.isInitialized)
+
+        val servResult = runCatching { ctx.getService(localAddr.service, 5000L) }
+        val service = servResult.getOrNull() ?:
+        throw BindException("no permission to bind to service[${localAddr.service}]")
+
+        if (!service.permissions.contains(SessionType.Bind)) {
+            throw BindException("no permission to bind to service[${service.name}]")
+        }
+        return service
+    }
+
     override fun bind(local: SocketAddress?, backlog: Int): AsynchronousServerSocketChannel {
         if (local !is ZitiAddress.Bind) throw UnsupportedAddressTypeException()
-        when(state) {
+        when (state) {
             State.initial -> {}
             State.binding,
             State.bound -> throw AlreadyBoundException()
             State.closed -> throw ClosedChannelException()
         }
+        state = State.binding
+        localAddr = local
+        incoming = Chan(backlog)
 
-        val servResult = runCatching { ctx.getService(local.service, 5000L) }
-        if (servResult.isFailure) {
-            throw BindException("no permission to bind to service[${local.service}]")
+        checkService()
+
+        ctx.launch {
+            doBind()
+        }
+        return this
+    }
+
+    private suspend fun doBind(counter: Int = 0) {
+        d{
+            if (counter > 0) "starting rebind attempt[$counter]"
+            else "starting bind"
         }
 
-        val service = servResult.getOrNull() ?:
-            throw BindException("no permission to bind to service[${local.service}]")
+        delay(REBIND_DELAY * min(counter, MAX_REBIND_INTERVAL))
 
-        if (!service.permissions.contains(SessionType.Bind)) {
-            throw BindException("no permission to bind to service[${service.name}]")
+        val service = this.runCatching { checkService() }.getOrElse {
+            // this is hard error. service is not(no longer) available for binding
+            incoming.close(it)
+            return
         }
 
         if (service.encryptionRequired) {
             keyPair = Crypto.newKeyPair()
         }
 
-        runBlocking {
-            try {
-                val session = ctx.getNetworkSession(local.service, SessionType.Bind)
-                token = session.token
-                channel = ctx.getChannel(session)
-                channel.registerReceiver(connId, this@ZitiServerSocketChannel)
+        try {
+            val session = ctx.getNetworkSession(localAddr.service, SessionType.Bind)
+            token = session.token
+            val ch = ctx.getChannel(session)
+            ch.registerReceiver(connId, this@ZitiServerSocketChannel)
 
-                val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8)).apply {
-                    setHeader(Header.ConnId, connId)
-                    setHeader(Header.SeqHeader, 0)
-                    val bindId = local.identity ?: (if (local.useEdgeId) ctx.getId()?.name else null)
+            val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8)).apply {
+                setHeader(Header.ConnId, connId)
+                setHeader(Header.SeqHeader, 0)
+                val bindId = localAddr.identity ?: (if (localAddr.useEdgeId) ctx.getId()?.name else null)
 
-                    bindId?.let {
-                        setHeader(Header.TerminatorIdentityHeader, it)
-                    }
-                    keyPair?.let {
-                        setHeader(Header.PublicKeyHeader, it.publicKey.asBytes)
-                    }
+                bindId?.let {
+                    setHeader(Header.TerminatorIdentityHeader, it)
                 }
-
-                d("starting network connection ${session.id}/$connId")
-                val reply = channel.SendAndWait(connectMsg)
-                when (reply.content) {
-                    ZitiProtocol.ContentType.StateConnected -> {
-                        d("network connection established ${session.id}/$connId")
-                        incoming = Chan(backlog)
-                        localAddr = local
-                        state = State.bound
-                    }
-                    ZitiProtocol.ContentType.StateClosed -> {
-                        state = State.closed
-                        val err = reply.body.toString(Charsets.UTF_8)
-                        w("connection rejected: ${err}")
-                        channel.deregisterReceiver(connId)
-                        throw IOException(err)
-                    }
-                    else -> {
-                        state = State.closed
-                        channel.deregisterReceiver(connId)
-                        throw IOException("Invalid response type")
-                    }
+                keyPair?.let {
+                    setHeader(Header.PublicKeyHeader, it.publicKey.asBytes)
                 }
-            } catch (ex: Throwable) {
-                e("failed to bind", ex)
-                state = State.closed
-                throw BindException(ex.message)
             }
+
+            d("starting network connection ${session.id}/$connId")
+            val reply = ch.SendAndWait(connectMsg)
+            when (reply.content) {
+                ZitiProtocol.ContentType.StateConnected -> {
+                    d("network connection established ${session.id}/$connId")
+                    state = State.bound
+                    channel = ch
+                }
+                ZitiProtocol.ContentType.StateClosed -> {
+                    val err = reply.body.toString(Charsets.UTF_8)
+                    w("connection rejected: ${err}")
+                    ch.deregisterReceiver(connId)
+                    throw IOException(err)
+                }
+                else -> {
+                    ch.deregisterReceiver(connId)
+                    throw IOException("Invalid response type")
+                }
+            }
+        } catch (ex: Throwable) {
+            e(ex){"failed to bind. scheduling rebind"}
+            ctx.launch {
+                doBind(counter + 1)
+            }
+            d{"scheduled rebind"}
         }
-        return this
     }
 
-    override fun getLocalAddress(): SocketAddress? = localAddr
+    override fun getLocalAddress(): SocketAddress? {
+        if (!::localAddr.isInitialized)
+            return null
+
+        return if (isOpen()) localAddr else throw ClosedChannelException()
+    }
 
     override fun <A : Any?> accept(att: A, handler: CompletionHandler<AsynchronousSocketChannel, in A>) {
         if (state == State.closed) throw ClosedChannelException()
-        if (state != State.bound) throw NotYetBoundException()
+        if (state == State.initial) throw NotYetBoundException()
 
         ctx.launch {
             try {
                 val req = incoming.receive()
+                val ch = channel!!
 
                 val child = ZitiSocketChannel(ctx)
                 d{"accepting child conn[${child.connId}] on parent[$connId]"}
@@ -163,15 +195,15 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                     child.setupCrypto(sessKeys)
                 } ?: child.setupCrypto(null)
 
-                val startMsg = channel.SendAndWait(dialSuccess)
+                val startMsg = ch.SendAndWait(dialSuccess)
 
                 if (startMsg.content == ZitiProtocol.ContentType.StateConnected) {
                     child.state.set(ZitiSocketChannel.State.connected)
-                    channel.registerReceiver(child.connId, child)
-                    child.channel.complete(channel)
-                    child.startCrypto(channel)
+                    ch.registerReceiver(child.connId, child)
+                    child.channel.complete(ch)
+                    child.startCrypto(ch)
                     child.local = localAddr
-                    child.remote = ZitiAddress.Session("$connId", localAddr!!.service, req.getStringHeader(Header.CallerIdHeader))
+                    child.remote = ZitiAddress.Session("$connId", localAddr.service, req.getStringHeader(Header.CallerIdHeader))
 
                     handler.completed(child, att)
                 } else {
@@ -206,17 +238,26 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
             val unbind = Message(ZitiProtocol.ContentType.Unbind, token.toByteArray(Charsets.UTF_8)).apply {
                 setHeader(Header.ConnId, connId)
             }
-            runBlocking { channel.SendSynch(unbind) }
 
-            channel.deregisterReceiver(connId)
+            runBlocking {
+                channel?.let {
+                    it.SendSynch(unbind)
+                    it.deregisterReceiver(connId)
+                } }
+
         }
         state = State.closed
     }
 
     override suspend fun receive(msg: Result<Message>) {
-        msg.onSuccess { receive(it) }.onFailure {
-            state = State.closed
-            incoming.cancel()
+        msg.onFailure {
+            e(it){"received error. starting rebind"}
+            channel = null
+            ctx.launch { doBind(0) }
+        }
+
+        msg.onSuccess {
+            receive(it)
         }
     }
 
@@ -229,20 +270,25 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                         .setHeader(Header.ReplyFor, msg.seqNo)
                         .setHeader(Header.SeqHeader, 0)
 
-                    channel.Send(reject)
+                    channel?.Send(reject)
                 }
             }
             ZitiProtocol.ContentType.StateClosed -> {
                 incoming.close()
-                channel.deregisterReceiver(connId)
+                channel?.deregisterReceiver(connId)
                 state = State.closed
             }
             else -> {
                 e{"unexpected message[${msg.content}] on bound conn[$connId]"}
                 incoming.close()
                 state = State.closed
-                channel.deregisterReceiver(connId)
+                channel?.deregisterReceiver(connId)
             }
         }
+    }
+
+    companion object {
+        val REBIND_DELAY = 3.seconds
+        val MAX_REBIND_INTERVAL = 5
     }
 }

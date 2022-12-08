@@ -24,6 +24,7 @@ import org.openziti.util.ZitiLog
 import java.net.SocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
+import java.nio.channels.ClosedChannelException
 import java.nio.channels.CompletionHandler
 import java.nio.channels.ReadPendingException
 
@@ -69,7 +70,11 @@ class ZitiChannel(parent: ServerChannel?, val peer: AsynchronousSocketChannel):
             peer.read(buf, buf, Reader(this))
         } catch (rpe: ReadPendingException) { // already reading
             v("readOp is already active")
-        } catch (ex: Exception) {
+        } catch(cce: ClosedChannelException) {
+            d{"channel is closed"}
+            pipeline().fireChannelInactive()
+        }
+        catch (ex: Exception) {
             e(ex){"readOp failed"}
             pipeline().fireExceptionCaught(ex)
         }
