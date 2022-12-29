@@ -27,6 +27,6 @@ dependencies {
     implementation deps.kotlinCoroutines8
 
 
-    api project(":ziti")
+    api deps.ziti
     implementation deps.slf4jSimple
 }

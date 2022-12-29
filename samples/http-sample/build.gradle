@@ -19,6 +19,6 @@ plugins {
 }
 
 dependencies {
-    implementation project(':ziti')
+    implementation deps.ziti
     implementation deps.slf4jSimple
 }

@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    implementation project(path: ':ziti')
+    implementation deps.ziti
     implementation deps.kotlin
     implementation deps.kotlinCoroutines
     implementation deps.slf4jSimple

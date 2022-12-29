@@ -36,7 +36,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter')
     implementation('org.springframework.boot:spring-boot-starter-web')
 
-    implementation(project(':ziti-springboot-client'))
+    implementation("org.openziti:ziti-springboot-client:${versions.ziti}")
     compileOnly('org.projectlombok:lombok:1.18.24')
     annotationProcessor('org.projectlombok:lombok:1.18.24')
 

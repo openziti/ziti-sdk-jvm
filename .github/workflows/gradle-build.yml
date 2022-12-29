@@ -32,5 +32,10 @@ jobs:
           name: test-results
           path: ziti/build/test-results/test/*.xml
 
+      - name: check samples build
+        run: |
+          cd samples
+          ../gradlew --include-build .. build
+
       - name: Build
         run: ./gradlew build assemble

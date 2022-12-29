@@ -24,8 +24,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 
-	implementation project(':ziti-springboot')
-	implementation project(':ziti-jdbc')
+	implementation "org.openziti:ziti-springboot:${versions.ziti}"
+	implementation "org.openziti:ziti-jdbc:${versions.ziti}"
 
 	implementation 'org.postgresql:postgresql'
 
