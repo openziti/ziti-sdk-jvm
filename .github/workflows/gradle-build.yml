@@ -34,3 +34,9 @@ jobs:
 
       - name: Build
         run: ./gradlew build assemble
+
+      - name: check samples build
+        run: |
+          cd samples
+          ../gradlew --include-build .. build
+

@@ -51,12 +51,12 @@ tasks.register('sourcesJar', Jar) {
     classifier "sources"
 }
 
-task packageJavadoc(type: Jar, dependsOn: 'javadoc') {
+tasks.register('packageJavadoc', Jar) {
     from javadoc.destinationDir
     classifier = 'javadoc'
 }
 
-task fullJar(type: Jar) {
+tasks.register('fullJar', Jar) {
     manifest.from jar.manifest
     classifier = 'full'
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
@@ -64,7 +64,7 @@ task fullJar(type: Jar) {
     }
     with jar
 }
-
+tasks.named('fullJar').configure { dependsOn (":ziti:jar") }
 
 /*
 task myJavadocs(type: Javadoc) {

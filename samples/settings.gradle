@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2021 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
+rootProject.name = 'ziti-jvm-samples'
 
-group 'org.openziti'
-
-
-dependencies {
-    implementation deps.kotlin
-    implementation deps.kotlinCoroutines
-
-    api deps.ziti
-    implementation deps.slf4jSimple
-}
+include 'ziti-enroller'
+include 'ziti-half-close'
+include 'sample'
+include 'http-sample'
+include 'sample-host'
+include 'ziti-netty-samples'
+include 'terminators-sample'
+include 'sample-okhttp'
+include 'ziti-spring-boot'
+include 'ziti-spring-boot-client'
+include 'ziti-jdbc-postgresql'
+include 'ziti-jdbc-spring-jpa:initial:server'
+include 'ziti-jdbc-spring-jpa:initial:client'
+include ':ziti-jdbc-spring-jpa:complete:server'
+include 'ziti-jdbc-spring-jpa:complete:client'

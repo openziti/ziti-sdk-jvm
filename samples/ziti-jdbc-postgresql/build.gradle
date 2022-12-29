@@ -23,8 +23,8 @@ ext {
 }
 
 dependencies {
-	implementation project(':ziti-jdbc')
-	implementation project(':ziti')
+	implementation "org.openziti:ziti-jdbc:${versions.ziti}"
+	implementation deps.ziti
         implementation 'org.postgresql:postgresql:42.5.1'
         implementation deps.slf4jSimple
 }
