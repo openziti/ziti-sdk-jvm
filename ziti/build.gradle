@@ -27,8 +27,12 @@ ext {
 
 dependencies {
     implementation deps.kotlin
-    implementation deps.kotlinCoroutines
-    implementation deps.kotlinCoroutines8
+    implementation(deps.kotlinCoroutines) {
+        exclude module: 'kotlin-stdlib-jdk8'
+    }
+    implementation(deps.kotlinCoroutines8) {
+        exclude module: 'kotlin-stdlib-jdk8'
+    }
 
     implementation deps.slf4jApi
 
