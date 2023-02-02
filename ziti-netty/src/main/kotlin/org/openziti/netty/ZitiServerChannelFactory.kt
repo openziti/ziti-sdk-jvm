@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2023 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,12 @@ package org.openziti.netty
 
 import io.netty.channel.ChannelFactory
 import io.netty.channel.ServerChannel
+import org.openziti.ZitiAddress
 import org.openziti.ZitiContext
 
-class ZitiServerChannelFactory(val ziti: ZitiContext): ChannelFactory<ServerChannel> {
-    override fun newChannel(): ServerChannel = ZitiServerChannel(ziti.openServer())
+class ZitiServerChannelFactory(val ziti: ZitiContext, val bindings: Map<Int, ZitiAddress.Bind>): ChannelFactory<ServerChannel> {
+
+    constructor(ziti: ZitiContext): this(ziti, emptyMap())
+
+    override fun newChannel(): ServerChannel = ZitiServerChannel(ziti.openServer(), bindings)
 }
