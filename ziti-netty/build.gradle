@@ -32,19 +32,20 @@ dependencies {
     api(project(':ziti'))
 
     implementation deps.kotlin
-    implementation "io.netty:netty-all:4.1.87.Final"
+    implementation "io.netty:netty-transport:${versions.netty}"
 
     testApi deps.jupiterApi
     testImplementation deps.jupiter
     testImplementation deps.kotlinTest
     testImplementation deps.gson
+    testImplementation "io.netty:netty-codec-http:${versions.netty}"
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }
 
 tasks.register('sourcesJar', Jar) {
