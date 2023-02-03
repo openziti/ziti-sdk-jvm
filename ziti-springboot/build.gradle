@@ -19,7 +19,7 @@ plugins {
     id 'org.jetbrains.dokka'
     id 'maven-publish'
 
-    id("org.jetbrains.kotlin.plugin.spring") version "1.8.0"
+    id("org.jetbrains.kotlin.plugin.spring") version "1.8.10"
 
 }
 
