@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+
 /*
  * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
@@ -21,31 +23,42 @@ plugins {
 }
 
 ext {
-    description "Netty Adapter for Ziti"
+    description "Vertx Support for Ziti"
 }
 
 repositories {
     mavenCentral()
 }
 
+sourceSets {
+    samples {
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
+}
+
+configurations {
+    samplesImplementation.extendsFrom(configurations.implementation)
+    samplesRuntimeOnly.extendsFrom(configurations.runtimeOnly)
+}
+
 dependencies {
     api(project(':ziti'))
+    implementation(project(':ziti-netty'))
 
     implementation deps.kotlin
-    implementation "io.netty:netty-transport:${versions.netty}"
+    implementation "io.vertx:vertx-core:4.3.7"
 
     testApi deps.jupiterApi
     testImplementation deps.jupiter
     testImplementation deps.kotlinTest
     testImplementation deps.gson
-    testImplementation "io.netty:netty-codec-http:${versions.netty}"
+
+    samplesImplementation "org.slf4j:slf4j-simple:+"
 }
 
-compileKotlin {
-    kotlinOptions.jvmTarget = "11"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "11"
+tasks.withType(KotlinCompilationTask).configureEach {
+     kotlinOptions.jvmTarget = "11"
 }
 
 tasks.register('sourcesJar', Jar) {
@@ -66,7 +79,7 @@ artifacts {
 
 publishing {
     publications {
-        zitiNetty(MavenPublication) {
+        zitiVertx(MavenPublication) {
             from components.java
             artifact sourcesJar
             artifact dokkaJar

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2023 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,19 @@ import io.netty.channel.AbstractServerChannel
 import io.netty.channel.ChannelConfig
 import io.netty.channel.DefaultChannelConfig
 import io.netty.channel.EventLoop
+import org.openziti.ZitiAddress
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
+import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
 
-class ZitiServerChannel(val ch: AsynchronousServerSocketChannel): AbstractServerChannel(), Logged by ZitiLog() {
+class ZitiServerChannel(val ch: AsynchronousServerSocketChannel, val bindings: Map<Int, ZitiAddress.Bind>):
+    AbstractServerChannel(), Logged by ZitiLog() {
+
+    constructor(ch: AsynchronousServerSocketChannel): this(ch, emptyMap())
 
     override fun doBeginRead() {
         d("starting accept")
@@ -52,7 +57,10 @@ class ZitiServerChannel(val ch: AsynchronousServerSocketChannel): AbstractServer
     }
 
     override fun doBind(localAddress: SocketAddress) {
-        ch.bind(localAddress)
+        val addr = if (localAddress is InetSocketAddress) {
+            bindings[localAddress.port]
+        } else localAddress
+        ch.bind(addr)
     }
 
     override fun doClose() {
@@ -62,7 +70,7 @@ class ZitiServerChannel(val ch: AsynchronousServerSocketChannel): AbstractServer
 
     override fun config(): ChannelConfig = DefaultChannelConfig(this)
 
-    override fun localAddress0(): SocketAddress {
+    override fun localAddress0(): SocketAddress? {
         return ch.localAddress
     }
 
