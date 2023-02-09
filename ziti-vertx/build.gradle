@@ -47,7 +47,7 @@ dependencies {
     implementation(project(':ziti-netty'))
 
     implementation deps.kotlin
-    implementation "io.vertx:vertx-core:4.3.7"
+    implementation "io.vertx:vertx-core:4.3.8"
 
     testApi deps.jupiterApi
     testImplementation deps.jupiter
