@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022 NetFoundry Inc.
+ * Copyright (c) 2018-2023 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -478,7 +478,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
                     startCrypto(ch)
                 }
 
-                local = ZitiAddress.Session(ns.id, serviceName, null)
+                local = ZitiAddress.Session(ns.id, serviceName, null, null)
                 d("network connection established ${ns.id}/$connId")
                 state.set(State.connected)
             }
