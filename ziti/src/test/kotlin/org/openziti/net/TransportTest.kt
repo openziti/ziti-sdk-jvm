@@ -35,7 +35,7 @@ class TransportTest {
             val req = """GET /todos/1 HTTP/1.1
 Accept: */*
 Connection: keep-alive
-Host: httpbin.org
+Host: jsonplaceholder.typicode.com
 User-Agent: ziti/1.0.2
 
 """
