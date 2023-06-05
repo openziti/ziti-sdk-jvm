@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry Inc.
+ * Copyright (c) 2018-2023 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ import javax.net.ssl.SSLContext
 
 class TransportTest {
 
-    @Test(timeout = 2000)
+    @Test(timeout = 5000)
     fun testHTTP() {
         runBlocking {
-            val t = Transport.dial("tls://httpbin.org:443", SSLContext.getDefault(), 1_000)
+            val t = Transport.dial("tls://jsonplaceholder.typicode.com:443", SSLContext.getDefault(), 1_000)
 
-            val req = """POST /anything HTTP/1.1
+            val req = """GET /todos/1 HTTP/1.1
 Accept: */*
 Connection: keep-alive
 Host: httpbin.org
