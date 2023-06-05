@@ -35,7 +35,7 @@ object EchoServer {
         val binding = mapOf(8080 to ZitiAddress.Bind(service = args[1]))
 
         val vertx = VertxBuilder()
-            .transport(ZitiTransport(ztx, binding))
+            .findTransport(ZitiTransport(ztx, binding))
             .init()
             .vertx()
 
