@@ -21,4 +21,5 @@ plugins {
 
 dependencies {
     implementation deps.ziti
+    implementation "org.slf4j:slf4j-simple:+"
 }

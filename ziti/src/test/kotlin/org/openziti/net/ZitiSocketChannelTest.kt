@@ -17,8 +17,8 @@
 package org.openziti.net
 
 import org.hamcrest.CoreMatchers.startsWith
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThat
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Test

@@ -39,6 +39,7 @@ public class Sample {
 
         ZitiContext ziti = Ziti.newContext(config, "".toCharArray());
 
+        var svc = ziti.getService(service, 5000L);
         ZitiConnection conn = ziti.dial(service);
 
         String req = "GET / HTTP/1.1\n" +

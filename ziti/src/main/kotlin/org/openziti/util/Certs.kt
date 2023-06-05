@@ -112,8 +112,8 @@ internal class PrivateKeySigner(val key: PrivateKey, val sigAlg: String) : Conte
 
     override fun getOutputStream() = object : OutputStream() {
         override fun write(b: Int) = sig.update(b.toByte())
-        override fun write(b: ByteArray?) = sig.update(b)
-        override fun write(b: ByteArray?, off: Int, len: Int) = sig.update(b, off, len)
+        override fun write(b: ByteArray) = sig.update(b)
+        override fun write(b: ByteArray, off: Int, len: Int) = sig.update(b, off, len)
     }
 
     override fun getSignature(): ByteArray = sig.sign()

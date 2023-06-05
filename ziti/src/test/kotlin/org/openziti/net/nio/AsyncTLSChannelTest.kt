@@ -18,8 +18,8 @@ package org.openziti.net.nio
 
 import kotlinx.coroutines.*
 import org.hamcrest.CoreMatchers.startsWith
+import org.hamcrest.MatcherAssert.*
 import org.junit.After
-import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.jupiter.api.assertThrows
 import org.junit.rules.Timeout
@@ -38,6 +38,8 @@ import javax.net.ssl.SSLException
 import javax.net.ssl.SSLHandshakeException
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class AsyncTLSChannelTest {
 
