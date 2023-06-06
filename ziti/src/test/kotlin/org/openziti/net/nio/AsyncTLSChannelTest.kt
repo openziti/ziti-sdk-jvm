@@ -41,7 +41,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-private const val testhost = "httpbin.org"
+private const val testhost = "httpbigo.org"
 private const val connectTimeout = 2L
 private const val readTimeout = 5L
 
