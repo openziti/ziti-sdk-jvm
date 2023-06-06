@@ -39,6 +39,7 @@ object NetcatClient {
 
         val ziti = Ziti.newContext(cfg, charArrayOf())
 
+        val svc = ziti.getService(service, 1000L)
         val clt = ziti.open()
         try {
             clt.connect(ZitiAddress.Dial(service)).get()

@@ -37,7 +37,7 @@ class NetUtilsTest {
     @Test(expected = SocketTimeoutException::class, timeout = 2000)
     fun test_connectSuspendWithTimeout(): Unit = runBlocking {
         val sock = AsynchronousSocketChannel.open()
-        val connectOp = async { sock.connectSuspend(InetSocketAddress("1.2.3.4", 4444), 1000) }
+        val connectOp = async { sock.connectSuspend(InetSocketAddress("1.1.1.1", 4444), 1000) }
         connectOp.await()
     }
 

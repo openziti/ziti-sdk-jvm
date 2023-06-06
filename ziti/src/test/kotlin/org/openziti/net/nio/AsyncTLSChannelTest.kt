@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry Inc.
+ * Copyright (c) 2018-2023 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.openziti.net.nio
 
 import kotlinx.coroutines.*
 import org.hamcrest.CoreMatchers.startsWith
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
-import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.jupiter.api.assertThrows
 import org.junit.rules.Timeout
@@ -38,6 +38,12 @@ import javax.net.ssl.SSLException
 import javax.net.ssl.SSLHandshakeException
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+
+private const val testhost = "httpbin.org"
+private const val connectTimeout = 2L
+private const val readTimeout = 5L
 
 class AsyncTLSChannelTest {
 
@@ -55,7 +61,7 @@ class AsyncTLSChannelTest {
     @Test
     fun connect() {
         ch = AsyncTLSChannel.open() as AsyncTLSChannel
-        ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+        ch.connect(InetSocketAddress(testhost, 443)).get(connectTimeout, TimeUnit.SECONDS)
         verifyConnection(ch)
 
     }
@@ -63,7 +69,7 @@ class AsyncTLSChannelTest {
     @Test
     fun readWithTimeout() {
         ch = AsyncTLSChannel.open() as AsyncTLSChannel
-        ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+        ch.connect(InetSocketAddress(testhost, 443)).get(connectTimeout, TimeUnit.SECONDS)
 
         // first read should fail with timeout since we have not sent request yet
         assertThrows<InterruptedByTimeoutException>{
@@ -77,7 +83,7 @@ class AsyncTLSChannelTest {
     fun readCancel(): Unit {
         runBlocking {
             ch = AsyncTLSChannel.open() as AsyncTLSChannel
-            ch.connectSuspend(InetSocketAddress("httpbin.org", 443), 1000)
+            ch.connectSuspend(InetSocketAddress(testhost, 443), TimeUnit.SECONDS.toMillis(connectTimeout))
 
             ch.startHandshake()
             ch.getSession()
@@ -89,7 +95,7 @@ class AsyncTLSChannelTest {
             delay(100)
             ch.close()
 
-            withTimeout(1000) {
+            withTimeout(TimeUnit.SECONDS.toMillis(readTimeout)) {
                 readOp.await()
             }
         }
@@ -100,14 +106,14 @@ class AsyncTLSChannelTest {
         val transport = AsynchronousSocketChannel.open()
         ch = AsyncTLSChannel(transport, SSLContext.getDefault())
 
-        ch.connect(InetSocketAddress("google.com", 443)).get(1, TimeUnit.SECONDS)
+        ch.connect(InetSocketAddress("google.com", 443)).get(connectTimeout, TimeUnit.SECONDS)
         verifyConnection(ch)
     }
 
     @Test
     fun useConnected() {
         val transport = AsynchronousSocketChannel.open()
-        transport.connect(InetSocketAddress("google.com", 443)).get(1, TimeUnit.SECONDS)
+        transport.connect(InetSocketAddress("google.com", 443)).get(connectTimeout, TimeUnit.SECONDS)
         ch = AsyncTLSChannel(transport, SSLContext.getDefault())
 
         verifyConnection(ch)
@@ -123,7 +129,7 @@ class AsyncTLSChannelTest {
         params.applicationProtocols = arrayOf("h2","http1.1")
         ch.setSSLParameters(params)
 
-        ch.connect(InetSocketAddress("google.com", 443)).get(1, TimeUnit.SECONDS)
+        ch.connect(InetSocketAddress("google.com", 443)).get(connectTimeout, TimeUnit.SECONDS)
         ch.startHandshake()
         ch.getSession()
         val p = ch.getApplicationProtocol()
@@ -133,7 +139,7 @@ class AsyncTLSChannelTest {
     @Test
     fun testALPN_Connected() {
         val transport = AsynchronousSocketChannel.open()
-        transport.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+        transport.connect(InetSocketAddress(testhost, 443)).get(connectTimeout, TimeUnit.SECONDS)
         val ssl = SSLContext.getDefault()
         ch = AsyncTLSChannel(transport, ssl)
 
@@ -152,7 +158,7 @@ class AsyncTLSChannelTest {
         val tls = SSLContext.getInstance("TLSv1.3")
         tls.init(null, arrayOf(ZitiTestHelper.TrustNoOne), SecureRandom())
         ch = AsyncTLSChannel(s, tls)
-        ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+        ch.connect(InetSocketAddress(testhost, 443)).get(connectTimeout, TimeUnit.SECONDS)
         ch.startHandshake()
         ch.getSession()
     }
@@ -161,7 +167,7 @@ class AsyncTLSChannelTest {
     fun sslError() {
         assertThrows<SSLException>{
             ch = AsyncTLSChannel.open() as AsyncTLSChannel
-            ch.connect(InetSocketAddress("httpbin.org", 80)).get(1, TimeUnit.SECONDS)
+            ch.connect(InetSocketAddress(testhost, 80)).get(connectTimeout, TimeUnit.SECONDS)
             ch.startHandshake()
             ch.getSession()
         }
@@ -176,7 +182,7 @@ class AsyncTLSChannelTest {
 Accept: */*
 Accept-Encoding: gzip, deflate
 Connection: keep-alive
-Host: httpbin.org
+Host: ${testhost}
 User-Agent: HTTPie/1.0.2
 Content-Length: ${payload.remaining()}
 
@@ -184,15 +190,15 @@ Content-Length: ${payload.remaining()}
         val wb = arrayOf(StandardCharsets.US_ASCII.encode(req), payload)
         val writeTotal = wb.fold(0L){ c, b -> c + b.remaining() }
         ch = AsyncTLSChannel.open() as AsyncTLSChannel
-        ch.connect(InetSocketAddress("httpbin.org", 443)).get(1, TimeUnit.SECONDS)
+        ch.connect(InetSocketAddress(testhost, 443)).get(connectTimeout, TimeUnit.SECONDS)
 
         val wf = CompletableFuture<Long>()
-        ch.write(wb, 0, 2, 1, TimeUnit.SECONDS, wf, FutureHandler())
+        ch.write(wb, 0, 2, connectTimeout, TimeUnit.SECONDS, wf, FutureHandler())
         val wc = wf.get(2, TimeUnit.SECONDS)
         assertEquals(writeTotal, wc)
 
         val rb = ByteBuffer.allocate(10 * 1024)
-        ch.read(rb).get(2, TimeUnit.SECONDS)
+        ch.read(rb).get(readTimeout, TimeUnit.SECONDS)
         rb.flip()
 
         val resp = StandardCharsets.UTF_8.decode(rb).toString().reader().readLines()
@@ -217,7 +223,7 @@ User-Agent: HTTPie/1.0.2
         assertEquals(req.length, wc)
 
         val resp = ByteBuffer.allocate(128)
-        val rc = ch.read(resp).get(5, TimeUnit.SECONDS)
+        val rc = ch.read(resp).get(readTimeout, TimeUnit.SECONDS)
         assertEquals(rc, resp.position())
         resp.flip()
 

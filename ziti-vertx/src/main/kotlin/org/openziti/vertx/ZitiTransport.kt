@@ -17,7 +17,9 @@
 package org.openziti.vertx
 
 import io.netty.channel.*
-import io.vertx.core.net.impl.transport.Transport
+import io.netty.channel.socket.DatagramChannel
+import io.netty.channel.socket.InternetProtocolFamily
+import io.vertx.core.spi.transport.Transport
 import org.openziti.ZitiAddress
 import org.openziti.ZitiContext
 import org.openziti.netty.ZitiChannelFactory
@@ -25,7 +27,7 @@ import org.openziti.netty.ZitiServerChannelFactory
 import java.net.SocketAddress
 import java.util.concurrent.ThreadFactory
 
-class ZitiTransport(val ztx: ZitiContext, val binding: Map<Int, ZitiAddress.Bind>): Transport() {
+class ZitiTransport(val ztx: ZitiContext, val binding: Map<Int, ZitiAddress.Bind>): Transport {
 
     constructor(ztx: ZitiContext): this(ztx, emptyMap())
 
@@ -36,6 +38,14 @@ class ZitiTransport(val ztx: ZitiContext, val binding: Map<Int, ZitiAddress.Bind
 
     override fun eventLoopGroup(type: Int, nThreads: Int, threadFactory: ThreadFactory?, ioRatio: Int): EventLoopGroup =
         DefaultEventLoopGroup(nThreads, threadFactory)
+
+    override fun datagramChannel(): DatagramChannel {
+        error("Not supported")
+    }
+
+    override fun datagramChannel(family: InternetProtocolFamily?): DatagramChannel {
+        error("Not supported")
+    }
 
     override fun convert(address: io.vertx.core.net.SocketAddress?) = address?.let {
         binding[it.port()]
