@@ -28,7 +28,7 @@ buildscript {
             kotlin: '1.8.20',
             coroutines: '1.6.4',
             slf4j: '2.0.7',
-            jupiter: '5.9.2',
+            jupiter: '5.9.3',
             gson: '2.10.1',
             netty: '4.1.93.Final',
     ]
