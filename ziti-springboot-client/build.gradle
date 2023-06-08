@@ -38,8 +38,8 @@ dependencies {
     implementation("org.apache.httpcomponents:httpclient:${apacheHttpClientVerion}")
     implementation("commons-beanutils:commons-beanutils:1.9.4")
 
-    compileOnly('org.projectlombok:lombok:1.18.26')
-    annotationProcessor('org.projectlombok:lombok:1.18.26')
+    compileOnly('org.projectlombok:lombok:1.18.28')
+    annotationProcessor('org.projectlombok:lombok:1.18.28')
 
     implementation(project(":ziti"))
 
