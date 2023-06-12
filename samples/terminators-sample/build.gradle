@@ -24,8 +24,6 @@ group 'org.openziti'
 dependencies {
     implementation deps.kotlin
     implementation deps.kotlinCoroutines
-    implementation deps.kotlinCoroutines8
-
 
     api deps.ziti
     implementation deps.slf4jSimple

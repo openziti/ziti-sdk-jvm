@@ -26,7 +26,7 @@ buildscript {
     ext.versions = [
             lazysodiumJava: '5.1.4',
             kotlin: '1.8.22',
-            coroutines: '1.6.4',
+            coroutines: '1.7.1',
             slf4j: '2.0.7',
             jupiter: '5.9.3',
             gson: '2.10.1',
@@ -36,7 +36,6 @@ buildscript {
     ext.deps = [
             kotlin: "org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}",
             kotlinCoroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}",
-            kotlinCoroutines8: "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${versions.coroutines}",
             kotlinTest: "org.jetbrains.kotlin:kotlin-test-junit:${versions.kotlin}",
             kotlinCoroutinesTest: "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.coroutines}",
             slf4jApi: "org.slf4j:slf4j-api:${versions.slf4j}",

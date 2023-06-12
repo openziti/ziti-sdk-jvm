@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022 NetFoundry Inc.
+ * Copyright (c) 2018-2023 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,16 @@ package org.openziti.net.nio
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
-import org.openziti.util.*
+import org.openziti.util.EMPTY
+import org.openziti.util.Logged
+import org.openziti.util.ZitiLog
+import org.openziti.util.transferTo
 import java.io.EOFException
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -77,6 +82,7 @@ class AsyncTLSChannel(
             coroutineContext.cancel()
         }
 
+        @OptIn(ExperimentalCoroutinesApi::class)
         override fun awaitTermination(timeout: Long, unit: TimeUnit): Boolean = runBlocking {
             select {
                 coroutineContext.job.onJoin { true }
@@ -183,7 +189,7 @@ class AsyncTLSChannel(
         }
     }
 
-    override fun <A : Any?> connect(remote: SocketAddress, attachment: A, handler: CompletionHandler<Void?, in A>?) {
+     override fun <A : Any?> connect(remote: SocketAddress, attachment: A, handler: CompletionHandler<Void, in A>?) {
         requireNotNull(handler)
 
         connect(remote).handle { v, ex ->
