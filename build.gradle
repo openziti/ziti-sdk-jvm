@@ -26,7 +26,7 @@ buildscript {
     ext.versions = [
             lazysodiumJava: '5.1.4',
             kotlin: '1.8.22',
-            coroutines: '1.6.4',
+            coroutines: '1.7.1',
             slf4j: '2.0.7',
             jupiter: '5.9.3',
             gson: '2.10.1',
