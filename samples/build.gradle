@@ -33,7 +33,6 @@ buildscript {
     ext.deps = [
             kotlin: "org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}",
             kotlinCoroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}",
-            kotlinCoroutines8: "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${versions.coroutines}",
             kotlinTest: "org.jetbrains.kotlin:kotlin-test-junit:${versions.kotlin}",
             kotlinCoroutinesTest: "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.coroutines}",
             slf4jApi: "org.slf4j:slf4j-api:${versions.slf4j}",
