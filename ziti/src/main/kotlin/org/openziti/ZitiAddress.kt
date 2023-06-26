@@ -45,6 +45,6 @@ sealed class ZitiAddress: SocketAddress() {
         internal val id: String,
         val service: String,
         val callerId: String?,
-        val appData: String?
+        val appData: ByteArray?
     ): ZitiAddress()
 }
