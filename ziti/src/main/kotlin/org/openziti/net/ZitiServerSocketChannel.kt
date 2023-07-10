@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022 NetFoundry Inc.
+ * Copyright (c) 2018-2023 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,7 +203,8 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                     child.channel.complete(ch)
                     child.startCrypto(ch)
                     child.local = localAddr
-                    child.remote = ZitiAddress.Session("$connId", localAddr.service, req.getStringHeader(Header.CallerIdHeader))
+                    child.remote = ZitiAddress.Session("$connId", localAddr.service,
+                        req.getStringHeader(Header.CallerIdHeader), req.getHeader(Header.AppDataHeader))
 
                     handler.completed(child, att)
                 } else {
