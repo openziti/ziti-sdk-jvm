@@ -30,7 +30,7 @@ buildscript {
             kotlin: '1.9.0',
             coroutines: '1.7.3',
             slf4j: '2.0.7',
-            jupiter: '5.9.3',
+            jupiter: '5.10.0',
             gson: '2.10.1',
             netty: '4.1.94.Final',
     ]
