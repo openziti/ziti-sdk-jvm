@@ -15,8 +15,8 @@
  */
 
 plugins {
+    alias(libs.plugins.dokka)
     id 'java'
-    id 'org.jetbrains.dokka'
     id 'maven-publish'
 
 }

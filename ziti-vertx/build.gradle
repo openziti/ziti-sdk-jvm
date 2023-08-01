@@ -17,8 +17,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
  */
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
-    id 'org.jetbrains.dokka'
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.dokka)
     id 'maven-publish'
 }
 
@@ -46,15 +46,15 @@ dependencies {
     api(project(':ziti'))
     implementation(project(':ziti-netty'))
 
-    implementation deps.kotlin
-    implementation "io.vertx:vertx-core:4.4.4"
+    implementation(libs.kotlin.lib)
+    implementation("io.vertx:vertx-core:4.4.4")
 
-    testApi deps.jupiterApi
-    testImplementation deps.jupiter
-    testImplementation deps.kotlinTest
-    testImplementation deps.gson
+    testApi(libs.jupiter.api)
+    testImplementation(libs.jupiter.engine)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.gson)
 
-    samplesImplementation "org.slf4j:slf4j-simple:+"
+    samplesImplementation(libs.slf4j.simple)
 }
 
 tasks.withType(KotlinCompilationTask).configureEach {

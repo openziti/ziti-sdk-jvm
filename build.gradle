@@ -1,5 +1,3 @@
-import org.gradle.api.tasks.compile.JavaCompile
-
 /*
  * Copyright (c) 2018-2021 NetFoundry Inc.
  *
@@ -16,53 +14,16 @@ import org.gradle.api.tasks.compile.JavaCompile
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        mavenCentral()
-        google()
-    }
-    dependencies {
-        classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.8.20")
-    }
-
-    ext.versions = [
-            lazysodiumJava: '5.1.4',
-            kotlin: '1.9.0',
-            coroutines: '1.7.3',
-            slf4j: '2.0.7',
-            jupiter: '5.10.0',
-            gson: '2.10.1',
-            netty: '4.1.96.Final',
-    ]
-
-    ext.deps = [
-            kotlin: "org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}",
-            kotlinCoroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}",
-            kotlinTest: "org.jetbrains.kotlin:kotlin-test-junit:${versions.kotlin}",
-            kotlinCoroutinesTest: "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.coroutines}",
-            slf4jApi: "org.slf4j:slf4j-api:${versions.slf4j}",
-            slf4jSimple: "org.slf4j:slf4j-simple:${versions.slf4j}",
-            gson: "com.google.code.gson:gson:${versions.gson}",
-            jupiterApi: "org.junit.jupiter:junit-jupiter-api:${versions.jupiter}",
-            jupiter: "org.junit.jupiter:junit-jupiter-engine:${versions.jupiter}"
-    ]
-}
-
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.0" apply false
-    id("io.wusa.semver-git-plugin") version "2.3.7"
-
-    id 'io.github.gradle-nexus.publish-plugin' version "1.3.0"
+    alias(libs.plugins.kotlin) apply(false)
+    alias(libs.plugins.nexus.publish)
+    alias(libs.plugins.semver.git)
 }
 
-repositories {
-    mavenCentral()
-    google()
-}
-
-ext {
-    zitiBuildnum = System.getenv("BUILD_NUMBER") ?: "local"
-}
+//repositories {
+//    mavenCentral()
+//    google()
+//}
 
 group = "org.openziti"
 

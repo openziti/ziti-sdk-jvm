@@ -15,8 +15,8 @@
  */
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
-    id 'org.jetbrains.dokka'
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.dokka)
     id 'maven-publish'
 }
 
@@ -29,16 +29,16 @@ repositories {
 }
 
 dependencies {
-    api(project(':ziti'))
+    api(project(":ziti"))
 
-    implementation deps.kotlin
-    implementation "io.netty:netty-transport:${versions.netty}"
+    implementation(libs.kotlin.lib)
+    implementation(libs.netty.transport)
 
-    testApi deps.jupiterApi
-    testImplementation deps.jupiter
-    testImplementation deps.kotlinTest
-    testImplementation deps.gson
-    testImplementation "io.netty:netty-codec-http:${versions.netty}"
+    testApi(libs.jupiter.api)
+    testImplementation(libs.jupiter.engine)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.gson)
+    testImplementation(libs.netty.http)
 }
 
 compileKotlin {
@@ -51,11 +51,11 @@ compileTestKotlin {
 tasks.register('sourcesJar', Jar) {
     from sourceSets.main.java.srcDirs
     from sourceSets.main.kotlin.srcDirs
-    classifier "sources"
+    archiveClassifier = "sources"
 }
 
 tasks.register('dokkaJar', Jar) {
-    classifier('javadoc')
+    archiveClassifier = "javadoc"
     from dokkaJavadoc.outputDirectory
 }
 

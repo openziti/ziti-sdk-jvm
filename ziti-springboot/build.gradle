@@ -15,8 +15,8 @@
  */
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
-    id 'org.jetbrains.dokka'
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.dokka)
     id 'maven-publish'
 
     id("org.jetbrains.kotlin.plugin.spring") version "1.8.22"
@@ -33,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    implementation deps.kotlin
+    implementation(libs.kotlin.lib)
     implementation("org.springframework.boot:spring-boot:${springbootVersion}")
     implementation("org.springframework.boot:spring-boot-autoconfigure:${springbootVersion}")
     implementation("org.springframework.boot:spring-boot-starter-tomcat:${springbootVersion}")

@@ -16,8 +16,8 @@
 
 plugins {
     id("java-library")
-    id("org.jetbrains.kotlin.jvm")
-    id 'org.jetbrains.dokka'
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.dokka)
     id 'maven-publish'
 }
 
@@ -26,13 +26,13 @@ ext {
 }
 
 dependencies {
-    implementation deps.kotlin
-    implementation deps.kotlinCoroutines
-    implementation deps.slf4jApi
+    implementation(libs.kotlin.lib)
+    implementation(libs.kotlin.coroutines.lib)
+    implementation(libs.slf4j.api)
+    implementation(libs.gson)
 
-    implementation('com.github.marianobarrios:tls-channel:0.8.0')
+    implementation(libs.tls.channel)
 
-    implementation deps.gson
     implementation('com.squareup.retrofit2:retrofit:2.9.0')
     implementation('com.squareup.retrofit2:converter-gson:2.9.0')
     implementation('com.squareup.okhttp3:logging-interceptor:3.14.9')
@@ -43,17 +43,17 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-impl:$jjwt_ver")
     implementation("io.jsonwebtoken:jjwt-orgjson:$jjwt_ver")
     implementation('io.dropwizard.metrics:metrics-core:4.2.19')
-    implementation('org.bouncycastle:bcpkix-jdk18on:1.76')
+    implementation('org.bouncycastle:bcpkix-jdk18on:1.75')
 
-    implementation("com.goterl:lazysodium-java:${versions.lazysodiumJava}") {
+    implementation(libs.sodium) {
         exclude module: 'slf4j-api'
     }
 
-    testApi deps.jupiterApi
-    testImplementation deps.jupiter
-    testImplementation deps.kotlinTest
-    testImplementation deps.kotlinCoroutinesTest
-    testImplementation deps.slf4jSimple
+    testApi(libs.jupiter.api)
+    testImplementation(libs.jupiter.engine)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlin.coroutines.test)
+    testImplementation(libs.slf4j.simple)
 }
 
 java {
