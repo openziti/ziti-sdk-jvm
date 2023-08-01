@@ -30,7 +30,7 @@ dependencies {
     implementation deps.kotlinCoroutines
     implementation deps.slf4jApi
 
-    implementation('com.github.marianobarrios:tls-channel:0.7.0')
+    implementation('com.github.marianobarrios:tls-channel:0.8.0')
 
     implementation deps.gson
     implementation('com.squareup.retrofit2:retrofit:2.9.0')
