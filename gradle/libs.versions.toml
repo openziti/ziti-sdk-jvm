@@ -11,6 +11,7 @@ slf4j = "2.0.7"
 jupiter = "5.10.0"
 gson = "2.10.1"
 tls-channel = "0.8.0"
+jjwt = "0.11.5"
 netty = "4.1.96.Final"
 
 [libraries]
@@ -22,6 +23,9 @@ kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coro
 
 tls-channel = { group = "com.github.marianobarrios", name = "tls-channel", version.ref = "tls-channel" }
 sodium = { group = "com.goterl", name = "lazysodium-java", version.ref = "lazysodium-java" }
+jjwt-api = { group = "io.jsonwebtoken", name = "jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { group = "io.jsonwebtoken", name = "jjwt-impl", version.ref = "jjwt" }
+jjwt-gson = { group = "io.jsonwebtoken", name = "jjwt-gson", version.ref = "jjwt" }
 
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4j" }
