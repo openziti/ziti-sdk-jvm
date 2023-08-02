@@ -16,14 +16,14 @@
 
 package org.openziti.identity
 
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
 import org.bouncycastle.util.io.pem.PemObject
 import org.bouncycastle.util.io.pem.PemWriter
-import org.json.JSONArray
-import org.json.JSONObject
 import org.openziti.util.*
 import java.io.ByteArrayOutputStream
 import java.io.OutputStreamWriter
@@ -116,13 +116,19 @@ class Enroller(
         conn.outputStream.flush()
 
         val rc = conn.responseCode
-        val body: ByteArray
         when {
             rc >= 400 -> {
-                body = conn.errorStream.readBytes()
-                val errors = JSONObject(body.toString(UTF_8))["errors"] as JSONArray
-                val msg = (errors[0] as JSONObject).get("msg")?.toString()
-                msg.let { throw IllegalArgumentException(it) }
+                val json = Gson().fromJson(conn.errorStream.reader(UTF_8), JsonObject::class.java)
+
+                val errors = json.getAsJsonArray("errors")
+
+                for (e in errors) {
+                    e.asJsonObject.get("msg")?.let {
+                        throw IllegalArgumentException(it.toString())
+                    }
+                }
+
+                throw IllegalArgumentException(errors.asString)
             }
             else -> return cert
         }
@@ -160,21 +166,17 @@ class Enroller(
         conn.outputStream.flush()
 
         if (conn.responseCode >= 400) {
-            val body = conn.errorStream.readBytes()
-            val error = JSONObject(body.toString(UTF_8)).getJSONObject("error")
-            val msg = error.get("message")?.toString()
-            msg.let { throw IllegalArgumentException(it) }
-        }
-        else {
+            val error = Gson().fromJson(conn.errorStream.reader(UTF_8), JsonObject::class.java).getAsJsonObject("error")
+            throw IllegalArgumentException(error.get("message")?.toString() ?: "unknown error" )
+        } else {
             val ct = conn.getHeaderField("Content-Type").lowercase()
             val certs = when (ct) {
                 "application/x-pem-file" -> {
                     readCerts(conn.inputStream.reader()).toTypedArray()
                 }
                 "application/json" -> {
-                    val body = conn.inputStream.readBytes()
-                    val data = JSONObject(body.toString(UTF_8)).getJSONObject("data")
-                    readCerts(data.getString("cert")).toTypedArray()
+                    val data = Gson().fromJson(conn.inputStream.reader(UTF_8), JsonObject::class.java).getAsJsonObject("data")
+                    readCerts(data.getAsJsonPrimitive("cert").asString).toTypedArray()
                 }
                 else -> error("Invalid content-type: $ct")
             }
