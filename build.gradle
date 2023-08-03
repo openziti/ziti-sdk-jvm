@@ -20,13 +20,6 @@ plugins {
     alias(libs.plugins.semver.git)
 }
 
-//repositories {
-//    mavenCentral()
-//    google()
-//}
-
-group = "org.openziti"
-
 semver {
     initialVersion = "0.1.0"
     tagType = io.wusa.TagType.LIGHTWEIGHT
@@ -52,6 +45,7 @@ ext {
     gitBranch = semver.info.branch.name
 }
 
+group = "org.openziti"
 version = "${semver.info}"
 
 subprojects {

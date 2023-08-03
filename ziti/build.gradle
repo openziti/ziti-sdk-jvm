@@ -59,7 +59,7 @@ dependencies {
 def generatedResourcesDir = "${buildDir}/generated-resources/main"
 
 tasks.register("versionProps", WriteProperties) {
-    outputFile = "${generatedResourcesDir}/org/openziti/util/ziti-version.properties"
+    destinationFile = file("${generatedResourcesDir}/org/openziti/util/ziti-version.properties")
 
     property("version", "${project.version}")
     property("revision", gitCommit)
