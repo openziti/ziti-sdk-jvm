@@ -27,17 +27,6 @@ repositories {
     mavenCentral()
 }
 
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-compileJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 dependencies {
     implementation project(':ziti')
 }
@@ -48,29 +37,23 @@ tasks.withType(PublishToMavenRepository).all {
 
 tasks.register('sourcesJar', Jar) {
     from sourceSets.main.java.srcDirs
-    classifier "sources"
+    archiveClassifier = "sources"
 }
 
 tasks.register('packageJavadoc', Jar) {
     from javadoc.destinationDir
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
 }
 
 tasks.register('fullJar', Jar) {
     manifest.from jar.manifest
-    classifier = 'full'
+    archiveClassifier = 'full'
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
         exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/**/module-info.class'
     }
     with jar
+    dependsOn(":ziti:jar")
 }
-tasks.named('fullJar').configure { dependsOn (":ziti:jar") }
-
-/*
-task myJavadocs(type: Javadoc) {
-  source = sourceSets.main.allJava
-}
-*/
 
 artifacts {
     archives(sourcesJar)

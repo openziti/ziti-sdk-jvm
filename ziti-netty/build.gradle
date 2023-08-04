@@ -41,13 +41,6 @@ dependencies {
     testImplementation(libs.netty.http)
 }
 
-compileKotlin {
-    kotlinOptions.jvmTarget = "11"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "11"
-}
-
 tasks.register('sourcesJar', Jar) {
     from sourceSets.main.java.srcDirs
     from sourceSets.main.kotlin.srcDirs

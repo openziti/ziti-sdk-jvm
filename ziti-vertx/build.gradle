@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
-
 /*
  * Copyright (c) 2018-2021 NetFoundry, Inc.
  *
@@ -57,18 +55,14 @@ dependencies {
     samplesImplementation(libs.slf4j.simple)
 }
 
-tasks.withType(KotlinCompilationTask).configureEach {
-     kotlinOptions.jvmTarget = "11"
-}
-
 tasks.register('sourcesJar', Jar) {
     from sourceSets.main.java.srcDirs
     from sourceSets.main.kotlin.srcDirs
-    classifier "sources"
+    archiveClassifier = "sources"
 }
 
 tasks.register('dokkaJar', Jar) {
-    classifier('javadoc')
+    archiveClassifier = "javadoc"
     from dokkaJavadoc.outputDirectory
 }
 
