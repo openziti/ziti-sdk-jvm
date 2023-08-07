@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry Inc.
+ * Copyright (c) 2018-2023 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,19 @@
 package org.openziti.net.dns
 
 import org.openziti.util.IPUtil
+import org.openziti.util.Logged
+import org.openziti.util.ZitiLog
 import java.io.Writer
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.util.concurrent.atomic.AtomicInteger
 
-internal object ZitiDNSManager : DNSResolver {
+internal object ZitiDNSManager : DNSResolver, Logged by ZitiLog() {
 
-    internal class Domain(val name: String)
+    internal data class Domain(val name: String)
 
-    internal class Entry(val name: String, val addr: InetAddress, val domain: Domain? = null) {
+    internal data class Entry(val name: String, val addr: InetAddress, val domain: Domain? = null) {
         private val repr by lazy {
             domain?.let { "$addr [${it.name}]" } ?: addr.toString()
         }
@@ -49,11 +51,13 @@ internal object ZitiDNSManager : DNSResolver {
             IPUtil.isValidIPv4(hostname) -> Inet4Address.getByName(hostname)
             IPUtil.isValidIPv6(hostname) -> Inet6Address.getByName(hostname)
             else -> {
-                val entry = host2Ip.getOrPut(hostname) {
-                    val e = nextAddr(hostname)
+                val dnsName = hostname.lowercase()
+                val entry = host2Ip.getOrPut(dnsName) {
+                    val e = nextAddr(dnsName)
                     ip2host[e.addr] = e
                     e
                 }
+                i{ "registered: ${hostname} => ${entry}" }
                 entry.addr
             }
         }
@@ -61,8 +65,11 @@ internal object ZitiDNSManager : DNSResolver {
     }
 
     internal fun unregisterHostname(hostname: String) {
-        val e = host2Ip.remove(hostname)
-        e?.let { ip2host.remove(e.addr) }
+        val e = host2Ip.remove(hostname.lowercase())
+        e?.let {
+            i{ "removed entry=$it" }
+            ip2host.remove(e.addr)
+        }
     }
 
     internal fun registerDomain(domainName: String) {
@@ -72,7 +79,10 @@ internal object ZitiDNSManager : DNSResolver {
             else -> domainName
         }.lowercase()
 
-        domains.putIfAbsent(key, Domain("*.$key"))
+        val domain = Domain("*.$key")
+        if (domains.putIfAbsent(key, domain)== null) {
+            i{ "registered $domain"}
+        }
     }
 
     internal fun unregisterDomain(domainName: String) {
@@ -87,18 +97,19 @@ internal object ZitiDNSManager : DNSResolver {
         if (domain != null) {
             val entries = host2Ip.values.filter { it.domain === domain }
             entries.forEach {
-                host2Ip.remove(it.name)
-                ip2host.remove(it.addr)
+                unregisterHostname(it.name)
             }
+
+            i{ "domain[${domain.name}] removed" }
         }
     }
 
     override fun resolve(hostname: String): InetAddress? = resolveOrAssign(hostname.lowercase())
 
     private fun resolveOrAssign(hostname: String): InetAddress? {
-        host2Ip[hostname]?.let { return it.addr }
+        var name = hostname.lowercase()
+        host2Ip[name]?.let { return it.addr }
 
-        var name = hostname
         do {
             domains[name]?.let {
                 // found matching
@@ -124,7 +135,10 @@ internal object ZitiDNSManager : DNSResolver {
         }
 
         val ip = PREFIX + byteArrayOf(nextPostfix.shr(8).and(0xff).toByte(), (nextPostfix and 0xFF).toByte())
-        return Entry(dnsname, InetAddress.getByAddress(dnsname, ip), domain)
+        val addr = InetAddress.getByAddress(dnsname, ip)
+
+        i { """assigned $dnsname => $addr [${domain?.name ?: ""}]""" }
+        return Entry(dnsname, addr, domain)
     }
 
     internal fun reset() {

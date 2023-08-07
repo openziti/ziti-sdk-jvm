@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry Inc.
+ * Copyright (c) 2018-2023 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Test
 import org.openziti.api.asInterceptAddr
-import java.io.StringWriter
 
 class ZitiDNSManagerTest {
 
@@ -52,6 +51,9 @@ class ZitiDNSManagerTest {
 
     @Test
     fun testWildcard() {
+        val hostIP = ZitiDNSManager.registerHostname("host.ziggy.IO")
+        assertNotNull(hostIP)
+
         val domain = "bar.ziti"
         ZitiDNSManager.registerDomain("*.$domain")
 
@@ -61,6 +63,10 @@ class ZitiDNSManagerTest {
 
         val invalid = ZitiDNSManager.resolve("foo.${domain}.com")
         assertNull(invalid)
+
+        val hostAddr = ZitiDNSManager.resolve("HOST.ziggy.io")
+        assertNotNull(hostAddr)
+        assertSame(hostIP, hostAddr)
 
         ZitiDNSManager.unregisterDomain(domain)
         assertNull(ZitiDNSManager.resolve("FOO.$domain"))
