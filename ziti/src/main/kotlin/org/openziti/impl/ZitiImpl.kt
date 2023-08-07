@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022 NetFoundry Inc.
+ * Copyright (c) 2018-2023 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,17 +122,8 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return contexts
     }
 
-    private fun isZitiIdentity(ks: KeyStore, alias: String): Boolean {
-        if (!ks.isKeyEntry(alias))
-            return false
-
-        try {
-            return URI.create(alias).scheme == "ziti"
-        }
-        catch (ex: IllegalArgumentException) {
-            return false
-        }
-    }
+    private fun isZitiIdentity(ks: KeyStore, alias: String): Boolean =
+        ks.isKeyEntry(alias) && runCatching { URI.create(alias).scheme == "ziti" }.getOrElse { false }
 
     fun isSeamless(): Boolean = Sockets.isSeamless()
 

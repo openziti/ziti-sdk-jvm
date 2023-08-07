@@ -137,7 +137,7 @@ internal object ZitiDNSManager : DNSResolver, Logged by ZitiLog() {
         val ip = PREFIX + byteArrayOf(nextPostfix.shr(8).and(0xff).toByte(), (nextPostfix and 0xFF).toByte())
         val addr = InetAddress.getByAddress(dnsname, ip)
 
-        i { "assigned $dnsname => $addr " + domain?.let { "[${it.name}]" } }
+        i { """assigned $dnsname => $addr [${domain?.name ?: ""}]""" }
         return Entry(dnsname, addr, domain)
     }
 
