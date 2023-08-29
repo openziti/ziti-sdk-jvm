@@ -1,3 +1,6 @@
+.. image:: https://raw.githubusercontent.com/openziti/branding/main/images/banners/Java.jpg
+    :alt: Ziggy using the ziti-sdk-jvm
+    
 .. image:: https://github.com/openziti/ziti-sdk-jvm/workflows/CI%20build/badge.svg
     :target: https://github.com/openziti/ziti-sdk-jvm/actions?query=workflow%3A%22CI+build%22
 
