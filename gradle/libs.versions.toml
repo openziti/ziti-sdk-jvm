@@ -10,7 +10,7 @@ coroutines = "1.7.3"
 slf4j = "2.0.7"
 jupiter = "5.10.0"
 gson = "2.10.1"
-tls-channel = "0.8.0"
+tls-channel = "0.8.1"
 jjwt = "0.11.5"
 netty = "4.1.97.Final"
 
