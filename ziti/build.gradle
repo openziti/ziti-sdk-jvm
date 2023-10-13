@@ -42,7 +42,7 @@ dependencies {
     implementation(libs.jjwt.impl)
     implementation(libs.jjwt.gson)
 
-    implementation('io.dropwizard.metrics:metrics-core:4.2.19')
+    implementation('io.dropwizard.metrics:metrics-core:4.2.21')
     implementation('org.bouncycastle:bcpkix-jdk18on:1.76')
 
     implementation(libs.sodium) {
