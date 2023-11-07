@@ -4,24 +4,21 @@ This is the list of commands run to get a ziti environment setup running with do
 
 ## SETUP work
 * Java 11+ installed and on the path (run: java -version and confirm)
-* This example uses the docker-compose environment. To replicate you need the compose file and docker/docker-compose installed
+* cd to the location of this `cheatsheet.md`
+* This example uses the docker-compose environment. To replicate you need the compose file and docker/docker-compose 
+  installed. Then, curl down the simplified compose file along with the default .env file
 
-    # clone the ziti repo
-    git clone git@github.com:openziti/ziti.git
+      curl -s https://get.openziti.io/dock/simplified-docker-compose.yml > docker-compose.yml
+      curl -s https://get.openziti.io/dock/.env > .env
     
-    # -- OR --
-    # download the docker-compose file 
-    curl https://raw.githubusercontent.com/openziti/ziti/release-next/quickstart/docker/docker-compose.yml > /tmp/docker-compose.yml
-    curl https://raw.githubusercontent.com/openziti/ziti/release-next/quickstart/docker/.env > /tmp/.env
-    
-* modify docker compose file
+* modify docker compose file and add postgres with a known user/password
 
       postgres-db:
         image: postgres
         #ports:
         #  - 5432:5432
         networks:
-          - zitiblue
+          - ziti
         volumes:
           - ./data/db:/var/lib/postgresql/data
         environment:
@@ -31,89 +28,97 @@ This is the list of commands run to get a ziti environment setup running with do
     
 * launch the docker environment
 
-    # use the project name of 'pg' (for postgres) when starting docker-compose
-    docker-compose -f /tmp/docker-compose.yml -p pg down -v
-    clear; docker-compose -f /tmp/docker-compose.yml -p pg up
+      # use the project name of 'pg' (for postgres) when starting docker-compose
+      docker compose -p pg up
     
 * bootstrap postgres
 
-    docker exec -it -u root pg_ziti-private-blue_1 /bin/bash
-    apt update && apt install postgresql-client -y --fix-missing
-    PGPASSWORD=postgres psql -h postgres-db -U postgres 
+      docker cp prep-db.sql pg-postgres-db-1:prep-db.sql
+      docker exec -e PGPASSWORD=postgres -it pg-postgres-db-1 psql -U postgres -d postgres
 
-* issue these commands once connected to postgres
+* issue these commands, once connected to postgres db
 
-    DROP DATABASE simpledb;
-    CREATE DATABASE simpledb;
-    ALTER DATABASE simpledb OWNER TO postgres;
-    \connect simpledb;
+      DROP DATABASE simpledb;
+      CREATE DATABASE simpledb;
+      ALTER DATABASE simpledb OWNER TO postgres;
+      \connect simpledb;
     
-    CREATE TABLE simpletable(chardata varchar(100), somenumber int);
+* issue these commands, after connecting to the 'simpledb' database
 
-    INSERT INTO simpletable VALUES('a', 1);
-    INSERT INTO simpletable VALUES('b', 2);
-    INSERT INTO simpletable VALUES('c', 3);
-    INSERT INTO simpletable VALUES('d', 4);
-    INSERT INTO simpletable VALUES('e', 5);
-    INSERT INTO simpletable VALUES('f', 6);
-    INSERT INTO simpletable VALUES('g', 7);
-    INSERT INTO simpletable VALUES('h', 8);
-    INSERT INTO simpletable VALUES('i', 9);
-    INSERT INTO simpletable VALUES('j', 0);
+      CREATE TABLE simpletable(chardata varchar(100), somenumber int);
 
-    select * from simpletable;
+      INSERT INTO simpletable VALUES('a', 1);
+      INSERT INTO simpletable VALUES('b', 2);
+      INSERT INTO simpletable VALUES('c', 3);
+      INSERT INTO simpletable VALUES('d', 4);
+      INSERT INTO simpletable VALUES('e', 5);
+      INSERT INTO simpletable VALUES('f', 6);
+      INSERT INTO simpletable VALUES('g', 7);
+      INSERT INTO simpletable VALUES('h', 8);
+      INSERT INTO simpletable VALUES('i', 9);
+      INSERT INTO simpletable VALUES('j', 0);
+
+      select * from simpletable;
+
+* exit postgres by typing `exit`
 
 * SHOW POSTGRES not exposed:
 
-    docker ps (show 5432 not exposed)
+      docker ps (show 5432 not exposed)
 
 ## ZITI BOOTSTRAPPING
 
-* exec into the controller using docker
-
-    docker exec -it pg_ziti-controller_1 bash
-
+* get ziti onto your path however you like.
+  * Linux/MacOS users can source a script (as always, we recommend you read the script first):
+  
+        source /dev/stdin <<< "$(wget -qO- https://get.openziti.io/quick/ziti-cli-functions.sh)"; getZiti "yes"
+  
+  * Windows users can run this powershell command (as always, we recommend you read the script first):
+        
+        iex(iwr -Uri https://get.openziti.io/quick/getZiti.ps1)
+  
 * login to the local ziti instance
 
-    ziti edge login ziti-edge-controller:1280 -u admin -p admin
-    -- or --
-    zitiLogin
+      ziti edge login localhost:1280 -u admin -p admin -y
 
 ### CLEANUP COMMANDS:
 
 Not needed unless you want to try again without recreating docker
 
-    ziti edge delete service private-postgres
-    ziti edge delete config private-postgres-intercept.v1
-    ziti edge delete config private-postgres-host.v1
-    ziti edge delete service-policy postgres-dial-policy
-    ziti edge delete service-policy postgres-bind-policy
+      ziti edge delete service private-postgres
+      ziti edge delete config private-postgres-intercept.v1
+      ziti edge delete config private-postgres-host.v1
+      ziti edge delete service-policy postgres-dial-policy
+      ziti edge delete service-policy postgres-bind-policy
 
-    ziti edge delete edge-router-policy public-router-access
-    ziti edge delete identity tunneler-id 
-    ziti edge delete identity java-identity
+      ziti edge delete edge-router-policy public-router-access
+      ziti edge delete identity tunneler-id 
+      ziti edge delete identity java-identity
     
 ### CREATE/UPDATE COMMANDS:
 
-    ziti edge create config private-postgres-intercept.v1 intercept.v1 '{"protocols":["tcp"],"addresses":["zitified-postgres"], "portRanges":[{"low":5432, "high":5432}]}'
-    ziti edge create config private-postgres-host.v1 host.v1 '{"protocol":"tcp", "address":"postgres-db","port":5432 }'
-    ziti edge create service private-postgres --configs private-postgres-intercept.v1,private-postgres-host.v1 -a "private-postgres-services"
-    ziti edge create service-policy postgres-dial-policy Dial --identity-roles '#postgres-clients' --service-roles '#private-postgres-services'
-    ziti edge create service-policy postgres-bind-policy Bind --identity-roles '@ziti-private-blue' --service-roles '#private-postgres-services'
+      # create and enroll an identity for the client
+      ziti edge create identity pg-client -o pg-client.jwt -a postgres-clients
+      ziti edge enroll pg-client.jwt
+      
+      # authorize the router to offload traffic towards postgres
+      ziti edge update identity ziti-edge-router -a postgres-servers
 
-### CREATE JAVA ID for SDK demo
+      # configure the OpenZiti overlay
+      # create two configs, one for dialing/intercepting and one for binding
+      ziti edge create config private-postgres-intercept.v1 intercept.v1 '{"protocols":["tcp"],"addresses":["zitified-postgres"], "portRanges":[{"low":5432, "high":5432}]}'
+      ziti edge create config private-postgres-host.v1 host.v1 '{"protocol":"tcp", "address":"postgres-db","port":5432 }'
+      
+      # add the two configs to a service
+      ziti edge create service private-postgres --configs private-postgres-intercept.v1,private-postgres-host.v1 -a "private-postgres-services"
 
-(replace the path accordingly)
-
-    ziti edge create identity user java-identity -o java-identity.jwt -a "postgres-clients" 
-    ziti edge enroll java-identity.jwt -o java-identity.json
-    
-    # exit docker
-    docker cp pg_ziti-controller_1:/openziti/java-identity.json .
+      # authorize the identities to dial and bind the service
+      ziti edge create service-policy postgres-dial-policy Dial --identity-roles '#postgres-clients' --service-roles '#private-postgres-services'
+      ziti edge create service-policy postgres-bind-policy Bind --identity-roles '#postgres-servers' --service-roles '#private-postgres-services'
 
 ### Easy way of adding ziti-edge-controller/ziti-edge-router to you hosts file if you wish
 
 (don't forget to remove them afterwards) :)
 
-    echo "127.0.0.1       ziti-edge-controller" | sudo tee -a /etc/hosts
-    echo "127.0.0.1       ziti-edge-router" | sudo tee -a /etc/hosts
+      echo "127.0.0.1       ziti-edge-controller" | sudo tee -a /etc/hosts
+      echo "127.0.0.1       ziti-edge-router" | sudo tee -a /etc/hosts
