@@ -33,7 +33,6 @@ This is the list of commands run to get a ziti environment setup running with do
     
 * bootstrap postgres
 
-      docker cp prep-db.sql pg-postgres-db-1:prep-db.sql
       docker exec -e PGPASSWORD=postgres -it pg-postgres-db-1 psql -U postgres -d postgres
 
 * issue these commands, once connected to postgres db
