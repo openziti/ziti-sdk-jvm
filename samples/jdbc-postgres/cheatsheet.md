@@ -81,7 +81,7 @@ This is the list of commands run to get a ziti environment setup running with do
 
       ziti edge login localhost:1280 -u admin -p admin -y
 
-### CLEANUP COMMANDS:
+### CLEANUP COMMANDS
 
 Not needed unless you want to try again without recreating docker
 
@@ -92,7 +92,7 @@ Not needed unless you want to try again without recreating docker
       ziti edge delete service-policy postgres-bind-policy
       ziti edge delete identity pg-client
     
-### CREATE/UPDATE COMMANDS:
+### CREATE/UPDATE COMMANDS
 
       # create and enroll an identity for the client
       ziti edge create identity pg-client -o pg-client.jwt -a postgres-clients
@@ -120,7 +120,7 @@ Not needed unless you want to try again without recreating docker
       echo "127.0.0.1       ziti-edge-controller" | sudo tee -a /etc/hosts
       echo "127.0.0.1       ziti-edge-router" | sudo tee -a /etc/hosts
 
-## Run the Sample:
+## Run the Sample
 
 * cd here: `cd samples/jdbc-postgres`
 * run gradlew/gradlew.bat: `./gradlew :run --args="./pg-client.json"`
