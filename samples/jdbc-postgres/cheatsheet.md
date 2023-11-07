@@ -90,10 +90,7 @@ Not needed unless you want to try again without recreating docker
       ziti edge delete config private-postgres-host.v1
       ziti edge delete service-policy postgres-dial-policy
       ziti edge delete service-policy postgres-bind-policy
-
-      ziti edge delete edge-router-policy public-router-access
-      ziti edge delete identity tunneler-id 
-      ziti edge delete identity java-identity
+      ziti edge delete identity pg-client
     
 ### CREATE/UPDATE COMMANDS:
 
@@ -122,3 +119,35 @@ Not needed unless you want to try again without recreating docker
 
       echo "127.0.0.1       ziti-edge-controller" | sudo tee -a /etc/hosts
       echo "127.0.0.1       ziti-edge-router" | sudo tee -a /etc/hosts
+
+## Run the Sample:
+
+* cd here: `cd samples/jdbc-postgres`
+* run gradlew/gradlew.bat: `./gradlew :run --args="./pg-client.json"`
+
+### Sample Output
+
+    > Task :run
+    SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+    SLF4J: Defaulting to no-operation (NOP) logger implementation
+    SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+    Result from database is: a:1
+    Result from database is: b:2
+    Result from database is: c:3
+    Result from database is: d:4
+    Result from database is: e:5
+    Result from database is: f:6
+    Result from database is: g:7
+    Result from database is: h:8
+    Result from database is: i:9
+    Result from database is: j:0
+    
+    Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+    
+    You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+    
+    For more on this, please refer to https://docs.gradle.org/8.4/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+    
+    BUILD SUCCESSFUL in 6s
+    3 actionable tasks: 3 executed
+    [1]+  Done                    clear
