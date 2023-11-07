@@ -13,18 +13,18 @@ This is the list of commands run to get a ziti environment setup running with do
     
 * modify docker compose file and add postgres with a known user/password
 
-      postgres-db:
-        image: postgres
-        #ports:
-        #  - 5432:5432
-        networks:
-          - ziti
-        volumes:
-          - ./data/db:/var/lib/postgresql/data
-        environment:
-          - POSTGRES_DB=postgres
-          - POSTGRES_USER=postgres
-          - POSTGRES_PASSWORD=postgres
+        postgres-db:
+          image: postgres
+          #ports:
+          #  - 5432:5432
+          networks:
+            - ziti
+          volumes:
+            - ./data/db:/var/lib/postgresql/data
+          environment:
+            - POSTGRES_DB=postgres
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
     
 * launch the docker environment
 
@@ -85,40 +85,38 @@ This is the list of commands run to get a ziti environment setup running with do
 
 Not needed unless you want to try again without recreating docker
 
-      ziti edge delete service private-postgres
-      ziti edge delete config private-postgres-intercept.v1
-      ziti edge delete config private-postgres-host.v1
-      ziti edge delete service-policy postgres-dial-policy
-      ziti edge delete service-policy postgres-bind-policy
-      ziti edge delete identity pg-client
+    ziti edge delete service private-postgres
+    ziti edge delete config private-postgres-intercept.v1
+    ziti edge delete config private-postgres-host.v1
+    ziti edge delete service-policy postgres-dial-policy
+    ziti edge delete service-policy postgres-bind-policy
+    ziti edge delete identity pg-client
     
 ### CREATE/UPDATE COMMANDS
 
-      # create and enroll an identity for the client
-      ziti edge create identity pg-client -o pg-client.jwt -a postgres-clients
-      ziti edge enroll pg-client.jwt
+    # create and enroll an identity for the client
+    ziti edge create identity pg-client -o pg-client.jwt -a postgres-clients
+    ziti edge enroll pg-client.jwt
       
-      # authorize the router to offload traffic towards postgres
-      ziti edge update identity ziti-edge-router -a postgres-servers
-
-      # configure the OpenZiti overlay
-      # create two configs, one for dialing/intercepting and one for binding
-      ziti edge create config private-postgres-intercept.v1 intercept.v1 '{"protocols":["tcp"],"addresses":["zitified-postgres"], "portRanges":[{"low":5432, "high":5432}]}'
-      ziti edge create config private-postgres-host.v1 host.v1 '{"protocol":"tcp", "address":"postgres-db","port":5432 }'
-      
-      # add the two configs to a service
-      ziti edge create service private-postgres --configs private-postgres-intercept.v1,private-postgres-host.v1 -a "private-postgres-services"
-
-      # authorize the identities to dial and bind the service
-      ziti edge create service-policy postgres-dial-policy Dial --identity-roles '#postgres-clients' --service-roles '#private-postgres-services'
-      ziti edge create service-policy postgres-bind-policy Bind --identity-roles '#postgres-servers' --service-roles '#private-postgres-services'
+    # authorize the router to offload traffic towards postgres
+    ziti edge update identity ziti-edge-router -a postgres-servers
+    # configure the OpenZiti overlay
+    # create two configs, one for dialing/intercepting and one for binding
+    ziti edge create config private-postgres-intercept.v1 intercept.v1 '{"protocols":["tcp"],"addresses":["zitified-postgres"], "portRanges":[{"low":5432, "high":5432}]}'
+    ziti edge create config private-postgres-host.v1 host.v1 '{"protocol":"tcp", "address":"postgres-db","port":5432 }'
+    
+    # add the two configs to a service
+    ziti edge create service private-postgres --configs private-postgres-intercept.v1,private-postgres-host.v1 -a "private-postgres-services"
+    # authorize the identities to dial and bind the service
+    ziti edge create service-policy postgres-dial-policy Dial --identity-roles '#postgres-clients' --service-roles '#private-postgres-services'
+    ziti edge create service-policy postgres-bind-policy Bind --identity-roles '#postgres-servers' --service-roles '#private-postgres-services'
 
 ### Easy way of adding ziti-edge-controller/ziti-edge-router to you hosts file if you wish
 
 (don't forget to remove them afterwards) :)
 
-      echo "127.0.0.1       ziti-edge-controller" | sudo tee -a /etc/hosts
-      echo "127.0.0.1       ziti-edge-router" | sudo tee -a /etc/hosts
+    echo "127.0.0.1       ziti-edge-controller" | sudo tee -a /etc/hosts
+    echo "127.0.0.1       ziti-edge-router" | sudo tee -a /etc/hosts
 
 ## Run the Sample
 
