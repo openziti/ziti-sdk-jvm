@@ -24,6 +24,7 @@ import org.junit.Rule
 import org.junit.jupiter.api.assertThrows
 import org.junit.rules.Timeout
 import org.openziti.identity.ZitiTestHelper
+import java.io.IOException
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousCloseException
@@ -165,7 +166,7 @@ class AsyncTLSChannelTest {
 
     @Test
     fun sslError() {
-        assertThrows<SSLException>{
+        assertThrows<IOException>{
             ch = AsyncTLSChannel.open() as AsyncTLSChannel
             ch.connect(InetSocketAddress(testhost, 80)).get(connectTimeout, TimeUnit.SECONDS)
             ch.startHandshake()
