@@ -58,6 +58,9 @@ class EnrollTest {
             kotlin.runCatching {
                 ZitiTestHelper.init()
             }.onSuccess { initSuccess = true }
+                .onFailure { ex ->
+                    ex.printStackTrace()
+                }
         }
 
         @AfterClass

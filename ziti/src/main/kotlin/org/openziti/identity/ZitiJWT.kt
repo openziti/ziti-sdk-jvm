@@ -53,7 +53,7 @@ class ZitiJWT(cl: Claims, val serverKey: Key) {
         fun fromJWT(jwt: String): ZitiJWT {
             val tm = JwtTrustManager()
 
-            val jwtParser = Jwts.parserBuilder()
+            val jwtParser = Jwts.parser()
                 .setSigningKeyResolver(KeyResolver(tm)).build()
 
             val claims = jwtParser.parse(jwt).body as Claims
@@ -74,12 +74,12 @@ class ZitiJWT(cl: Claims, val serverKey: Key) {
 
     class KeyResolver(val tm: JwtTrustManager) : SigningKeyResolver {
 
-        override fun resolveSigningKey(header: JwsHeader<*>, claims: Claims): Key? {
+        override fun resolveSigningKey(header: JwsHeader, claims: Claims): Key {
             val ssl = SSLContext.getInstance("TLSv1.2").apply {
                 init(null, arrayOf(tm), SecureRandom())
             }
 
-            val url = URI.create(claims.get("iss").toString()).toURL()
+            val url = URI.create(claims["iss"].toString()).toURL()
             val conn = url.openConnection() as HttpsURLConnection
             conn.sslSocketFactory = ssl.socketFactory
 
@@ -92,6 +92,6 @@ class ZitiJWT(cl: Claims, val serverKey: Key) {
         }
 
         // this is not used
-        override fun resolveSigningKey(header: JwsHeader<*>, plaintext: String) = TODO()
+        override fun resolveSigningKey(header: JwsHeader?, content: ByteArray?) = TODO()
     }
 }
