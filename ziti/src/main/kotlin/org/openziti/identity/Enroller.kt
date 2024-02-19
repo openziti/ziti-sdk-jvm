@@ -86,7 +86,8 @@ class Enroller(
         }
 
         val alias = "ziti://${enrollmentURL.host}:${enrollmentURL.port}/${URLEncoder.encode(this.name, UTF_8.name())}"
-        val protect = if (keyStore.type == "PKCS12") KeyStore.PasswordProtection(charArrayOf()) else null
+
+        val protect = if (keyStore.type.equals("pkcs12", true)) KeyStore.PasswordProtection(charArrayOf()) else null
 
         keyStore.setEntry(alias, pke, protect)
 
