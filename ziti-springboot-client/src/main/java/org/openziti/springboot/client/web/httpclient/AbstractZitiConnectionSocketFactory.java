@@ -21,18 +21,18 @@ import java.io.InputStream;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.openziti.Ziti;
 import org.openziti.ZitiContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+@Getter
 @Slf4j
 public abstract class AbstractZitiConnectionSocketFactory implements ConnectionSocketFactory {
 
   private static final long DEFAULT_WAIT_TIME = 3;
 
-  @Getter
   private ZitiContext ctx;
 
   public AbstractZitiConnectionSocketFactory(InputStream inputStream) {

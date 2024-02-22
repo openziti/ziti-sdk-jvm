@@ -18,9 +18,9 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id("java")
 
-    id("org.springframework.boot") version "2.7.5"
-    id("io.spring.dependency-management") version "1.1.0"
-    id("org.jetbrains.kotlin.plugin.spring") version "1.7.21"
+    id('org.springframework.boot') version '3.2.2'
+    id('io.spring.dependency-management') version '1.1.4'
+    id("org.jetbrains.kotlin.plugin.spring") version "1.9.22"
 }
 
 group = "org.openziti.sample"
@@ -37,10 +37,10 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-web')
 
     implementation("org.openziti:ziti-springboot-client:${versions.ziti}")
-    compileOnly('org.projectlombok:lombok:1.18.24')
-    annotationProcessor('org.projectlombok:lombok:1.18.24')
+    compileOnly('org.projectlombok:lombok:1.18.30')
+    annotationProcessor('org.projectlombok:lombok:1.18.30')
 
-    implementation('org.apache.httpcomponents:httpclient:4.5.13')
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.2.+")
 
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testCompileOnly('org.projectlombok:lombok:1.18.24')
@@ -50,3 +50,9 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+task wrapper(type: Wrapper){
+    gradleVersion = '8.6'
+}
+
+tasks.register("prepareKotlinBuildScriptModel"){}
