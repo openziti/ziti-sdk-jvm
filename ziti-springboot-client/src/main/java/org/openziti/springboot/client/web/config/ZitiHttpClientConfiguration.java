@@ -18,22 +18,35 @@ package org.openziti.springboot.client.web.config;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Optional;
-import javax.annotation.PreDestroy;
-import org.apache.http.HeaderElement;
-import org.apache.http.HeaderElementIterator;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectionKeepAliveStrategy;
-import org.apache.http.conn.DnsResolver;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.message.BasicHeaderElementIterator;
-import org.apache.http.protocol.HTTP;
+import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLSocketFactory;
+import jakarta.annotation.PreDestroy;
+import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.InMemoryDnsResolver;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.http.URIScheme;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.message.BasicHeaderElementIterator;
+import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.util.TimeValue;
 import org.openziti.springboot.client.web.httpclient.ZitiConnectionSocketFactory;
 import org.openziti.springboot.client.web.httpclient.ZitiSSLConnectionSocketFactory;
 import org.springframework.beans.factory.BeanCreationException;
@@ -55,13 +68,13 @@ public class ZitiHttpClientConfiguration {
   private static final int DEFAULT_CONNECT_TIMEOUT = 30000;
 
   // The default timeout when requesting a connection from the connection manager.
-  private static final int DEFAULT_CONNECTION_REQUEST_TIMEOUT = 30000;
+  private static final long DEFAULT_CONNECTION_REQUEST_TIMEOUT = 30000;
 
   // The default time to wait for data, the maximum time between two consecutive packets of data.
-  private static final int DEFAULT_SOCKET_TIMEOUT = 60000;
+  private static final int DEFAULT_RESPONSE_TIMEOUT = 60000;
 
   // The default time to keep a connection alive.
-  private static final int DEFAULT_KEEP_ALIVE_TIME_MILLIS = 20 * 1000;
+  private static final long DEFAULT_KEEP_ALIVE_TIME_MILLIS = 20 * 1000;
 
   private ZitiConnectionSocketFactory zitiConnectionSocketFactory;
   private ZitiSSLConnectionSocketFactory zitiSSLConnectionSocketFactory;
@@ -132,14 +145,16 @@ public class ZitiHttpClientConfiguration {
       @Value("${spring.ziti.httpclient.max-per-route:}") Integer maxPerRoute) {
 
     Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-        .register("https", zitiSSLConnectionSocketFactory)
-        .register("http", zitiConnectionSocketFactory)
+        .register(URIScheme.HTTPS.getId(), zitiSSLConnectionSocketFactory)
+        .register(URIScheme.HTTP.getId(), zitiConnectionSocketFactory)
         .build();
 
     // Fake dns resolution by always returning localhost
-    final DnsResolver dnsResolver = host -> new InetAddress[]{InetAddress.getLocalHost()};
+    final DnsResolver dnsResolver = getDnsResolver();
 
-    PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry, dnsResolver);
+    final PoolingHttpClientConnectionManager poolingConnectionManager =
+        new PoolingHttpClientConnectionManager(socketFactoryRegistry, null, null, null, null, dnsResolver, null);
+
     Optional.ofNullable(maxTotal).ifPresent(poolingConnectionManager::setMaxTotal);
     Optional.ofNullable(maxPerRoute).ifPresent(poolingConnectionManager::setDefaultMaxPerRoute);
     return poolingConnectionManager;
@@ -147,19 +162,19 @@ public class ZitiHttpClientConfiguration {
 
   @Bean("zitiConnectionKeepAliveStrategy")
   public ConnectionKeepAliveStrategy connectionKeepAliveStrategy(
-      @Value("${spring.ziti.httpclient.keep-alive-time:}") Integer keepAliveTime) {
+      @Value("${spring.ziti.httpclient.keep-alive-time:}") Long keepAliveTime) {
     return (response, context) -> {
-      HeaderElementIterator it = new BasicHeaderElementIterator(response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+      final Iterator<HeaderElement> it = MessageSupport.iterate(response, HeaderElements.KEEP_ALIVE);
       while (it.hasNext()) {
-        HeaderElement he = it.nextElement();
+        HeaderElement he = it.next();
         String param = he.getName();
         String value = he.getValue();
 
         if (value != null && param.equalsIgnoreCase("timeout")) {
-          return Long.parseLong(value) * 1000;
+          return TimeValue.of(Long.parseLong(value), TimeUnit.SECONDS);
         }
       }
-      return Optional.ofNullable(keepAliveTime).orElse(DEFAULT_KEEP_ALIVE_TIME_MILLIS);
+      return TimeValue.of(Optional.ofNullable(keepAliveTime).orElse(DEFAULT_KEEP_ALIVE_TIME_MILLIS), TimeUnit.MILLISECONDS);
     };
   }
 
@@ -167,15 +182,13 @@ public class ZitiHttpClientConfiguration {
   public CloseableHttpClient httpClient(
       @Qualifier("zitiPoolingConnectionManager") PoolingHttpClientConnectionManager poolingHttpClientConnectionManager,
       @Qualifier("zitiConnectionKeepAliveStrategy") ConnectionKeepAliveStrategy connectionKeepAliveStrategy,
-      @Value("${spring.ziti.httpclient.connection-request-timeout:}") Integer connectionRequestTimeout,
-      @Value("${spring.ziti.httpclient.connect-timeout:}") Integer connectTimeout,
-      @Value("${spring.ziti.httpclient.socket-timeout:}") Integer socketTimeout) {
+      @Value("${spring.ziti.httpclient.connection-request-timeout:}") Long connectionRequestTimeout,
+      @Value("${spring.ziti.httpclient.response-timeout:}") Integer responseTimeout) {
 
     return HttpClients.custom()
         .setDefaultRequestConfig(RequestConfig.custom()
-            .setConnectionRequestTimeout(Optional.ofNullable(connectionRequestTimeout).orElse(DEFAULT_CONNECTION_REQUEST_TIMEOUT))
-            .setConnectTimeout(Optional.ofNullable(connectTimeout).orElse(DEFAULT_CONNECT_TIMEOUT))
-            .setSocketTimeout(Optional.ofNullable(socketTimeout).orElse(DEFAULT_SOCKET_TIMEOUT))
+            .setConnectionRequestTimeout(Optional.ofNullable(connectionRequestTimeout).orElse(DEFAULT_CONNECTION_REQUEST_TIMEOUT), TimeUnit.MILLISECONDS)
+            .setResponseTimeout(Optional.ofNullable(responseTimeout).orElse(DEFAULT_RESPONSE_TIMEOUT), TimeUnit.MICROSECONDS)
             .build())
         .setConnectionManager(poolingHttpClientConnectionManager)
         .setKeepAliveStrategy(connectionKeepAliveStrategy)
@@ -186,6 +199,20 @@ public class ZitiHttpClientConfiguration {
   public void destroy() {
     Optional.ofNullable(zitiConnectionSocketFactory).ifPresent(ZitiConnectionSocketFactory::shutdown);
     Optional.ofNullable(zitiSSLConnectionSocketFactory).ifPresent(ZitiSSLConnectionSocketFactory::shutdown);
+  }
+
+  private static DnsResolver getDnsResolver() {
+    return new DnsResolver() {
+      @Override
+      public InetAddress[] resolve(String s) throws UnknownHostException {
+        return new InetAddress[]{InetAddress.getLocalHost()};
+      }
+
+      @Override
+      public String resolveCanonicalHostname(String s) throws UnknownHostException {
+        return InetAddress.getLocalHost().getCanonicalHostName();
+      }
+    };
   }
 
 }

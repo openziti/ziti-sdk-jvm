@@ -24,11 +24,13 @@ import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
-import org.apache.http.HttpHost;
-import org.apache.http.conn.ssl.TrustAllStrategy;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.util.TimeValue;
 import org.openziti.Ziti;
 import lombok.extern.slf4j.Slf4j;
 
@@ -84,20 +86,21 @@ public class ZitiSSLConnectionSocketFactory extends AbstractZitiConnectionSocket
     return new Socket();
   }
 
+
   @Override
-  public Socket connectSocket(int connectTimeout, Socket socket, HttpHost host, InetSocketAddress remoteAddress,
-      InetSocketAddress localAddress, HttpContext context) throws IOException {
+  public Socket connectSocket(TimeValue timeValue, Socket socket, HttpHost host, InetSocketAddress inetSocketAddress, InetSocketAddress localAddress, HttpContext context) throws IOException {
 
     if (this.sslSocketFactory == null) {
       try {
-        sslSocketFactory = Ziti.getSSLSocketFactory(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build());
+        final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build();
+        sslSocketFactory = Ziti.getSSLSocketFactory(sslContext);
       } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
         throw new RuntimeException(e);
       }
     }
 
-    final InetSocketAddress inetSocketAddress = new InetSocketAddress(host.getHostName(), host.getPort());
-    final Socket sock = sslSocketFactory.createSocket(inetSocketAddress.getAddress(), inetSocketAddress.getPort());
+    final InetSocketAddress address = new InetSocketAddress(host.getHostName(), host.getPort());
+    final Socket sock = sslSocketFactory.createSocket(address.getAddress(), address.getPort());
     if (localAddress != null) {
       sock.bind(localAddress);
     }

@@ -22,8 +22,9 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import javax.net.SocketFactory;
-import org.apache.http.HttpHost;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 import org.openziti.Ziti;
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,11 +84,10 @@ public class ZitiConnectionSocketFactory extends AbstractZitiConnectionSocketFac
   }
 
   @Override
-  public Socket connectSocket(int connectTimeout, Socket socket, HttpHost host, InetSocketAddress remoteAddress,
-      InetSocketAddress localAddress, HttpContext context) throws IOException {
+  public Socket connectSocket(TimeValue timeValue, Socket socket, HttpHost host, InetSocketAddress inetSocketAddress, InetSocketAddress localAddress, HttpContext context) throws IOException {
 
     final Socket sock = socket != null ? socket : createSocket(context);
-    sock.connect(new InetSocketAddress(host.getHostName(), host.getPort()), connectTimeout);
+    sock.connect(new InetSocketAddress(host.getHostName(), host.getPort()), timeValue.toMillisecondsIntBound());
     if (localAddress != null) {
       sock.bind(localAddress);
     }
