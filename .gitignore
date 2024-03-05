@@ -51,3 +51,4 @@ samples/ziti-jdbc-spring-jpa/network/.env
 
 samples/ziti-jdbc-postgresql/network/databaseClient.json
 samples/ziti-jdbc-postgresql/network/tunnel
+samples/ziti-jdbc-mssql/network/DBClient.json
