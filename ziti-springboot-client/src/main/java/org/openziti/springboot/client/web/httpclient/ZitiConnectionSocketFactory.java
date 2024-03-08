@@ -26,6 +26,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 import org.openziti.Ziti;
+import org.openziti.ZitiContext;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -73,6 +74,10 @@ public class ZitiConnectionSocketFactory extends AbstractZitiConnectionSocketFac
   }
   public ZitiConnectionSocketFactory(String fileName, char[] pwd, long waitTime) {
     super(fileName, pwd, waitTime);
+  }
+
+  public ZitiConnectionSocketFactory(ZitiContext ctx) {
+    super(ctx);
   }
 
   @Override
