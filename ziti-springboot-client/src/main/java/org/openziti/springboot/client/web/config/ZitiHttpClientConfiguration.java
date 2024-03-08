@@ -19,34 +19,29 @@ package org.openziti.springboot.client.web.config;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import javax.net.ssl.SSLSocketFactory;
 import jakarta.annotation.PreDestroy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.InMemoryDnsResolver;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.http.message.BasicHeaderElementIterator;
 import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
+import org.openziti.Ziti;
 import org.openziti.springboot.client.web.httpclient.ZitiConnectionSocketFactory;
 import org.openziti.springboot.client.web.httpclient.ZitiSSLConnectionSocketFactory;
 import org.springframework.beans.factory.BeanCreationException;
@@ -63,9 +58,6 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class ZitiHttpClientConfiguration {
-
-  // The default timeout in milliseconds until a connection is established.
-  private static final int DEFAULT_CONNECT_TIMEOUT = 30000;
 
   // The default timeout when requesting a connection from the connection manager.
   private static final long DEFAULT_CONNECTION_REQUEST_TIMEOUT = 30000;
@@ -153,7 +145,8 @@ public class ZitiHttpClientConfiguration {
     final DnsResolver dnsResolver = getDnsResolver();
 
     final PoolingHttpClientConnectionManager poolingConnectionManager =
-        new PoolingHttpClientConnectionManager(socketFactoryRegistry, null, null, null, null, dnsResolver, null);
+        new PoolingHttpClientConnectionManager(socketFactoryRegistry, PoolConcurrencyPolicy.STRICT, PoolReusePolicy.LIFO,
+            TimeValue.NEG_ONE_MILLISECOND, null, dnsResolver, null);
 
     Optional.ofNullable(maxTotal).ifPresent(poolingConnectionManager::setMaxTotal);
     Optional.ofNullable(maxPerRoute).ifPresent(poolingConnectionManager::setDefaultMaxPerRoute);
@@ -188,7 +181,7 @@ public class ZitiHttpClientConfiguration {
     return HttpClients.custom()
         .setDefaultRequestConfig(RequestConfig.custom()
             .setConnectionRequestTimeout(Optional.ofNullable(connectionRequestTimeout).orElse(DEFAULT_CONNECTION_REQUEST_TIMEOUT), TimeUnit.MILLISECONDS)
-            .setResponseTimeout(Optional.ofNullable(responseTimeout).orElse(DEFAULT_RESPONSE_TIMEOUT), TimeUnit.MICROSECONDS)
+            .setResponseTimeout(Optional.ofNullable(responseTimeout).orElse(DEFAULT_RESPONSE_TIMEOUT), TimeUnit.MILLISECONDS)
             .build())
         .setConnectionManager(poolingHttpClientConnectionManager)
         .setKeepAliveStrategy(connectionKeepAliveStrategy)
