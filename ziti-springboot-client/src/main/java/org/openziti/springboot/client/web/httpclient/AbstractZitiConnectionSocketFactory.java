@@ -104,6 +104,10 @@ public abstract class AbstractZitiConnectionSocketFactory implements ConnectionS
     }
   }
 
+  public AbstractZitiConnectionSocketFactory(ZitiContext ctx) {
+    this.ctx = ctx;
+  }
+
   public void shutdown() {
     Optional.ofNullable(getCtx()).ifPresent(ZitiContext::destroy);
   }
