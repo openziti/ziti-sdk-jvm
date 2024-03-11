@@ -82,9 +82,18 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
     override fun accept(s: SocketImpl?) = error("only client sockets are supported")
     override fun listen(backlog: Int) = error("only client sockets are supported")
 
-    override fun getInetAddress() = (channel.remoteAddress as InetSocketAddress?)?.address
-    override fun getPort() = (channel.remoteAddress as InetSocketAddress?)?.port ?: 0
-    override fun getLocalPort() = (channel.localAddress as InetSocketAddress?)?.port ?: 0
+    override fun getInetAddress(): InetAddress {
+        val addr = channel.remoteAddress
+        return if (addr is InetSocketAddress) addr.address else InetAddress.getLoopbackAddress()
+    }
+    override fun getPort(): Int {
+        val addr = channel.remoteAddress
+        return if (addr is InetSocketAddress) addr.port else  0
+    }
+    override fun getLocalPort(): Int {
+        val addr = channel.localAddress
+        return if (addr is InetSocketAddress) addr.port else 0
+    }
 
     override fun shutdownInput() {
         channel.shutdownInput()
