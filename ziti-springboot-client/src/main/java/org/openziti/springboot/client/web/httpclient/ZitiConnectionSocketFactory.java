@@ -92,7 +92,8 @@ public class ZitiConnectionSocketFactory extends AbstractZitiConnectionSocketFac
   public Socket connectSocket(TimeValue timeValue, Socket socket, HttpHost host, InetSocketAddress inetSocketAddress, InetSocketAddress localAddress, HttpContext context) throws IOException {
 
     final Socket sock = socket != null ? socket : createSocket(context);
-    sock.connect(new InetSocketAddress(host.getHostName(), host.getPort()), timeValue.toMillisecondsIntBound());
+    // can leave InetSocketAddress as unresolved since ziti performs a service lookup using the host and port
+    sock.connect(InetSocketAddress.createUnresolved(host.getHostName(), host.getPort()), timeValue.toMillisecondsIntBound());
     if (localAddress != null) {
       sock.bind(localAddress);
     }
