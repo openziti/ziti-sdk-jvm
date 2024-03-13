@@ -104,7 +104,8 @@ public class ZitiSSLConnectionSocketFactory extends AbstractZitiConnectionSocket
       }
     }
 
-    final InetSocketAddress address = new InetSocketAddress(host.getHostName(), host.getPort());
+    // can leave as unresolved since ziti performs a service lookup using the address and port
+    final InetSocketAddress address = InetSocketAddress.createUnresolved(host.getHostName(), host.getPort());
     final Socket sock = sslSocketFactory.createSocket(address.getAddress(), address.getPort());
     if (localAddress != null) {
       sock.bind(localAddress);
