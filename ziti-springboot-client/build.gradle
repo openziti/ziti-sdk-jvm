@@ -36,8 +36,8 @@ dependencies {
     implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
     implementation("commons-beanutils:commons-beanutils:1.9.4")
 
-    compileOnly('org.projectlombok:lombok:1.18.30')
-    annotationProcessor('org.projectlombok:lombok:1.18.30')
+    compileOnly('org.projectlombok:lombok:1.18.32')
+    annotationProcessor('org.projectlombok:lombok:1.18.32')
 
     implementation(project(":ziti"))
 
