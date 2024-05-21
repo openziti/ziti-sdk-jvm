@@ -30,17 +30,19 @@ class Message(
     var repTo: Int = -1
 
     companion object {
+        val EOF = Exception("transport EOF")
+
         fun newHello(token: String): Message {
             return Message(ContentType.HelloType, token.toByteArray())
         }
 
         internal suspend
-        fun readMessage(input: Transport): Message? {
+        fun readMessage(input: Transport) = runCatching {
             val header = ByteBuffer.allocate(ZitiProtocol.HEADER_LENGTH).order(ByteOrder.LITTLE_ENDIAN)
 
             val read = input.read(header)
             if (read == -1)
-                return null
+                throw EOF
             check(!header.hasRemaining()) { "could not read complete message header, read=${header.position()} expected=${header.capacity()}" }
             header.flip()
 
@@ -67,7 +69,9 @@ class Message(
                 input.read(ByteBuffer.wrap(body))
             }
 
-            return Message(ct, body, headers).apply {
+            // make sure we consume whole message from the wire
+            // even if content type is not supported
+            Message(ct.getOrThrow(), body, headers).apply {
                 seqNo = seq
                 repTo = getIntHeader(ZitiProtocol.Header.ReplyFor) ?: -1
             }

@@ -40,8 +40,11 @@ import java.net.SocketOption
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.*
+import java.security.SecureRandom
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.Channel as Chan
 
@@ -50,6 +53,9 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
 
     lateinit var localAddr: ZitiAddress.Bind
     var channel: Channel? = null
+    private val listenerId = ByteArray(32).apply {
+        SecureRandom().nextBytes(this)
+    }
     val connId: Int = ctx.nextConnId()
     var state: State = State.initial
     lateinit var incoming: Chan<Message>
@@ -125,6 +131,8 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
             val connectMsg = Message(ZitiProtocol.ContentType.Bind, session.token.toByteArray(Charsets.UTF_8)).apply {
                 setHeader(Header.ConnId, connId)
                 setHeader(Header.SeqHeader, 0)
+                setHeader(Header.ListenerId, listenerId)
+
                 val bindId = localAddr.identity ?: (if (localAddr.useEdgeId) ctx.getId()?.name else null)
 
                 bindId?.let {
@@ -262,6 +270,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
         }
     }
 
+    @OptIn(ExperimentalEncodingApi::class)
     suspend fun receive(msg: Message) {
         when(msg.content) {
             ZitiProtocol.ContentType.Dial -> {
@@ -279,11 +288,20 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                 channel?.deregisterReceiver(connId)
                 state = State.closed
             }
+            ZitiProtocol.ContentType.ConnInspectRequest -> {
+                channel?.let {
+                    val listenerStr = Base64.Default.encode(listenerId)
+                    val body = "id[$connId] serviceName[${localAddr.service}] listenerId[$listenerStr] " +
+                            "closed[${!isOpen}] encrypted[${keyPair != null}]"
+                    val m = Message(ZitiProtocol.ContentType.ConnInspectResponse, body = body.toByteArray())
+                        .setHeader(Header.ConnId, connId)
+                        .setHeader(Header.ReplyFor, msg.seqNo)
+                        .setHeader(Header.ConnTypeHeader, byteArrayOf(SessionType.Bind.id))
+                    it.Send(m)
+                }
+            }
             else -> {
                 e{"unexpected message[${msg.content}] on bound conn[$connId]"}
-                incoming.close()
-                state = State.closed
-                channel?.deregisterReceiver(connId)
             }
         }
     }
