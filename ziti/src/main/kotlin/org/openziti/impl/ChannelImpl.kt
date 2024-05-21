@@ -258,11 +258,20 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
         }
     }
 
-    fun rx(peer: Transport): Flow<Message> = flow {
-        do {
-            val m = Message.readMessage(peer)
-            m?.let { emit(it) }
-        } while(m != null)
+    internal fun rx(peer: Transport): Flow<Message> = flow {
+        while(true) {
+            Message.readMessage(peer).onSuccess {
+                emit(it)
+            }.onFailure {
+                when(it) {
+                    is ZitiProtocol.ContentType.UnknownContent -> {
+                        w { "ignoring ${it.message}"  }
+                    }
+                    Message.EOF -> return@flow
+                    else -> throw it
+                }
+            }
+        }
     }
 
     override fun getCurrentLatency() = state.let {
