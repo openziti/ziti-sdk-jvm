@@ -29,9 +29,11 @@ import java.util.*
 
 internal const val ClientV1Cfg = "ziti-tunneler-client.v1"
 internal const val InterceptV1Cfg = "intercept.v1"
-internal enum class SessionType {
-    Dial,
-    Bind
+internal enum class SessionType(val id: Byte) {
+    Invalid(0),
+    Dial(1),
+    Bind(2),
+    Unknown(3)
 }
 
 enum class PostureQueryType {
