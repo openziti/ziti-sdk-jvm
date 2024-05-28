@@ -35,6 +35,8 @@ build/
 *.iml
 out/
 
+/dependency-graph-reports/*
+
 **/.idea/*
 **/target/*
 

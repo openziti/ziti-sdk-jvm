@@ -26,10 +26,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           dependency-graph: generate-and-submit
-      - name: Show Info
-        run: ./gradlew :showInfo
       - name: Build with Gradle
         run: ./gradlew build assemble
+      - name: Show Info
+        run: ./gradlew :showInfo
       - name: Publish to Sonatype
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
