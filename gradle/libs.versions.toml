@@ -7,7 +7,7 @@ semver-git = "2.3.7"
 
 lazysodium-java = "5.1.4"
 coroutines = "1.8.0"
-slf4j = "2.0.12"
+slf4j = "2.0.13"
 jupiter = "5.10.2"
 gson = "2.10.1"
 tls-channel = "0.8.1"
