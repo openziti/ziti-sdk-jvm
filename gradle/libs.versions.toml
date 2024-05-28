@@ -1,6 +1,6 @@
 [versions]
 # plugings
-kotlin = "1.9.23"
+kotlin = "2.0.0"
 dokka = "1.9.20"
 nexus = "1.3.0"
 semver-git = "2.3.7"
