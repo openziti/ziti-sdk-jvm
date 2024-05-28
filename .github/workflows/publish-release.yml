@@ -23,6 +23,8 @@ jobs:
           java-version: 17
           distribution: temurin
           cache: gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
       - name: Show Info
         run: ./gradlew :showInfo
       - name: Build with Gradle
