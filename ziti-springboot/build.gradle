@@ -32,9 +32,11 @@ repositories {
 
 dependencies {
     implementation(libs.kotlin.lib)
-    implementation("org.springframework.boot:spring-boot:${libs.versions.springboot}")
-    implementation("org.springframework.boot:spring-boot-autoconfigure:${libs.versions.springboot}")
-    implementation("org.springframework.boot:spring-boot-starter-tomcat:${libs.versions.springboot}")
+
+    def springbootVersion = libs.versions.springboot.get()
+    implementation("org.springframework.boot:spring-boot:${springbootVersion}")
+    implementation("org.springframework.boot:spring-boot-autoconfigure:${springbootVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-tomcat:${springbootVersion}")
 
     implementation(project(":ziti"))
 
