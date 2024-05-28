@@ -14,15 +14,18 @@ jobs:
       BUILD_NUMBER: ${{ github.GITHUB_RUN_NUMBER }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
-          cache: gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          dependency-graph: generate-and-submit
       - name: Show Info
         run: ./gradlew :showInfo
       - name: Build with Gradle

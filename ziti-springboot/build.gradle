@@ -19,13 +19,11 @@ plugins {
     alias(libs.plugins.dokka)
     id 'maven-publish'
 
-    id("org.jetbrains.kotlin.plugin.spring") version "1.9.23"
-
+    alias(libs.plugins.kotlin.spring)
 }
 
 ext {
     description "Ziti adapter for Spring Boot"
-    springbootVersion = '3.2.4'
 }
 
 repositories {
@@ -34,6 +32,8 @@ repositories {
 
 dependencies {
     implementation(libs.kotlin.lib)
+
+    def springbootVersion = libs.versions.springboot.get()
     implementation("org.springframework.boot:spring-boot:${springbootVersion}")
     implementation("org.springframework.boot:spring-boot-autoconfigure:${springbootVersion}")
     implementation("org.springframework.boot:spring-boot-starter-tomcat:${springbootVersion}")
