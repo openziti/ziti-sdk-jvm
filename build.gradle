@@ -107,3 +107,4 @@ openApiGenerate {
     ]
 }
 
+tasks.named('openApiGenerate').get().finalizedBy(':edge-api:spotlessApply')
