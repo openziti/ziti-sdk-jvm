@@ -10,51 +10,30 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.openziti.edge.model.ClientExternalJwtSignerDetail;
-import org.openziti.edge.model.Meta;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ListClientExternalJwtSignersEnvelope
- */
+/** Model tests for ListClientExternalJwtSignersEnvelope */
 class ListClientExternalJwtSignersEnvelopeTest {
-    private final ListClientExternalJwtSignersEnvelope model = new ListClientExternalJwtSignersEnvelope();
+    private final ListClientExternalJwtSignersEnvelope model =
+            new ListClientExternalJwtSignersEnvelope();
 
-    /**
-     * Model tests for ListClientExternalJwtSignersEnvelope
-     */
+    /** Model tests for ListClientExternalJwtSignersEnvelope */
     @Test
     void testListClientExternalJwtSignersEnvelope() {
         // TODO: test ListClientExternalJwtSignersEnvelope
     }
 
-    /**
-     * Test the property 'data'
-     */
+    /** Test the property 'data' */
     @Test
     void dataTest() {
         // TODO: test data
     }
 
-    /**
-     * Test the property 'meta'
-     */
+    /** Test the property 'meta' */
     @Test
     void metaTest() {
         // TODO: test meta
     }
-
 }

@@ -10,592 +10,656 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.StringJoiner;
 import org.openapitools.jackson.nullable.JsonNullable;
-import org.openziti.edge.model.ApiAddress;
-import org.openziti.edge.model.Link;
-import org.openziti.edge.model.Tags;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.openapitools.jackson.nullable.JsonNullable;
-import java.util.NoSuchElementException;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-
-/**
- * A controller resource
- */
+/** A controller resource */
 @JsonPropertyOrder({
-  ControllerDetail.JSON_PROPERTY_LINKS,
-  ControllerDetail.JSON_PROPERTY_CREATED_AT,
-  ControllerDetail.JSON_PROPERTY_ID,
-  ControllerDetail.JSON_PROPERTY_TAGS,
-  ControllerDetail.JSON_PROPERTY_UPDATED_AT,
-  ControllerDetail.JSON_PROPERTY_API_ADDRESSES,
-  ControllerDetail.JSON_PROPERTY_CERT_PEM,
-  ControllerDetail.JSON_PROPERTY_CTRL_ADDRESS,
-  ControllerDetail.JSON_PROPERTY_FINGERPRINT,
-  ControllerDetail.JSON_PROPERTY_IS_ONLINE,
-  ControllerDetail.JSON_PROPERTY_LAST_JOINED_AT,
-  ControllerDetail.JSON_PROPERTY_NAME
+    ControllerDetail.JSON_PROPERTY_LINKS,
+    ControllerDetail.JSON_PROPERTY_CREATED_AT,
+    ControllerDetail.JSON_PROPERTY_ID,
+    ControllerDetail.JSON_PROPERTY_TAGS,
+    ControllerDetail.JSON_PROPERTY_UPDATED_AT,
+    ControllerDetail.JSON_PROPERTY_API_ADDRESSES,
+    ControllerDetail.JSON_PROPERTY_CERT_PEM,
+    ControllerDetail.JSON_PROPERTY_CTRL_ADDRESS,
+    ControllerDetail.JSON_PROPERTY_FINGERPRINT,
+    ControllerDetail.JSON_PROPERTY_IS_ONLINE,
+    ControllerDetail.JSON_PROPERTY_LAST_JOINED_AT,
+    ControllerDetail.JSON_PROPERTY_NAME
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class ControllerDetail {
-  public static final String JSON_PROPERTY_LINKS = "_links";
-  private Map<String, Link> links = new HashMap<>();
+    public static final String JSON_PROPERTY_LINKS = "_links";
+    private Map<String, Link> links = new HashMap<>();
 
-  public static final String JSON_PROPERTY_CREATED_AT = "createdAt";
-  private OffsetDateTime createdAt;
+    public static final String JSON_PROPERTY_CREATED_AT = "createdAt";
+    private OffsetDateTime createdAt;
 
-  public static final String JSON_PROPERTY_ID = "id";
-  private String id;
+    public static final String JSON_PROPERTY_ID = "id";
+    private String id;
 
-  public static final String JSON_PROPERTY_TAGS = "tags";
-  private Tags tags;
+    public static final String JSON_PROPERTY_TAGS = "tags";
+    private Tags tags;
 
-  public static final String JSON_PROPERTY_UPDATED_AT = "updatedAt";
-  private OffsetDateTime updatedAt;
+    public static final String JSON_PROPERTY_UPDATED_AT = "updatedAt";
+    private OffsetDateTime updatedAt;
 
-  public static final String JSON_PROPERTY_API_ADDRESSES = "apiAddresses";
-  private Map<String, List<ApiAddress>> apiAddresses = new HashMap<>();
+    public static final String JSON_PROPERTY_API_ADDRESSES = "apiAddresses";
+    private Map<String, List<ApiAddress>> apiAddresses = new HashMap<>();
 
-  public static final String JSON_PROPERTY_CERT_PEM = "certPem";
-  private String certPem;
+    public static final String JSON_PROPERTY_CERT_PEM = "certPem";
+    private String certPem;
 
-  public static final String JSON_PROPERTY_CTRL_ADDRESS = "ctrlAddress";
-  private JsonNullable<String> ctrlAddress = JsonNullable.<String>undefined();
+    public static final String JSON_PROPERTY_CTRL_ADDRESS = "ctrlAddress";
+    private JsonNullable<String> ctrlAddress = JsonNullable.<String>undefined();
 
-  public static final String JSON_PROPERTY_FINGERPRINT = "fingerprint";
-  private String fingerprint;
+    public static final String JSON_PROPERTY_FINGERPRINT = "fingerprint";
+    private String fingerprint;
 
-  public static final String JSON_PROPERTY_IS_ONLINE = "isOnline";
-  private Boolean isOnline;
+    public static final String JSON_PROPERTY_IS_ONLINE = "isOnline";
+    private Boolean isOnline;
 
-  public static final String JSON_PROPERTY_LAST_JOINED_AT = "lastJoinedAt";
-  private OffsetDateTime lastJoinedAt;
+    public static final String JSON_PROPERTY_LAST_JOINED_AT = "lastJoinedAt";
+    private OffsetDateTime lastJoinedAt;
 
-  public static final String JSON_PROPERTY_NAME = "name";
-  private String name;
+    public static final String JSON_PROPERTY_NAME = "name";
+    private String name;
 
-  public ControllerDetail() { 
-  }
+    public ControllerDetail() {}
 
-  public ControllerDetail links(Map<String, Link> links) {
-    this.links = links;
-    return this;
-  }
-
-  public ControllerDetail putLinksItem(String key, Link linksItem) {
-    if (this.links == null) {
-      this.links = new HashMap<>();
-    }
-    this.links.put(key, linksItem);
-    return this;
-  }
-
-   /**
-   * A map of named links
-   * @return links
-  **/
-  @javax.annotation.Nonnull
-  @JsonProperty(JSON_PROPERTY_LINKS)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
-  public Map<String, Link> getLinks() {
-    return links;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_LINKS)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setLinks(Map<String, Link> links) {
-    this.links = links;
-  }
-
-
-  public ControllerDetail createdAt(OffsetDateTime createdAt) {
-    this.createdAt = createdAt;
-    return this;
-  }
-
-   /**
-   * Get createdAt
-   * @return createdAt
-  **/
-  @javax.annotation.Nonnull
-  @JsonProperty(JSON_PROPERTY_CREATED_AT)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
-  public OffsetDateTime getCreatedAt() {
-    return createdAt;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_CREATED_AT)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setCreatedAt(OffsetDateTime createdAt) {
-    this.createdAt = createdAt;
-  }
-
-
-  public ControllerDetail id(String id) {
-    this.id = id;
-    return this;
-  }
-
-   /**
-   * Get id
-   * @return id
-  **/
-  @javax.annotation.Nonnull
-  @JsonProperty(JSON_PROPERTY_ID)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
-  public String getId() {
-    return id;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_ID)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setId(String id) {
-    this.id = id;
-  }
-
-
-  public ControllerDetail tags(Tags tags) {
-    this.tags = tags;
-    return this;
-  }
-
-   /**
-   * Get tags
-   * @return tags
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_TAGS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public Tags getTags() {
-    return tags;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_TAGS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setTags(Tags tags) {
-    this.tags = tags;
-  }
-
-
-  public ControllerDetail updatedAt(OffsetDateTime updatedAt) {
-    this.updatedAt = updatedAt;
-    return this;
-  }
-
-   /**
-   * Get updatedAt
-   * @return updatedAt
-  **/
-  @javax.annotation.Nonnull
-  @JsonProperty(JSON_PROPERTY_UPDATED_AT)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
-  public OffsetDateTime getUpdatedAt() {
-    return updatedAt;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_UPDATED_AT)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setUpdatedAt(OffsetDateTime updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
-
-  public ControllerDetail apiAddresses(Map<String, List<ApiAddress>> apiAddresses) {
-    this.apiAddresses = apiAddresses;
-    return this;
-  }
-
-  public ControllerDetail putApiAddressesItem(String key, List<ApiAddress> apiAddressesItem) {
-    if (this.apiAddresses == null) {
-      this.apiAddresses = new HashMap<>();
-    }
-    this.apiAddresses.put(key, apiAddressesItem);
-    return this;
-  }
-
-   /**
-   * Get apiAddresses
-   * @return apiAddresses
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_API_ADDRESSES)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public Map<String, List<ApiAddress>> getApiAddresses() {
-    return apiAddresses;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_API_ADDRESSES)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setApiAddresses(Map<String, List<ApiAddress>> apiAddresses) {
-    this.apiAddresses = apiAddresses;
-  }
-
-
-  public ControllerDetail certPem(String certPem) {
-    this.certPem = certPem;
-    return this;
-  }
-
-   /**
-   * Get certPem
-   * @return certPem
-  **/
-  @javax.annotation.Nonnull
-  @JsonProperty(JSON_PROPERTY_CERT_PEM)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
-  public String getCertPem() {
-    return certPem;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_CERT_PEM)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setCertPem(String certPem) {
-    this.certPem = certPem;
-  }
-
-
-  public ControllerDetail ctrlAddress(String ctrlAddress) {
-    this.ctrlAddress = JsonNullable.<String>of(ctrlAddress);
-    return this;
-  }
-
-   /**
-   * Get ctrlAddress
-   * @return ctrlAddress
-  **/
-  @javax.annotation.Nullable
-  @JsonIgnore
-
-  public String getCtrlAddress() {
-        return ctrlAddress.orElse(null);
-  }
-
-  @JsonProperty(JSON_PROPERTY_CTRL_ADDRESS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public JsonNullable<String> getCtrlAddress_JsonNullable() {
-    return ctrlAddress;
-  }
-  
-  @JsonProperty(JSON_PROPERTY_CTRL_ADDRESS)
-  public void setCtrlAddress_JsonNullable(JsonNullable<String> ctrlAddress) {
-    this.ctrlAddress = ctrlAddress;
-  }
-
-  public void setCtrlAddress(String ctrlAddress) {
-    this.ctrlAddress = JsonNullable.<String>of(ctrlAddress);
-  }
-
-
-  public ControllerDetail fingerprint(String fingerprint) {
-    this.fingerprint = fingerprint;
-    return this;
-  }
-
-   /**
-   * Get fingerprint
-   * @return fingerprint
-  **/
-  @javax.annotation.Nonnull
-  @JsonProperty(JSON_PROPERTY_FINGERPRINT)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
-  public String getFingerprint() {
-    return fingerprint;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_FINGERPRINT)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setFingerprint(String fingerprint) {
-    this.fingerprint = fingerprint;
-  }
-
-
-  public ControllerDetail isOnline(Boolean isOnline) {
-    this.isOnline = isOnline;
-    return this;
-  }
-
-   /**
-   * Get isOnline
-   * @return isOnline
-  **/
-  @javax.annotation.Nonnull
-  @JsonProperty(JSON_PROPERTY_IS_ONLINE)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
-  public Boolean getIsOnline() {
-    return isOnline;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_IS_ONLINE)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setIsOnline(Boolean isOnline) {
-    this.isOnline = isOnline;
-  }
-
-
-  public ControllerDetail lastJoinedAt(OffsetDateTime lastJoinedAt) {
-    this.lastJoinedAt = lastJoinedAt;
-    return this;
-  }
-
-   /**
-   * Get lastJoinedAt
-   * @return lastJoinedAt
-  **/
-  @javax.annotation.Nonnull
-  @JsonProperty(JSON_PROPERTY_LAST_JOINED_AT)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
-  public OffsetDateTime getLastJoinedAt() {
-    return lastJoinedAt;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_LAST_JOINED_AT)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setLastJoinedAt(OffsetDateTime lastJoinedAt) {
-    this.lastJoinedAt = lastJoinedAt;
-  }
-
-
-  public ControllerDetail name(String name) {
-    this.name = name;
-    return this;
-  }
-
-   /**
-   * Get name
-   * @return name
-  **/
-  @javax.annotation.Nonnull
-  @JsonProperty(JSON_PROPERTY_NAME)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
-  public String getName() {
-    return name;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_NAME)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setName(String name) {
-    this.name = name;
-  }
-
-
-  /**
-   * Return true if this controllerDetail object is equal to o.
-   */
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ControllerDetail controllerDetail = (ControllerDetail) o;
-    return Objects.equals(this.links, controllerDetail.links) &&
-        Objects.equals(this.createdAt, controllerDetail.createdAt) &&
-        Objects.equals(this.id, controllerDetail.id) &&
-        Objects.equals(this.tags, controllerDetail.tags) &&
-        Objects.equals(this.updatedAt, controllerDetail.updatedAt) &&
-        Objects.equals(this.apiAddresses, controllerDetail.apiAddresses) &&
-        Objects.equals(this.certPem, controllerDetail.certPem) &&
-        equalsNullable(this.ctrlAddress, controllerDetail.ctrlAddress) &&
-        Objects.equals(this.fingerprint, controllerDetail.fingerprint) &&
-        Objects.equals(this.isOnline, controllerDetail.isOnline) &&
-        Objects.equals(this.lastJoinedAt, controllerDetail.lastJoinedAt) &&
-        Objects.equals(this.name, controllerDetail.name);
-  }
-
-  private static <T> boolean equalsNullable(JsonNullable<T> a, JsonNullable<T> b) {
-    return a == b || (a != null && b != null && a.isPresent() && b.isPresent() && Objects.deepEquals(a.get(), b.get()));
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(links, createdAt, id, tags, updatedAt, apiAddresses, certPem, hashCodeNullable(ctrlAddress), fingerprint, isOnline, lastJoinedAt, name);
-  }
-
-  private static <T> int hashCodeNullable(JsonNullable<T> a) {
-    if (a == null) {
-      return 1;
-    }
-    return a.isPresent() ? Arrays.deepHashCode(new Object[]{a.get()}) : 31;
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class ControllerDetail {\n");
-    sb.append("    links: ").append(toIndentedString(links)).append("\n");
-    sb.append("    createdAt: ").append(toIndentedString(createdAt)).append("\n");
-    sb.append("    id: ").append(toIndentedString(id)).append("\n");
-    sb.append("    tags: ").append(toIndentedString(tags)).append("\n");
-    sb.append("    updatedAt: ").append(toIndentedString(updatedAt)).append("\n");
-    sb.append("    apiAddresses: ").append(toIndentedString(apiAddresses)).append("\n");
-    sb.append("    certPem: ").append(toIndentedString(certPem)).append("\n");
-    sb.append("    ctrlAddress: ").append(toIndentedString(ctrlAddress)).append("\n");
-    sb.append("    fingerprint: ").append(toIndentedString(fingerprint)).append("\n");
-    sb.append("    isOnline: ").append(toIndentedString(isOnline)).append("\n");
-    sb.append("    lastJoinedAt: ").append(toIndentedString(lastJoinedAt)).append("\n");
-    sb.append("    name: ").append(toIndentedString(name)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @return URL query string
-   */
-  public String toUrlQueryString() {
-    return toUrlQueryString(null);
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    String suffix = "";
-    String containerSuffix = "";
-    String containerPrefix = "";
-    if (prefix == null) {
-      // style=form, explode=true, e.g. /pet?name=cat&type=manx
-      prefix = "";
-    } else {
-      // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
-      prefix = prefix + "[";
-      suffix = "]";
-      containerSuffix = "]";
-      containerPrefix = "[";
+    public ControllerDetail links(Map<String, Link> links) {
+        this.links = links;
+        return this;
     }
 
-    StringJoiner joiner = new StringJoiner("&");
-
-    // add `_links` to the URL query string
-    if (getLinks() != null) {
-      for (String _key : getLinks().keySet()) {
-        if (getLinks().get(_key) != null) {
-          joiner.add(getLinks().get(_key).toUrlQueryString(String.format("%s_links%s%s", prefix, suffix,
-              "".equals(suffix) ? "" : String.format("%s%d%s", containerPrefix, _key, containerSuffix))));
+    public ControllerDetail putLinksItem(String key, Link linksItem) {
+        if (this.links == null) {
+            this.links = new HashMap<>();
         }
-      }
+        this.links.put(key, linksItem);
+        return this;
     }
 
-    // add `createdAt` to the URL query string
-    if (getCreatedAt() != null) {
-      joiner.add(String.format("%screatedAt%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getCreatedAt()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * A map of named links
+     *
+     * @return links
+     */
+    @javax.annotation.Nonnull
+    @JsonProperty(JSON_PROPERTY_LINKS)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public Map<String, Link> getLinks() {
+        return links;
     }
 
-    // add `id` to the URL query string
-    if (getId() != null) {
-      joiner.add(String.format("%sid%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getId()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_LINKS)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public void setLinks(Map<String, Link> links) {
+        this.links = links;
     }
 
-    // add `tags` to the URL query string
-    if (getTags() != null) {
-      joiner.add(getTags().toUrlQueryString(prefix + "tags" + suffix));
+    public ControllerDetail createdAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+        return this;
     }
 
-    // add `updatedAt` to the URL query string
-    if (getUpdatedAt() != null) {
-      joiner.add(String.format("%supdatedAt%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getUpdatedAt()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get createdAt
+     *
+     * @return createdAt
+     */
+    @javax.annotation.Nonnull
+    @JsonProperty(JSON_PROPERTY_CREATED_AT)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    // add `apiAddresses` to the URL query string
-    if (getApiAddresses() != null) {
-      for (String _key : getApiAddresses().keySet()) {
-        joiner.add(String.format("%sapiAddresses%s%s=%s", prefix, suffix,
-            "".equals(suffix) ? "" : String.format("%s%d%s", containerPrefix, _key, containerSuffix),
-            getApiAddresses().get(_key), URLEncoder.encode(String.valueOf(getApiAddresses().get(_key)), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
-      }
+    @JsonProperty(JSON_PROPERTY_CREATED_AT)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    // add `certPem` to the URL query string
-    if (getCertPem() != null) {
-      joiner.add(String.format("%scertPem%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getCertPem()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    public ControllerDetail id(String id) {
+        this.id = id;
+        return this;
     }
 
-    // add `ctrlAddress` to the URL query string
-    if (getCtrlAddress() != null) {
-      joiner.add(String.format("%sctrlAddress%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getCtrlAddress()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get id
+     *
+     * @return id
+     */
+    @javax.annotation.Nonnull
+    @JsonProperty(JSON_PROPERTY_ID)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public String getId() {
+        return id;
     }
 
-    // add `fingerprint` to the URL query string
-    if (getFingerprint() != null) {
-      joiner.add(String.format("%sfingerprint%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getFingerprint()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_ID)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public void setId(String id) {
+        this.id = id;
     }
 
-    // add `isOnline` to the URL query string
-    if (getIsOnline() != null) {
-      joiner.add(String.format("%sisOnline%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getIsOnline()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    public ControllerDetail tags(Tags tags) {
+        this.tags = tags;
+        return this;
     }
 
-    // add `lastJoinedAt` to the URL query string
-    if (getLastJoinedAt() != null) {
-      joiner.add(String.format("%slastJoinedAt%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getLastJoinedAt()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get tags
+     *
+     * @return tags
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_TAGS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public Tags getTags() {
+        return tags;
     }
 
-    // add `name` to the URL query string
-    if (getName() != null) {
-      joiner.add(String.format("%sname%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getName()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_TAGS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setTags(Tags tags) {
+        this.tags = tags;
     }
 
-    return joiner.toString();
-  }
+    public ControllerDetail updatedAt(OffsetDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+        return this;
+    }
+
+    /**
+     * Get updatedAt
+     *
+     * @return updatedAt
+     */
+    @javax.annotation.Nonnull
+    @JsonProperty(JSON_PROPERTY_UPDATED_AT)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public OffsetDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    @JsonProperty(JSON_PROPERTY_UPDATED_AT)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public void setUpdatedAt(OffsetDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public ControllerDetail apiAddresses(Map<String, List<ApiAddress>> apiAddresses) {
+        this.apiAddresses = apiAddresses;
+        return this;
+    }
+
+    public ControllerDetail putApiAddressesItem(String key, List<ApiAddress> apiAddressesItem) {
+        if (this.apiAddresses == null) {
+            this.apiAddresses = new HashMap<>();
+        }
+        this.apiAddresses.put(key, apiAddressesItem);
+        return this;
+    }
+
+    /**
+     * Get apiAddresses
+     *
+     * @return apiAddresses
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_API_ADDRESSES)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public Map<String, List<ApiAddress>> getApiAddresses() {
+        return apiAddresses;
+    }
+
+    @JsonProperty(JSON_PROPERTY_API_ADDRESSES)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setApiAddresses(Map<String, List<ApiAddress>> apiAddresses) {
+        this.apiAddresses = apiAddresses;
+    }
+
+    public ControllerDetail certPem(String certPem) {
+        this.certPem = certPem;
+        return this;
+    }
+
+    /**
+     * Get certPem
+     *
+     * @return certPem
+     */
+    @javax.annotation.Nonnull
+    @JsonProperty(JSON_PROPERTY_CERT_PEM)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public String getCertPem() {
+        return certPem;
+    }
+
+    @JsonProperty(JSON_PROPERTY_CERT_PEM)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public void setCertPem(String certPem) {
+        this.certPem = certPem;
+    }
+
+    public ControllerDetail ctrlAddress(String ctrlAddress) {
+        this.ctrlAddress = JsonNullable.<String>of(ctrlAddress);
+        return this;
+    }
+
+    /**
+     * Get ctrlAddress
+     *
+     * @return ctrlAddress
+     */
+    @javax.annotation.Nullable
+    @JsonIgnore
+    public String getCtrlAddress() {
+        return ctrlAddress.orElse(null);
+    }
+
+    @JsonProperty(JSON_PROPERTY_CTRL_ADDRESS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public JsonNullable<String> getCtrlAddress_JsonNullable() {
+        return ctrlAddress;
+    }
+
+    @JsonProperty(JSON_PROPERTY_CTRL_ADDRESS)
+    public void setCtrlAddress_JsonNullable(JsonNullable<String> ctrlAddress) {
+        this.ctrlAddress = ctrlAddress;
+    }
+
+    public void setCtrlAddress(String ctrlAddress) {
+        this.ctrlAddress = JsonNullable.<String>of(ctrlAddress);
+    }
+
+    public ControllerDetail fingerprint(String fingerprint) {
+        this.fingerprint = fingerprint;
+        return this;
+    }
+
+    /**
+     * Get fingerprint
+     *
+     * @return fingerprint
+     */
+    @javax.annotation.Nonnull
+    @JsonProperty(JSON_PROPERTY_FINGERPRINT)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public String getFingerprint() {
+        return fingerprint;
+    }
+
+    @JsonProperty(JSON_PROPERTY_FINGERPRINT)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public void setFingerprint(String fingerprint) {
+        this.fingerprint = fingerprint;
+    }
+
+    public ControllerDetail isOnline(Boolean isOnline) {
+        this.isOnline = isOnline;
+        return this;
+    }
+
+    /**
+     * Get isOnline
+     *
+     * @return isOnline
+     */
+    @javax.annotation.Nonnull
+    @JsonProperty(JSON_PROPERTY_IS_ONLINE)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public Boolean getIsOnline() {
+        return isOnline;
+    }
+
+    @JsonProperty(JSON_PROPERTY_IS_ONLINE)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public void setIsOnline(Boolean isOnline) {
+        this.isOnline = isOnline;
+    }
+
+    public ControllerDetail lastJoinedAt(OffsetDateTime lastJoinedAt) {
+        this.lastJoinedAt = lastJoinedAt;
+        return this;
+    }
+
+    /**
+     * Get lastJoinedAt
+     *
+     * @return lastJoinedAt
+     */
+    @javax.annotation.Nonnull
+    @JsonProperty(JSON_PROPERTY_LAST_JOINED_AT)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public OffsetDateTime getLastJoinedAt() {
+        return lastJoinedAt;
+    }
+
+    @JsonProperty(JSON_PROPERTY_LAST_JOINED_AT)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public void setLastJoinedAt(OffsetDateTime lastJoinedAt) {
+        this.lastJoinedAt = lastJoinedAt;
+    }
+
+    public ControllerDetail name(String name) {
+        this.name = name;
+        return this;
+    }
+
+    /**
+     * Get name
+     *
+     * @return name
+     */
+    @javax.annotation.Nonnull
+    @JsonProperty(JSON_PROPERTY_NAME)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public String getName() {
+        return name;
+    }
+
+    @JsonProperty(JSON_PROPERTY_NAME)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /** Return true if this controllerDetail object is equal to o. */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ControllerDetail controllerDetail = (ControllerDetail) o;
+        return Objects.equals(this.links, controllerDetail.links)
+                && Objects.equals(this.createdAt, controllerDetail.createdAt)
+                && Objects.equals(this.id, controllerDetail.id)
+                && Objects.equals(this.tags, controllerDetail.tags)
+                && Objects.equals(this.updatedAt, controllerDetail.updatedAt)
+                && Objects.equals(this.apiAddresses, controllerDetail.apiAddresses)
+                && Objects.equals(this.certPem, controllerDetail.certPem)
+                && equalsNullable(this.ctrlAddress, controllerDetail.ctrlAddress)
+                && Objects.equals(this.fingerprint, controllerDetail.fingerprint)
+                && Objects.equals(this.isOnline, controllerDetail.isOnline)
+                && Objects.equals(this.lastJoinedAt, controllerDetail.lastJoinedAt)
+                && Objects.equals(this.name, controllerDetail.name);
+    }
+
+    private static <T> boolean equalsNullable(JsonNullable<T> a, JsonNullable<T> b) {
+        return a == b
+                || (a != null
+                        && b != null
+                        && a.isPresent()
+                        && b.isPresent()
+                        && Objects.deepEquals(a.get(), b.get()));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                links,
+                createdAt,
+                id,
+                tags,
+                updatedAt,
+                apiAddresses,
+                certPem,
+                hashCodeNullable(ctrlAddress),
+                fingerprint,
+                isOnline,
+                lastJoinedAt,
+                name);
+    }
+
+    private static <T> int hashCodeNullable(JsonNullable<T> a) {
+        if (a == null) {
+            return 1;
+        }
+        return a.isPresent() ? Arrays.deepHashCode(new Object[] {a.get()}) : 31;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("class ControllerDetail {\n");
+        sb.append("    links: ").append(toIndentedString(links)).append("\n");
+        sb.append("    createdAt: ").append(toIndentedString(createdAt)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
+        sb.append("    tags: ").append(toIndentedString(tags)).append("\n");
+        sb.append("    updatedAt: ").append(toIndentedString(updatedAt)).append("\n");
+        sb.append("    apiAddresses: ").append(toIndentedString(apiAddresses)).append("\n");
+        sb.append("    certPem: ").append(toIndentedString(certPem)).append("\n");
+        sb.append("    ctrlAddress: ").append(toIndentedString(ctrlAddress)).append("\n");
+        sb.append("    fingerprint: ").append(toIndentedString(fingerprint)).append("\n");
+        sb.append("    isOnline: ").append(toIndentedString(isOnline)).append("\n");
+        sb.append("    lastJoinedAt: ").append(toIndentedString(lastJoinedAt)).append("\n");
+        sb.append("    name: ").append(toIndentedString(name)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces (except the first
+     * line).
+     */
+    private String toIndentedString(Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @return URL query string
+     */
+    public String toUrlQueryString() {
+        return toUrlQueryString(null);
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        String suffix = "";
+        String containerSuffix = "";
+        String containerPrefix = "";
+        if (prefix == null) {
+            // style=form, explode=true, e.g. /pet?name=cat&type=manx
+            prefix = "";
+        } else {
+            // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
+            prefix = prefix + "[";
+            suffix = "]";
+            containerSuffix = "]";
+            containerPrefix = "[";
+        }
+
+        StringJoiner joiner = new StringJoiner("&");
+
+        // add `_links` to the URL query string
+        if (getLinks() != null) {
+            for (String _key : getLinks().keySet()) {
+                if (getLinks().get(_key) != null) {
+                    joiner.add(
+                            getLinks()
+                                    .get(_key)
+                                    .toUrlQueryString(
+                                            String.format(
+                                                    "%s_links%s%s",
+                                                    prefix,
+                                                    suffix,
+                                                    "".equals(suffix)
+                                                            ? ""
+                                                            : String.format(
+                                                                    "%s%d%s",
+                                                                    containerPrefix,
+                                                                    _key,
+                                                                    containerSuffix))));
+                }
+            }
+        }
+
+        // add `createdAt` to the URL query string
+        if (getCreatedAt() != null) {
+            joiner.add(
+                    String.format(
+                            "%screatedAt%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getCreatedAt()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `id` to the URL query string
+        if (getId() != null) {
+            joiner.add(
+                    String.format(
+                            "%sid%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getId()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `tags` to the URL query string
+        if (getTags() != null) {
+            joiner.add(getTags().toUrlQueryString(prefix + "tags" + suffix));
+        }
+
+        // add `updatedAt` to the URL query string
+        if (getUpdatedAt() != null) {
+            joiner.add(
+                    String.format(
+                            "%supdatedAt%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getUpdatedAt()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `apiAddresses` to the URL query string
+        if (getApiAddresses() != null) {
+            for (String _key : getApiAddresses().keySet()) {
+                joiner.add(
+                        String.format(
+                                "%sapiAddresses%s%s=%s",
+                                prefix,
+                                suffix,
+                                "".equals(suffix)
+                                        ? ""
+                                        : String.format(
+                                                "%s%d%s", containerPrefix, _key, containerSuffix),
+                                getApiAddresses().get(_key),
+                                URLEncoder.encode(
+                                                String.valueOf(getApiAddresses().get(_key)),
+                                                StandardCharsets.UTF_8)
+                                        .replaceAll("\\+", "%20")));
+            }
+        }
+
+        // add `certPem` to the URL query string
+        if (getCertPem() != null) {
+            joiner.add(
+                    String.format(
+                            "%scertPem%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getCertPem()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `ctrlAddress` to the URL query string
+        if (getCtrlAddress() != null) {
+            joiner.add(
+                    String.format(
+                            "%sctrlAddress%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getCtrlAddress()),
+                                            StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `fingerprint` to the URL query string
+        if (getFingerprint() != null) {
+            joiner.add(
+                    String.format(
+                            "%sfingerprint%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getFingerprint()),
+                                            StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `isOnline` to the URL query string
+        if (getIsOnline() != null) {
+            joiner.add(
+                    String.format(
+                            "%sisOnline%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getIsOnline()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `lastJoinedAt` to the URL query string
+        if (getLastJoinedAt() != null) {
+            joiner.add(
+                    String.format(
+                            "%slastJoinedAt%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getLastJoinedAt()),
+                                            StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `name` to the URL query string
+        if (getName() != null) {
+            joiner.add(
+                    String.format(
+                            "%sname%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getName()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        return joiner.toString();
+    }
 }
-

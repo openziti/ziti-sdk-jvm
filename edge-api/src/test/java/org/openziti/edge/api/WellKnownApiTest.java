@@ -10,44 +10,32 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.api;
 
-import org.openziti.edge.ApiException;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openziti.edge.ApiException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import java.util.concurrent.CompletableFuture;
-
-/**
- * API tests for WellKnownApi
- */
+/** API tests for WellKnownApi */
 @Disabled
 public class WellKnownApiTest {
 
     private final WellKnownApi api = new WellKnownApi();
 
-    
     /**
      * Get CA Cert Store
      *
-     * This endpoint is used during enrollments to bootstrap trust between enrolling clients and the Ziti Edge API. This endpoint returns a base64 encoded PKCS7 store. The content can be base64 decoded and parsed by any library that supports parsing PKCS7 stores. 
+     * <p>This endpoint is used during enrollments to bootstrap trust between enrolling clients and
+     * the Ziti Edge API. This endpoint returns a base64 encoded PKCS7 store. The content can be
+     * base64 decoded and parsed by any library that supports parsing PKCS7 stores.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void listWellKnownCasTest() throws ApiException {
-        CompletableFuture<String> response = 
-        api.listWellKnownCas();
-        
+        CompletableFuture<String> response = api.listWellKnownCas();
+
         // TODO: test validations
     }
-    
 }

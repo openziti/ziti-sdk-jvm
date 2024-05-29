@@ -10,11 +10,12 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.api;
 
+import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.openziti.edge.ApiException;
-import org.openziti.edge.model.ApiErrorEnvelope;
 import org.openziti.edge.model.AuthenticatorPatchWithCurrent;
 import org.openziti.edge.model.AuthenticatorUpdateWithCurrent;
 import org.openziti.edge.model.CreateCurrentApiSessionCertificateEnvelope;
@@ -29,250 +30,238 @@ import org.openziti.edge.model.IdentityExtendValidateEnrollmentRequest;
 import org.openziti.edge.model.ListAuthenticatorsEnvelope;
 import org.openziti.edge.model.ListCurrentApiSessionCertificatesEnvelope;
 import org.openziti.edge.model.ListCurrentApiSessionServiceUpdatesEnvelope;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import java.util.concurrent.CompletableFuture;
-
-/**
- * API tests for CurrentApiSessionApi
- */
+/** API tests for CurrentApiSessionApi */
 @Disabled
 public class CurrentApiSessionApiTest {
 
     private final CurrentApiSessionApi api = new CurrentApiSessionApi();
 
-    
     /**
      * Creates an ephemeral certificate for the current API Session
      *
-     * Creates an ephemeral certificate for the current API Session. This endpoint expects a PEM encoded CSRs to be provided for fulfillment as a property of a JSON payload. It is up to the client to manage the private key backing the CSR request.
+     * <p>Creates an ephemeral certificate for the current API Session. This endpoint expects a PEM
+     * encoded CSRs to be provided for fulfillment as a property of a JSON payload. It is up to the
+     * client to manage the private key backing the CSR request.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void createCurrentApiSessionCertificateTest() throws ApiException {
         CurrentApiSessionCertificateCreate sessionCertificate = null;
-        CompletableFuture<CreateCurrentApiSessionCertificateEnvelope> response = 
-        api.createCurrentApiSessionCertificate(sessionCertificate);
-        
+        CompletableFuture<CreateCurrentApiSessionCertificateEnvelope> response =
+                api.createCurrentApiSessionCertificate(sessionCertificate);
+
         // TODO: test validations
     }
-    
+
     /**
      * Logout
      *
-     * Terminates the current API session
+     * <p>Terminates the current API session
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void currentApiSessionDeleteTest() throws ApiException {
-        CompletableFuture<Empty> response = 
-        api.currentApiSessionDelete();
-        
+        CompletableFuture<Empty> response = api.currentApiSessionDelete();
+
         // TODO: test validations
     }
-    
+
     /**
      * Delete an ephemeral certificate
      *
-     * Delete an ephemeral certificateby id 
+     * <p>Delete an ephemeral certificateby id
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void deleteCurrentApiSessionCertificateTest() throws ApiException {
         String id = null;
-        CompletableFuture<Empty> response = 
-        api.deleteCurrentApiSessionCertificate(id);
-        
+        CompletableFuture<Empty> response = api.deleteCurrentApiSessionCertificate(id);
+
         // TODO: test validations
     }
-    
+
     /**
      * Retrieves an ephemeral certificate
      *
-     * Retrieves a single ephemeral certificate by id
+     * <p>Retrieves a single ephemeral certificate by id
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void detailCurrentApiSessionCertificateTest() throws ApiException {
         String id = null;
-        CompletableFuture<DetailCurrentApiSessionCertificateEnvelope> response = 
-        api.detailCurrentApiSessionCertificate(id);
-        
+        CompletableFuture<DetailCurrentApiSessionCertificateEnvelope> response =
+                api.detailCurrentApiSessionCertificate(id);
+
         // TODO: test validations
     }
-    
+
     /**
      * Retrieve an authenticator for the current identity
      *
-     * Retrieves a single authenticator by id. Will only show authenticators assigned to the API session&#39;s identity.
+     * <p>Retrieves a single authenticator by id. Will only show authenticators assigned to the API
+     * session&#39;s identity.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void detailCurrentIdentityAuthenticatorTest() throws ApiException {
         String id = null;
-        CompletableFuture<DetailAuthenticatorEnvelope> response = 
-        api.detailCurrentIdentityAuthenticator(id);
-        
+        CompletableFuture<DetailAuthenticatorEnvelope> response =
+                api.detailCurrentIdentityAuthenticator(id);
+
         // TODO: test validations
     }
-    
+
     /**
-     * Allows the current identity to recieve a new certificate associated with a certificate based authenticator
+     * Allows the current identity to recieve a new certificate associated with a certificate based
+     * authenticator
      *
-     * This endpoint only functions for certificates issued by the controller. 3rd party certificates are not handled. Allows an identity to extend its certificate&#39;s expiration date by using its current and valid client certificate to submit a CSR. This CSR may be passed in using a new private key, thus allowing private key rotation. The response from this endpoint is a new client certificate which the client must  be verified via the /authenticators/{id}/extend-verify endpoint. After verification is completion any new connections must be made with new certificate. Prior to verification the old client certificate remains active.
+     * <p>This endpoint only functions for certificates issued by the controller. 3rd party
+     * certificates are not handled. Allows an identity to extend its certificate&#39;s expiration
+     * date by using its current and valid client certificate to submit a CSR. This CSR may be
+     * passed in using a new private key, thus allowing private key rotation. The response from this
+     * endpoint is a new client certificate which the client must be verified via the
+     * /authenticators/{id}/extend-verify endpoint. After verification is completion any new
+     * connections must be made with new certificate. Prior to verification the old client
+     * certificate remains active.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void extendCurrentIdentityAuthenticatorTest() throws ApiException {
         String id = null;
         IdentityExtendEnrollmentRequest extend = null;
-        CompletableFuture<IdentityExtendEnrollmentEnvelope> response = 
-        api.extendCurrentIdentityAuthenticator(id, extend);
-        
+        CompletableFuture<IdentityExtendEnrollmentEnvelope> response =
+                api.extendCurrentIdentityAuthenticator(id, extend);
+
         // TODO: test validations
     }
-    
+
     /**
      * Allows the current identity to validate reciept of a new client certificate
      *
-     * After submitting a CSR for a new client certificate the resulting public certificate must be re-submitted to this endpoint to verify receipt. After receipt, the new client certificate must be used for new authentication requests.
+     * <p>After submitting a CSR for a new client certificate the resulting public certificate must
+     * be re-submitted to this endpoint to verify receipt. After receipt, the new client certificate
+     * must be used for new authentication requests.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void extendVerifyCurrentIdentityAuthenticatorTest() throws ApiException {
         String id = null;
         IdentityExtendValidateEnrollmentRequest extend = null;
-        CompletableFuture<Empty> response = 
-        api.extendVerifyCurrentIdentityAuthenticator(id, extend);
-        
+        CompletableFuture<Empty> response =
+                api.extendVerifyCurrentIdentityAuthenticator(id, extend);
+
         // TODO: test validations
     }
-    
+
     /**
      * Return the current API session
      *
-     * Retrieves the API session that was used to issue the current request
+     * <p>Retrieves the API session that was used to issue the current request
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void getCurrentAPISessionTest() throws ApiException {
-        CompletableFuture<CurrentApiSessionDetailEnvelope> response = 
-        api.getCurrentAPISession();
-        
+        CompletableFuture<CurrentApiSessionDetailEnvelope> response = api.getCurrentAPISession();
+
         // TODO: test validations
     }
-    
+
     /**
      * List the ephemeral certificates available for the current API Session
      *
-     * Retrieves a list of certificate resources for the current API session; supports filtering, sorting, and pagination
+     * <p>Retrieves a list of certificate resources for the current API session; supports filtering,
+     * sorting, and pagination
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void listCurrentApiSessionCertificatesTest() throws ApiException {
         Integer limit = null;
         Integer offset = null;
         String filter = null;
-        CompletableFuture<ListCurrentApiSessionCertificatesEnvelope> response = 
-        api.listCurrentApiSessionCertificates(limit, offset, filter);
-        
+        CompletableFuture<ListCurrentApiSessionCertificatesEnvelope> response =
+                api.listCurrentApiSessionCertificates(limit, offset, filter);
+
         // TODO: test validations
     }
-    
+
     /**
      * List authenticators for the current identity
      *
-     * Retrieves a list of authenticators assigned to the current API session&#39;s identity; supports filtering, sorting, and pagination.
+     * <p>Retrieves a list of authenticators assigned to the current API session&#39;s identity;
+     * supports filtering, sorting, and pagination.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void listCurrentIdentityAuthenticatorsTest() throws ApiException {
         Integer limit = null;
         Integer offset = null;
         String filter = null;
-        CompletableFuture<ListAuthenticatorsEnvelope> response = 
-        api.listCurrentIdentityAuthenticators(limit, offset, filter);
-        
+        CompletableFuture<ListAuthenticatorsEnvelope> response =
+                api.listCurrentIdentityAuthenticators(limit, offset, filter);
+
         // TODO: test validations
     }
-    
+
     /**
      * Returns data indicating whether a client should updates it service list
      *
-     * Retrieves data indicating the last time data relevant to this API Session was altered that would necessitate service refreshes. 
+     * <p>Retrieves data indicating the last time data relevant to this API Session was altered that
+     * would necessitate service refreshes.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void listServiceUpdatesTest() throws ApiException {
-        CompletableFuture<ListCurrentApiSessionServiceUpdatesEnvelope> response = 
-        api.listServiceUpdates();
-        
+        CompletableFuture<ListCurrentApiSessionServiceUpdatesEnvelope> response =
+                api.listServiceUpdates();
+
         // TODO: test validations
     }
-    
+
     /**
      * Update the supplied fields on an authenticator of this identity
      *
-     * Update the supplied fields on an authenticator by id. Will only update authenticators assigned to the API session&#39;s identity. 
+     * <p>Update the supplied fields on an authenticator by id. Will only update authenticators
+     * assigned to the API session&#39;s identity.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void patchCurrentIdentityAuthenticatorTest() throws ApiException {
         String id = null;
         AuthenticatorPatchWithCurrent authenticator = null;
-        CompletableFuture<Empty> response = 
-        api.patchCurrentIdentityAuthenticator(id, authenticator);
-        
+        CompletableFuture<Empty> response =
+                api.patchCurrentIdentityAuthenticator(id, authenticator);
+
         // TODO: test validations
     }
-    
+
     /**
      * Update all fields on an authenticator of this identity
      *
-     * Update all fields on an authenticator by id.  Will only update authenticators assigned to the API session&#39;s identity. 
+     * <p>Update all fields on an authenticator by id. Will only update authenticators assigned to
+     * the API session&#39;s identity.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void updateCurrentIdentityAuthenticatorTest() throws ApiException {
         String id = null;
         AuthenticatorUpdateWithCurrent authenticator = null;
-        CompletableFuture<Empty> response = 
-        api.updateCurrentIdentityAuthenticator(id, authenticator);
-        
+        CompletableFuture<Empty> response =
+                api.updateCurrentIdentityAuthenticator(id, authenticator);
+
         // TODO: test validations
     }
-    
 }

@@ -10,77 +10,62 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-/**
- * Gets or Sets postureCheckType
- */
+/** Gets or Sets postureCheckType */
 public enum PostureCheckType {
-  
-  OS("OS"),
-  
-  PROCESS("PROCESS"),
-  
-  DOMAIN("DOMAIN"),
-  
-  MAC("MAC"),
-  
-  MFA("MFA"),
-  
-  PROCESS_MULTI("PROCESS_MULTI");
+    OS("OS"),
 
-  private String value;
+    PROCESS("PROCESS"),
 
-  PostureCheckType(String value) {
-    this.value = value;
-  }
+    DOMAIN("DOMAIN"),
 
-  @JsonValue
-  public String getValue() {
-    return value;
-  }
+    MAC("MAC"),
 
-  @Override
-  public String toString() {
-    return String.valueOf(value);
-  }
+    MFA("MFA"),
 
-  @JsonCreator
-  public static PostureCheckType fromValue(String value) {
-    for (PostureCheckType b : PostureCheckType.values()) {
-      if (b.value.equals(value)) {
-        return b;
-      }
-    }
-    throw new IllegalArgumentException("Unexpected value '" + value + "'");
-  }
+    PROCESS_MULTI("PROCESS_MULTI");
 
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    if (prefix == null) {
-      prefix = "";
+    private String value;
+
+    PostureCheckType(String value) {
+        this.value = value;
     }
 
-    return String.format("%s=%s", prefix, this.toString());
-  }
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
 
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
+
+    @JsonCreator
+    public static PostureCheckType fromValue(String value) {
+        for (PostureCheckType b : PostureCheckType.values()) {
+            if (b.value.equals(value)) {
+                return b;
+            }
+        }
+        throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        if (prefix == null) {
+            prefix = "";
+        }
+
+        return String.format("%s=%s", prefix, this.toString());
+    }
 }
-

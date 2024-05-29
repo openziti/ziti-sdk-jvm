@@ -10,213 +10,215 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.StringJoiner;
 
-
-/**
- * EnrollmentCerts
- */
+/** EnrollmentCerts */
 @JsonPropertyOrder({
-  EnrollmentCerts.JSON_PROPERTY_CA,
-  EnrollmentCerts.JSON_PROPERTY_CERT,
-  EnrollmentCerts.JSON_PROPERTY_SERVER_CERT
+    EnrollmentCerts.JSON_PROPERTY_CA,
+    EnrollmentCerts.JSON_PROPERTY_CERT,
+    EnrollmentCerts.JSON_PROPERTY_SERVER_CERT
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class EnrollmentCerts {
-  public static final String JSON_PROPERTY_CA = "ca";
-  private String ca;
+    public static final String JSON_PROPERTY_CA = "ca";
+    private String ca;
 
-  public static final String JSON_PROPERTY_CERT = "cert";
-  private String cert;
+    public static final String JSON_PROPERTY_CERT = "cert";
+    private String cert;
 
-  public static final String JSON_PROPERTY_SERVER_CERT = "serverCert";
-  private String serverCert;
+    public static final String JSON_PROPERTY_SERVER_CERT = "serverCert";
+    private String serverCert;
 
-  public EnrollmentCerts() { 
-  }
+    public EnrollmentCerts() {}
 
-  public EnrollmentCerts ca(String ca) {
-    this.ca = ca;
-    return this;
-  }
-
-   /**
-   * A PEM encoded set of CA certificates to trust
-   * @return ca
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_CA)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getCa() {
-    return ca;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_CA)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setCa(String ca) {
-    this.ca = ca;
-  }
-
-
-  public EnrollmentCerts cert(String cert) {
-    this.cert = cert;
-    return this;
-  }
-
-   /**
-   * A PEM encoded cert for the server
-   * @return cert
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_CERT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getCert() {
-    return cert;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_CERT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setCert(String cert) {
-    this.cert = cert;
-  }
-
-
-  public EnrollmentCerts serverCert(String serverCert) {
-    this.serverCert = serverCert;
-    return this;
-  }
-
-   /**
-   * A PEM encoded set of certificates to use as the servers chain
-   * @return serverCert
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_SERVER_CERT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getServerCert() {
-    return serverCert;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_SERVER_CERT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setServerCert(String serverCert) {
-    this.serverCert = serverCert;
-  }
-
-
-  /**
-   * Return true if this enrollmentCerts object is equal to o.
-   */
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    EnrollmentCerts enrollmentCerts = (EnrollmentCerts) o;
-    return Objects.equals(this.ca, enrollmentCerts.ca) &&
-        Objects.equals(this.cert, enrollmentCerts.cert) &&
-        Objects.equals(this.serverCert, enrollmentCerts.serverCert);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(ca, cert, serverCert);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class EnrollmentCerts {\n");
-    sb.append("    ca: ").append(toIndentedString(ca)).append("\n");
-    sb.append("    cert: ").append(toIndentedString(cert)).append("\n");
-    sb.append("    serverCert: ").append(toIndentedString(serverCert)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @return URL query string
-   */
-  public String toUrlQueryString() {
-    return toUrlQueryString(null);
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    String suffix = "";
-    String containerSuffix = "";
-    String containerPrefix = "";
-    if (prefix == null) {
-      // style=form, explode=true, e.g. /pet?name=cat&type=manx
-      prefix = "";
-    } else {
-      // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
-      prefix = prefix + "[";
-      suffix = "]";
-      containerSuffix = "]";
-      containerPrefix = "[";
+    public EnrollmentCerts ca(String ca) {
+        this.ca = ca;
+        return this;
     }
 
-    StringJoiner joiner = new StringJoiner("&");
-
-    // add `ca` to the URL query string
-    if (getCa() != null) {
-      joiner.add(String.format("%sca%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getCa()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * A PEM encoded set of CA certificates to trust
+     *
+     * @return ca
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_CA)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getCa() {
+        return ca;
     }
 
-    // add `cert` to the URL query string
-    if (getCert() != null) {
-      joiner.add(String.format("%scert%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getCert()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_CA)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setCa(String ca) {
+        this.ca = ca;
     }
 
-    // add `serverCert` to the URL query string
-    if (getServerCert() != null) {
-      joiner.add(String.format("%sserverCert%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getServerCert()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    public EnrollmentCerts cert(String cert) {
+        this.cert = cert;
+        return this;
     }
 
-    return joiner.toString();
-  }
+    /**
+     * A PEM encoded cert for the server
+     *
+     * @return cert
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_CERT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getCert() {
+        return cert;
+    }
+
+    @JsonProperty(JSON_PROPERTY_CERT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setCert(String cert) {
+        this.cert = cert;
+    }
+
+    public EnrollmentCerts serverCert(String serverCert) {
+        this.serverCert = serverCert;
+        return this;
+    }
+
+    /**
+     * A PEM encoded set of certificates to use as the servers chain
+     *
+     * @return serverCert
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_SERVER_CERT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getServerCert() {
+        return serverCert;
+    }
+
+    @JsonProperty(JSON_PROPERTY_SERVER_CERT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setServerCert(String serverCert) {
+        this.serverCert = serverCert;
+    }
+
+    /** Return true if this enrollmentCerts object is equal to o. */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        EnrollmentCerts enrollmentCerts = (EnrollmentCerts) o;
+        return Objects.equals(this.ca, enrollmentCerts.ca)
+                && Objects.equals(this.cert, enrollmentCerts.cert)
+                && Objects.equals(this.serverCert, enrollmentCerts.serverCert);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ca, cert, serverCert);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("class EnrollmentCerts {\n");
+        sb.append("    ca: ").append(toIndentedString(ca)).append("\n");
+        sb.append("    cert: ").append(toIndentedString(cert)).append("\n");
+        sb.append("    serverCert: ").append(toIndentedString(serverCert)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces (except the first
+     * line).
+     */
+    private String toIndentedString(Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @return URL query string
+     */
+    public String toUrlQueryString() {
+        return toUrlQueryString(null);
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        String suffix = "";
+        String containerSuffix = "";
+        String containerPrefix = "";
+        if (prefix == null) {
+            // style=form, explode=true, e.g. /pet?name=cat&type=manx
+            prefix = "";
+        } else {
+            // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
+            prefix = prefix + "[";
+            suffix = "]";
+            containerSuffix = "]";
+            containerPrefix = "[";
+        }
+
+        StringJoiner joiner = new StringJoiner("&");
+
+        // add `ca` to the URL query string
+        if (getCa() != null) {
+            joiner.add(
+                    String.format(
+                            "%sca%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getCa()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `cert` to the URL query string
+        if (getCert() != null) {
+            joiner.add(
+                    String.format(
+                            "%scert%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getCert()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `serverCert` to the URL query string
+        if (getServerCert() != null) {
+            joiner.add(
+                    String.format(
+                            "%sserverCert%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getServerCert()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        return joiner.toString();
+    }
 }
-

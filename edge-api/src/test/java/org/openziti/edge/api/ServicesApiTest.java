@@ -10,46 +10,33 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.api;
 
-import org.openziti.edge.ApiException;
-import org.openziti.edge.model.ApiErrorEnvelope;
-import org.openziti.edge.model.ListCurrentApiSessionServiceUpdatesEnvelope;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.model.ListCurrentApiSessionServiceUpdatesEnvelope;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import java.util.concurrent.CompletableFuture;
-
-/**
- * API tests for ServicesApi
- */
+/** API tests for ServicesApi */
 @Disabled
 public class ServicesApiTest {
 
     private final ServicesApi api = new ServicesApi();
 
-    
     /**
      * Returns data indicating whether a client should updates it service list
      *
-     * Retrieves data indicating the last time data relevant to this API Session was altered that would necessitate service refreshes. 
+     * <p>Retrieves data indicating the last time data relevant to this API Session was altered that
+     * would necessitate service refreshes.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void listServiceUpdatesTest() throws ApiException {
-        CompletableFuture<ListCurrentApiSessionServiceUpdatesEnvelope> response = 
-        api.listServiceUpdates();
-        
+        CompletableFuture<ListCurrentApiSessionServiceUpdatesEnvelope> response =
+                api.listServiceUpdates();
+
         // TODO: test validations
     }
-    
 }

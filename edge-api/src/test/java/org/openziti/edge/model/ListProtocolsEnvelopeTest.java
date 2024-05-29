@@ -10,51 +10,29 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import org.openziti.edge.model.Meta;
-import org.openziti.edge.model.Protocol;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ListProtocolsEnvelope
- */
+/** Model tests for ListProtocolsEnvelope */
 class ListProtocolsEnvelopeTest {
     private final ListProtocolsEnvelope model = new ListProtocolsEnvelope();
 
-    /**
-     * Model tests for ListProtocolsEnvelope
-     */
+    /** Model tests for ListProtocolsEnvelope */
     @Test
     void testListProtocolsEnvelope() {
         // TODO: test ListProtocolsEnvelope
     }
 
-    /**
-     * Test the property 'data'
-     */
+    /** Test the property 'data' */
     @Test
     void dataTest() {
         // TODO: test data
     }
 
-    /**
-     * Test the property 'meta'
-     */
+    /** Test the property 'meta' */
     @Test
     void metaTest() {
         // TODO: test meta
     }
-
 }

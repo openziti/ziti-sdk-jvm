@@ -10,66 +10,41 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.openziti.edge.model.Pagination;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for Meta
- */
+/** Model tests for Meta */
 class MetaTest {
     private final Meta model = new Meta();
 
-    /**
-     * Model tests for Meta
-     */
+    /** Model tests for Meta */
     @Test
     void testMeta() {
         // TODO: test Meta
     }
 
-    /**
-     * Test the property 'apiEnrollmentVersion'
-     */
+    /** Test the property 'apiEnrollmentVersion' */
     @Test
     void apiEnrollmentVersionTest() {
         // TODO: test apiEnrollmentVersion
     }
 
-    /**
-     * Test the property 'apiVersion'
-     */
+    /** Test the property 'apiVersion' */
     @Test
     void apiVersionTest() {
         // TODO: test apiVersion
     }
 
-    /**
-     * Test the property 'filterableFields'
-     */
+    /** Test the property 'filterableFields' */
     @Test
     void filterableFieldsTest() {
         // TODO: test filterableFields
     }
 
-    /**
-     * Test the property 'pagination'
-     */
+    /** Test the property 'pagination' */
     @Test
     void paginationTest() {
         // TODO: test pagination
     }
-
 }

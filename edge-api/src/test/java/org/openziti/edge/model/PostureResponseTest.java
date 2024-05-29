@@ -10,42 +10,23 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.openziti.edge.model.PostureResponseService;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for PostureResponse
- */
+/** Model tests for PostureResponse */
 class PostureResponseTest {
     private final PostureResponse model = new PostureResponse();
 
-    /**
-     * Model tests for PostureResponse
-     */
+    /** Model tests for PostureResponse */
     @Test
     void testPostureResponse() {
         // TODO: test PostureResponse
     }
 
-    /**
-     * Test the property 'services'
-     */
+    /** Test the property 'services' */
     @Test
     void servicesTest() {
         // TODO: test services
     }
-
 }

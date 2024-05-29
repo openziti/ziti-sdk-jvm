@@ -10,138 +10,89 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.openapitools.jackson.nullable.JsonNullable;
-import org.openziti.edge.model.ApiAddress;
-import org.openziti.edge.model.Link;
-import org.openziti.edge.model.Tags;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.openapitools.jackson.nullable.JsonNullable;
-import java.util.NoSuchElementException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ControllerDetail
- */
+/** Model tests for ControllerDetail */
 class ControllerDetailTest {
     private final ControllerDetail model = new ControllerDetail();
 
-    /**
-     * Model tests for ControllerDetail
-     */
+    /** Model tests for ControllerDetail */
     @Test
     void testControllerDetail() {
         // TODO: test ControllerDetail
     }
 
-    /**
-     * Test the property 'links'
-     */
+    /** Test the property 'links' */
     @Test
     void linksTest() {
         // TODO: test links
     }
 
-    /**
-     * Test the property 'createdAt'
-     */
+    /** Test the property 'createdAt' */
     @Test
     void createdAtTest() {
         // TODO: test createdAt
     }
 
-    /**
-     * Test the property 'id'
-     */
+    /** Test the property 'id' */
     @Test
     void idTest() {
         // TODO: test id
     }
 
-    /**
-     * Test the property 'tags'
-     */
+    /** Test the property 'tags' */
     @Test
     void tagsTest() {
         // TODO: test tags
     }
 
-    /**
-     * Test the property 'updatedAt'
-     */
+    /** Test the property 'updatedAt' */
     @Test
     void updatedAtTest() {
         // TODO: test updatedAt
     }
 
-    /**
-     * Test the property 'apiAddresses'
-     */
+    /** Test the property 'apiAddresses' */
     @Test
     void apiAddressesTest() {
         // TODO: test apiAddresses
     }
 
-    /**
-     * Test the property 'certPem'
-     */
+    /** Test the property 'certPem' */
     @Test
     void certPemTest() {
         // TODO: test certPem
     }
 
-    /**
-     * Test the property 'ctrlAddress'
-     */
+    /** Test the property 'ctrlAddress' */
     @Test
     void ctrlAddressTest() {
         // TODO: test ctrlAddress
     }
 
-    /**
-     * Test the property 'fingerprint'
-     */
+    /** Test the property 'fingerprint' */
     @Test
     void fingerprintTest() {
         // TODO: test fingerprint
     }
 
-    /**
-     * Test the property 'isOnline'
-     */
+    /** Test the property 'isOnline' */
     @Test
     void isOnlineTest() {
         // TODO: test isOnline
     }
 
-    /**
-     * Test the property 'lastJoinedAt'
-     */
+    /** Test the property 'lastJoinedAt' */
     @Test
     void lastJoinedAtTest() {
         // TODO: test lastJoinedAt
     }
 
-    /**
-     * Test the property 'name'
-     */
+    /** Test the property 'name' */
     @Test
     void nameTest() {
         // TODO: test name
     }
-
 }

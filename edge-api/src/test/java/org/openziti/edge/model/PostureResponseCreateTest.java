@@ -10,51 +10,29 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.openziti.edge.model.PostureCheckType;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for PostureResponseCreate
- */
+/** Model tests for PostureResponseCreate */
 class PostureResponseCreateTest {
     private final PostureResponseCreate model = new PostureResponseCreate();
 
-    /**
-     * Model tests for PostureResponseCreate
-     */
+    /** Model tests for PostureResponseCreate */
     @Test
     void testPostureResponseCreate() {
         // TODO: test PostureResponseCreate
     }
 
-    /**
-     * Test the property 'id'
-     */
+    /** Test the property 'id' */
     @Test
     void idTest() {
         // TODO: test id
     }
 
-    /**
-     * Test the property 'typeId'
-     */
+    /** Test the property 'typeId' */
     @Test
     void typeIdTest() {
         // TODO: test typeId
     }
-
 }

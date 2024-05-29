@@ -10,42 +10,23 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.openziti.edge.model.CommonEdgeRouterProperties;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ServiceEdgeRouters
- */
+/** Model tests for ServiceEdgeRouters */
 class ServiceEdgeRoutersTest {
     private final ServiceEdgeRouters model = new ServiceEdgeRouters();
 
-    /**
-     * Model tests for ServiceEdgeRouters
-     */
+    /** Model tests for ServiceEdgeRouters */
     @Test
     void testServiceEdgeRouters() {
         // TODO: test ServiceEdgeRouters
     }
 
-    /**
-     * Test the property 'edgeRouters'
-     */
+    /** Test the property 'edgeRouters' */
     @Test
     void edgeRoutersTest() {
         // TODO: test edgeRouters
     }
-
 }

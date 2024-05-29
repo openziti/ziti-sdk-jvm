@@ -10,81 +10,53 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.time.OffsetDateTime;
-import java.util.Arrays;
-import org.openziti.edge.model.EntityRef;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for IdentityEnrollmentsOttca
- */
+/** Model tests for IdentityEnrollmentsOttca */
 class IdentityEnrollmentsOttcaTest {
     private final IdentityEnrollmentsOttca model = new IdentityEnrollmentsOttca();
 
-    /**
-     * Model tests for IdentityEnrollmentsOttca
-     */
+    /** Model tests for IdentityEnrollmentsOttca */
     @Test
     void testIdentityEnrollmentsOttca() {
         // TODO: test IdentityEnrollmentsOttca
     }
 
-    /**
-     * Test the property 'ca'
-     */
+    /** Test the property 'ca' */
     @Test
     void caTest() {
         // TODO: test ca
     }
 
-    /**
-     * Test the property 'caId'
-     */
+    /** Test the property 'caId' */
     @Test
     void caIdTest() {
         // TODO: test caId
     }
 
-    /**
-     * Test the property 'expiresAt'
-     */
+    /** Test the property 'expiresAt' */
     @Test
     void expiresAtTest() {
         // TODO: test expiresAt
     }
 
-    /**
-     * Test the property 'id'
-     */
+    /** Test the property 'id' */
     @Test
     void idTest() {
         // TODO: test id
     }
 
-    /**
-     * Test the property 'jwt'
-     */
+    /** Test the property 'jwt' */
     @Test
     void jwtTest() {
         // TODO: test jwt
     }
 
-    /**
-     * Test the property 'token'
-     */
+    /** Test the property 'token' */
     @Test
     void tokenTest() {
         // TODO: test token
     }
-
 }

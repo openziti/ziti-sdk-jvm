@@ -10,65 +10,51 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.api;
 
-import org.openziti.edge.ApiException;
-import org.openziti.edge.model.ApiErrorEnvelope;
-import org.openziti.edge.model.PostureResponseCreate;
-import org.openziti.edge.model.PostureResponseEnvelope;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.model.PostureResponseCreate;
+import org.openziti.edge.model.PostureResponseEnvelope;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import java.util.concurrent.CompletableFuture;
-
-/**
- * API tests for PostureChecksApi
- */
+/** API tests for PostureChecksApi */
 @Disabled
 public class PostureChecksApiTest {
 
     private final PostureChecksApi api = new PostureChecksApi();
 
-    
     /**
      * Submit a posture response to a posture query
      *
-     * Submits posture responses
+     * <p>Submits posture responses
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void createPostureResponseTest() throws ApiException {
         PostureResponseCreate postureResponse = null;
-        CompletableFuture<PostureResponseEnvelope> response = 
-        api.createPostureResponse(postureResponse);
-        
+        CompletableFuture<PostureResponseEnvelope> response =
+                api.createPostureResponse(postureResponse);
+
         // TODO: test validations
     }
-    
+
     /**
      * Submit multiple posture responses
      *
-     * Submits posture responses
+     * <p>Submits posture responses
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void createPostureResponseBulkTest() throws ApiException {
         List<PostureResponseCreate> postureResponse = null;
-        CompletableFuture<PostureResponseEnvelope> response = 
-        api.createPostureResponseBulk(postureResponse);
-        
+        CompletableFuture<PostureResponseEnvelope> response =
+                api.createPostureResponseBulk(postureResponse);
+
         // TODO: test validations
     }
-    
 }

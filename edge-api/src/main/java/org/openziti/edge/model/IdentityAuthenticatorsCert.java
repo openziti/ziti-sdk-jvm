@@ -10,177 +10,176 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.StringJoiner;
 
-
-/**
- * IdentityAuthenticatorsCert
- */
+/** IdentityAuthenticatorsCert */
 @JsonPropertyOrder({
-  IdentityAuthenticatorsCert.JSON_PROPERTY_FINGERPRINT,
-  IdentityAuthenticatorsCert.JSON_PROPERTY_ID
+    IdentityAuthenticatorsCert.JSON_PROPERTY_FINGERPRINT,
+    IdentityAuthenticatorsCert.JSON_PROPERTY_ID
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class IdentityAuthenticatorsCert {
-  public static final String JSON_PROPERTY_FINGERPRINT = "fingerprint";
-  private String fingerprint;
+    public static final String JSON_PROPERTY_FINGERPRINT = "fingerprint";
+    private String fingerprint;
 
-  public static final String JSON_PROPERTY_ID = "id";
-  private String id;
+    public static final String JSON_PROPERTY_ID = "id";
+    private String id;
 
-  public IdentityAuthenticatorsCert() { 
-  }
+    public IdentityAuthenticatorsCert() {}
 
-  public IdentityAuthenticatorsCert fingerprint(String fingerprint) {
-    this.fingerprint = fingerprint;
-    return this;
-  }
-
-   /**
-   * Get fingerprint
-   * @return fingerprint
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_FINGERPRINT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getFingerprint() {
-    return fingerprint;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_FINGERPRINT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setFingerprint(String fingerprint) {
-    this.fingerprint = fingerprint;
-  }
-
-
-  public IdentityAuthenticatorsCert id(String id) {
-    this.id = id;
-    return this;
-  }
-
-   /**
-   * Get id
-   * @return id
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ID)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getId() {
-    return id;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_ID)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setId(String id) {
-    this.id = id;
-  }
-
-
-  /**
-   * Return true if this identityAuthenticators_cert object is equal to o.
-   */
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    IdentityAuthenticatorsCert identityAuthenticatorsCert = (IdentityAuthenticatorsCert) o;
-    return Objects.equals(this.fingerprint, identityAuthenticatorsCert.fingerprint) &&
-        Objects.equals(this.id, identityAuthenticatorsCert.id);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(fingerprint, id);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class IdentityAuthenticatorsCert {\n");
-    sb.append("    fingerprint: ").append(toIndentedString(fingerprint)).append("\n");
-    sb.append("    id: ").append(toIndentedString(id)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @return URL query string
-   */
-  public String toUrlQueryString() {
-    return toUrlQueryString(null);
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    String suffix = "";
-    String containerSuffix = "";
-    String containerPrefix = "";
-    if (prefix == null) {
-      // style=form, explode=true, e.g. /pet?name=cat&type=manx
-      prefix = "";
-    } else {
-      // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
-      prefix = prefix + "[";
-      suffix = "]";
-      containerSuffix = "]";
-      containerPrefix = "[";
+    public IdentityAuthenticatorsCert fingerprint(String fingerprint) {
+        this.fingerprint = fingerprint;
+        return this;
     }
 
-    StringJoiner joiner = new StringJoiner("&");
-
-    // add `fingerprint` to the URL query string
-    if (getFingerprint() != null) {
-      joiner.add(String.format("%sfingerprint%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getFingerprint()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get fingerprint
+     *
+     * @return fingerprint
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_FINGERPRINT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getFingerprint() {
+        return fingerprint;
     }
 
-    // add `id` to the URL query string
-    if (getId() != null) {
-      joiner.add(String.format("%sid%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getId()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_FINGERPRINT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setFingerprint(String fingerprint) {
+        this.fingerprint = fingerprint;
     }
 
-    return joiner.toString();
-  }
+    public IdentityAuthenticatorsCert id(String id) {
+        this.id = id;
+        return this;
+    }
+
+    /**
+     * Get id
+     *
+     * @return id
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_ID)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getId() {
+        return id;
+    }
+
+    @JsonProperty(JSON_PROPERTY_ID)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /** Return true if this identityAuthenticators_cert object is equal to o. */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        IdentityAuthenticatorsCert identityAuthenticatorsCert = (IdentityAuthenticatorsCert) o;
+        return Objects.equals(this.fingerprint, identityAuthenticatorsCert.fingerprint)
+                && Objects.equals(this.id, identityAuthenticatorsCert.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fingerprint, id);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("class IdentityAuthenticatorsCert {\n");
+        sb.append("    fingerprint: ").append(toIndentedString(fingerprint)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces (except the first
+     * line).
+     */
+    private String toIndentedString(Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @return URL query string
+     */
+    public String toUrlQueryString() {
+        return toUrlQueryString(null);
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        String suffix = "";
+        String containerSuffix = "";
+        String containerPrefix = "";
+        if (prefix == null) {
+            // style=form, explode=true, e.g. /pet?name=cat&type=manx
+            prefix = "";
+        } else {
+            // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
+            prefix = prefix + "[";
+            suffix = "]";
+            containerSuffix = "]";
+            containerPrefix = "[";
+        }
+
+        StringJoiner joiner = new StringJoiner("&");
+
+        // add `fingerprint` to the URL query string
+        if (getFingerprint() != null) {
+            joiner.add(
+                    String.format(
+                            "%sfingerprint%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getFingerprint()),
+                                            StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `id` to the URL query string
+        if (getId() != null) {
+            joiner.add(
+                    String.format(
+                            "%sid%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getId()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        return joiner.toString();
+    }
 }
-

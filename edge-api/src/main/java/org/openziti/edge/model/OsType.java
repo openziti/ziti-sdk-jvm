@@ -10,77 +10,62 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-/**
- * Gets or Sets osType
- */
+/** Gets or Sets osType */
 public enum OsType {
-  
-  WINDOWS("Windows"),
-  
-  WINDOWSSERVER("WindowsServer"),
-  
-  ANDROID("Android"),
-  
-  IOS("iOS"),
-  
-  LINUX("Linux"),
-  
-  MACOS("macOS");
+    WINDOWS("Windows"),
 
-  private String value;
+    WINDOWSSERVER("WindowsServer"),
 
-  OsType(String value) {
-    this.value = value;
-  }
+    ANDROID("Android"),
 
-  @JsonValue
-  public String getValue() {
-    return value;
-  }
+    IOS("iOS"),
 
-  @Override
-  public String toString() {
-    return String.valueOf(value);
-  }
+    LINUX("Linux"),
 
-  @JsonCreator
-  public static OsType fromValue(String value) {
-    for (OsType b : OsType.values()) {
-      if (b.value.equals(value)) {
-        return b;
-      }
-    }
-    throw new IllegalArgumentException("Unexpected value '" + value + "'");
-  }
+    MACOS("macOS");
 
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    if (prefix == null) {
-      prefix = "";
+    private String value;
+
+    OsType(String value) {
+        this.value = value;
     }
 
-    return String.format("%s=%s", prefix, this.toString());
-  }
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
 
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
+
+    @JsonCreator
+    public static OsType fromValue(String value) {
+        for (OsType b : OsType.values()) {
+            if (b.value.equals(value)) {
+                return b;
+            }
+        }
+        throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        if (prefix == null) {
+            prefix = "";
+        }
+
+        return String.format("%s=%s", prefix, this.toString());
+    }
 }
-

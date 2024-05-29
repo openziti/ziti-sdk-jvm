@@ -12,12 +12,24 @@
 
 package org.openziti.edge.api;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringJoiner;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import org.openziti.edge.ApiClient;
 import org.openziti.edge.ApiException;
 import org.openziti.edge.ApiResponse;
 import org.openziti.edge.Pair;
-
-import org.openziti.edge.model.ApiErrorEnvelope;
 import org.openziti.edge.model.AuthenticatorPatchWithCurrent;
 import org.openziti.edge.model.AuthenticatorUpdateWithCurrent;
 import org.openziti.edge.model.CreateCurrentApiSessionCertificateEnvelope;
@@ -33,1357 +45,1661 @@ import org.openziti.edge.model.ListAuthenticatorsEnvelope;
 import org.openziti.edge.model.ListCurrentApiSessionCertificatesEnvelope;
 import org.openziti.edge.model.ListCurrentApiSessionServiceUpdatesEnvelope;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.InputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.http.HttpRequest;
-import java.nio.channels.Channels;
-import java.nio.channels.Pipe;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
-
-import java.util.ArrayList;
-import java.util.StringJoiner;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import java.util.concurrent.CompletableFuture;
-
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class CurrentApiSessionApi {
-  private final HttpClient memberVarHttpClient;
-  private final ObjectMapper memberVarObjectMapper;
-  private final String memberVarBaseUri;
-  private final Consumer<HttpRequest.Builder> memberVarInterceptor;
-  private final Duration memberVarReadTimeout;
-  private final Consumer<HttpResponse<InputStream>> memberVarResponseInterceptor;
-  private final Consumer<HttpResponse<String>> memberVarAsyncResponseInterceptor;
+    private final HttpClient memberVarHttpClient;
+    private final ObjectMapper memberVarObjectMapper;
+    private final String memberVarBaseUri;
+    private final Consumer<HttpRequest.Builder> memberVarInterceptor;
+    private final Duration memberVarReadTimeout;
+    private final Consumer<HttpResponse<InputStream>> memberVarResponseInterceptor;
+    private final Consumer<HttpResponse<String>> memberVarAsyncResponseInterceptor;
 
-  public CurrentApiSessionApi() {
-    this(new ApiClient());
-  }
-
-  public CurrentApiSessionApi(ApiClient apiClient) {
-    memberVarHttpClient = apiClient.getHttpClient();
-    memberVarObjectMapper = apiClient.getObjectMapper();
-    memberVarBaseUri = apiClient.getBaseUri();
-    memberVarInterceptor = apiClient.getRequestInterceptor();
-    memberVarReadTimeout = apiClient.getReadTimeout();
-    memberVarResponseInterceptor = apiClient.getResponseInterceptor();
-    memberVarAsyncResponseInterceptor = apiClient.getAsyncResponseInterceptor();
-  }
-
-  private ApiException getApiException(String operationId, HttpResponse<String> response) {
-    String message = formatExceptionMessage(operationId, response.statusCode(), response.body());
-    return new ApiException(response.statusCode(), message, response.headers(), response.body());
-  }
-
-  private String formatExceptionMessage(String operationId, int statusCode, String body) {
-    if (body == null || body.isEmpty()) {
-      body = "[no body]";
+    public CurrentApiSessionApi() {
+        this(new ApiClient());
     }
-    return operationId + " call failed with: " + statusCode + " - " + body;
-  }
 
-  /**
-   * Creates an ephemeral certificate for the current API Session
-   * Creates an ephemeral certificate for the current API Session. This endpoint expects a PEM encoded CSRs to be provided for fulfillment as a property of a JSON payload. It is up to the client to manage the private key backing the CSR request.
-   * @param sessionCertificate The payload describing the CSR used to create a session certificate (required)
-   * @return CompletableFuture&lt;CreateCurrentApiSessionCertificateEnvelope&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<CreateCurrentApiSessionCertificateEnvelope> createCurrentApiSessionCertificate(CurrentApiSessionCertificateCreate sessionCertificate) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = createCurrentApiSessionCertificateRequestBuilder(sessionCertificate);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("createCurrentApiSessionCertificate", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<CreateCurrentApiSessionCertificateEnvelope>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
+    public CurrentApiSessionApi(ApiClient apiClient) {
+        memberVarHttpClient = apiClient.getHttpClient();
+        memberVarObjectMapper = apiClient.getObjectMapper();
+        memberVarBaseUri = apiClient.getBaseUri();
+        memberVarInterceptor = apiClient.getRequestInterceptor();
+        memberVarReadTimeout = apiClient.getReadTimeout();
+        memberVarResponseInterceptor = apiClient.getResponseInterceptor();
+        memberVarAsyncResponseInterceptor = apiClient.getAsyncResponseInterceptor();
     }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
 
-  /**
-   * Creates an ephemeral certificate for the current API Session
-   * Creates an ephemeral certificate for the current API Session. This endpoint expects a PEM encoded CSRs to be provided for fulfillment as a property of a JSON payload. It is up to the client to manage the private key backing the CSR request.
-   * @param sessionCertificate The payload describing the CSR used to create a session certificate (required)
-   * @return CompletableFuture&lt;ApiResponse&lt;CreateCurrentApiSessionCertificateEnvelope&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<CreateCurrentApiSessionCertificateEnvelope>> createCurrentApiSessionCertificateWithHttpInfo(CurrentApiSessionCertificateCreate sessionCertificate) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = createCurrentApiSessionCertificateRequestBuilder(sessionCertificate);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("createCurrentApiSessionCertificate", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<CreateCurrentApiSessionCertificateEnvelope>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<CreateCurrentApiSessionCertificateEnvelope>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+    private ApiException getApiException(String operationId, HttpResponse<String> response) {
+        String message =
+                formatExceptionMessage(operationId, response.statusCode(), response.body());
+        return new ApiException(
+                response.statusCode(), message, response.headers(), response.body());
+    }
+
+    private String formatExceptionMessage(String operationId, int statusCode, String body) {
+        if (body == null || body.isEmpty()) {
+            body = "[no body]";
         }
-      );
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  private HttpRequest.Builder createCurrentApiSessionCertificateRequestBuilder(CurrentApiSessionCertificateCreate sessionCertificate) throws ApiException {
-    // verify the required parameter 'sessionCertificate' is set
-    if (sessionCertificate == null) {
-      throw new ApiException(400, "Missing the required parameter 'sessionCertificate' when calling createCurrentApiSessionCertificate");
+        return operationId + " call failed with: " + statusCode + " - " + body;
     }
 
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-api-session/certificates";
-
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-
-    localVarRequestBuilder.header("Content-Type", "application/json");
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    try {
-      byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(sessionCertificate);
-      localVarRequestBuilder.method("POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
-    } catch (IOException e) {
-      throw new ApiException(e);
-    }
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * Logout
-   * Terminates the current API session
-   * @return CompletableFuture&lt;Empty&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<Empty> currentApiSessionDelete() throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = currentApiSessionDeleteRequestBuilder();
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("currentApiSessionDelete", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<Empty>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * Logout
-   * Terminates the current API session
-   * @return CompletableFuture&lt;ApiResponse&lt;Empty&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<Empty>> currentApiSessionDeleteWithHttpInfo() throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = currentApiSessionDeleteRequestBuilder();
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("currentApiSessionDelete", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<Empty>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<Empty>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+    /**
+     * Creates an ephemeral certificate for the current API Session Creates an ephemeral certificate
+     * for the current API Session. This endpoint expects a PEM encoded CSRs to be provided for
+     * fulfillment as a property of a JSON payload. It is up to the client to manage the private key
+     * backing the CSR request.
+     *
+     * @param sessionCertificate The payload describing the CSR used to create a session certificate
+     *     (required)
+     * @return CompletableFuture&lt;CreateCurrentApiSessionCertificateEnvelope&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<CreateCurrentApiSessionCertificateEnvelope>
+            createCurrentApiSessionCertificate(
+                    CurrentApiSessionCertificateCreate sessionCertificate) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    createCurrentApiSessionCertificateRequestBuilder(sessionCertificate);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "createCurrentApiSessionCertificate",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<
+                                                                    CreateCurrentApiSessionCertificateEnvelope>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
         }
-      );
     }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
 
-  private HttpRequest.Builder currentApiSessionDeleteRequestBuilder() throws ApiException {
-
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-api-session";
-
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    localVarRequestBuilder.method("DELETE", HttpRequest.BodyPublishers.noBody());
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * Delete an ephemeral certificate
-   * Delete an ephemeral certificateby id 
-   * @param id The id of the requested resource (required)
-   * @return CompletableFuture&lt;Empty&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<Empty> deleteCurrentApiSessionCertificate(String id) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = deleteCurrentApiSessionCertificateRequestBuilder(id);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("deleteCurrentApiSessionCertificate", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<Empty>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * Delete an ephemeral certificate
-   * Delete an ephemeral certificateby id 
-   * @param id The id of the requested resource (required)
-   * @return CompletableFuture&lt;ApiResponse&lt;Empty&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<Empty>> deleteCurrentApiSessionCertificateWithHttpInfo(String id) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = deleteCurrentApiSessionCertificateRequestBuilder(id);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("deleteCurrentApiSessionCertificate", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<Empty>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<Empty>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+    /**
+     * Creates an ephemeral certificate for the current API Session Creates an ephemeral certificate
+     * for the current API Session. This endpoint expects a PEM encoded CSRs to be provided for
+     * fulfillment as a property of a JSON payload. It is up to the client to manage the private key
+     * backing the CSR request.
+     *
+     * @param sessionCertificate The payload describing the CSR used to create a session certificate
+     *     (required)
+     * @return
+     *     CompletableFuture&lt;ApiResponse&lt;CreateCurrentApiSessionCertificateEnvelope&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<CreateCurrentApiSessionCertificateEnvelope>>
+            createCurrentApiSessionCertificateWithHttpInfo(
+                    CurrentApiSessionCertificateCreate sessionCertificate) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    createCurrentApiSessionCertificateRequestBuilder(sessionCertificate);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "createCurrentApiSessionCertificate",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<
+                                                    CreateCurrentApiSessionCertificateEnvelope>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            CreateCurrentApiSessionCertificateEnvelope>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
         }
-      );
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  private HttpRequest.Builder deleteCurrentApiSessionCertificateRequestBuilder(String id) throws ApiException {
-    // verify the required parameter 'id' is set
-    if (id == null) {
-      throw new ApiException(400, "Missing the required parameter 'id' when calling deleteCurrentApiSessionCertificate");
     }
 
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-api-session/certificates/{id}"
-        .replace("{id}", ApiClient.urlEncode(id.toString()));
-
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    localVarRequestBuilder.method("DELETE", HttpRequest.BodyPublishers.noBody());
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * Retrieves an ephemeral certificate
-   * Retrieves a single ephemeral certificate by id
-   * @param id The id of the requested resource (required)
-   * @return CompletableFuture&lt;DetailCurrentApiSessionCertificateEnvelope&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<DetailCurrentApiSessionCertificateEnvelope> detailCurrentApiSessionCertificate(String id) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = detailCurrentApiSessionCertificateRequestBuilder(id);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("detailCurrentApiSessionCertificate", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<DetailCurrentApiSessionCertificateEnvelope>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * Retrieves an ephemeral certificate
-   * Retrieves a single ephemeral certificate by id
-   * @param id The id of the requested resource (required)
-   * @return CompletableFuture&lt;ApiResponse&lt;DetailCurrentApiSessionCertificateEnvelope&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<DetailCurrentApiSessionCertificateEnvelope>> detailCurrentApiSessionCertificateWithHttpInfo(String id) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = detailCurrentApiSessionCertificateRequestBuilder(id);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("detailCurrentApiSessionCertificate", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<DetailCurrentApiSessionCertificateEnvelope>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<DetailCurrentApiSessionCertificateEnvelope>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+    private HttpRequest.Builder createCurrentApiSessionCertificateRequestBuilder(
+            CurrentApiSessionCertificateCreate sessionCertificate) throws ApiException {
+        // verify the required parameter 'sessionCertificate' is set
+        if (sessionCertificate == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'sessionCertificate' when calling"
+                            + " createCurrentApiSessionCertificate");
         }
-      );
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
 
-  private HttpRequest.Builder detailCurrentApiSessionCertificateRequestBuilder(String id) throws ApiException {
-    // verify the required parameter 'id' is set
-    if (id == null) {
-      throw new ApiException(400, "Missing the required parameter 'id' when calling detailCurrentApiSessionCertificate");
-    }
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+        String localVarPath = "/current-api-session/certificates";
 
-    String localVarPath = "/current-api-session/certificates/{id}"
-        .replace("{id}", ApiClient.urlEncode(id.toString()));
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
 
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+        localVarRequestBuilder.header("Content-Type", "application/json");
+        localVarRequestBuilder.header("Accept", "application/json");
 
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * Retrieve an authenticator for the current identity
-   * Retrieves a single authenticator by id. Will only show authenticators assigned to the API session&#39;s identity.
-   * @param id The id of the requested resource (required)
-   * @return CompletableFuture&lt;DetailAuthenticatorEnvelope&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<DetailAuthenticatorEnvelope> detailCurrentIdentityAuthenticator(String id) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = detailCurrentIdentityAuthenticatorRequestBuilder(id);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("detailCurrentIdentityAuthenticator", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<DetailAuthenticatorEnvelope>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * Retrieve an authenticator for the current identity
-   * Retrieves a single authenticator by id. Will only show authenticators assigned to the API session&#39;s identity.
-   * @param id The id of the requested resource (required)
-   * @return CompletableFuture&lt;ApiResponse&lt;DetailAuthenticatorEnvelope&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<DetailAuthenticatorEnvelope>> detailCurrentIdentityAuthenticatorWithHttpInfo(String id) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = detailCurrentIdentityAuthenticatorRequestBuilder(id);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("detailCurrentIdentityAuthenticator", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<DetailAuthenticatorEnvelope>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<DetailAuthenticatorEnvelope>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+        try {
+            byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(sessionCertificate);
+            localVarRequestBuilder.method(
+                    "POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
+        } catch (IOException e) {
+            throw new ApiException(e);
         }
-      );
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  private HttpRequest.Builder detailCurrentIdentityAuthenticatorRequestBuilder(String id) throws ApiException {
-    // verify the required parameter 'id' is set
-    if (id == null) {
-      throw new ApiException(400, "Missing the required parameter 'id' when calling detailCurrentIdentityAuthenticator");
-    }
-
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-identity/authenticators/{id}"
-        .replace("{id}", ApiClient.urlEncode(id.toString()));
-
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * Allows the current identity to recieve a new certificate associated with a certificate based authenticator
-   * This endpoint only functions for certificates issued by the controller. 3rd party certificates are not handled. Allows an identity to extend its certificate&#39;s expiration date by using its current and valid client certificate to submit a CSR. This CSR may be passed in using a new private key, thus allowing private key rotation. The response from this endpoint is a new client certificate which the client must  be verified via the /authenticators/{id}/extend-verify endpoint. After verification is completion any new connections must be made with new certificate. Prior to verification the old client certificate remains active.
-   * @param id The id of the requested resource (required)
-   * @param extend  (required)
-   * @return CompletableFuture&lt;IdentityExtendEnrollmentEnvelope&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<IdentityExtendEnrollmentEnvelope> extendCurrentIdentityAuthenticator(String id, IdentityExtendEnrollmentRequest extend) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = extendCurrentIdentityAuthenticatorRequestBuilder(id, extend);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("extendCurrentIdentityAuthenticator", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<IdentityExtendEnrollmentEnvelope>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * Allows the current identity to recieve a new certificate associated with a certificate based authenticator
-   * This endpoint only functions for certificates issued by the controller. 3rd party certificates are not handled. Allows an identity to extend its certificate&#39;s expiration date by using its current and valid client certificate to submit a CSR. This CSR may be passed in using a new private key, thus allowing private key rotation. The response from this endpoint is a new client certificate which the client must  be verified via the /authenticators/{id}/extend-verify endpoint. After verification is completion any new connections must be made with new certificate. Prior to verification the old client certificate remains active.
-   * @param id The id of the requested resource (required)
-   * @param extend  (required)
-   * @return CompletableFuture&lt;ApiResponse&lt;IdentityExtendEnrollmentEnvelope&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<IdentityExtendEnrollmentEnvelope>> extendCurrentIdentityAuthenticatorWithHttpInfo(String id, IdentityExtendEnrollmentRequest extend) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = extendCurrentIdentityAuthenticatorRequestBuilder(id, extend);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("extendCurrentIdentityAuthenticator", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<IdentityExtendEnrollmentEnvelope>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<IdentityExtendEnrollmentEnvelope>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
         }
-      );
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  private HttpRequest.Builder extendCurrentIdentityAuthenticatorRequestBuilder(String id, IdentityExtendEnrollmentRequest extend) throws ApiException {
-    // verify the required parameter 'id' is set
-    if (id == null) {
-      throw new ApiException(400, "Missing the required parameter 'id' when calling extendCurrentIdentityAuthenticator");
-    }
-    // verify the required parameter 'extend' is set
-    if (extend == null) {
-      throw new ApiException(400, "Missing the required parameter 'extend' when calling extendCurrentIdentityAuthenticator");
-    }
-
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-identity/authenticators/{id}/extend"
-        .replace("{id}", ApiClient.urlEncode(id.toString()));
-
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-
-    localVarRequestBuilder.header("Content-Type", "application/json");
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    try {
-      byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(extend);
-      localVarRequestBuilder.method("POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
-    } catch (IOException e) {
-      throw new ApiException(e);
-    }
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * Allows the current identity to validate reciept of a new client certificate
-   * After submitting a CSR for a new client certificate the resulting public certificate must be re-submitted to this endpoint to verify receipt. After receipt, the new client certificate must be used for new authentication requests.
-   * @param id The id of the requested resource (required)
-   * @param extend  (required)
-   * @return CompletableFuture&lt;Empty&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<Empty> extendVerifyCurrentIdentityAuthenticator(String id, IdentityExtendValidateEnrollmentRequest extend) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = extendVerifyCurrentIdentityAuthenticatorRequestBuilder(id, extend);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("extendVerifyCurrentIdentityAuthenticator", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<Empty>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * Allows the current identity to validate reciept of a new client certificate
-   * After submitting a CSR for a new client certificate the resulting public certificate must be re-submitted to this endpoint to verify receipt. After receipt, the new client certificate must be used for new authentication requests.
-   * @param id The id of the requested resource (required)
-   * @param extend  (required)
-   * @return CompletableFuture&lt;ApiResponse&lt;Empty&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<Empty>> extendVerifyCurrentIdentityAuthenticatorWithHttpInfo(String id, IdentityExtendValidateEnrollmentRequest extend) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = extendVerifyCurrentIdentityAuthenticatorRequestBuilder(id, extend);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("extendVerifyCurrentIdentityAuthenticator", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<Empty>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<Empty>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
         }
-      );
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  private HttpRequest.Builder extendVerifyCurrentIdentityAuthenticatorRequestBuilder(String id, IdentityExtendValidateEnrollmentRequest extend) throws ApiException {
-    // verify the required parameter 'id' is set
-    if (id == null) {
-      throw new ApiException(400, "Missing the required parameter 'id' when calling extendVerifyCurrentIdentityAuthenticator");
-    }
-    // verify the required parameter 'extend' is set
-    if (extend == null) {
-      throw new ApiException(400, "Missing the required parameter 'extend' when calling extendVerifyCurrentIdentityAuthenticator");
+        return localVarRequestBuilder;
     }
 
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-identity/authenticators/{id}/extend-verify"
-        .replace("{id}", ApiClient.urlEncode(id.toString()));
-
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-
-    localVarRequestBuilder.header("Content-Type", "application/json");
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    try {
-      byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(extend);
-      localVarRequestBuilder.method("POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
-    } catch (IOException e) {
-      throw new ApiException(e);
-    }
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * Return the current API session
-   * Retrieves the API session that was used to issue the current request
-   * @return CompletableFuture&lt;CurrentApiSessionDetailEnvelope&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<CurrentApiSessionDetailEnvelope> getCurrentAPISession() throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = getCurrentAPISessionRequestBuilder();
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("getCurrentAPISession", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<CurrentApiSessionDetailEnvelope>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * Return the current API session
-   * Retrieves the API session that was used to issue the current request
-   * @return CompletableFuture&lt;ApiResponse&lt;CurrentApiSessionDetailEnvelope&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<CurrentApiSessionDetailEnvelope>> getCurrentAPISessionWithHttpInfo() throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = getCurrentAPISessionRequestBuilder();
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("getCurrentAPISession", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<CurrentApiSessionDetailEnvelope>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<CurrentApiSessionDetailEnvelope>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+    /**
+     * Logout Terminates the current API session
+     *
+     * @return CompletableFuture&lt;Empty&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<Empty> currentApiSessionDelete() throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder = currentApiSessionDeleteRequestBuilder();
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "currentApiSessionDelete", localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<Empty>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
         }
-      );
     }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
 
-  private HttpRequest.Builder getCurrentAPISessionRequestBuilder() throws ApiException {
-
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-api-session";
-
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-
-    localVarRequestBuilder.header("Accept", "application/json, default");
-
-    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * List the ephemeral certificates available for the current API Session
-   * Retrieves a list of certificate resources for the current API session; supports filtering, sorting, and pagination
-   * @param limit  (optional)
-   * @param offset  (optional)
-   * @param filter  (optional)
-   * @return CompletableFuture&lt;ListCurrentApiSessionCertificatesEnvelope&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ListCurrentApiSessionCertificatesEnvelope> listCurrentApiSessionCertificates(Integer limit, Integer offset, String filter) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = listCurrentApiSessionCertificatesRequestBuilder(limit, offset, filter);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("listCurrentApiSessionCertificates", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<ListCurrentApiSessionCertificatesEnvelope>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * List the ephemeral certificates available for the current API Session
-   * Retrieves a list of certificate resources for the current API session; supports filtering, sorting, and pagination
-   * @param limit  (optional)
-   * @param offset  (optional)
-   * @param filter  (optional)
-   * @return CompletableFuture&lt;ApiResponse&lt;ListCurrentApiSessionCertificatesEnvelope&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<ListCurrentApiSessionCertificatesEnvelope>> listCurrentApiSessionCertificatesWithHttpInfo(Integer limit, Integer offset, String filter) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = listCurrentApiSessionCertificatesRequestBuilder(limit, offset, filter);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("listCurrentApiSessionCertificates", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<ListCurrentApiSessionCertificatesEnvelope>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<ListCurrentApiSessionCertificatesEnvelope>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+    /**
+     * Logout Terminates the current API session
+     *
+     * @return CompletableFuture&lt;ApiResponse&lt;Empty&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<Empty>> currentApiSessionDeleteWithHttpInfo()
+            throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder = currentApiSessionDeleteRequestBuilder();
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "currentApiSessionDelete", localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<Empty>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            Empty>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
         }
-      );
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  private HttpRequest.Builder listCurrentApiSessionCertificatesRequestBuilder(Integer limit, Integer offset, String filter) throws ApiException {
-
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-api-session/certificates";
-
-    List<Pair> localVarQueryParams = new ArrayList<>();
-    StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
-    String localVarQueryParameterBaseName;
-    localVarQueryParameterBaseName = "limit";
-    localVarQueryParams.addAll(ApiClient.parameterToPairs("limit", limit));
-    localVarQueryParameterBaseName = "offset";
-    localVarQueryParams.addAll(ApiClient.parameterToPairs("offset", offset));
-    localVarQueryParameterBaseName = "filter";
-    localVarQueryParams.addAll(ApiClient.parameterToPairs("filter", filter));
-
-    if (!localVarQueryParams.isEmpty() || localVarQueryStringJoiner.length() != 0) {
-      StringJoiner queryJoiner = new StringJoiner("&");
-      localVarQueryParams.forEach(p -> queryJoiner.add(p.getName() + '=' + p.getValue()));
-      if (localVarQueryStringJoiner.length() != 0) {
-        queryJoiner.add(localVarQueryStringJoiner.toString());
-      }
-      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath + '?' + queryJoiner.toString()));
-    } else {
-      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
     }
 
-    localVarRequestBuilder.header("Accept", "application/json");
+    private HttpRequest.Builder currentApiSessionDeleteRequestBuilder() throws ApiException {
 
-    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
-  /**
-   * List authenticators for the current identity
-   * Retrieves a list of authenticators assigned to the current API session&#39;s identity; supports filtering, sorting, and pagination.
-   * @param limit  (optional)
-   * @param offset  (optional)
-   * @param filter  (optional)
-   * @return CompletableFuture&lt;ListAuthenticatorsEnvelope&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ListAuthenticatorsEnvelope> listCurrentIdentityAuthenticators(Integer limit, Integer offset, String filter) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = listCurrentIdentityAuthenticatorsRequestBuilder(limit, offset, filter);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("listCurrentIdentityAuthenticators", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<ListAuthenticatorsEnvelope>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
+        String localVarPath = "/current-api-session";
 
-  /**
-   * List authenticators for the current identity
-   * Retrieves a list of authenticators assigned to the current API session&#39;s identity; supports filtering, sorting, and pagination.
-   * @param limit  (optional)
-   * @param offset  (optional)
-   * @param filter  (optional)
-   * @return CompletableFuture&lt;ApiResponse&lt;ListAuthenticatorsEnvelope&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<ListAuthenticatorsEnvelope>> listCurrentIdentityAuthenticatorsWithHttpInfo(Integer limit, Integer offset, String filter) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = listCurrentIdentityAuthenticatorsRequestBuilder(limit, offset, filter);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("listCurrentIdentityAuthenticators", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<ListAuthenticatorsEnvelope>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<ListAuthenticatorsEnvelope>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        localVarRequestBuilder.method("DELETE", HttpRequest.BodyPublishers.noBody());
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
         }
-      );
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  private HttpRequest.Builder listCurrentIdentityAuthenticatorsRequestBuilder(Integer limit, Integer offset, String filter) throws ApiException {
-
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-identity/authenticators";
-
-    List<Pair> localVarQueryParams = new ArrayList<>();
-    StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
-    String localVarQueryParameterBaseName;
-    localVarQueryParameterBaseName = "limit";
-    localVarQueryParams.addAll(ApiClient.parameterToPairs("limit", limit));
-    localVarQueryParameterBaseName = "offset";
-    localVarQueryParams.addAll(ApiClient.parameterToPairs("offset", offset));
-    localVarQueryParameterBaseName = "filter";
-    localVarQueryParams.addAll(ApiClient.parameterToPairs("filter", filter));
-
-    if (!localVarQueryParams.isEmpty() || localVarQueryStringJoiner.length() != 0) {
-      StringJoiner queryJoiner = new StringJoiner("&");
-      localVarQueryParams.forEach(p -> queryJoiner.add(p.getName() + '=' + p.getValue()));
-      if (localVarQueryStringJoiner.length() != 0) {
-        queryJoiner.add(localVarQueryStringJoiner.toString());
-      }
-      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath + '?' + queryJoiner.toString()));
-    } else {
-      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-    }
-
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * Returns data indicating whether a client should updates it service list
-   * Retrieves data indicating the last time data relevant to this API Session was altered that would necessitate service refreshes. 
-   * @return CompletableFuture&lt;ListCurrentApiSessionServiceUpdatesEnvelope&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ListCurrentApiSessionServiceUpdatesEnvelope> listServiceUpdates() throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = listServiceUpdatesRequestBuilder();
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("listServiceUpdates", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<ListCurrentApiSessionServiceUpdatesEnvelope>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * Returns data indicating whether a client should updates it service list
-   * Retrieves data indicating the last time data relevant to this API Session was altered that would necessitate service refreshes. 
-   * @return CompletableFuture&lt;ApiResponse&lt;ListCurrentApiSessionServiceUpdatesEnvelope&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<ListCurrentApiSessionServiceUpdatesEnvelope>> listServiceUpdatesWithHttpInfo() throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = listServiceUpdatesRequestBuilder();
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("listServiceUpdates", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<ListCurrentApiSessionServiceUpdatesEnvelope>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<ListCurrentApiSessionServiceUpdatesEnvelope>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
         }
-      );
+        return localVarRequestBuilder;
     }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
 
-  private HttpRequest.Builder listServiceUpdatesRequestBuilder() throws ApiException {
-
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-api-session/service-updates";
-
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * Update the supplied fields on an authenticator of this identity
-   * Update the supplied fields on an authenticator by id. Will only update authenticators assigned to the API session&#39;s identity. 
-   * @param id The id of the requested resource (required)
-   * @param authenticator An authenticator patch object (required)
-   * @return CompletableFuture&lt;Empty&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<Empty> patchCurrentIdentityAuthenticator(String id, AuthenticatorPatchWithCurrent authenticator) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = patchCurrentIdentityAuthenticatorRequestBuilder(id, authenticator);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("patchCurrentIdentityAuthenticator", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<Empty>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * Update the supplied fields on an authenticator of this identity
-   * Update the supplied fields on an authenticator by id. Will only update authenticators assigned to the API session&#39;s identity. 
-   * @param id The id of the requested resource (required)
-   * @param authenticator An authenticator patch object (required)
-   * @return CompletableFuture&lt;ApiResponse&lt;Empty&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<Empty>> patchCurrentIdentityAuthenticatorWithHttpInfo(String id, AuthenticatorPatchWithCurrent authenticator) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = patchCurrentIdentityAuthenticatorRequestBuilder(id, authenticator);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("patchCurrentIdentityAuthenticator", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<Empty>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<Empty>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+    /**
+     * Delete an ephemeral certificate Delete an ephemeral certificateby id
+     *
+     * @param id The id of the requested resource (required)
+     * @return CompletableFuture&lt;Empty&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<Empty> deleteCurrentApiSessionCertificate(String id)
+            throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    deleteCurrentApiSessionCertificateRequestBuilder(id);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "deleteCurrentApiSessionCertificate",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<Empty>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
         }
-      );
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  private HttpRequest.Builder patchCurrentIdentityAuthenticatorRequestBuilder(String id, AuthenticatorPatchWithCurrent authenticator) throws ApiException {
-    // verify the required parameter 'id' is set
-    if (id == null) {
-      throw new ApiException(400, "Missing the required parameter 'id' when calling patchCurrentIdentityAuthenticator");
-    }
-    // verify the required parameter 'authenticator' is set
-    if (authenticator == null) {
-      throw new ApiException(400, "Missing the required parameter 'authenticator' when calling patchCurrentIdentityAuthenticator");
     }
 
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-identity/authenticators/{id}"
-        .replace("{id}", ApiClient.urlEncode(id.toString()));
-
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-
-    localVarRequestBuilder.header("Content-Type", "application/json");
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    try {
-      byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(authenticator);
-      localVarRequestBuilder.method("PATCH", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
-    } catch (IOException e) {
-      throw new ApiException(e);
-    }
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
-
-  /**
-   * Update all fields on an authenticator of this identity
-   * Update all fields on an authenticator by id.  Will only update authenticators assigned to the API session&#39;s identity. 
-   * @param id The id of the requested resource (required)
-   * @param authenticator An authenticator put object (required)
-   * @return CompletableFuture&lt;Empty&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<Empty> updateCurrentIdentityAuthenticator(String id, AuthenticatorUpdateWithCurrent authenticator) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = updateCurrentIdentityAuthenticatorRequestBuilder(id, authenticator);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("updateCurrentIdentityAuthenticator", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<Empty>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  /**
-   * Update all fields on an authenticator of this identity
-   * Update all fields on an authenticator by id.  Will only update authenticators assigned to the API session&#39;s identity. 
-   * @param id The id of the requested resource (required)
-   * @param authenticator An authenticator put object (required)
-   * @return CompletableFuture&lt;ApiResponse&lt;Empty&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<Empty>> updateCurrentIdentityAuthenticatorWithHttpInfo(String id, AuthenticatorUpdateWithCurrent authenticator) throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = updateCurrentIdentityAuthenticatorRequestBuilder(id, authenticator);
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("updateCurrentIdentityAuthenticator", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<Empty>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<Empty>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+    /**
+     * Delete an ephemeral certificate Delete an ephemeral certificateby id
+     *
+     * @param id The id of the requested resource (required)
+     * @return CompletableFuture&lt;ApiResponse&lt;Empty&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<Empty>> deleteCurrentApiSessionCertificateWithHttpInfo(
+            String id) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    deleteCurrentApiSessionCertificateRequestBuilder(id);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "deleteCurrentApiSessionCertificate",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<Empty>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            Empty>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
         }
-      );
-    }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
-
-  private HttpRequest.Builder updateCurrentIdentityAuthenticatorRequestBuilder(String id, AuthenticatorUpdateWithCurrent authenticator) throws ApiException {
-    // verify the required parameter 'id' is set
-    if (id == null) {
-      throw new ApiException(400, "Missing the required parameter 'id' when calling updateCurrentIdentityAuthenticator");
-    }
-    // verify the required parameter 'authenticator' is set
-    if (authenticator == null) {
-      throw new ApiException(400, "Missing the required parameter 'authenticator' when calling updateCurrentIdentityAuthenticator");
     }
 
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+    private HttpRequest.Builder deleteCurrentApiSessionCertificateRequestBuilder(String id)
+            throws ApiException {
+        // verify the required parameter 'id' is set
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'id' when calling"
+                            + " deleteCurrentApiSessionCertificate");
+        }
 
-    String localVarPath = "/current-identity/authenticators/{id}"
-        .replace("{id}", ApiClient.urlEncode(id.toString()));
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+        String localVarPath =
+                "/current-api-session/certificates/{id}"
+                        .replace("{id}", ApiClient.urlEncode(id.toString()));
 
-    localVarRequestBuilder.header("Content-Type", "application/json");
-    localVarRequestBuilder.header("Accept", "application/json");
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
 
-    try {
-      byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(authenticator);
-      localVarRequestBuilder.method("PUT", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
-    } catch (IOException e) {
-      throw new ApiException(e);
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        localVarRequestBuilder.method("DELETE", HttpRequest.BodyPublishers.noBody());
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
     }
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
-    }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
 
+    /**
+     * Retrieves an ephemeral certificate Retrieves a single ephemeral certificate by id
+     *
+     * @param id The id of the requested resource (required)
+     * @return CompletableFuture&lt;DetailCurrentApiSessionCertificateEnvelope&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<DetailCurrentApiSessionCertificateEnvelope>
+            detailCurrentApiSessionCertificate(String id) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    detailCurrentApiSessionCertificateRequestBuilder(id);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "detailCurrentApiSessionCertificate",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<
+                                                                    DetailCurrentApiSessionCertificateEnvelope>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Retrieves an ephemeral certificate Retrieves a single ephemeral certificate by id
+     *
+     * @param id The id of the requested resource (required)
+     * @return
+     *     CompletableFuture&lt;ApiResponse&lt;DetailCurrentApiSessionCertificateEnvelope&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<DetailCurrentApiSessionCertificateEnvelope>>
+            detailCurrentApiSessionCertificateWithHttpInfo(String id) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    detailCurrentApiSessionCertificateRequestBuilder(id);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "detailCurrentApiSessionCertificate",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<
+                                                    DetailCurrentApiSessionCertificateEnvelope>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            DetailCurrentApiSessionCertificateEnvelope>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private HttpRequest.Builder detailCurrentApiSessionCertificateRequestBuilder(String id)
+            throws ApiException {
+        // verify the required parameter 'id' is set
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'id' when calling"
+                            + " detailCurrentApiSessionCertificate");
+        }
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath =
+                "/current-api-session/certificates/{id}"
+                        .replace("{id}", ApiClient.urlEncode(id.toString()));
+
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
+
+    /**
+     * Retrieve an authenticator for the current identity Retrieves a single authenticator by id.
+     * Will only show authenticators assigned to the API session&#39;s identity.
+     *
+     * @param id The id of the requested resource (required)
+     * @return CompletableFuture&lt;DetailAuthenticatorEnvelope&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<DetailAuthenticatorEnvelope> detailCurrentIdentityAuthenticator(
+            String id) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    detailCurrentIdentityAuthenticatorRequestBuilder(id);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "detailCurrentIdentityAuthenticator",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<
+                                                                    DetailAuthenticatorEnvelope>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Retrieve an authenticator for the current identity Retrieves a single authenticator by id.
+     * Will only show authenticators assigned to the API session&#39;s identity.
+     *
+     * @param id The id of the requested resource (required)
+     * @return CompletableFuture&lt;ApiResponse&lt;DetailAuthenticatorEnvelope&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<DetailAuthenticatorEnvelope>>
+            detailCurrentIdentityAuthenticatorWithHttpInfo(String id) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    detailCurrentIdentityAuthenticatorRequestBuilder(id);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "detailCurrentIdentityAuthenticator",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<DetailAuthenticatorEnvelope>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            DetailAuthenticatorEnvelope>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private HttpRequest.Builder detailCurrentIdentityAuthenticatorRequestBuilder(String id)
+            throws ApiException {
+        // verify the required parameter 'id' is set
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'id' when calling"
+                            + " detailCurrentIdentityAuthenticator");
+        }
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath =
+                "/current-identity/authenticators/{id}"
+                        .replace("{id}", ApiClient.urlEncode(id.toString()));
+
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
+
+    /**
+     * Allows the current identity to recieve a new certificate associated with a certificate based
+     * authenticator This endpoint only functions for certificates issued by the controller. 3rd
+     * party certificates are not handled. Allows an identity to extend its certificate&#39;s
+     * expiration date by using its current and valid client certificate to submit a CSR. This CSR
+     * may be passed in using a new private key, thus allowing private key rotation. The response
+     * from this endpoint is a new client certificate which the client must be verified via the
+     * /authenticators/{id}/extend-verify endpoint. After verification is completion any new
+     * connections must be made with new certificate. Prior to verification the old client
+     * certificate remains active.
+     *
+     * @param id The id of the requested resource (required)
+     * @param extend (required)
+     * @return CompletableFuture&lt;IdentityExtendEnrollmentEnvelope&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<IdentityExtendEnrollmentEnvelope> extendCurrentIdentityAuthenticator(
+            String id, IdentityExtendEnrollmentRequest extend) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    extendCurrentIdentityAuthenticatorRequestBuilder(id, extend);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "extendCurrentIdentityAuthenticator",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<
+                                                                    IdentityExtendEnrollmentEnvelope>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Allows the current identity to recieve a new certificate associated with a certificate based
+     * authenticator This endpoint only functions for certificates issued by the controller. 3rd
+     * party certificates are not handled. Allows an identity to extend its certificate&#39;s
+     * expiration date by using its current and valid client certificate to submit a CSR. This CSR
+     * may be passed in using a new private key, thus allowing private key rotation. The response
+     * from this endpoint is a new client certificate which the client must be verified via the
+     * /authenticators/{id}/extend-verify endpoint. After verification is completion any new
+     * connections must be made with new certificate. Prior to verification the old client
+     * certificate remains active.
+     *
+     * @param id The id of the requested resource (required)
+     * @param extend (required)
+     * @return CompletableFuture&lt;ApiResponse&lt;IdentityExtendEnrollmentEnvelope&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<IdentityExtendEnrollmentEnvelope>>
+            extendCurrentIdentityAuthenticatorWithHttpInfo(
+                    String id, IdentityExtendEnrollmentRequest extend) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    extendCurrentIdentityAuthenticatorRequestBuilder(id, extend);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "extendCurrentIdentityAuthenticator",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<IdentityExtendEnrollmentEnvelope>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            IdentityExtendEnrollmentEnvelope>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private HttpRequest.Builder extendCurrentIdentityAuthenticatorRequestBuilder(
+            String id, IdentityExtendEnrollmentRequest extend) throws ApiException {
+        // verify the required parameter 'id' is set
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'id' when calling"
+                            + " extendCurrentIdentityAuthenticator");
+        }
+        // verify the required parameter 'extend' is set
+        if (extend == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'extend' when calling"
+                            + " extendCurrentIdentityAuthenticator");
+        }
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath =
+                "/current-identity/authenticators/{id}/extend"
+                        .replace("{id}", ApiClient.urlEncode(id.toString()));
+
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+        localVarRequestBuilder.header("Content-Type", "application/json");
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        try {
+            byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(extend);
+            localVarRequestBuilder.method(
+                    "POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
+        } catch (IOException e) {
+            throw new ApiException(e);
+        }
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
+
+    /**
+     * Allows the current identity to validate reciept of a new client certificate After submitting
+     * a CSR for a new client certificate the resulting public certificate must be re-submitted to
+     * this endpoint to verify receipt. After receipt, the new client certificate must be used for
+     * new authentication requests.
+     *
+     * @param id The id of the requested resource (required)
+     * @param extend (required)
+     * @return CompletableFuture&lt;Empty&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<Empty> extendVerifyCurrentIdentityAuthenticator(
+            String id, IdentityExtendValidateEnrollmentRequest extend) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    extendVerifyCurrentIdentityAuthenticatorRequestBuilder(id, extend);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "extendVerifyCurrentIdentityAuthenticator",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<Empty>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Allows the current identity to validate reciept of a new client certificate After submitting
+     * a CSR for a new client certificate the resulting public certificate must be re-submitted to
+     * this endpoint to verify receipt. After receipt, the new client certificate must be used for
+     * new authentication requests.
+     *
+     * @param id The id of the requested resource (required)
+     * @param extend (required)
+     * @return CompletableFuture&lt;ApiResponse&lt;Empty&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<Empty>>
+            extendVerifyCurrentIdentityAuthenticatorWithHttpInfo(
+                    String id, IdentityExtendValidateEnrollmentRequest extend) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    extendVerifyCurrentIdentityAuthenticatorRequestBuilder(id, extend);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "extendVerifyCurrentIdentityAuthenticator",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<Empty>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            Empty>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private HttpRequest.Builder extendVerifyCurrentIdentityAuthenticatorRequestBuilder(
+            String id, IdentityExtendValidateEnrollmentRequest extend) throws ApiException {
+        // verify the required parameter 'id' is set
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'id' when calling"
+                            + " extendVerifyCurrentIdentityAuthenticator");
+        }
+        // verify the required parameter 'extend' is set
+        if (extend == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'extend' when calling"
+                            + " extendVerifyCurrentIdentityAuthenticator");
+        }
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath =
+                "/current-identity/authenticators/{id}/extend-verify"
+                        .replace("{id}", ApiClient.urlEncode(id.toString()));
+
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+        localVarRequestBuilder.header("Content-Type", "application/json");
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        try {
+            byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(extend);
+            localVarRequestBuilder.method(
+                    "POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
+        } catch (IOException e) {
+            throw new ApiException(e);
+        }
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
+
+    /**
+     * Return the current API session Retrieves the API session that was used to issue the current
+     * request
+     *
+     * @return CompletableFuture&lt;CurrentApiSessionDetailEnvelope&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<CurrentApiSessionDetailEnvelope> getCurrentAPISession()
+            throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder = getCurrentAPISessionRequestBuilder();
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "getCurrentAPISession", localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<
+                                                                    CurrentApiSessionDetailEnvelope>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Return the current API session Retrieves the API session that was used to issue the current
+     * request
+     *
+     * @return CompletableFuture&lt;ApiResponse&lt;CurrentApiSessionDetailEnvelope&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<CurrentApiSessionDetailEnvelope>>
+            getCurrentAPISessionWithHttpInfo() throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder = getCurrentAPISessionRequestBuilder();
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "getCurrentAPISession", localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<CurrentApiSessionDetailEnvelope>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            CurrentApiSessionDetailEnvelope>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private HttpRequest.Builder getCurrentAPISessionRequestBuilder() throws ApiException {
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath = "/current-api-session";
+
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+        localVarRequestBuilder.header("Accept", "application/json, default");
+
+        localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
+
+    /**
+     * List the ephemeral certificates available for the current API Session Retrieves a list of
+     * certificate resources for the current API session; supports filtering, sorting, and
+     * pagination
+     *
+     * @param limit (optional)
+     * @param offset (optional)
+     * @param filter (optional)
+     * @return CompletableFuture&lt;ListCurrentApiSessionCertificatesEnvelope&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ListCurrentApiSessionCertificatesEnvelope>
+            listCurrentApiSessionCertificates(Integer limit, Integer offset, String filter)
+                    throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    listCurrentApiSessionCertificatesRequestBuilder(limit, offset, filter);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "listCurrentApiSessionCertificates",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<
+                                                                    ListCurrentApiSessionCertificatesEnvelope>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * List the ephemeral certificates available for the current API Session Retrieves a list of
+     * certificate resources for the current API session; supports filtering, sorting, and
+     * pagination
+     *
+     * @param limit (optional)
+     * @param offset (optional)
+     * @param filter (optional)
+     * @return CompletableFuture&lt;ApiResponse&lt;ListCurrentApiSessionCertificatesEnvelope&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<ListCurrentApiSessionCertificatesEnvelope>>
+            listCurrentApiSessionCertificatesWithHttpInfo(
+                    Integer limit, Integer offset, String filter) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    listCurrentApiSessionCertificatesRequestBuilder(limit, offset, filter);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "listCurrentApiSessionCertificates",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<
+                                                    ListCurrentApiSessionCertificatesEnvelope>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            ListCurrentApiSessionCertificatesEnvelope>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private HttpRequest.Builder listCurrentApiSessionCertificatesRequestBuilder(
+            Integer limit, Integer offset, String filter) throws ApiException {
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath = "/current-api-session/certificates";
+
+        List<Pair> localVarQueryParams = new ArrayList<>();
+        StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
+        String localVarQueryParameterBaseName;
+        localVarQueryParameterBaseName = "limit";
+        localVarQueryParams.addAll(ApiClient.parameterToPairs("limit", limit));
+        localVarQueryParameterBaseName = "offset";
+        localVarQueryParams.addAll(ApiClient.parameterToPairs("offset", offset));
+        localVarQueryParameterBaseName = "filter";
+        localVarQueryParams.addAll(ApiClient.parameterToPairs("filter", filter));
+
+        if (!localVarQueryParams.isEmpty() || localVarQueryStringJoiner.length() != 0) {
+            StringJoiner queryJoiner = new StringJoiner("&");
+            localVarQueryParams.forEach(p -> queryJoiner.add(p.getName() + '=' + p.getValue()));
+            if (localVarQueryStringJoiner.length() != 0) {
+                queryJoiner.add(localVarQueryStringJoiner.toString());
+            }
+            localVarRequestBuilder.uri(
+                    URI.create(memberVarBaseUri + localVarPath + '?' + queryJoiner.toString()));
+        } else {
+            localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+        }
+
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
+
+    /**
+     * List authenticators for the current identity Retrieves a list of authenticators assigned to
+     * the current API session&#39;s identity; supports filtering, sorting, and pagination.
+     *
+     * @param limit (optional)
+     * @param offset (optional)
+     * @param filter (optional)
+     * @return CompletableFuture&lt;ListAuthenticatorsEnvelope&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ListAuthenticatorsEnvelope> listCurrentIdentityAuthenticators(
+            Integer limit, Integer offset, String filter) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    listCurrentIdentityAuthenticatorsRequestBuilder(limit, offset, filter);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "listCurrentIdentityAuthenticators",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<
+                                                                    ListAuthenticatorsEnvelope>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * List authenticators for the current identity Retrieves a list of authenticators assigned to
+     * the current API session&#39;s identity; supports filtering, sorting, and pagination.
+     *
+     * @param limit (optional)
+     * @param offset (optional)
+     * @param filter (optional)
+     * @return CompletableFuture&lt;ApiResponse&lt;ListAuthenticatorsEnvelope&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<ListAuthenticatorsEnvelope>>
+            listCurrentIdentityAuthenticatorsWithHttpInfo(
+                    Integer limit, Integer offset, String filter) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    listCurrentIdentityAuthenticatorsRequestBuilder(limit, offset, filter);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "listCurrentIdentityAuthenticators",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<ListAuthenticatorsEnvelope>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            ListAuthenticatorsEnvelope>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private HttpRequest.Builder listCurrentIdentityAuthenticatorsRequestBuilder(
+            Integer limit, Integer offset, String filter) throws ApiException {
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath = "/current-identity/authenticators";
+
+        List<Pair> localVarQueryParams = new ArrayList<>();
+        StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
+        String localVarQueryParameterBaseName;
+        localVarQueryParameterBaseName = "limit";
+        localVarQueryParams.addAll(ApiClient.parameterToPairs("limit", limit));
+        localVarQueryParameterBaseName = "offset";
+        localVarQueryParams.addAll(ApiClient.parameterToPairs("offset", offset));
+        localVarQueryParameterBaseName = "filter";
+        localVarQueryParams.addAll(ApiClient.parameterToPairs("filter", filter));
+
+        if (!localVarQueryParams.isEmpty() || localVarQueryStringJoiner.length() != 0) {
+            StringJoiner queryJoiner = new StringJoiner("&");
+            localVarQueryParams.forEach(p -> queryJoiner.add(p.getName() + '=' + p.getValue()));
+            if (localVarQueryStringJoiner.length() != 0) {
+                queryJoiner.add(localVarQueryStringJoiner.toString());
+            }
+            localVarRequestBuilder.uri(
+                    URI.create(memberVarBaseUri + localVarPath + '?' + queryJoiner.toString()));
+        } else {
+            localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+        }
+
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
+
+    /**
+     * Returns data indicating whether a client should updates it service list Retrieves data
+     * indicating the last time data relevant to this API Session was altered that would necessitate
+     * service refreshes.
+     *
+     * @return CompletableFuture&lt;ListCurrentApiSessionServiceUpdatesEnvelope&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ListCurrentApiSessionServiceUpdatesEnvelope> listServiceUpdates()
+            throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder = listServiceUpdatesRequestBuilder();
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "listServiceUpdates", localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<
+                                                                    ListCurrentApiSessionServiceUpdatesEnvelope>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Returns data indicating whether a client should updates it service list Retrieves data
+     * indicating the last time data relevant to this API Session was altered that would necessitate
+     * service refreshes.
+     *
+     * @return
+     *     CompletableFuture&lt;ApiResponse&lt;ListCurrentApiSessionServiceUpdatesEnvelope&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<ListCurrentApiSessionServiceUpdatesEnvelope>>
+            listServiceUpdatesWithHttpInfo() throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder = listServiceUpdatesRequestBuilder();
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "listServiceUpdates", localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<
+                                                    ListCurrentApiSessionServiceUpdatesEnvelope>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            ListCurrentApiSessionServiceUpdatesEnvelope>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private HttpRequest.Builder listServiceUpdatesRequestBuilder() throws ApiException {
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath = "/current-api-session/service-updates";
+
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
+
+    /**
+     * Update the supplied fields on an authenticator of this identity Update the supplied fields on
+     * an authenticator by id. Will only update authenticators assigned to the API session&#39;s
+     * identity.
+     *
+     * @param id The id of the requested resource (required)
+     * @param authenticator An authenticator patch object (required)
+     * @return CompletableFuture&lt;Empty&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<Empty> patchCurrentIdentityAuthenticator(
+            String id, AuthenticatorPatchWithCurrent authenticator) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    patchCurrentIdentityAuthenticatorRequestBuilder(id, authenticator);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "patchCurrentIdentityAuthenticator",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<Empty>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Update the supplied fields on an authenticator of this identity Update the supplied fields on
+     * an authenticator by id. Will only update authenticators assigned to the API session&#39;s
+     * identity.
+     *
+     * @param id The id of the requested resource (required)
+     * @param authenticator An authenticator patch object (required)
+     * @return CompletableFuture&lt;ApiResponse&lt;Empty&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<Empty>> patchCurrentIdentityAuthenticatorWithHttpInfo(
+            String id, AuthenticatorPatchWithCurrent authenticator) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    patchCurrentIdentityAuthenticatorRequestBuilder(id, authenticator);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "patchCurrentIdentityAuthenticator",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<Empty>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            Empty>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private HttpRequest.Builder patchCurrentIdentityAuthenticatorRequestBuilder(
+            String id, AuthenticatorPatchWithCurrent authenticator) throws ApiException {
+        // verify the required parameter 'id' is set
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'id' when calling"
+                            + " patchCurrentIdentityAuthenticator");
+        }
+        // verify the required parameter 'authenticator' is set
+        if (authenticator == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'authenticator' when calling"
+                            + " patchCurrentIdentityAuthenticator");
+        }
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath =
+                "/current-identity/authenticators/{id}"
+                        .replace("{id}", ApiClient.urlEncode(id.toString()));
+
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+        localVarRequestBuilder.header("Content-Type", "application/json");
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        try {
+            byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(authenticator);
+            localVarRequestBuilder.method(
+                    "PATCH", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
+        } catch (IOException e) {
+            throw new ApiException(e);
+        }
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
+
+    /**
+     * Update all fields on an authenticator of this identity Update all fields on an authenticator
+     * by id. Will only update authenticators assigned to the API session&#39;s identity.
+     *
+     * @param id The id of the requested resource (required)
+     * @param authenticator An authenticator put object (required)
+     * @return CompletableFuture&lt;Empty&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<Empty> updateCurrentIdentityAuthenticator(
+            String id, AuthenticatorUpdateWithCurrent authenticator) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    updateCurrentIdentityAuthenticatorRequestBuilder(id, authenticator);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "updateCurrentIdentityAuthenticator",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<Empty>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    /**
+     * Update all fields on an authenticator of this identity Update all fields on an authenticator
+     * by id. Will only update authenticators assigned to the API session&#39;s identity.
+     *
+     * @param id The id of the requested resource (required)
+     * @param authenticator An authenticator put object (required)
+     * @return CompletableFuture&lt;ApiResponse&lt;Empty&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<Empty>> updateCurrentIdentityAuthenticatorWithHttpInfo(
+            String id, AuthenticatorUpdateWithCurrent authenticator) throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder =
+                    updateCurrentIdentityAuthenticatorRequestBuilder(id, authenticator);
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "updateCurrentIdentityAuthenticator",
+                                                    localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<Empty>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            Empty>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private HttpRequest.Builder updateCurrentIdentityAuthenticatorRequestBuilder(
+            String id, AuthenticatorUpdateWithCurrent authenticator) throws ApiException {
+        // verify the required parameter 'id' is set
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'id' when calling"
+                            + " updateCurrentIdentityAuthenticator");
+        }
+        // verify the required parameter 'authenticator' is set
+        if (authenticator == null) {
+            throw new ApiException(
+                    400,
+                    "Missing the required parameter 'authenticator' when calling"
+                            + " updateCurrentIdentityAuthenticator");
+        }
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath =
+                "/current-identity/authenticators/{id}"
+                        .replace("{id}", ApiClient.urlEncode(id.toString()));
+
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+        localVarRequestBuilder.header("Content-Type", "application/json");
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        try {
+            byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(authenticator);
+            localVarRequestBuilder.method(
+                    "PUT", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
+        } catch (IOException e) {
+            throw new ApiException(e);
+        }
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
 }

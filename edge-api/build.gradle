@@ -8,7 +8,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.11.0'
+        classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
     }
 }
 
@@ -97,7 +97,7 @@ spotless {
     java {
         // don't need to set target, it is inferred from java
         // apply a specific flavor of google-java-format
-        googleJavaFormat('1.8').aosp().reflowLongStrings()
+        googleJavaFormat('1.22.0').aosp().reflowLongStrings()
         removeUnusedImports()
         importOrder()
     }

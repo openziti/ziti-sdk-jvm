@@ -10,23 +10,15 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for Capabilities
- */
+/** Model tests for Capabilities */
 class CapabilitiesTest {
-    /**
-     * Model tests for Capabilities
-     */
+    /** Model tests for Capabilities */
     @Test
     void testCapabilities() {
         // TODO: test Capabilities
     }
-
 }

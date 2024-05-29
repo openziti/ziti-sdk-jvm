@@ -10,215 +10,194 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.openziti.edge.model.IdentityEnrollmentsOtt;
-import org.openziti.edge.model.IdentityEnrollmentsOttca;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.util.Objects;
+import java.util.StringJoiner;
 
-
-/**
- * IdentityEnrollments
- */
+/** IdentityEnrollments */
 @JsonPropertyOrder({
-  IdentityEnrollments.JSON_PROPERTY_OTT,
-  IdentityEnrollments.JSON_PROPERTY_OTTCA,
-  IdentityEnrollments.JSON_PROPERTY_UPDB
+    IdentityEnrollments.JSON_PROPERTY_OTT,
+    IdentityEnrollments.JSON_PROPERTY_OTTCA,
+    IdentityEnrollments.JSON_PROPERTY_UPDB
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class IdentityEnrollments {
-  public static final String JSON_PROPERTY_OTT = "ott";
-  private IdentityEnrollmentsOtt ott;
+    public static final String JSON_PROPERTY_OTT = "ott";
+    private IdentityEnrollmentsOtt ott;
 
-  public static final String JSON_PROPERTY_OTTCA = "ottca";
-  private IdentityEnrollmentsOttca ottca;
+    public static final String JSON_PROPERTY_OTTCA = "ottca";
+    private IdentityEnrollmentsOttca ottca;
 
-  public static final String JSON_PROPERTY_UPDB = "updb";
-  private IdentityEnrollmentsOtt updb;
+    public static final String JSON_PROPERTY_UPDB = "updb";
+    private IdentityEnrollmentsOtt updb;
 
-  public IdentityEnrollments() { 
-  }
+    public IdentityEnrollments() {}
 
-  public IdentityEnrollments ott(IdentityEnrollmentsOtt ott) {
-    this.ott = ott;
-    return this;
-  }
-
-   /**
-   * Get ott
-   * @return ott
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_OTT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public IdentityEnrollmentsOtt getOtt() {
-    return ott;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_OTT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setOtt(IdentityEnrollmentsOtt ott) {
-    this.ott = ott;
-  }
-
-
-  public IdentityEnrollments ottca(IdentityEnrollmentsOttca ottca) {
-    this.ottca = ottca;
-    return this;
-  }
-
-   /**
-   * Get ottca
-   * @return ottca
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_OTTCA)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public IdentityEnrollmentsOttca getOttca() {
-    return ottca;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_OTTCA)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setOttca(IdentityEnrollmentsOttca ottca) {
-    this.ottca = ottca;
-  }
-
-
-  public IdentityEnrollments updb(IdentityEnrollmentsOtt updb) {
-    this.updb = updb;
-    return this;
-  }
-
-   /**
-   * Get updb
-   * @return updb
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_UPDB)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public IdentityEnrollmentsOtt getUpdb() {
-    return updb;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_UPDB)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setUpdb(IdentityEnrollmentsOtt updb) {
-    this.updb = updb;
-  }
-
-
-  /**
-   * Return true if this identityEnrollments object is equal to o.
-   */
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    IdentityEnrollments identityEnrollments = (IdentityEnrollments) o;
-    return Objects.equals(this.ott, identityEnrollments.ott) &&
-        Objects.equals(this.ottca, identityEnrollments.ottca) &&
-        Objects.equals(this.updb, identityEnrollments.updb);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(ott, ottca, updb);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class IdentityEnrollments {\n");
-    sb.append("    ott: ").append(toIndentedString(ott)).append("\n");
-    sb.append("    ottca: ").append(toIndentedString(ottca)).append("\n");
-    sb.append("    updb: ").append(toIndentedString(updb)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @return URL query string
-   */
-  public String toUrlQueryString() {
-    return toUrlQueryString(null);
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    String suffix = "";
-    String containerSuffix = "";
-    String containerPrefix = "";
-    if (prefix == null) {
-      // style=form, explode=true, e.g. /pet?name=cat&type=manx
-      prefix = "";
-    } else {
-      // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
-      prefix = prefix + "[";
-      suffix = "]";
-      containerSuffix = "]";
-      containerPrefix = "[";
+    public IdentityEnrollments ott(IdentityEnrollmentsOtt ott) {
+        this.ott = ott;
+        return this;
     }
 
-    StringJoiner joiner = new StringJoiner("&");
-
-    // add `ott` to the URL query string
-    if (getOtt() != null) {
-      joiner.add(getOtt().toUrlQueryString(prefix + "ott" + suffix));
+    /**
+     * Get ott
+     *
+     * @return ott
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_OTT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public IdentityEnrollmentsOtt getOtt() {
+        return ott;
     }
 
-    // add `ottca` to the URL query string
-    if (getOttca() != null) {
-      joiner.add(getOttca().toUrlQueryString(prefix + "ottca" + suffix));
+    @JsonProperty(JSON_PROPERTY_OTT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setOtt(IdentityEnrollmentsOtt ott) {
+        this.ott = ott;
     }
 
-    // add `updb` to the URL query string
-    if (getUpdb() != null) {
-      joiner.add(getUpdb().toUrlQueryString(prefix + "updb" + suffix));
+    public IdentityEnrollments ottca(IdentityEnrollmentsOttca ottca) {
+        this.ottca = ottca;
+        return this;
     }
 
-    return joiner.toString();
-  }
+    /**
+     * Get ottca
+     *
+     * @return ottca
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_OTTCA)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public IdentityEnrollmentsOttca getOttca() {
+        return ottca;
+    }
+
+    @JsonProperty(JSON_PROPERTY_OTTCA)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setOttca(IdentityEnrollmentsOttca ottca) {
+        this.ottca = ottca;
+    }
+
+    public IdentityEnrollments updb(IdentityEnrollmentsOtt updb) {
+        this.updb = updb;
+        return this;
+    }
+
+    /**
+     * Get updb
+     *
+     * @return updb
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_UPDB)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public IdentityEnrollmentsOtt getUpdb() {
+        return updb;
+    }
+
+    @JsonProperty(JSON_PROPERTY_UPDB)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setUpdb(IdentityEnrollmentsOtt updb) {
+        this.updb = updb;
+    }
+
+    /** Return true if this identityEnrollments object is equal to o. */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        IdentityEnrollments identityEnrollments = (IdentityEnrollments) o;
+        return Objects.equals(this.ott, identityEnrollments.ott)
+                && Objects.equals(this.ottca, identityEnrollments.ottca)
+                && Objects.equals(this.updb, identityEnrollments.updb);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ott, ottca, updb);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("class IdentityEnrollments {\n");
+        sb.append("    ott: ").append(toIndentedString(ott)).append("\n");
+        sb.append("    ottca: ").append(toIndentedString(ottca)).append("\n");
+        sb.append("    updb: ").append(toIndentedString(updb)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces (except the first
+     * line).
+     */
+    private String toIndentedString(Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @return URL query string
+     */
+    public String toUrlQueryString() {
+        return toUrlQueryString(null);
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        String suffix = "";
+        String containerSuffix = "";
+        String containerPrefix = "";
+        if (prefix == null) {
+            // style=form, explode=true, e.g. /pet?name=cat&type=manx
+            prefix = "";
+        } else {
+            // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
+            prefix = prefix + "[";
+            suffix = "]";
+            containerSuffix = "]";
+            containerPrefix = "[";
+        }
+
+        StringJoiner joiner = new StringJoiner("&");
+
+        // add `ott` to the URL query string
+        if (getOtt() != null) {
+            joiner.add(getOtt().toUrlQueryString(prefix + "ott" + suffix));
+        }
+
+        // add `ottca` to the URL query string
+        if (getOttca() != null) {
+            joiner.add(getOttca().toUrlQueryString(prefix + "ottca" + suffix));
+        }
+
+        // add `updb` to the URL query string
+        if (getUpdb() != null) {
+            joiner.add(getUpdb().toUrlQueryString(prefix + "updb" + suffix));
+        }
+
+        return joiner.toString();
+    }
 }
-

@@ -10,23 +10,15 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for TerminatorPrecedence
- */
+/** Model tests for TerminatorPrecedence */
 class TerminatorPrecedenceTest {
-    /**
-     * Model tests for TerminatorPrecedence
-     */
+    /** Model tests for TerminatorPrecedence */
     @Test
     void testTerminatorPrecedence() {
         // TODO: test TerminatorPrecedence
     }
-
 }

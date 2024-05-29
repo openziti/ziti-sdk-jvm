@@ -10,7 +10,6 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge;
 
 import java.util.List;
@@ -21,11 +20,14 @@ import java.util.Map;
  *
  * @param <T> The type of data that is deserialized from response body
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class ApiResponse<T> {
-    final private int statusCode;
-    final private Map<String, List<String>> headers;
-    final private T data;
+    private final int statusCode;
+    private final Map<String, List<String>> headers;
+    private final T data;
 
     /**
      * @param statusCode The status code of HTTP response

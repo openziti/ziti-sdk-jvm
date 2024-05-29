@@ -10,71 +10,47 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for PostureResponseService
- */
+/** Model tests for PostureResponseService */
 class PostureResponseServiceTest {
     private final PostureResponseService model = new PostureResponseService();
 
-    /**
-     * Model tests for PostureResponseService
-     */
+    /** Model tests for PostureResponseService */
     @Test
     void testPostureResponseService() {
         // TODO: test PostureResponseService
     }
 
-    /**
-     * Test the property 'id'
-     */
+    /** Test the property 'id' */
     @Test
     void idTest() {
         // TODO: test id
     }
 
-    /**
-     * Test the property 'name'
-     */
+    /** Test the property 'name' */
     @Test
     void nameTest() {
         // TODO: test name
     }
 
-    /**
-     * Test the property 'postureQueryType'
-     */
+    /** Test the property 'postureQueryType' */
     @Test
     void postureQueryTypeTest() {
         // TODO: test postureQueryType
     }
 
-    /**
-     * Test the property 'timeout'
-     */
+    /** Test the property 'timeout' */
     @Test
     void timeoutTest() {
         // TODO: test timeout
     }
 
-    /**
-     * Test the property 'timeoutRemaining'
-     */
+    /** Test the property 'timeoutRemaining' */
     @Test
     void timeoutRemainingTest() {
         // TODO: test timeoutRemaining
     }
-
 }

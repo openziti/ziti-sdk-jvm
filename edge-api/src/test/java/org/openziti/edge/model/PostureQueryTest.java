@@ -10,128 +10,83 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.openziti.edge.model.Link;
-import org.openziti.edge.model.PostureCheckType;
-import org.openziti.edge.model.PostureQueryProcess;
-import org.openziti.edge.model.Tags;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for PostureQuery
- */
+/** Model tests for PostureQuery */
 class PostureQueryTest {
     private final PostureQuery model = new PostureQuery();
 
-    /**
-     * Model tests for PostureQuery
-     */
+    /** Model tests for PostureQuery */
     @Test
     void testPostureQuery() {
         // TODO: test PostureQuery
     }
 
-    /**
-     * Test the property 'links'
-     */
+    /** Test the property 'links' */
     @Test
     void linksTest() {
         // TODO: test links
     }
 
-    /**
-     * Test the property 'createdAt'
-     */
+    /** Test the property 'createdAt' */
     @Test
     void createdAtTest() {
         // TODO: test createdAt
     }
 
-    /**
-     * Test the property 'id'
-     */
+    /** Test the property 'id' */
     @Test
     void idTest() {
         // TODO: test id
     }
 
-    /**
-     * Test the property 'tags'
-     */
+    /** Test the property 'tags' */
     @Test
     void tagsTest() {
         // TODO: test tags
     }
 
-    /**
-     * Test the property 'updatedAt'
-     */
+    /** Test the property 'updatedAt' */
     @Test
     void updatedAtTest() {
         // TODO: test updatedAt
     }
 
-    /**
-     * Test the property 'isPassing'
-     */
+    /** Test the property 'isPassing' */
     @Test
     void isPassingTest() {
         // TODO: test isPassing
     }
 
-    /**
-     * Test the property 'process'
-     */
+    /** Test the property 'process' */
     @Test
     void processTest() {
         // TODO: test process
     }
 
-    /**
-     * Test the property 'processes'
-     */
+    /** Test the property 'processes' */
     @Test
     void processesTest() {
         // TODO: test processes
     }
 
-    /**
-     * Test the property 'queryType'
-     */
+    /** Test the property 'queryType' */
     @Test
     void queryTypeTest() {
         // TODO: test queryType
     }
 
-    /**
-     * Test the property 'timeout'
-     */
+    /** Test the property 'timeout' */
     @Test
     void timeoutTest() {
         // TODO: test timeout
     }
 
-    /**
-     * Test the property 'timeoutRemaining'
-     */
+    /** Test the property 'timeoutRemaining' */
     @Test
     void timeoutRemainingTest() {
         // TODO: test timeoutRemaining
     }
-
 }

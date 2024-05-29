@@ -10,60 +10,35 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.openapitools.jackson.nullable.JsonNullable;
-import org.openziti.edge.model.Tags;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.openapitools.jackson.nullable.JsonNullable;
-import java.util.NoSuchElementException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for AuthenticatorPatch
- */
+/** Model tests for AuthenticatorPatch */
 class AuthenticatorPatchTest {
     private final AuthenticatorPatch model = new AuthenticatorPatch();
 
-    /**
-     * Model tests for AuthenticatorPatch
-     */
+    /** Model tests for AuthenticatorPatch */
     @Test
     void testAuthenticatorPatch() {
         // TODO: test AuthenticatorPatch
     }
 
-    /**
-     * Test the property 'password'
-     */
+    /** Test the property 'password' */
     @Test
     void passwordTest() {
         // TODO: test password
     }
 
-    /**
-     * Test the property 'tags'
-     */
+    /** Test the property 'tags' */
     @Test
     void tagsTest() {
         // TODO: test tags
     }
 
-    /**
-     * Test the property 'username'
-     */
+    /** Test the property 'username' */
     @Test
     void usernameTest() {
         // TODO: test username
     }
-
 }

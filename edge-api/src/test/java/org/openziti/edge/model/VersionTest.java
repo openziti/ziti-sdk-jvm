@@ -10,84 +10,53 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.openziti.edge.model.ApiVersion;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for Version
- */
+/** Model tests for Version */
 class VersionTest {
     private final Version model = new Version();
 
-    /**
-     * Model tests for Version
-     */
+    /** Model tests for Version */
     @Test
     void testVersion() {
         // TODO: test Version
     }
 
-    /**
-     * Test the property 'apiVersions'
-     */
+    /** Test the property 'apiVersions' */
     @Test
     void apiVersionsTest() {
         // TODO: test apiVersions
     }
 
-    /**
-     * Test the property 'buildDate'
-     */
+    /** Test the property 'buildDate' */
     @Test
     void buildDateTest() {
         // TODO: test buildDate
     }
 
-    /**
-     * Test the property 'capabilities'
-     */
+    /** Test the property 'capabilities' */
     @Test
     void capabilitiesTest() {
         // TODO: test capabilities
     }
 
-    /**
-     * Test the property 'revision'
-     */
+    /** Test the property 'revision' */
     @Test
     void revisionTest() {
         // TODO: test revision
     }
 
-    /**
-     * Test the property 'runtimeVersion'
-     */
+    /** Test the property 'runtimeVersion' */
     @Test
     void runtimeVersionTest() {
         // TODO: test runtimeVersion
     }
 
-    /**
-     * Test the property 'version'
-     */
+    /** Test the property 'version' */
     @Test
     void versionTest() {
         // TODO: test version
     }
-
 }

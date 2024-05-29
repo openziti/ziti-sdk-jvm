@@ -10,56 +10,35 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.net.URI;
-import java.util.Arrays;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for Link
- */
+/** Model tests for Link */
 class LinkTest {
     private final Link model = new Link();
 
-    /**
-     * Model tests for Link
-     */
+    /** Model tests for Link */
     @Test
     void testLink() {
         // TODO: test Link
     }
 
-    /**
-     * Test the property 'comment'
-     */
+    /** Test the property 'comment' */
     @Test
     void commentTest() {
         // TODO: test comment
     }
 
-    /**
-     * Test the property 'href'
-     */
+    /** Test the property 'href' */
     @Test
     void hrefTest() {
         // TODO: test href
     }
 
-    /**
-     * Test the property 'method'
-     */
+    /** Test the property 'method' */
     @Test
     void methodTest() {
         // TODO: test method
     }
-
 }

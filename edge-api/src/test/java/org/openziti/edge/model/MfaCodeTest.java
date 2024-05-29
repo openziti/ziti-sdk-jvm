@@ -10,39 +10,23 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for MfaCode
- */
+/** Model tests for MfaCode */
 class MfaCodeTest {
     private final MfaCode model = new MfaCode();
 
-    /**
-     * Model tests for MfaCode
-     */
+    /** Model tests for MfaCode */
     @Test
     void testMfaCode() {
         // TODO: test MfaCode
     }
 
-    /**
-     * Test the property 'code'
-     */
+    /** Test the property 'code' */
     @Test
     void codeTest() {
         // TODO: test code
     }
-
 }

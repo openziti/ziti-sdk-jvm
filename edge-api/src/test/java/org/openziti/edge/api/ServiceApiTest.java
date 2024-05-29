@@ -10,11 +10,13 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.api;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.openziti.edge.ApiException;
-import org.openziti.edge.model.ApiErrorEnvelope;
 import org.openziti.edge.model.DetailServiceEnvelope;
 import org.openziti.edge.model.Empty;
 import org.openziti.edge.model.ListClientTerminatorsEnvelope;
@@ -22,67 +24,49 @@ import org.openziti.edge.model.ListServiceEdgeRoutersEnvelope;
 import org.openziti.edge.model.ListServicesEnvelope;
 import org.openziti.edge.model.ServicePatch;
 import org.openziti.edge.model.ServiceUpdate;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import java.util.concurrent.CompletableFuture;
-
-/**
- * API tests for ServiceApi
- */
+/** API tests for ServiceApi */
 @Disabled
 public class ServiceApiTest {
 
     private final ServiceApi api = new ServiceApi();
 
-    
     /**
      * Delete a service
      *
-     * Delete a service by id. Requires admin access.
+     * <p>Delete a service by id. Requires admin access.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void deleteServiceTest() throws ApiException {
         String id = null;
-        CompletableFuture<Empty> response = 
-        api.deleteService(id);
-        
+        CompletableFuture<Empty> response = api.deleteService(id);
+
         // TODO: test validations
     }
-    
+
     /**
      * Retrieves a single service
      *
-     * Retrieves a single service by id. Requires admin access.
+     * <p>Retrieves a single service by id. Requires admin access.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void detailServiceTest() throws ApiException {
         String id = null;
-        CompletableFuture<DetailServiceEnvelope> response = 
-        api.detailService(id);
-        
+        CompletableFuture<DetailServiceEnvelope> response = api.detailService(id);
+
         // TODO: test validations
     }
-    
+
     /**
      * List of edge routers permitted to handle traffic for the specified service
      *
-     * Retrieves the list of edge routers permitted to handle traffic for the specified service 
+     * <p>Retrieves the list of edge routers permitted to handle traffic for the specified service
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void listServiceEdgeRoutersTest() throws ApiException {
@@ -91,19 +75,19 @@ public class ServiceApiTest {
         Integer offset = null;
         String filter = null;
         String sessionToken = null;
-        CompletableFuture<ListServiceEdgeRoutersEnvelope> response = 
-        api.listServiceEdgeRouters(id, limit, offset, filter, sessionToken);
-        
+        CompletableFuture<ListServiceEdgeRoutersEnvelope> response =
+                api.listServiceEdgeRouters(id, limit, offset, filter, sessionToken);
+
         // TODO: test validations
     }
-    
+
     /**
      * List of terminators assigned to a service
      *
-     * Retrieves a list of terminator resources that are assigned specific service; supports filtering, sorting, and pagination. 
+     * <p>Retrieves a list of terminator resources that are assigned specific service; supports
+     * filtering, sorting, and pagination.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void listServiceTerminatorsTest() throws ApiException {
@@ -111,19 +95,19 @@ public class ServiceApiTest {
         Integer limit = null;
         Integer offset = null;
         String filter = null;
-        CompletableFuture<ListClientTerminatorsEnvelope> response = 
-        api.listServiceTerminators(id, limit, offset, filter);
-        
+        CompletableFuture<ListClientTerminatorsEnvelope> response =
+                api.listServiceTerminators(id, limit, offset, filter);
+
         // TODO: test validations
     }
-    
+
     /**
      * List services
      *
-     * Retrieves a list of config resources; supports filtering, sorting, and pagination. Requires admin access. 
+     * <p>Retrieves a list of config resources; supports filtering, sorting, and pagination.
+     * Requires admin access.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void listServicesTest() throws ApiException {
@@ -133,46 +117,41 @@ public class ServiceApiTest {
         List<String> configTypes = null;
         List<String> roleFilter = null;
         String roleSemantic = null;
-        CompletableFuture<ListServicesEnvelope> response = 
-        api.listServices(limit, offset, filter, configTypes, roleFilter, roleSemantic);
-        
+        CompletableFuture<ListServicesEnvelope> response =
+                api.listServices(limit, offset, filter, configTypes, roleFilter, roleSemantic);
+
         // TODO: test validations
     }
-    
+
     /**
      * Update the supplied fields on a service
      *
-     * Update the supplied fields on a service. Requires admin access.
+     * <p>Update the supplied fields on a service. Requires admin access.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void patchServiceTest() throws ApiException {
         String id = null;
         ServicePatch service = null;
-        CompletableFuture<Empty> response = 
-        api.patchService(id, service);
-        
+        CompletableFuture<Empty> response = api.patchService(id, service);
+
         // TODO: test validations
     }
-    
+
     /**
      * Update all fields on a service
      *
-     * Update all fields on a service by id. Requires admin access.
+     * <p>Update all fields on a service by id. Requires admin access.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void updateServiceTest() throws ApiException {
         String id = null;
         ServiceUpdate service = null;
-        CompletableFuture<Empty> response = 
-        api.updateService(id, service);
-        
+        CompletableFuture<Empty> response = api.updateService(id, service);
+
         // TODO: test validations
     }
-    
 }

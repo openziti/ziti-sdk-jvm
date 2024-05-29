@@ -10,250 +10,256 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.time.OffsetDateTime;
-import java.util.Arrays;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
+import java.util.Objects;
+import java.util.StringJoiner;
 
-
-/**
- * IdentityEnrollmentsOtt
- */
+/** IdentityEnrollmentsOtt */
 @JsonPropertyOrder({
-  IdentityEnrollmentsOtt.JSON_PROPERTY_EXPIRES_AT,
-  IdentityEnrollmentsOtt.JSON_PROPERTY_ID,
-  IdentityEnrollmentsOtt.JSON_PROPERTY_JWT,
-  IdentityEnrollmentsOtt.JSON_PROPERTY_TOKEN
+    IdentityEnrollmentsOtt.JSON_PROPERTY_EXPIRES_AT,
+    IdentityEnrollmentsOtt.JSON_PROPERTY_ID,
+    IdentityEnrollmentsOtt.JSON_PROPERTY_JWT,
+    IdentityEnrollmentsOtt.JSON_PROPERTY_TOKEN
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class IdentityEnrollmentsOtt {
-  public static final String JSON_PROPERTY_EXPIRES_AT = "expiresAt";
-  private OffsetDateTime expiresAt;
+    public static final String JSON_PROPERTY_EXPIRES_AT = "expiresAt";
+    private OffsetDateTime expiresAt;
 
-  public static final String JSON_PROPERTY_ID = "id";
-  private String id;
+    public static final String JSON_PROPERTY_ID = "id";
+    private String id;
 
-  public static final String JSON_PROPERTY_JWT = "jwt";
-  private String jwt;
+    public static final String JSON_PROPERTY_JWT = "jwt";
+    private String jwt;
 
-  public static final String JSON_PROPERTY_TOKEN = "token";
-  private String token;
+    public static final String JSON_PROPERTY_TOKEN = "token";
+    private String token;
 
-  public IdentityEnrollmentsOtt() { 
-  }
+    public IdentityEnrollmentsOtt() {}
 
-  public IdentityEnrollmentsOtt expiresAt(OffsetDateTime expiresAt) {
-    this.expiresAt = expiresAt;
-    return this;
-  }
-
-   /**
-   * Get expiresAt
-   * @return expiresAt
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_EXPIRES_AT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public OffsetDateTime getExpiresAt() {
-    return expiresAt;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_EXPIRES_AT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setExpiresAt(OffsetDateTime expiresAt) {
-    this.expiresAt = expiresAt;
-  }
-
-
-  public IdentityEnrollmentsOtt id(String id) {
-    this.id = id;
-    return this;
-  }
-
-   /**
-   * Get id
-   * @return id
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ID)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getId() {
-    return id;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_ID)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setId(String id) {
-    this.id = id;
-  }
-
-
-  public IdentityEnrollmentsOtt jwt(String jwt) {
-    this.jwt = jwt;
-    return this;
-  }
-
-   /**
-   * Get jwt
-   * @return jwt
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_JWT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getJwt() {
-    return jwt;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_JWT)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setJwt(String jwt) {
-    this.jwt = jwt;
-  }
-
-
-  public IdentityEnrollmentsOtt token(String token) {
-    this.token = token;
-    return this;
-  }
-
-   /**
-   * Get token
-   * @return token
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_TOKEN)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getToken() {
-    return token;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_TOKEN)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setToken(String token) {
-    this.token = token;
-  }
-
-
-  /**
-   * Return true if this identityEnrollments_ott object is equal to o.
-   */
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    IdentityEnrollmentsOtt identityEnrollmentsOtt = (IdentityEnrollmentsOtt) o;
-    return Objects.equals(this.expiresAt, identityEnrollmentsOtt.expiresAt) &&
-        Objects.equals(this.id, identityEnrollmentsOtt.id) &&
-        Objects.equals(this.jwt, identityEnrollmentsOtt.jwt) &&
-        Objects.equals(this.token, identityEnrollmentsOtt.token);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(expiresAt, id, jwt, token);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class IdentityEnrollmentsOtt {\n");
-    sb.append("    expiresAt: ").append(toIndentedString(expiresAt)).append("\n");
-    sb.append("    id: ").append(toIndentedString(id)).append("\n");
-    sb.append("    jwt: ").append(toIndentedString(jwt)).append("\n");
-    sb.append("    token: ").append(toIndentedString(token)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @return URL query string
-   */
-  public String toUrlQueryString() {
-    return toUrlQueryString(null);
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    String suffix = "";
-    String containerSuffix = "";
-    String containerPrefix = "";
-    if (prefix == null) {
-      // style=form, explode=true, e.g. /pet?name=cat&type=manx
-      prefix = "";
-    } else {
-      // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
-      prefix = prefix + "[";
-      suffix = "]";
-      containerSuffix = "]";
-      containerPrefix = "[";
+    public IdentityEnrollmentsOtt expiresAt(OffsetDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+        return this;
     }
 
-    StringJoiner joiner = new StringJoiner("&");
-
-    // add `expiresAt` to the URL query string
-    if (getExpiresAt() != null) {
-      joiner.add(String.format("%sexpiresAt%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getExpiresAt()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get expiresAt
+     *
+     * @return expiresAt
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_EXPIRES_AT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public OffsetDateTime getExpiresAt() {
+        return expiresAt;
     }
 
-    // add `id` to the URL query string
-    if (getId() != null) {
-      joiner.add(String.format("%sid%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getId()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_EXPIRES_AT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setExpiresAt(OffsetDateTime expiresAt) {
+        this.expiresAt = expiresAt;
     }
 
-    // add `jwt` to the URL query string
-    if (getJwt() != null) {
-      joiner.add(String.format("%sjwt%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getJwt()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    public IdentityEnrollmentsOtt id(String id) {
+        this.id = id;
+        return this;
     }
 
-    // add `token` to the URL query string
-    if (getToken() != null) {
-      joiner.add(String.format("%stoken%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getToken()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get id
+     *
+     * @return id
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_ID)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getId() {
+        return id;
     }
 
-    return joiner.toString();
-  }
+    @JsonProperty(JSON_PROPERTY_ID)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public IdentityEnrollmentsOtt jwt(String jwt) {
+        this.jwt = jwt;
+        return this;
+    }
+
+    /**
+     * Get jwt
+     *
+     * @return jwt
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_JWT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getJwt() {
+        return jwt;
+    }
+
+    @JsonProperty(JSON_PROPERTY_JWT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setJwt(String jwt) {
+        this.jwt = jwt;
+    }
+
+    public IdentityEnrollmentsOtt token(String token) {
+        this.token = token;
+        return this;
+    }
+
+    /**
+     * Get token
+     *
+     * @return token
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_TOKEN)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getToken() {
+        return token;
+    }
+
+    @JsonProperty(JSON_PROPERTY_TOKEN)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    /** Return true if this identityEnrollments_ott object is equal to o. */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        IdentityEnrollmentsOtt identityEnrollmentsOtt = (IdentityEnrollmentsOtt) o;
+        return Objects.equals(this.expiresAt, identityEnrollmentsOtt.expiresAt)
+                && Objects.equals(this.id, identityEnrollmentsOtt.id)
+                && Objects.equals(this.jwt, identityEnrollmentsOtt.jwt)
+                && Objects.equals(this.token, identityEnrollmentsOtt.token);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(expiresAt, id, jwt, token);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("class IdentityEnrollmentsOtt {\n");
+        sb.append("    expiresAt: ").append(toIndentedString(expiresAt)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
+        sb.append("    jwt: ").append(toIndentedString(jwt)).append("\n");
+        sb.append("    token: ").append(toIndentedString(token)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces (except the first
+     * line).
+     */
+    private String toIndentedString(Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @return URL query string
+     */
+    public String toUrlQueryString() {
+        return toUrlQueryString(null);
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        String suffix = "";
+        String containerSuffix = "";
+        String containerPrefix = "";
+        if (prefix == null) {
+            // style=form, explode=true, e.g. /pet?name=cat&type=manx
+            prefix = "";
+        } else {
+            // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
+            prefix = prefix + "[";
+            suffix = "]";
+            containerSuffix = "]";
+            containerPrefix = "[";
+        }
+
+        StringJoiner joiner = new StringJoiner("&");
+
+        // add `expiresAt` to the URL query string
+        if (getExpiresAt() != null) {
+            joiner.add(
+                    String.format(
+                            "%sexpiresAt%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getExpiresAt()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `id` to the URL query string
+        if (getId() != null) {
+            joiner.add(
+                    String.format(
+                            "%sid%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getId()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `jwt` to the URL query string
+        if (getJwt() != null) {
+            joiner.add(
+                    String.format(
+                            "%sjwt%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getJwt()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `token` to the URL query string
+        if (getToken() != null) {
+            joiner.add(
+                    String.format(
+                            "%stoken%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getToken()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        return joiner.toString();
+    }
 }
-

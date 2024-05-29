@@ -10,56 +10,35 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.math.BigDecimal;
-import java.util.Arrays;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for Pagination
- */
+/** Model tests for Pagination */
 class PaginationTest {
     private final Pagination model = new Pagination();
 
-    /**
-     * Model tests for Pagination
-     */
+    /** Model tests for Pagination */
     @Test
     void testPagination() {
         // TODO: test Pagination
     }
 
-    /**
-     * Test the property 'limit'
-     */
+    /** Test the property 'limit' */
     @Test
     void limitTest() {
         // TODO: test limit
     }
 
-    /**
-     * Test the property 'offset'
-     */
+    /** Test the property 'offset' */
     @Test
     void offsetTest() {
         // TODO: test offset
     }
 
-    /**
-     * Test the property 'totalCount'
-     */
+    /** Test the property 'totalCount' */
     @Test
     void totalCountTest() {
         // TODO: test totalCount
     }
-
 }

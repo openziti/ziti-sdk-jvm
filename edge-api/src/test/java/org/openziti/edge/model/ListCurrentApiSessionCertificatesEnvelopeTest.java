@@ -10,51 +10,30 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.openziti.edge.model.CurrentApiSessionCertificateDetail;
-import org.openziti.edge.model.Meta;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ListCurrentApiSessionCertificatesEnvelope
- */
+/** Model tests for ListCurrentApiSessionCertificatesEnvelope */
 class ListCurrentApiSessionCertificatesEnvelopeTest {
-    private final ListCurrentApiSessionCertificatesEnvelope model = new ListCurrentApiSessionCertificatesEnvelope();
+    private final ListCurrentApiSessionCertificatesEnvelope model =
+            new ListCurrentApiSessionCertificatesEnvelope();
 
-    /**
-     * Model tests for ListCurrentApiSessionCertificatesEnvelope
-     */
+    /** Model tests for ListCurrentApiSessionCertificatesEnvelope */
     @Test
     void testListCurrentApiSessionCertificatesEnvelope() {
         // TODO: test ListCurrentApiSessionCertificatesEnvelope
     }
 
-    /**
-     * Test the property 'data'
-     */
+    /** Test the property 'data' */
     @Test
     void dataTest() {
         // TODO: test data
     }
 
-    /**
-     * Test the property 'meta'
-     */
+    /** Test the property 'meta' */
     @Test
     void metaTest() {
         // TODO: test meta
     }
-
 }

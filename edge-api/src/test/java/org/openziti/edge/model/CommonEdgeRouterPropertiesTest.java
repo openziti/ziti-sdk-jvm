@@ -10,106 +10,71 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import org.openziti.edge.model.Tags;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for CommonEdgeRouterProperties
- */
+/** Model tests for CommonEdgeRouterProperties */
 class CommonEdgeRouterPropertiesTest {
     private final CommonEdgeRouterProperties model = new CommonEdgeRouterProperties();
 
-    /**
-     * Model tests for CommonEdgeRouterProperties
-     */
+    /** Model tests for CommonEdgeRouterProperties */
     @Test
     void testCommonEdgeRouterProperties() {
         // TODO: test CommonEdgeRouterProperties
     }
 
-    /**
-     * Test the property 'appData'
-     */
+    /** Test the property 'appData' */
     @Test
     void appDataTest() {
         // TODO: test appData
     }
 
-    /**
-     * Test the property 'cost'
-     */
+    /** Test the property 'cost' */
     @Test
     void costTest() {
         // TODO: test cost
     }
 
-    /**
-     * Test the property 'disabled'
-     */
+    /** Test the property 'disabled' */
     @Test
     void disabledTest() {
         // TODO: test disabled
     }
 
-    /**
-     * Test the property 'hostname'
-     */
+    /** Test the property 'hostname' */
     @Test
     void hostnameTest() {
         // TODO: test hostname
     }
 
-    /**
-     * Test the property 'isOnline'
-     */
+    /** Test the property 'isOnline' */
     @Test
     void isOnlineTest() {
         // TODO: test isOnline
     }
 
-    /**
-     * Test the property 'name'
-     */
+    /** Test the property 'name' */
     @Test
     void nameTest() {
         // TODO: test name
     }
 
-    /**
-     * Test the property 'noTraversal'
-     */
+    /** Test the property 'noTraversal' */
     @Test
     void noTraversalTest() {
         // TODO: test noTraversal
     }
 
-    /**
-     * Test the property 'supportedProtocols'
-     */
+    /** Test the property 'supportedProtocols' */
     @Test
     void supportedProtocolsTest() {
         // TODO: test supportedProtocols
     }
 
-    /**
-     * Test the property 'syncStatus'
-     */
+    /** Test the property 'syncStatus' */
     @Test
     void syncStatusTest() {
         // TODO: test syncStatus
     }
-
 }

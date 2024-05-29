@@ -10,49 +10,29 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.openziti.edge.model.CreateLocation;
-import org.openziti.edge.model.Meta;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for CreateEnvelope
- */
+/** Model tests for CreateEnvelope */
 class CreateEnvelopeTest {
     private final CreateEnvelope model = new CreateEnvelope();
 
-    /**
-     * Model tests for CreateEnvelope
-     */
+    /** Model tests for CreateEnvelope */
     @Test
     void testCreateEnvelope() {
         // TODO: test CreateEnvelope
     }
 
-    /**
-     * Test the property 'data'
-     */
+    /** Test the property 'data' */
     @Test
     void dataTest() {
         // TODO: test data
     }
 
-    /**
-     * Test the property 'meta'
-     */
+    /** Test the property 'meta' */
     @Test
     void metaTest() {
         // TODO: test meta
     }
-
 }

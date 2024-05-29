@@ -10,57 +10,35 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ApiVersion
- */
+/** Model tests for ApiVersion */
 class ApiVersionTest {
     private final ApiVersion model = new ApiVersion();
 
-    /**
-     * Model tests for ApiVersion
-     */
+    /** Model tests for ApiVersion */
     @Test
     void testApiVersion() {
         // TODO: test ApiVersion
     }
 
-    /**
-     * Test the property 'apiBaseUrls'
-     */
+    /** Test the property 'apiBaseUrls' */
     @Test
     void apiBaseUrlsTest() {
         // TODO: test apiBaseUrls
     }
 
-    /**
-     * Test the property 'path'
-     */
+    /** Test the property 'path' */
     @Test
     void pathTest() {
         // TODO: test path
     }
 
-    /**
-     * Test the property 'version'
-     */
+    /** Test the property 'version' */
     @Test
     void versionTest() {
         // TODO: test version
     }
-
 }

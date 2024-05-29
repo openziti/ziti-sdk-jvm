@@ -10,480 +10,505 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import org.openziti.edge.model.ApiErrorArgs;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.util.Objects;
+import java.util.StringJoiner;
 
-
-/**
- * ApiErrorCause
- */
+/** ApiErrorCause */
 @JsonPropertyOrder({
-  ApiErrorCause.JSON_PROPERTY_FIELD,
-  ApiErrorCause.JSON_PROPERTY_REASON,
-  ApiErrorCause.JSON_PROPERTY_VALUE,
-  ApiErrorCause.JSON_PROPERTY_ARGS,
-  ApiErrorCause.JSON_PROPERTY_CAUSE,
-  ApiErrorCause.JSON_PROPERTY_CAUSE_MESSAGE,
-  ApiErrorCause.JSON_PROPERTY_CODE,
-  ApiErrorCause.JSON_PROPERTY_DATA,
-  ApiErrorCause.JSON_PROPERTY_MESSAGE,
-  ApiErrorCause.JSON_PROPERTY_REQUEST_ID
+    ApiErrorCause.JSON_PROPERTY_FIELD,
+    ApiErrorCause.JSON_PROPERTY_REASON,
+    ApiErrorCause.JSON_PROPERTY_VALUE,
+    ApiErrorCause.JSON_PROPERTY_ARGS,
+    ApiErrorCause.JSON_PROPERTY_CAUSE,
+    ApiErrorCause.JSON_PROPERTY_CAUSE_MESSAGE,
+    ApiErrorCause.JSON_PROPERTY_CODE,
+    ApiErrorCause.JSON_PROPERTY_DATA,
+    ApiErrorCause.JSON_PROPERTY_MESSAGE,
+    ApiErrorCause.JSON_PROPERTY_REQUEST_ID
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class ApiErrorCause {
-  public static final String JSON_PROPERTY_FIELD = "field";
-  private String field;
+    public static final String JSON_PROPERTY_FIELD = "field";
+    private String field;
 
-  public static final String JSON_PROPERTY_REASON = "reason";
-  private String reason;
+    public static final String JSON_PROPERTY_REASON = "reason";
+    private String reason;
 
-  public static final String JSON_PROPERTY_VALUE = "value";
-  private Object value;
+    public static final String JSON_PROPERTY_VALUE = "value";
+    private Object value;
 
-  public static final String JSON_PROPERTY_ARGS = "args";
-  private ApiErrorArgs args;
+    public static final String JSON_PROPERTY_ARGS = "args";
+    private ApiErrorArgs args;
 
-  public static final String JSON_PROPERTY_CAUSE = "cause";
-  private ApiErrorCause cause;
+    public static final String JSON_PROPERTY_CAUSE = "cause";
+    private ApiErrorCause cause;
 
-  public static final String JSON_PROPERTY_CAUSE_MESSAGE = "causeMessage";
-  private String causeMessage;
+    public static final String JSON_PROPERTY_CAUSE_MESSAGE = "causeMessage";
+    private String causeMessage;
 
-  public static final String JSON_PROPERTY_CODE = "code";
-  private String code;
+    public static final String JSON_PROPERTY_CODE = "code";
+    private String code;
 
-  public static final String JSON_PROPERTY_DATA = "data";
-  private Map<String, Object> data = new HashMap<>();
+    public static final String JSON_PROPERTY_DATA = "data";
+    private Map<String, Object> data = new HashMap<>();
 
-  public static final String JSON_PROPERTY_MESSAGE = "message";
-  private String message;
+    public static final String JSON_PROPERTY_MESSAGE = "message";
+    private String message;
 
-  public static final String JSON_PROPERTY_REQUEST_ID = "requestId";
-  private String requestId;
+    public static final String JSON_PROPERTY_REQUEST_ID = "requestId";
+    private String requestId;
 
-  public ApiErrorCause() { 
-  }
+    public ApiErrorCause() {}
 
-  public ApiErrorCause field(String field) {
-    this.field = field;
-    return this;
-  }
-
-   /**
-   * Get field
-   * @return field
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_FIELD)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getField() {
-    return field;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_FIELD)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setField(String field) {
-    this.field = field;
-  }
-
-
-  public ApiErrorCause reason(String reason) {
-    this.reason = reason;
-    return this;
-  }
-
-   /**
-   * Get reason
-   * @return reason
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_REASON)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getReason() {
-    return reason;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_REASON)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setReason(String reason) {
-    this.reason = reason;
-  }
-
-
-  public ApiErrorCause value(Object value) {
-    this.value = value;
-    return this;
-  }
-
-   /**
-   * can be any value - string, number, boolean, array or object
-   * @return value
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_VALUE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public Object getValue() {
-    return value;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_VALUE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setValue(Object value) {
-    this.value = value;
-  }
-
-
-  public ApiErrorCause args(ApiErrorArgs args) {
-    this.args = args;
-    return this;
-  }
-
-   /**
-   * Get args
-   * @return args
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ARGS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public ApiErrorArgs getArgs() {
-    return args;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_ARGS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setArgs(ApiErrorArgs args) {
-    this.args = args;
-  }
-
-
-  public ApiErrorCause cause(ApiErrorCause cause) {
-    this.cause = cause;
-    return this;
-  }
-
-   /**
-   * Get cause
-   * @return cause
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_CAUSE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public ApiErrorCause getCause() {
-    return cause;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_CAUSE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setCause(ApiErrorCause cause) {
-    this.cause = cause;
-  }
-
-
-  public ApiErrorCause causeMessage(String causeMessage) {
-    this.causeMessage = causeMessage;
-    return this;
-  }
-
-   /**
-   * Get causeMessage
-   * @return causeMessage
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_CAUSE_MESSAGE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getCauseMessage() {
-    return causeMessage;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_CAUSE_MESSAGE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setCauseMessage(String causeMessage) {
-    this.causeMessage = causeMessage;
-  }
-
-
-  public ApiErrorCause code(String code) {
-    this.code = code;
-    return this;
-  }
-
-   /**
-   * Get code
-   * @return code
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_CODE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getCode() {
-    return code;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_CODE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setCode(String code) {
-    this.code = code;
-  }
-
-
-  public ApiErrorCause data(Map<String, Object> data) {
-    this.data = data;
-    return this;
-  }
-
-  public ApiErrorCause putDataItem(String key, Object dataItem) {
-    if (this.data == null) {
-      this.data = new HashMap<>();
-    }
-    this.data.put(key, dataItem);
-    return this;
-  }
-
-   /**
-   * Get data
-   * @return data
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_DATA)
-  @JsonInclude(content = JsonInclude.Include.ALWAYS, value = JsonInclude.Include.USE_DEFAULTS)
-
-  public Map<String, Object> getData() {
-    return data;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_DATA)
-  @JsonInclude(content = JsonInclude.Include.ALWAYS, value = JsonInclude.Include.USE_DEFAULTS)
-  public void setData(Map<String, Object> data) {
-    this.data = data;
-  }
-
-
-  public ApiErrorCause message(String message) {
-    this.message = message;
-    return this;
-  }
-
-   /**
-   * Get message
-   * @return message
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_MESSAGE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getMessage() {
-    return message;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_MESSAGE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setMessage(String message) {
-    this.message = message;
-  }
-
-
-  public ApiErrorCause requestId(String requestId) {
-    this.requestId = requestId;
-    return this;
-  }
-
-   /**
-   * Get requestId
-   * @return requestId
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_REQUEST_ID)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getRequestId() {
-    return requestId;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_REQUEST_ID)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setRequestId(String requestId) {
-    this.requestId = requestId;
-  }
-
-
-  /**
-   * Return true if this apiErrorCause object is equal to o.
-   */
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ApiErrorCause apiErrorCause = (ApiErrorCause) o;
-    return Objects.equals(this.field, apiErrorCause.field) &&
-        Objects.equals(this.reason, apiErrorCause.reason) &&
-        Objects.equals(this.value, apiErrorCause.value) &&
-        Objects.equals(this.args, apiErrorCause.args) &&
-        Objects.equals(this.cause, apiErrorCause.cause) &&
-        Objects.equals(this.causeMessage, apiErrorCause.causeMessage) &&
-        Objects.equals(this.code, apiErrorCause.code) &&
-        Objects.equals(this.data, apiErrorCause.data) &&
-        Objects.equals(this.message, apiErrorCause.message) &&
-        Objects.equals(this.requestId, apiErrorCause.requestId);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(field, reason, value, args, cause, causeMessage, code, data, message, requestId);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class ApiErrorCause {\n");
-    sb.append("    field: ").append(toIndentedString(field)).append("\n");
-    sb.append("    reason: ").append(toIndentedString(reason)).append("\n");
-    sb.append("    value: ").append(toIndentedString(value)).append("\n");
-    sb.append("    args: ").append(toIndentedString(args)).append("\n");
-    sb.append("    cause: ").append(toIndentedString(cause)).append("\n");
-    sb.append("    causeMessage: ").append(toIndentedString(causeMessage)).append("\n");
-    sb.append("    code: ").append(toIndentedString(code)).append("\n");
-    sb.append("    data: ").append(toIndentedString(data)).append("\n");
-    sb.append("    message: ").append(toIndentedString(message)).append("\n");
-    sb.append("    requestId: ").append(toIndentedString(requestId)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @return URL query string
-   */
-  public String toUrlQueryString() {
-    return toUrlQueryString(null);
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    String suffix = "";
-    String containerSuffix = "";
-    String containerPrefix = "";
-    if (prefix == null) {
-      // style=form, explode=true, e.g. /pet?name=cat&type=manx
-      prefix = "";
-    } else {
-      // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
-      prefix = prefix + "[";
-      suffix = "]";
-      containerSuffix = "]";
-      containerPrefix = "[";
+    public ApiErrorCause field(String field) {
+        this.field = field;
+        return this;
     }
 
-    StringJoiner joiner = new StringJoiner("&");
-
-    // add `field` to the URL query string
-    if (getField() != null) {
-      joiner.add(String.format("%sfield%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getField()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get field
+     *
+     * @return field
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_FIELD)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getField() {
+        return field;
     }
 
-    // add `reason` to the URL query string
-    if (getReason() != null) {
-      joiner.add(String.format("%sreason%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getReason()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_FIELD)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setField(String field) {
+        this.field = field;
     }
 
-    // add `value` to the URL query string
-    if (getValue() != null) {
-      joiner.add(String.format("%svalue%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getValue()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    public ApiErrorCause reason(String reason) {
+        this.reason = reason;
+        return this;
     }
 
-    // add `args` to the URL query string
-    if (getArgs() != null) {
-      joiner.add(getArgs().toUrlQueryString(prefix + "args" + suffix));
+    /**
+     * Get reason
+     *
+     * @return reason
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_REASON)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getReason() {
+        return reason;
     }
 
-    // add `cause` to the URL query string
-    if (getCause() != null) {
-      joiner.add(getCause().toUrlQueryString(prefix + "cause" + suffix));
+    @JsonProperty(JSON_PROPERTY_REASON)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
-    // add `causeMessage` to the URL query string
-    if (getCauseMessage() != null) {
-      joiner.add(String.format("%scauseMessage%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getCauseMessage()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    public ApiErrorCause value(Object value) {
+        this.value = value;
+        return this;
     }
 
-    // add `code` to the URL query string
-    if (getCode() != null) {
-      joiner.add(String.format("%scode%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getCode()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * can be any value - string, number, boolean, array or object
+     *
+     * @return value
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_VALUE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public Object getValue() {
+        return value;
     }
 
-    // add `data` to the URL query string
-    if (getData() != null) {
-      for (String _key : getData().keySet()) {
-        joiner.add(String.format("%sdata%s%s=%s", prefix, suffix,
-            "".equals(suffix) ? "" : String.format("%s%d%s", containerPrefix, _key, containerSuffix),
-            getData().get(_key), URLEncoder.encode(String.valueOf(getData().get(_key)), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
-      }
+    @JsonProperty(JSON_PROPERTY_VALUE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setValue(Object value) {
+        this.value = value;
     }
 
-    // add `message` to the URL query string
-    if (getMessage() != null) {
-      joiner.add(String.format("%smessage%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getMessage()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    public ApiErrorCause args(ApiErrorArgs args) {
+        this.args = args;
+        return this;
     }
 
-    // add `requestId` to the URL query string
-    if (getRequestId() != null) {
-      joiner.add(String.format("%srequestId%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getRequestId()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get args
+     *
+     * @return args
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_ARGS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public ApiErrorArgs getArgs() {
+        return args;
     }
 
-    return joiner.toString();
-  }
+    @JsonProperty(JSON_PROPERTY_ARGS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setArgs(ApiErrorArgs args) {
+        this.args = args;
+    }
+
+    public ApiErrorCause cause(ApiErrorCause cause) {
+        this.cause = cause;
+        return this;
+    }
+
+    /**
+     * Get cause
+     *
+     * @return cause
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_CAUSE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public ApiErrorCause getCause() {
+        return cause;
+    }
+
+    @JsonProperty(JSON_PROPERTY_CAUSE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setCause(ApiErrorCause cause) {
+        this.cause = cause;
+    }
+
+    public ApiErrorCause causeMessage(String causeMessage) {
+        this.causeMessage = causeMessage;
+        return this;
+    }
+
+    /**
+     * Get causeMessage
+     *
+     * @return causeMessage
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_CAUSE_MESSAGE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getCauseMessage() {
+        return causeMessage;
+    }
+
+    @JsonProperty(JSON_PROPERTY_CAUSE_MESSAGE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setCauseMessage(String causeMessage) {
+        this.causeMessage = causeMessage;
+    }
+
+    public ApiErrorCause code(String code) {
+        this.code = code;
+        return this;
+    }
+
+    /**
+     * Get code
+     *
+     * @return code
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_CODE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getCode() {
+        return code;
+    }
+
+    @JsonProperty(JSON_PROPERTY_CODE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public ApiErrorCause data(Map<String, Object> data) {
+        this.data = data;
+        return this;
+    }
+
+    public ApiErrorCause putDataItem(String key, Object dataItem) {
+        if (this.data == null) {
+            this.data = new HashMap<>();
+        }
+        this.data.put(key, dataItem);
+        return this;
+    }
+
+    /**
+     * Get data
+     *
+     * @return data
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_DATA)
+    @JsonInclude(content = JsonInclude.Include.ALWAYS, value = JsonInclude.Include.USE_DEFAULTS)
+    public Map<String, Object> getData() {
+        return data;
+    }
+
+    @JsonProperty(JSON_PROPERTY_DATA)
+    @JsonInclude(content = JsonInclude.Include.ALWAYS, value = JsonInclude.Include.USE_DEFAULTS)
+    public void setData(Map<String, Object> data) {
+        this.data = data;
+    }
+
+    public ApiErrorCause message(String message) {
+        this.message = message;
+        return this;
+    }
+
+    /**
+     * Get message
+     *
+     * @return message
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_MESSAGE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getMessage() {
+        return message;
+    }
+
+    @JsonProperty(JSON_PROPERTY_MESSAGE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public ApiErrorCause requestId(String requestId) {
+        this.requestId = requestId;
+        return this;
+    }
+
+    /**
+     * Get requestId
+     *
+     * @return requestId
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_REQUEST_ID)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getRequestId() {
+        return requestId;
+    }
+
+    @JsonProperty(JSON_PROPERTY_REQUEST_ID)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
+
+    /** Return true if this apiErrorCause object is equal to o. */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ApiErrorCause apiErrorCause = (ApiErrorCause) o;
+        return Objects.equals(this.field, apiErrorCause.field)
+                && Objects.equals(this.reason, apiErrorCause.reason)
+                && Objects.equals(this.value, apiErrorCause.value)
+                && Objects.equals(this.args, apiErrorCause.args)
+                && Objects.equals(this.cause, apiErrorCause.cause)
+                && Objects.equals(this.causeMessage, apiErrorCause.causeMessage)
+                && Objects.equals(this.code, apiErrorCause.code)
+                && Objects.equals(this.data, apiErrorCause.data)
+                && Objects.equals(this.message, apiErrorCause.message)
+                && Objects.equals(this.requestId, apiErrorCause.requestId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                field, reason, value, args, cause, causeMessage, code, data, message, requestId);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("class ApiErrorCause {\n");
+        sb.append("    field: ").append(toIndentedString(field)).append("\n");
+        sb.append("    reason: ").append(toIndentedString(reason)).append("\n");
+        sb.append("    value: ").append(toIndentedString(value)).append("\n");
+        sb.append("    args: ").append(toIndentedString(args)).append("\n");
+        sb.append("    cause: ").append(toIndentedString(cause)).append("\n");
+        sb.append("    causeMessage: ").append(toIndentedString(causeMessage)).append("\n");
+        sb.append("    code: ").append(toIndentedString(code)).append("\n");
+        sb.append("    data: ").append(toIndentedString(data)).append("\n");
+        sb.append("    message: ").append(toIndentedString(message)).append("\n");
+        sb.append("    requestId: ").append(toIndentedString(requestId)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces (except the first
+     * line).
+     */
+    private String toIndentedString(Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @return URL query string
+     */
+    public String toUrlQueryString() {
+        return toUrlQueryString(null);
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        String suffix = "";
+        String containerSuffix = "";
+        String containerPrefix = "";
+        if (prefix == null) {
+            // style=form, explode=true, e.g. /pet?name=cat&type=manx
+            prefix = "";
+        } else {
+            // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
+            prefix = prefix + "[";
+            suffix = "]";
+            containerSuffix = "]";
+            containerPrefix = "[";
+        }
+
+        StringJoiner joiner = new StringJoiner("&");
+
+        // add `field` to the URL query string
+        if (getField() != null) {
+            joiner.add(
+                    String.format(
+                            "%sfield%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getField()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `reason` to the URL query string
+        if (getReason() != null) {
+            joiner.add(
+                    String.format(
+                            "%sreason%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getReason()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `value` to the URL query string
+        if (getValue() != null) {
+            joiner.add(
+                    String.format(
+                            "%svalue%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getValue()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `args` to the URL query string
+        if (getArgs() != null) {
+            joiner.add(getArgs().toUrlQueryString(prefix + "args" + suffix));
+        }
+
+        // add `cause` to the URL query string
+        if (getCause() != null) {
+            joiner.add(getCause().toUrlQueryString(prefix + "cause" + suffix));
+        }
+
+        // add `causeMessage` to the URL query string
+        if (getCauseMessage() != null) {
+            joiner.add(
+                    String.format(
+                            "%scauseMessage%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getCauseMessage()),
+                                            StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `code` to the URL query string
+        if (getCode() != null) {
+            joiner.add(
+                    String.format(
+                            "%scode%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getCode()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `data` to the URL query string
+        if (getData() != null) {
+            for (String _key : getData().keySet()) {
+                joiner.add(
+                        String.format(
+                                "%sdata%s%s=%s",
+                                prefix,
+                                suffix,
+                                "".equals(suffix)
+                                        ? ""
+                                        : String.format(
+                                                "%s%d%s", containerPrefix, _key, containerSuffix),
+                                getData().get(_key),
+                                URLEncoder.encode(
+                                                String.valueOf(getData().get(_key)),
+                                                StandardCharsets.UTF_8)
+                                        .replaceAll("\\+", "%20")));
+            }
+        }
+
+        // add `message` to the URL query string
+        if (getMessage() != null) {
+            joiner.add(
+                    String.format(
+                            "%smessage%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getMessage()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `requestId` to the URL query string
+        if (getRequestId() != null) {
+            joiner.add(
+                    String.format(
+                            "%srequestId%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getRequestId()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        return joiner.toString();
+    }
 }
-

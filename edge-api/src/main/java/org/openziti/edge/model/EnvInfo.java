@@ -10,321 +10,336 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.StringJoiner;
 
-
-/**
- * Environment information an authenticating client may provide
- */
+/** Environment information an authenticating client may provide */
 @JsonPropertyOrder({
-  EnvInfo.JSON_PROPERTY_ARCH,
-  EnvInfo.JSON_PROPERTY_DOMAIN,
-  EnvInfo.JSON_PROPERTY_HOSTNAME,
-  EnvInfo.JSON_PROPERTY_OS,
-  EnvInfo.JSON_PROPERTY_OS_RELEASE,
-  EnvInfo.JSON_PROPERTY_OS_VERSION
+    EnvInfo.JSON_PROPERTY_ARCH,
+    EnvInfo.JSON_PROPERTY_DOMAIN,
+    EnvInfo.JSON_PROPERTY_HOSTNAME,
+    EnvInfo.JSON_PROPERTY_OS,
+    EnvInfo.JSON_PROPERTY_OS_RELEASE,
+    EnvInfo.JSON_PROPERTY_OS_VERSION
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class EnvInfo {
-  public static final String JSON_PROPERTY_ARCH = "arch";
-  private String arch;
+    public static final String JSON_PROPERTY_ARCH = "arch";
+    private String arch;
 
-  public static final String JSON_PROPERTY_DOMAIN = "domain";
-  private String domain;
+    public static final String JSON_PROPERTY_DOMAIN = "domain";
+    private String domain;
 
-  public static final String JSON_PROPERTY_HOSTNAME = "hostname";
-  private String hostname;
+    public static final String JSON_PROPERTY_HOSTNAME = "hostname";
+    private String hostname;
 
-  public static final String JSON_PROPERTY_OS = "os";
-  private String os;
+    public static final String JSON_PROPERTY_OS = "os";
+    private String os;
 
-  public static final String JSON_PROPERTY_OS_RELEASE = "osRelease";
-  private String osRelease;
+    public static final String JSON_PROPERTY_OS_RELEASE = "osRelease";
+    private String osRelease;
 
-  public static final String JSON_PROPERTY_OS_VERSION = "osVersion";
-  private String osVersion;
+    public static final String JSON_PROPERTY_OS_VERSION = "osVersion";
+    private String osVersion;
 
-  public EnvInfo() { 
-  }
+    public EnvInfo() {}
 
-  public EnvInfo arch(String arch) {
-    this.arch = arch;
-    return this;
-  }
-
-   /**
-   * Get arch
-   * @return arch
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ARCH)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getArch() {
-    return arch;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_ARCH)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setArch(String arch) {
-    this.arch = arch;
-  }
-
-
-  public EnvInfo domain(String domain) {
-    this.domain = domain;
-    return this;
-  }
-
-   /**
-   * Get domain
-   * @return domain
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_DOMAIN)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getDomain() {
-    return domain;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_DOMAIN)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setDomain(String domain) {
-    this.domain = domain;
-  }
-
-
-  public EnvInfo hostname(String hostname) {
-    this.hostname = hostname;
-    return this;
-  }
-
-   /**
-   * Get hostname
-   * @return hostname
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_HOSTNAME)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getHostname() {
-    return hostname;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_HOSTNAME)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
-  }
-
-
-  public EnvInfo os(String os) {
-    this.os = os;
-    return this;
-  }
-
-   /**
-   * Get os
-   * @return os
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_OS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getOs() {
-    return os;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_OS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setOs(String os) {
-    this.os = os;
-  }
-
-
-  public EnvInfo osRelease(String osRelease) {
-    this.osRelease = osRelease;
-    return this;
-  }
-
-   /**
-   * Get osRelease
-   * @return osRelease
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_OS_RELEASE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getOsRelease() {
-    return osRelease;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_OS_RELEASE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setOsRelease(String osRelease) {
-    this.osRelease = osRelease;
-  }
-
-
-  public EnvInfo osVersion(String osVersion) {
-    this.osVersion = osVersion;
-    return this;
-  }
-
-   /**
-   * Get osVersion
-   * @return osVersion
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_OS_VERSION)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getOsVersion() {
-    return osVersion;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_OS_VERSION)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setOsVersion(String osVersion) {
-    this.osVersion = osVersion;
-  }
-
-
-  /**
-   * Return true if this envInfo object is equal to o.
-   */
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    EnvInfo envInfo = (EnvInfo) o;
-    return Objects.equals(this.arch, envInfo.arch) &&
-        Objects.equals(this.domain, envInfo.domain) &&
-        Objects.equals(this.hostname, envInfo.hostname) &&
-        Objects.equals(this.os, envInfo.os) &&
-        Objects.equals(this.osRelease, envInfo.osRelease) &&
-        Objects.equals(this.osVersion, envInfo.osVersion);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(arch, domain, hostname, os, osRelease, osVersion);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class EnvInfo {\n");
-    sb.append("    arch: ").append(toIndentedString(arch)).append("\n");
-    sb.append("    domain: ").append(toIndentedString(domain)).append("\n");
-    sb.append("    hostname: ").append(toIndentedString(hostname)).append("\n");
-    sb.append("    os: ").append(toIndentedString(os)).append("\n");
-    sb.append("    osRelease: ").append(toIndentedString(osRelease)).append("\n");
-    sb.append("    osVersion: ").append(toIndentedString(osVersion)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @return URL query string
-   */
-  public String toUrlQueryString() {
-    return toUrlQueryString(null);
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    String suffix = "";
-    String containerSuffix = "";
-    String containerPrefix = "";
-    if (prefix == null) {
-      // style=form, explode=true, e.g. /pet?name=cat&type=manx
-      prefix = "";
-    } else {
-      // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
-      prefix = prefix + "[";
-      suffix = "]";
-      containerSuffix = "]";
-      containerPrefix = "[";
+    public EnvInfo arch(String arch) {
+        this.arch = arch;
+        return this;
     }
 
-    StringJoiner joiner = new StringJoiner("&");
-
-    // add `arch` to the URL query string
-    if (getArch() != null) {
-      joiner.add(String.format("%sarch%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getArch()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get arch
+     *
+     * @return arch
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_ARCH)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getArch() {
+        return arch;
     }
 
-    // add `domain` to the URL query string
-    if (getDomain() != null) {
-      joiner.add(String.format("%sdomain%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getDomain()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_ARCH)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setArch(String arch) {
+        this.arch = arch;
     }
 
-    // add `hostname` to the URL query string
-    if (getHostname() != null) {
-      joiner.add(String.format("%shostname%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getHostname()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    public EnvInfo domain(String domain) {
+        this.domain = domain;
+        return this;
     }
 
-    // add `os` to the URL query string
-    if (getOs() != null) {
-      joiner.add(String.format("%sos%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getOs()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get domain
+     *
+     * @return domain
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_DOMAIN)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getDomain() {
+        return domain;
     }
 
-    // add `osRelease` to the URL query string
-    if (getOsRelease() != null) {
-      joiner.add(String.format("%sosRelease%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getOsRelease()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_DOMAIN)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
-    // add `osVersion` to the URL query string
-    if (getOsVersion() != null) {
-      joiner.add(String.format("%sosVersion%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getOsVersion()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    public EnvInfo hostname(String hostname) {
+        this.hostname = hostname;
+        return this;
     }
 
-    return joiner.toString();
-  }
+    /**
+     * Get hostname
+     *
+     * @return hostname
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_HOSTNAME)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getHostname() {
+        return hostname;
+    }
+
+    @JsonProperty(JSON_PROPERTY_HOSTNAME)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public EnvInfo os(String os) {
+        this.os = os;
+        return this;
+    }
+
+    /**
+     * Get os
+     *
+     * @return os
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_OS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getOs() {
+        return os;
+    }
+
+    @JsonProperty(JSON_PROPERTY_OS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setOs(String os) {
+        this.os = os;
+    }
+
+    public EnvInfo osRelease(String osRelease) {
+        this.osRelease = osRelease;
+        return this;
+    }
+
+    /**
+     * Get osRelease
+     *
+     * @return osRelease
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_OS_RELEASE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getOsRelease() {
+        return osRelease;
+    }
+
+    @JsonProperty(JSON_PROPERTY_OS_RELEASE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setOsRelease(String osRelease) {
+        this.osRelease = osRelease;
+    }
+
+    public EnvInfo osVersion(String osVersion) {
+        this.osVersion = osVersion;
+        return this;
+    }
+
+    /**
+     * Get osVersion
+     *
+     * @return osVersion
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_OS_VERSION)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getOsVersion() {
+        return osVersion;
+    }
+
+    @JsonProperty(JSON_PROPERTY_OS_VERSION)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setOsVersion(String osVersion) {
+        this.osVersion = osVersion;
+    }
+
+    /** Return true if this envInfo object is equal to o. */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        EnvInfo envInfo = (EnvInfo) o;
+        return Objects.equals(this.arch, envInfo.arch)
+                && Objects.equals(this.domain, envInfo.domain)
+                && Objects.equals(this.hostname, envInfo.hostname)
+                && Objects.equals(this.os, envInfo.os)
+                && Objects.equals(this.osRelease, envInfo.osRelease)
+                && Objects.equals(this.osVersion, envInfo.osVersion);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(arch, domain, hostname, os, osRelease, osVersion);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("class EnvInfo {\n");
+        sb.append("    arch: ").append(toIndentedString(arch)).append("\n");
+        sb.append("    domain: ").append(toIndentedString(domain)).append("\n");
+        sb.append("    hostname: ").append(toIndentedString(hostname)).append("\n");
+        sb.append("    os: ").append(toIndentedString(os)).append("\n");
+        sb.append("    osRelease: ").append(toIndentedString(osRelease)).append("\n");
+        sb.append("    osVersion: ").append(toIndentedString(osVersion)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces (except the first
+     * line).
+     */
+    private String toIndentedString(Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @return URL query string
+     */
+    public String toUrlQueryString() {
+        return toUrlQueryString(null);
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        String suffix = "";
+        String containerSuffix = "";
+        String containerPrefix = "";
+        if (prefix == null) {
+            // style=form, explode=true, e.g. /pet?name=cat&type=manx
+            prefix = "";
+        } else {
+            // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
+            prefix = prefix + "[";
+            suffix = "]";
+            containerSuffix = "]";
+            containerPrefix = "[";
+        }
+
+        StringJoiner joiner = new StringJoiner("&");
+
+        // add `arch` to the URL query string
+        if (getArch() != null) {
+            joiner.add(
+                    String.format(
+                            "%sarch%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getArch()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `domain` to the URL query string
+        if (getDomain() != null) {
+            joiner.add(
+                    String.format(
+                            "%sdomain%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getDomain()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `hostname` to the URL query string
+        if (getHostname() != null) {
+            joiner.add(
+                    String.format(
+                            "%shostname%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getHostname()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `os` to the URL query string
+        if (getOs() != null) {
+            joiner.add(
+                    String.format(
+                            "%sos%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getOs()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `osRelease` to the URL query string
+        if (getOsRelease() != null) {
+            joiner.add(
+                    String.format(
+                            "%sosRelease%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getOsRelease()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `osVersion` to the URL query string
+        if (getOsVersion() != null) {
+            joiner.add(
+                    String.format(
+                            "%sosVersion%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getOsVersion()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        return joiner.toString();
+    }
 }
-

@@ -10,50 +10,29 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import org.openziti.edge.model.Link;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for CreateLocation
- */
+/** Model tests for CreateLocation */
 class CreateLocationTest {
     private final CreateLocation model = new CreateLocation();
 
-    /**
-     * Model tests for CreateLocation
-     */
+    /** Model tests for CreateLocation */
     @Test
     void testCreateLocation() {
         // TODO: test CreateLocation
     }
 
-    /**
-     * Test the property 'links'
-     */
+    /** Test the property 'links' */
     @Test
     void linksTest() {
         // TODO: test links
     }
 
-    /**
-     * Test the property 'id'
-     */
+    /** Test the property 'id' */
     @Test
     void idTest() {
         // TODO: test id
     }
-
 }

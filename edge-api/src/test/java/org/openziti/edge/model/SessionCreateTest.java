@@ -10,57 +10,35 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.openziti.edge.model.DialBind;
-import org.openziti.edge.model.Tags;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for SessionCreate
- */
+/** Model tests for SessionCreate */
 class SessionCreateTest {
     private final SessionCreate model = new SessionCreate();
 
-    /**
-     * Model tests for SessionCreate
-     */
+    /** Model tests for SessionCreate */
     @Test
     void testSessionCreate() {
         // TODO: test SessionCreate
     }
 
-    /**
-     * Test the property 'serviceId'
-     */
+    /** Test the property 'serviceId' */
     @Test
     void serviceIdTest() {
         // TODO: test serviceId
     }
 
-    /**
-     * Test the property 'tags'
-     */
+    /** Test the property 'tags' */
     @Test
     void tagsTest() {
         // TODO: test tags
     }
 
-    /**
-     * Test the property 'type'
-     */
+    /** Test the property 'type' */
     @Test
     void typeTest() {
         // TODO: test type
     }
-
 }

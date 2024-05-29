@@ -10,71 +10,56 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-/**
- * Gets or Sets mfaFormats
- */
+/** Gets or Sets mfaFormats */
 public enum MfaFormats {
-  
-  NUMERIC("numeric"),
-  
-  ALPHA("alpha"),
-  
-  ALPHANUMERIC("alphaNumeric");
+    NUMERIC("numeric"),
 
-  private String value;
+    ALPHA("alpha"),
 
-  MfaFormats(String value) {
-    this.value = value;
-  }
+    ALPHANUMERIC("alphaNumeric");
 
-  @JsonValue
-  public String getValue() {
-    return value;
-  }
+    private String value;
 
-  @Override
-  public String toString() {
-    return String.valueOf(value);
-  }
-
-  @JsonCreator
-  public static MfaFormats fromValue(String value) {
-    for (MfaFormats b : MfaFormats.values()) {
-      if (b.value.equals(value)) {
-        return b;
-      }
-    }
-    throw new IllegalArgumentException("Unexpected value '" + value + "'");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    if (prefix == null) {
-      prefix = "";
+    MfaFormats(String value) {
+        this.value = value;
     }
 
-    return String.format("%s=%s", prefix, this.toString());
-  }
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
 
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
+
+    @JsonCreator
+    public static MfaFormats fromValue(String value) {
+        for (MfaFormats b : MfaFormats.values()) {
+            if (b.value.equals(value)) {
+                return b;
+            }
+        }
+        throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        if (prefix == null) {
+            prefix = "";
+        }
+
+        return String.format("%s=%s", prefix, this.toString());
+    }
 }
-

@@ -10,68 +10,53 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.api;
 
+import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.openziti.edge.ApiException;
-import org.openziti.edge.model.ApiErrorEnvelope;
 import org.openziti.edge.model.Authenticate;
 import org.openziti.edge.model.CurrentApiSessionDetailEnvelope;
 import org.openziti.edge.model.Empty;
 import org.openziti.edge.model.MfaCode;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import java.util.concurrent.CompletableFuture;
-
-/**
- * API tests for AuthenticationApi
- */
+/** API tests for AuthenticationApi */
 @Disabled
 public class AuthenticationApiTest {
 
     private final AuthenticationApi api = new AuthenticationApi();
 
-    
     /**
      * Authenticate via a method supplied via a query string parameter
      *
-     * Allowed authentication methods include \&quot;password\&quot;, \&quot;cert\&quot;, and \&quot;ext-jwt\&quot; 
+     * <p>Allowed authentication methods include \&quot;password\&quot;, \&quot;cert\&quot;, and
+     * \&quot;ext-jwt\&quot;
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void authenticateTest() throws ApiException {
         String method = null;
         Authenticate auth = null;
-        CompletableFuture<CurrentApiSessionDetailEnvelope> response = 
-        api.authenticate(method, auth);
-        
+        CompletableFuture<CurrentApiSessionDetailEnvelope> response =
+                api.authenticate(method, auth);
+
         // TODO: test validations
     }
-    
+
     /**
      * Complete MFA authentication
      *
-     * Completes MFA authentication by submitting a MFA time based one time token or backup code.
+     * <p>Completes MFA authentication by submitting a MFA time based one time token or backup code.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void authenticateMfaTest() throws ApiException {
         MfaCode mfaAuth = null;
-        CompletableFuture<Empty> response = 
-        api.authenticateMfa(mfaAuth);
-        
+        CompletableFuture<Empty> response = api.authenticateMfa(mfaAuth);
+
         // TODO: test validations
     }
-    
 }

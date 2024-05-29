@@ -10,350 +10,375 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.openziti.edge.model.ApiVersion;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.util.Objects;
+import java.util.StringJoiner;
 
-
-/**
- * Version
- */
+/** Version */
 @JsonPropertyOrder({
-  Version.JSON_PROPERTY_API_VERSIONS,
-  Version.JSON_PROPERTY_BUILD_DATE,
-  Version.JSON_PROPERTY_CAPABILITIES,
-  Version.JSON_PROPERTY_REVISION,
-  Version.JSON_PROPERTY_RUNTIME_VERSION,
-  Version.JSON_PROPERTY_VERSION
+    Version.JSON_PROPERTY_API_VERSIONS,
+    Version.JSON_PROPERTY_BUILD_DATE,
+    Version.JSON_PROPERTY_CAPABILITIES,
+    Version.JSON_PROPERTY_REVISION,
+    Version.JSON_PROPERTY_RUNTIME_VERSION,
+    Version.JSON_PROPERTY_VERSION
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class Version {
-  public static final String JSON_PROPERTY_API_VERSIONS = "apiVersions";
-  private Map<String, Map<String, ApiVersion>> apiVersions = new HashMap<>();
+    public static final String JSON_PROPERTY_API_VERSIONS = "apiVersions";
+    private Map<String, Map<String, ApiVersion>> apiVersions = new HashMap<>();
 
-  public static final String JSON_PROPERTY_BUILD_DATE = "buildDate";
-  private String buildDate;
+    public static final String JSON_PROPERTY_BUILD_DATE = "buildDate";
+    private String buildDate;
 
-  public static final String JSON_PROPERTY_CAPABILITIES = "capabilities";
-  private List<String> capabilities = new ArrayList<>();
+    public static final String JSON_PROPERTY_CAPABILITIES = "capabilities";
+    private List<String> capabilities = new ArrayList<>();
 
-  public static final String JSON_PROPERTY_REVISION = "revision";
-  private String revision;
+    public static final String JSON_PROPERTY_REVISION = "revision";
+    private String revision;
 
-  public static final String JSON_PROPERTY_RUNTIME_VERSION = "runtimeVersion";
-  private String runtimeVersion;
+    public static final String JSON_PROPERTY_RUNTIME_VERSION = "runtimeVersion";
+    private String runtimeVersion;
 
-  public static final String JSON_PROPERTY_VERSION = "version";
-  private String version;
+    public static final String JSON_PROPERTY_VERSION = "version";
+    private String version;
 
-  public Version() { 
-  }
+    public Version() {}
 
-  public Version apiVersions(Map<String, Map<String, ApiVersion>> apiVersions) {
-    this.apiVersions = apiVersions;
-    return this;
-  }
-
-  public Version putApiVersionsItem(String key, Map<String, ApiVersion> apiVersionsItem) {
-    if (this.apiVersions == null) {
-      this.apiVersions = new HashMap<>();
-    }
-    this.apiVersions.put(key, apiVersionsItem);
-    return this;
-  }
-
-   /**
-   * Get apiVersions
-   * @return apiVersions
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_API_VERSIONS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public Map<String, Map<String, ApiVersion>> getApiVersions() {
-    return apiVersions;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_API_VERSIONS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setApiVersions(Map<String, Map<String, ApiVersion>> apiVersions) {
-    this.apiVersions = apiVersions;
-  }
-
-
-  public Version buildDate(String buildDate) {
-    this.buildDate = buildDate;
-    return this;
-  }
-
-   /**
-   * Get buildDate
-   * @return buildDate
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_BUILD_DATE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getBuildDate() {
-    return buildDate;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_BUILD_DATE)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setBuildDate(String buildDate) {
-    this.buildDate = buildDate;
-  }
-
-
-  public Version capabilities(List<String> capabilities) {
-    this.capabilities = capabilities;
-    return this;
-  }
-
-  public Version addCapabilitiesItem(String capabilitiesItem) {
-    if (this.capabilities == null) {
-      this.capabilities = new ArrayList<>();
-    }
-    this.capabilities.add(capabilitiesItem);
-    return this;
-  }
-
-   /**
-   * Get capabilities
-   * @return capabilities
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_CAPABILITIES)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public List<String> getCapabilities() {
-    return capabilities;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_CAPABILITIES)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setCapabilities(List<String> capabilities) {
-    this.capabilities = capabilities;
-  }
-
-
-  public Version revision(String revision) {
-    this.revision = revision;
-    return this;
-  }
-
-   /**
-   * Get revision
-   * @return revision
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_REVISION)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getRevision() {
-    return revision;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_REVISION)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setRevision(String revision) {
-    this.revision = revision;
-  }
-
-
-  public Version runtimeVersion(String runtimeVersion) {
-    this.runtimeVersion = runtimeVersion;
-    return this;
-  }
-
-   /**
-   * Get runtimeVersion
-   * @return runtimeVersion
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_RUNTIME_VERSION)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getRuntimeVersion() {
-    return runtimeVersion;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_RUNTIME_VERSION)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setRuntimeVersion(String runtimeVersion) {
-    this.runtimeVersion = runtimeVersion;
-  }
-
-
-  public Version version(String version) {
-    this.version = version;
-    return this;
-  }
-
-   /**
-   * Get version
-   * @return version
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_VERSION)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getVersion() {
-    return version;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_VERSION)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
-
-  /**
-   * Return true if this version object is equal to o.
-   */
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Version version = (Version) o;
-    return Objects.equals(this.apiVersions, version.apiVersions) &&
-        Objects.equals(this.buildDate, version.buildDate) &&
-        Objects.equals(this.capabilities, version.capabilities) &&
-        Objects.equals(this.revision, version.revision) &&
-        Objects.equals(this.runtimeVersion, version.runtimeVersion) &&
-        Objects.equals(this.version, version.version);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(apiVersions, buildDate, capabilities, revision, runtimeVersion, version);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class Version {\n");
-    sb.append("    apiVersions: ").append(toIndentedString(apiVersions)).append("\n");
-    sb.append("    buildDate: ").append(toIndentedString(buildDate)).append("\n");
-    sb.append("    capabilities: ").append(toIndentedString(capabilities)).append("\n");
-    sb.append("    revision: ").append(toIndentedString(revision)).append("\n");
-    sb.append("    runtimeVersion: ").append(toIndentedString(runtimeVersion)).append("\n");
-    sb.append("    version: ").append(toIndentedString(version)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @return URL query string
-   */
-  public String toUrlQueryString() {
-    return toUrlQueryString(null);
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    String suffix = "";
-    String containerSuffix = "";
-    String containerPrefix = "";
-    if (prefix == null) {
-      // style=form, explode=true, e.g. /pet?name=cat&type=manx
-      prefix = "";
-    } else {
-      // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
-      prefix = prefix + "[";
-      suffix = "]";
-      containerSuffix = "]";
-      containerPrefix = "[";
+    public Version apiVersions(Map<String, Map<String, ApiVersion>> apiVersions) {
+        this.apiVersions = apiVersions;
+        return this;
     }
 
-    StringJoiner joiner = new StringJoiner("&");
-
-    // add `apiVersions` to the URL query string
-    if (getApiVersions() != null) {
-      for (String _key : getApiVersions().keySet()) {
-        joiner.add(String.format("%sapiVersions%s%s=%s", prefix, suffix,
-            "".equals(suffix) ? "" : String.format("%s%d%s", containerPrefix, _key, containerSuffix),
-            getApiVersions().get(_key), URLEncoder.encode(String.valueOf(getApiVersions().get(_key)), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
-      }
+    public Version putApiVersionsItem(String key, Map<String, ApiVersion> apiVersionsItem) {
+        if (this.apiVersions == null) {
+            this.apiVersions = new HashMap<>();
+        }
+        this.apiVersions.put(key, apiVersionsItem);
+        return this;
     }
 
-    // add `buildDate` to the URL query string
-    if (getBuildDate() != null) {
-      joiner.add(String.format("%sbuildDate%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getBuildDate()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get apiVersions
+     *
+     * @return apiVersions
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_API_VERSIONS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public Map<String, Map<String, ApiVersion>> getApiVersions() {
+        return apiVersions;
     }
 
-    // add `capabilities` to the URL query string
-    if (getCapabilities() != null) {
-      for (int i = 0; i < getCapabilities().size(); i++) {
-        joiner.add(String.format("%scapabilities%s%s=%s", prefix, suffix,
-            "".equals(suffix) ? "" : String.format("%s%d%s", containerPrefix, i, containerSuffix),
-            URLEncoder.encode(String.valueOf(getCapabilities().get(i)), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
-      }
+    @JsonProperty(JSON_PROPERTY_API_VERSIONS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setApiVersions(Map<String, Map<String, ApiVersion>> apiVersions) {
+        this.apiVersions = apiVersions;
     }
 
-    // add `revision` to the URL query string
-    if (getRevision() != null) {
-      joiner.add(String.format("%srevision%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getRevision()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    public Version buildDate(String buildDate) {
+        this.buildDate = buildDate;
+        return this;
     }
 
-    // add `runtimeVersion` to the URL query string
-    if (getRuntimeVersion() != null) {
-      joiner.add(String.format("%sruntimeVersion%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getRuntimeVersion()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get buildDate
+     *
+     * @return buildDate
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_BUILD_DATE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getBuildDate() {
+        return buildDate;
     }
 
-    // add `version` to the URL query string
-    if (getVersion() != null) {
-      joiner.add(String.format("%sversion%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getVersion()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_BUILD_DATE)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setBuildDate(String buildDate) {
+        this.buildDate = buildDate;
     }
 
-    return joiner.toString();
-  }
+    public Version capabilities(List<String> capabilities) {
+        this.capabilities = capabilities;
+        return this;
+    }
+
+    public Version addCapabilitiesItem(String capabilitiesItem) {
+        if (this.capabilities == null) {
+            this.capabilities = new ArrayList<>();
+        }
+        this.capabilities.add(capabilitiesItem);
+        return this;
+    }
+
+    /**
+     * Get capabilities
+     *
+     * @return capabilities
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_CAPABILITIES)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public List<String> getCapabilities() {
+        return capabilities;
+    }
+
+    @JsonProperty(JSON_PROPERTY_CAPABILITIES)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setCapabilities(List<String> capabilities) {
+        this.capabilities = capabilities;
+    }
+
+    public Version revision(String revision) {
+        this.revision = revision;
+        return this;
+    }
+
+    /**
+     * Get revision
+     *
+     * @return revision
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_REVISION)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getRevision() {
+        return revision;
+    }
+
+    @JsonProperty(JSON_PROPERTY_REVISION)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setRevision(String revision) {
+        this.revision = revision;
+    }
+
+    public Version runtimeVersion(String runtimeVersion) {
+        this.runtimeVersion = runtimeVersion;
+        return this;
+    }
+
+    /**
+     * Get runtimeVersion
+     *
+     * @return runtimeVersion
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_RUNTIME_VERSION)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getRuntimeVersion() {
+        return runtimeVersion;
+    }
+
+    @JsonProperty(JSON_PROPERTY_RUNTIME_VERSION)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setRuntimeVersion(String runtimeVersion) {
+        this.runtimeVersion = runtimeVersion;
+    }
+
+    public Version version(String version) {
+        this.version = version;
+        return this;
+    }
+
+    /**
+     * Get version
+     *
+     * @return version
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_VERSION)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getVersion() {
+        return version;
+    }
+
+    @JsonProperty(JSON_PROPERTY_VERSION)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    /** Return true if this version object is equal to o. */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Version version = (Version) o;
+        return Objects.equals(this.apiVersions, version.apiVersions)
+                && Objects.equals(this.buildDate, version.buildDate)
+                && Objects.equals(this.capabilities, version.capabilities)
+                && Objects.equals(this.revision, version.revision)
+                && Objects.equals(this.runtimeVersion, version.runtimeVersion)
+                && Objects.equals(this.version, version.version);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                apiVersions, buildDate, capabilities, revision, runtimeVersion, version);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("class Version {\n");
+        sb.append("    apiVersions: ").append(toIndentedString(apiVersions)).append("\n");
+        sb.append("    buildDate: ").append(toIndentedString(buildDate)).append("\n");
+        sb.append("    capabilities: ").append(toIndentedString(capabilities)).append("\n");
+        sb.append("    revision: ").append(toIndentedString(revision)).append("\n");
+        sb.append("    runtimeVersion: ").append(toIndentedString(runtimeVersion)).append("\n");
+        sb.append("    version: ").append(toIndentedString(version)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces (except the first
+     * line).
+     */
+    private String toIndentedString(Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @return URL query string
+     */
+    public String toUrlQueryString() {
+        return toUrlQueryString(null);
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        String suffix = "";
+        String containerSuffix = "";
+        String containerPrefix = "";
+        if (prefix == null) {
+            // style=form, explode=true, e.g. /pet?name=cat&type=manx
+            prefix = "";
+        } else {
+            // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
+            prefix = prefix + "[";
+            suffix = "]";
+            containerSuffix = "]";
+            containerPrefix = "[";
+        }
+
+        StringJoiner joiner = new StringJoiner("&");
+
+        // add `apiVersions` to the URL query string
+        if (getApiVersions() != null) {
+            for (String _key : getApiVersions().keySet()) {
+                joiner.add(
+                        String.format(
+                                "%sapiVersions%s%s=%s",
+                                prefix,
+                                suffix,
+                                "".equals(suffix)
+                                        ? ""
+                                        : String.format(
+                                                "%s%d%s", containerPrefix, _key, containerSuffix),
+                                getApiVersions().get(_key),
+                                URLEncoder.encode(
+                                                String.valueOf(getApiVersions().get(_key)),
+                                                StandardCharsets.UTF_8)
+                                        .replaceAll("\\+", "%20")));
+            }
+        }
+
+        // add `buildDate` to the URL query string
+        if (getBuildDate() != null) {
+            joiner.add(
+                    String.format(
+                            "%sbuildDate%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getBuildDate()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `capabilities` to the URL query string
+        if (getCapabilities() != null) {
+            for (int i = 0; i < getCapabilities().size(); i++) {
+                joiner.add(
+                        String.format(
+                                "%scapabilities%s%s=%s",
+                                prefix,
+                                suffix,
+                                "".equals(suffix)
+                                        ? ""
+                                        : String.format(
+                                                "%s%d%s", containerPrefix, i, containerSuffix),
+                                URLEncoder.encode(
+                                                String.valueOf(getCapabilities().get(i)),
+                                                StandardCharsets.UTF_8)
+                                        .replaceAll("\\+", "%20")));
+            }
+        }
+
+        // add `revision` to the URL query string
+        if (getRevision() != null) {
+            joiner.add(
+                    String.format(
+                            "%srevision%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getRevision()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `runtimeVersion` to the URL query string
+        if (getRuntimeVersion() != null) {
+            joiner.add(
+                    String.format(
+                            "%sruntimeVersion%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(
+                                            String.valueOf(getRuntimeVersion()),
+                                            StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `version` to the URL query string
+        if (getVersion() != null) {
+            joiner.add(
+                    String.format(
+                            "%sversion%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getVersion()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        return joiner.toString();
+    }
 }
-

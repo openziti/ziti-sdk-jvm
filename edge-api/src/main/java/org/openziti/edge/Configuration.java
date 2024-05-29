@@ -10,18 +10,20 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge;
 
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class Configuration {
     public static final String VERSION = "0.26.18";
 
     private static ApiClient defaultApiClient = new ApiClient();
 
     /**
-     * Get the default API client, which would be used when creating API
-     * instances without providing an API client.
+     * Get the default API client, which would be used when creating API instances without providing
+     * an API client.
      *
      * @return Default API client
      */
@@ -30,8 +32,8 @@ public class Configuration {
     }
 
     /**
-     * Set the default API client, which would be used when creating API
-     * instances without providing an API client.
+     * Set the default API client, which would be used when creating API instances without providing
+     * an API client.
      *
      * @param apiClient API client
      */

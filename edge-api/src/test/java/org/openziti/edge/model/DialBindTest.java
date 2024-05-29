@@ -10,23 +10,15 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for DialBind
- */
+/** Model tests for DialBind */
 class DialBindTest {
-    /**
-     * Model tests for DialBind
-     */
+    /** Model tests for DialBind */
     @Test
     void testDialBind() {
         // TODO: test DialBind
     }
-
 }

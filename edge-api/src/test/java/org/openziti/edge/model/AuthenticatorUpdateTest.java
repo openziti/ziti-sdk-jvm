@@ -10,56 +10,35 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.openziti.edge.model.Tags;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for AuthenticatorUpdate
- */
+/** Model tests for AuthenticatorUpdate */
 class AuthenticatorUpdateTest {
     private final AuthenticatorUpdate model = new AuthenticatorUpdate();
 
-    /**
-     * Model tests for AuthenticatorUpdate
-     */
+    /** Model tests for AuthenticatorUpdate */
     @Test
     void testAuthenticatorUpdate() {
         // TODO: test AuthenticatorUpdate
     }
 
-    /**
-     * Test the property 'password'
-     */
+    /** Test the property 'password' */
     @Test
     void passwordTest() {
         // TODO: test password
     }
 
-    /**
-     * Test the property 'tags'
-     */
+    /** Test the property 'tags' */
     @Test
     void tagsTest() {
         // TODO: test tags
     }
 
-    /**
-     * Test the property 'username'
-     */
+    /** Test the property 'username' */
     @Test
     void usernameTest() {
         // TODO: test username
     }
-
 }

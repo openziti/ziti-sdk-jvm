@@ -10,55 +10,35 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ApiFieldError
- */
+/** Model tests for ApiFieldError */
 class ApiFieldErrorTest {
     private final ApiFieldError model = new ApiFieldError();
 
-    /**
-     * Model tests for ApiFieldError
-     */
+    /** Model tests for ApiFieldError */
     @Test
     void testApiFieldError() {
         // TODO: test ApiFieldError
     }
 
-    /**
-     * Test the property 'field'
-     */
+    /** Test the property 'field' */
     @Test
     void fieldTest() {
         // TODO: test field
     }
 
-    /**
-     * Test the property 'reason'
-     */
+    /** Test the property 'reason' */
     @Test
     void reasonTest() {
         // TODO: test reason
     }
 
-    /**
-     * Test the property 'value'
-     */
+    /** Test the property 'value' */
     @Test
     void valueTest() {
         // TODO: test value
     }
-
 }

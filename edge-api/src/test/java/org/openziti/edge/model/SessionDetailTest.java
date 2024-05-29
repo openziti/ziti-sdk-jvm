@@ -10,145 +10,95 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.openziti.edge.model.DialBind;
-import org.openziti.edge.model.EntityRef;
-import org.openziti.edge.model.Link;
-import org.openziti.edge.model.SessionEdgeRouter;
-import org.openziti.edge.model.Tags;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for SessionDetail
- */
+/** Model tests for SessionDetail */
 class SessionDetailTest {
     private final SessionDetail model = new SessionDetail();
 
-    /**
-     * Model tests for SessionDetail
-     */
+    /** Model tests for SessionDetail */
     @Test
     void testSessionDetail() {
         // TODO: test SessionDetail
     }
 
-    /**
-     * Test the property 'links'
-     */
+    /** Test the property 'links' */
     @Test
     void linksTest() {
         // TODO: test links
     }
 
-    /**
-     * Test the property 'createdAt'
-     */
+    /** Test the property 'createdAt' */
     @Test
     void createdAtTest() {
         // TODO: test createdAt
     }
 
-    /**
-     * Test the property 'id'
-     */
+    /** Test the property 'id' */
     @Test
     void idTest() {
         // TODO: test id
     }
 
-    /**
-     * Test the property 'tags'
-     */
+    /** Test the property 'tags' */
     @Test
     void tagsTest() {
         // TODO: test tags
     }
 
-    /**
-     * Test the property 'updatedAt'
-     */
+    /** Test the property 'updatedAt' */
     @Test
     void updatedAtTest() {
         // TODO: test updatedAt
     }
 
-    /**
-     * Test the property 'apiSession'
-     */
+    /** Test the property 'apiSession' */
     @Test
     void apiSessionTest() {
         // TODO: test apiSession
     }
 
-    /**
-     * Test the property 'apiSessionId'
-     */
+    /** Test the property 'apiSessionId' */
     @Test
     void apiSessionIdTest() {
         // TODO: test apiSessionId
     }
 
-    /**
-     * Test the property 'edgeRouters'
-     */
+    /** Test the property 'edgeRouters' */
     @Test
     void edgeRoutersTest() {
         // TODO: test edgeRouters
     }
 
-    /**
-     * Test the property 'identityId'
-     */
+    /** Test the property 'identityId' */
     @Test
     void identityIdTest() {
         // TODO: test identityId
     }
 
-    /**
-     * Test the property 'service'
-     */
+    /** Test the property 'service' */
     @Test
     void serviceTest() {
         // TODO: test service
     }
 
-    /**
-     * Test the property 'serviceId'
-     */
+    /** Test the property 'serviceId' */
     @Test
     void serviceIdTest() {
         // TODO: test serviceId
     }
 
-    /**
-     * Test the property 'token'
-     */
+    /** Test the property 'token' */
     @Test
     void tokenTest() {
         // TODO: test token
     }
 
-    /**
-     * Test the property 'type'
-     */
+    /** Test the property 'type' */
     @Test
     void typeTest() {
         // TODO: test type
     }
-
 }

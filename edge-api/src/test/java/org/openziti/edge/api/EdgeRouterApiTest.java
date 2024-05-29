@@ -10,46 +10,33 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.api;
 
-import org.openziti.edge.ApiException;
-import org.openziti.edge.model.ApiErrorEnvelope;
-import org.openziti.edge.model.ListCurrentIdentityEdgeRoutersEnvelope;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.model.ListCurrentIdentityEdgeRoutersEnvelope;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import java.util.concurrent.CompletableFuture;
-
-/**
- * API tests for EdgeRouterApi
- */
+/** API tests for EdgeRouterApi */
 @Disabled
 public class EdgeRouterApiTest {
 
     private final EdgeRouterApi api = new EdgeRouterApi();
 
-    
     /**
      * Return this list of Edge Routers the identity has access to
      *
-     * Lists the Edge Routers that the current identity has access to via policies. The data returned includes their address and online status 
+     * <p>Lists the Edge Routers that the current identity has access to via policies. The data
+     * returned includes their address and online status
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void getCurrentIdentityEdgeRoutersTest() throws ApiException {
-        CompletableFuture<ListCurrentIdentityEdgeRoutersEnvelope> response = 
-        api.getCurrentIdentityEdgeRouters();
-        
+        CompletableFuture<ListCurrentIdentityEdgeRoutersEnvelope> response =
+                api.getCurrentIdentityEdgeRouters();
+
         // TODO: test validations
     }
-    
 }

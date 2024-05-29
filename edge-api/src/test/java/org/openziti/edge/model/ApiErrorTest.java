@@ -10,91 +10,59 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import org.openziti.edge.model.ApiErrorArgs;
-import org.openziti.edge.model.ApiErrorCause;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ApiError
- */
+/** Model tests for ApiError */
 class ApiErrorTest {
     private final ApiError model = new ApiError();
 
-    /**
-     * Model tests for ApiError
-     */
+    /** Model tests for ApiError */
     @Test
     void testApiError() {
         // TODO: test ApiError
     }
 
-    /**
-     * Test the property 'args'
-     */
+    /** Test the property 'args' */
     @Test
     void argsTest() {
         // TODO: test args
     }
 
-    /**
-     * Test the property 'cause'
-     */
+    /** Test the property 'cause' */
     @Test
     void causeTest() {
         // TODO: test cause
     }
 
-    /**
-     * Test the property 'causeMessage'
-     */
+    /** Test the property 'causeMessage' */
     @Test
     void causeMessageTest() {
         // TODO: test causeMessage
     }
 
-    /**
-     * Test the property 'code'
-     */
+    /** Test the property 'code' */
     @Test
     void codeTest() {
         // TODO: test code
     }
 
-    /**
-     * Test the property 'data'
-     */
+    /** Test the property 'data' */
     @Test
     void dataTest() {
         // TODO: test data
     }
 
-    /**
-     * Test the property 'message'
-     */
+    /** Test the property 'message' */
     @Test
     void messageTest() {
         // TODO: test message
     }
 
-    /**
-     * Test the property 'requestId'
-     */
+    /** Test the property 'requestId' */
     @Test
     void requestIdTest() {
         // TODO: test requestId
     }
-
 }

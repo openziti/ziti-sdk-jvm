@@ -10,49 +10,29 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.openziti.edge.model.DetailMfaRecoveryCodes;
-import org.openziti.edge.model.Meta;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for DetailMfaRecoveryCodesEnvelope
- */
+/** Model tests for DetailMfaRecoveryCodesEnvelope */
 class DetailMfaRecoveryCodesEnvelopeTest {
     private final DetailMfaRecoveryCodesEnvelope model = new DetailMfaRecoveryCodesEnvelope();
 
-    /**
-     * Model tests for DetailMfaRecoveryCodesEnvelope
-     */
+    /** Model tests for DetailMfaRecoveryCodesEnvelope */
     @Test
     void testDetailMfaRecoveryCodesEnvelope() {
         // TODO: test DetailMfaRecoveryCodesEnvelope
     }
 
-    /**
-     * Test the property 'error'
-     */
+    /** Test the property 'error' */
     @Test
     void errorTest() {
         // TODO: test error
     }
 
-    /**
-     * Test the property 'meta'
-     */
+    /** Test the property 'meta' */
     @Test
     void metaTest() {
         // TODO: test meta
     }
-
 }

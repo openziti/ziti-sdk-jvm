@@ -10,79 +10,53 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for SdkInfo
- */
+/** Model tests for SdkInfo */
 class SdkInfoTest {
     private final SdkInfo model = new SdkInfo();
 
-    /**
-     * Model tests for SdkInfo
-     */
+    /** Model tests for SdkInfo */
     @Test
     void testSdkInfo() {
         // TODO: test SdkInfo
     }
 
-    /**
-     * Test the property 'appId'
-     */
+    /** Test the property 'appId' */
     @Test
     void appIdTest() {
         // TODO: test appId
     }
 
-    /**
-     * Test the property 'appVersion'
-     */
+    /** Test the property 'appVersion' */
     @Test
     void appVersionTest() {
         // TODO: test appVersion
     }
 
-    /**
-     * Test the property 'branch'
-     */
+    /** Test the property 'branch' */
     @Test
     void branchTest() {
         // TODO: test branch
     }
 
-    /**
-     * Test the property 'revision'
-     */
+    /** Test the property 'revision' */
     @Test
     void revisionTest() {
         // TODO: test revision
     }
 
-    /**
-     * Test the property 'type'
-     */
+    /** Test the property 'type' */
     @Test
     void typeTest() {
         // TODO: test type
     }
 
-    /**
-     * Test the property 'version'
-     */
+    /** Test the property 'version' */
     @Test
     void versionTest() {
         // TODO: test version
     }
-
 }

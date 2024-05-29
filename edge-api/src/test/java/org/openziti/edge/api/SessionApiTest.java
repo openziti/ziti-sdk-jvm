@@ -10,104 +10,86 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.api;
 
+import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.openziti.edge.ApiException;
-import org.openziti.edge.model.ApiErrorEnvelope;
 import org.openziti.edge.model.DetailSessionEnvelope;
 import org.openziti.edge.model.Empty;
 import org.openziti.edge.model.ListSessionsEnvelope;
 import org.openziti.edge.model.SessionCreate;
 import org.openziti.edge.model.SessionCreateEnvelope;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import java.util.concurrent.CompletableFuture;
-
-/**
- * API tests for SessionApi
- */
+/** API tests for SessionApi */
 @Disabled
 public class SessionApiTest {
 
     private final SessionApi api = new SessionApi();
 
-    
     /**
      * Create a session resource
      *
-     * Create a session resource.
+     * <p>Create a session resource.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void createSessionTest() throws ApiException {
         SessionCreate session = null;
-        CompletableFuture<SessionCreateEnvelope> response = 
-        api.createSession(session);
-        
+        CompletableFuture<SessionCreateEnvelope> response = api.createSession(session);
+
         // TODO: test validations
     }
-    
+
     /**
      * Delete a session
      *
-     * Delete a session by id.
+     * <p>Delete a session by id.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void deleteSessionTest() throws ApiException {
         String id = null;
-        CompletableFuture<Empty> response = 
-        api.deleteSession(id);
-        
+        CompletableFuture<Empty> response = api.deleteSession(id);
+
         // TODO: test validations
     }
-    
+
     /**
      * Retrieves a single session
      *
-     * Retrieves a single session by id.
+     * <p>Retrieves a single session by id.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void detailSessionTest() throws ApiException {
         String id = null;
-        CompletableFuture<DetailSessionEnvelope> response = 
-        api.detailSession(id);
-        
+        CompletableFuture<DetailSessionEnvelope> response = api.detailSession(id);
+
         // TODO: test validations
     }
-    
+
     /**
      * List sessions
      *
-     * Retrieves a list of active sessions resources; supports filtering, sorting, and pagination.  Sessions are tied to an API session and are moved when an API session times out or logs out. Active sessions (i.e. Ziti SDK connected to an edge router) will keep the session and API session marked as active. 
+     * <p>Retrieves a list of active sessions resources; supports filtering, sorting, and
+     * pagination. Sessions are tied to an API session and are moved when an API session times out
+     * or logs out. Active sessions (i.e. Ziti SDK connected to an edge router) will keep the
+     * session and API session marked as active.
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void listSessionsTest() throws ApiException {
         Integer limit = null;
         Integer offset = null;
         String filter = null;
-        CompletableFuture<ListSessionsEnvelope> response = 
-        api.listSessions(limit, offset, filter);
-        
+        CompletableFuture<ListSessionsEnvelope> response = api.listSessions(limit, offset, filter);
+
         // TODO: test validations
     }
-    
 }

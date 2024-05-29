@@ -10,71 +10,56 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-/**
- * Gets or Sets terminatorPrecedence
- */
+/** Gets or Sets terminatorPrecedence */
 public enum TerminatorPrecedence {
-  
-  DEFAULT("default"),
-  
-  REQUIRED("required"),
-  
-  FAILED("failed");
+    DEFAULT("default"),
 
-  private String value;
+    REQUIRED("required"),
 
-  TerminatorPrecedence(String value) {
-    this.value = value;
-  }
+    FAILED("failed");
 
-  @JsonValue
-  public String getValue() {
-    return value;
-  }
+    private String value;
 
-  @Override
-  public String toString() {
-    return String.valueOf(value);
-  }
-
-  @JsonCreator
-  public static TerminatorPrecedence fromValue(String value) {
-    for (TerminatorPrecedence b : TerminatorPrecedence.values()) {
-      if (b.value.equals(value)) {
-        return b;
-      }
-    }
-    throw new IllegalArgumentException("Unexpected value '" + value + "'");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    if (prefix == null) {
-      prefix = "";
+    TerminatorPrecedence(String value) {
+        this.value = value;
     }
 
-    return String.format("%s=%s", prefix, this.toString());
-  }
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
 
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
+
+    @JsonCreator
+    public static TerminatorPrecedence fromValue(String value) {
+        for (TerminatorPrecedence b : TerminatorPrecedence.values()) {
+            if (b.value.equals(value)) {
+                return b;
+            }
+        }
+        throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        if (prefix == null) {
+            prefix = "";
+        }
+
+        return String.format("%s=%s", prefix, this.toString());
+    }
 }
-

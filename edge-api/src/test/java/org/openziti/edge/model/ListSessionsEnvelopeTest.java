@@ -10,51 +10,29 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.openziti.edge.model.Meta;
-import org.openziti.edge.model.SessionDetail;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ListSessionsEnvelope
- */
+/** Model tests for ListSessionsEnvelope */
 class ListSessionsEnvelopeTest {
     private final ListSessionsEnvelope model = new ListSessionsEnvelope();
 
-    /**
-     * Model tests for ListSessionsEnvelope
-     */
+    /** Model tests for ListSessionsEnvelope */
     @Test
     void testListSessionsEnvelope() {
         // TODO: test ListSessionsEnvelope
     }
 
-    /**
-     * Test the property 'data'
-     */
+    /** Test the property 'data' */
     @Test
     void dataTest() {
         // TODO: test data
     }
 
-    /**
-     * Test the property 'meta'
-     */
+    /** Test the property 'meta' */
     @Test
     void metaTest() {
         // TODO: test meta
     }
-
 }

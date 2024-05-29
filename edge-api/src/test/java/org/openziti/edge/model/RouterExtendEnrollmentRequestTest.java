@@ -10,47 +10,29 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for RouterExtendEnrollmentRequest
- */
+/** Model tests for RouterExtendEnrollmentRequest */
 class RouterExtendEnrollmentRequestTest {
     private final RouterExtendEnrollmentRequest model = new RouterExtendEnrollmentRequest();
 
-    /**
-     * Model tests for RouterExtendEnrollmentRequest
-     */
+    /** Model tests for RouterExtendEnrollmentRequest */
     @Test
     void testRouterExtendEnrollmentRequest() {
         // TODO: test RouterExtendEnrollmentRequest
     }
 
-    /**
-     * Test the property 'certCsr'
-     */
+    /** Test the property 'certCsr' */
     @Test
     void certCsrTest() {
         // TODO: test certCsr
     }
 
-    /**
-     * Test the property 'serverCertCsr'
-     */
+    /** Test the property 'serverCertCsr' */
     @Test
     void serverCertCsrTest() {
         // TODO: test serverCertCsr
     }
-
 }

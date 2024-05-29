@@ -10,39 +10,24 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for CurrentApiSessionCertificateCreate
- */
+/** Model tests for CurrentApiSessionCertificateCreate */
 class CurrentApiSessionCertificateCreateTest {
-    private final CurrentApiSessionCertificateCreate model = new CurrentApiSessionCertificateCreate();
+    private final CurrentApiSessionCertificateCreate model =
+            new CurrentApiSessionCertificateCreate();
 
-    /**
-     * Model tests for CurrentApiSessionCertificateCreate
-     */
+    /** Model tests for CurrentApiSessionCertificateCreate */
     @Test
     void testCurrentApiSessionCertificateCreate() {
         // TODO: test CurrentApiSessionCertificateCreate
     }
 
-    /**
-     * Test the property 'csr'
-     */
+    /** Test the property 'csr' */
     @Test
     void csrTest() {
         // TODO: test csr
     }
-
 }

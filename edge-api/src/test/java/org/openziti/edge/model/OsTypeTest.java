@@ -10,23 +10,15 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for OsType
- */
+/** Model tests for OsType */
 class OsTypeTest {
-    /**
-     * Model tests for OsType
-     */
+    /** Model tests for OsType */
     @Test
     void testOsType() {
         // TODO: test OsType
     }
-
 }

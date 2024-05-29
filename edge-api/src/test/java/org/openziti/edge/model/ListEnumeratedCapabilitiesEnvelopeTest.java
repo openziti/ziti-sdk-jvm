@@ -10,51 +10,30 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.openziti.edge.model.Capabilities;
-import org.openziti.edge.model.Meta;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ListEnumeratedCapabilitiesEnvelope
- */
+/** Model tests for ListEnumeratedCapabilitiesEnvelope */
 class ListEnumeratedCapabilitiesEnvelopeTest {
-    private final ListEnumeratedCapabilitiesEnvelope model = new ListEnumeratedCapabilitiesEnvelope();
+    private final ListEnumeratedCapabilitiesEnvelope model =
+            new ListEnumeratedCapabilitiesEnvelope();
 
-    /**
-     * Model tests for ListEnumeratedCapabilitiesEnvelope
-     */
+    /** Model tests for ListEnumeratedCapabilitiesEnvelope */
     @Test
     void testListEnumeratedCapabilitiesEnvelope() {
         // TODO: test ListEnumeratedCapabilitiesEnvelope
     }
 
-    /**
-     * Test the property 'data'
-     */
+    /** Test the property 'data' */
     @Test
     void dataTest() {
         // TODO: test data
     }
 
-    /**
-     * Test the property 'meta'
-     */
+    /** Test the property 'meta' */
     @Test
     void metaTest() {
         // TODO: test meta
     }
-
 }

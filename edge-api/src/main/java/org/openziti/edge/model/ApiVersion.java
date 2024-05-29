@@ -10,227 +10,232 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
-import java.util.Objects;
-import java.util.Map;
-import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.StringJoiner;
 
-
-/**
- * ApiVersion
- */
+/** ApiVersion */
 @JsonPropertyOrder({
-  ApiVersion.JSON_PROPERTY_API_BASE_URLS,
-  ApiVersion.JSON_PROPERTY_PATH,
-  ApiVersion.JSON_PROPERTY_VERSION
+    ApiVersion.JSON_PROPERTY_API_BASE_URLS,
+    ApiVersion.JSON_PROPERTY_PATH,
+    ApiVersion.JSON_PROPERTY_VERSION
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class ApiVersion {
-  public static final String JSON_PROPERTY_API_BASE_URLS = "apiBaseUrls";
-  private List<String> apiBaseUrls = new ArrayList<>();
+    public static final String JSON_PROPERTY_API_BASE_URLS = "apiBaseUrls";
+    private List<String> apiBaseUrls = new ArrayList<>();
 
-  public static final String JSON_PROPERTY_PATH = "path";
-  private String path;
+    public static final String JSON_PROPERTY_PATH = "path";
+    private String path;
 
-  public static final String JSON_PROPERTY_VERSION = "version";
-  private String version;
+    public static final String JSON_PROPERTY_VERSION = "version";
+    private String version;
 
-  public ApiVersion() { 
-  }
+    public ApiVersion() {}
 
-  public ApiVersion apiBaseUrls(List<String> apiBaseUrls) {
-    this.apiBaseUrls = apiBaseUrls;
-    return this;
-  }
-
-  public ApiVersion addApiBaseUrlsItem(String apiBaseUrlsItem) {
-    if (this.apiBaseUrls == null) {
-      this.apiBaseUrls = new ArrayList<>();
-    }
-    this.apiBaseUrls.add(apiBaseUrlsItem);
-    return this;
-  }
-
-   /**
-   * Get apiBaseUrls
-   * @return apiBaseUrls
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_API_BASE_URLS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public List<String> getApiBaseUrls() {
-    return apiBaseUrls;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_API_BASE_URLS)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setApiBaseUrls(List<String> apiBaseUrls) {
-    this.apiBaseUrls = apiBaseUrls;
-  }
-
-
-  public ApiVersion path(String path) {
-    this.path = path;
-    return this;
-  }
-
-   /**
-   * Get path
-   * @return path
-  **/
-  @javax.annotation.Nonnull
-  @JsonProperty(JSON_PROPERTY_PATH)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-
-  public String getPath() {
-    return path;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_PATH)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setPath(String path) {
-    this.path = path;
-  }
-
-
-  public ApiVersion version(String version) {
-    this.version = version;
-    return this;
-  }
-
-   /**
-   * Get version
-   * @return version
-  **/
-  @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_VERSION)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
-  public String getVersion() {
-    return version;
-  }
-
-
-  @JsonProperty(JSON_PROPERTY_VERSION)
-  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
-
-  /**
-   * Return true if this apiVersion object is equal to o.
-   */
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ApiVersion apiVersion = (ApiVersion) o;
-    return Objects.equals(this.apiBaseUrls, apiVersion.apiBaseUrls) &&
-        Objects.equals(this.path, apiVersion.path) &&
-        Objects.equals(this.version, apiVersion.version);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(apiBaseUrls, path, version);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class ApiVersion {\n");
-    sb.append("    apiBaseUrls: ").append(toIndentedString(apiBaseUrls)).append("\n");
-    sb.append("    path: ").append(toIndentedString(path)).append("\n");
-    sb.append("    version: ").append(toIndentedString(version)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @return URL query string
-   */
-  public String toUrlQueryString() {
-    return toUrlQueryString(null);
-  }
-
-  /**
-   * Convert the instance into URL query string.
-   *
-   * @param prefix prefix of the query string
-   * @return URL query string
-   */
-  public String toUrlQueryString(String prefix) {
-    String suffix = "";
-    String containerSuffix = "";
-    String containerPrefix = "";
-    if (prefix == null) {
-      // style=form, explode=true, e.g. /pet?name=cat&type=manx
-      prefix = "";
-    } else {
-      // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
-      prefix = prefix + "[";
-      suffix = "]";
-      containerSuffix = "]";
-      containerPrefix = "[";
+    public ApiVersion apiBaseUrls(List<String> apiBaseUrls) {
+        this.apiBaseUrls = apiBaseUrls;
+        return this;
     }
 
-    StringJoiner joiner = new StringJoiner("&");
-
-    // add `apiBaseUrls` to the URL query string
-    if (getApiBaseUrls() != null) {
-      for (int i = 0; i < getApiBaseUrls().size(); i++) {
-        joiner.add(String.format("%sapiBaseUrls%s%s=%s", prefix, suffix,
-            "".equals(suffix) ? "" : String.format("%s%d%s", containerPrefix, i, containerSuffix),
-            URLEncoder.encode(String.valueOf(getApiBaseUrls().get(i)), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
-      }
+    public ApiVersion addApiBaseUrlsItem(String apiBaseUrlsItem) {
+        if (this.apiBaseUrls == null) {
+            this.apiBaseUrls = new ArrayList<>();
+        }
+        this.apiBaseUrls.add(apiBaseUrlsItem);
+        return this;
     }
 
-    // add `path` to the URL query string
-    if (getPath() != null) {
-      joiner.add(String.format("%spath%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getPath()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    /**
+     * Get apiBaseUrls
+     *
+     * @return apiBaseUrls
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_API_BASE_URLS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public List<String> getApiBaseUrls() {
+        return apiBaseUrls;
     }
 
-    // add `version` to the URL query string
-    if (getVersion() != null) {
-      joiner.add(String.format("%sversion%s=%s", prefix, suffix, URLEncoder.encode(String.valueOf(getVersion()), StandardCharsets.UTF_8).replaceAll("\\+", "%20")));
+    @JsonProperty(JSON_PROPERTY_API_BASE_URLS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setApiBaseUrls(List<String> apiBaseUrls) {
+        this.apiBaseUrls = apiBaseUrls;
     }
 
-    return joiner.toString();
-  }
+    public ApiVersion path(String path) {
+        this.path = path;
+        return this;
+    }
+
+    /**
+     * Get path
+     *
+     * @return path
+     */
+    @javax.annotation.Nonnull
+    @JsonProperty(JSON_PROPERTY_PATH)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public String getPath() {
+        return path;
+    }
+
+    @JsonProperty(JSON_PROPERTY_PATH)
+    @JsonInclude(value = JsonInclude.Include.ALWAYS)
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public ApiVersion version(String version) {
+        this.version = version;
+        return this;
+    }
+
+    /**
+     * Get version
+     *
+     * @return version
+     */
+    @javax.annotation.Nullable
+    @JsonProperty(JSON_PROPERTY_VERSION)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public String getVersion() {
+        return version;
+    }
+
+    @JsonProperty(JSON_PROPERTY_VERSION)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    /** Return true if this apiVersion object is equal to o. */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ApiVersion apiVersion = (ApiVersion) o;
+        return Objects.equals(this.apiBaseUrls, apiVersion.apiBaseUrls)
+                && Objects.equals(this.path, apiVersion.path)
+                && Objects.equals(this.version, apiVersion.version);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(apiBaseUrls, path, version);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("class ApiVersion {\n");
+        sb.append("    apiBaseUrls: ").append(toIndentedString(apiBaseUrls)).append("\n");
+        sb.append("    path: ").append(toIndentedString(path)).append("\n");
+        sb.append("    version: ").append(toIndentedString(version)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces (except the first
+     * line).
+     */
+    private String toIndentedString(Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @return URL query string
+     */
+    public String toUrlQueryString() {
+        return toUrlQueryString(null);
+    }
+
+    /**
+     * Convert the instance into URL query string.
+     *
+     * @param prefix prefix of the query string
+     * @return URL query string
+     */
+    public String toUrlQueryString(String prefix) {
+        String suffix = "";
+        String containerSuffix = "";
+        String containerPrefix = "";
+        if (prefix == null) {
+            // style=form, explode=true, e.g. /pet?name=cat&type=manx
+            prefix = "";
+        } else {
+            // deepObject style e.g. /pet?id[name]=cat&id[type]=manx
+            prefix = prefix + "[";
+            suffix = "]";
+            containerSuffix = "]";
+            containerPrefix = "[";
+        }
+
+        StringJoiner joiner = new StringJoiner("&");
+
+        // add `apiBaseUrls` to the URL query string
+        if (getApiBaseUrls() != null) {
+            for (int i = 0; i < getApiBaseUrls().size(); i++) {
+                joiner.add(
+                        String.format(
+                                "%sapiBaseUrls%s%s=%s",
+                                prefix,
+                                suffix,
+                                "".equals(suffix)
+                                        ? ""
+                                        : String.format(
+                                                "%s%d%s", containerPrefix, i, containerSuffix),
+                                URLEncoder.encode(
+                                                String.valueOf(getApiBaseUrls().get(i)),
+                                                StandardCharsets.UTF_8)
+                                        .replaceAll("\\+", "%20")));
+            }
+        }
+
+        // add `path` to the URL query string
+        if (getPath() != null) {
+            joiner.add(
+                    String.format(
+                            "%spath%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getPath()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        // add `version` to the URL query string
+        if (getVersion() != null) {
+            joiner.add(
+                    String.format(
+                            "%sversion%s=%s",
+                            prefix,
+                            suffix,
+                            URLEncoder.encode(String.valueOf(getVersion()), StandardCharsets.UTF_8)
+                                    .replaceAll("\\+", "%20")));
+        }
+
+        return joiner.toString();
+    }
 }
-

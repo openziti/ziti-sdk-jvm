@@ -10,66 +10,41 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import org.openziti.edge.model.Link;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for EntityRef
- */
+/** Model tests for EntityRef */
 class EntityRefTest {
     private final EntityRef model = new EntityRef();
 
-    /**
-     * Model tests for EntityRef
-     */
+    /** Model tests for EntityRef */
     @Test
     void testEntityRef() {
         // TODO: test EntityRef
     }
 
-    /**
-     * Test the property 'links'
-     */
+    /** Test the property 'links' */
     @Test
     void linksTest() {
         // TODO: test links
     }
 
-    /**
-     * Test the property 'entity'
-     */
+    /** Test the property 'entity' */
     @Test
     void entityTest() {
         // TODO: test entity
     }
 
-    /**
-     * Test the property 'id'
-     */
+    /** Test the property 'id' */
     @Test
     void idTest() {
         // TODO: test id
     }
 
-    /**
-     * Test the property 'name'
-     */
+    /** Test the property 'name' */
     @Test
     void nameTest() {
         // TODO: test name
     }
-
 }

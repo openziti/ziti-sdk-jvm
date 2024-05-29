@@ -10,41 +10,23 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for ApiErrorArgs
- */
+/** Model tests for ApiErrorArgs */
 class ApiErrorArgsTest {
     private final ApiErrorArgs model = new ApiErrorArgs();
 
-    /**
-     * Model tests for ApiErrorArgs
-     */
+    /** Model tests for ApiErrorArgs */
     @Test
     void testApiErrorArgs() {
         // TODO: test ApiErrorArgs
     }
 
-    /**
-     * Test the property 'urlVars'
-     */
+    /** Test the property 'urlVars' */
     @Test
     void urlVarsTest() {
         // TODO: test urlVars
     }
-
 }

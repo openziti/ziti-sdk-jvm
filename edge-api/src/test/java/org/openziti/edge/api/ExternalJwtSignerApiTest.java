@@ -10,49 +10,35 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.api;
 
-import org.openziti.edge.ApiException;
-import org.openziti.edge.model.ApiErrorEnvelope;
-import org.openziti.edge.model.ListClientExternalJwtSignersEnvelope;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.model.ListClientExternalJwtSignersEnvelope;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import java.util.concurrent.CompletableFuture;
-
-/**
- * API tests for ExternalJwtSignerApi
- */
+/** API tests for ExternalJwtSignerApi */
 @Disabled
 public class ExternalJwtSignerApiTest {
 
     private final ExternalJwtSignerApi api = new ExternalJwtSignerApi();
 
-    
     /**
      * List Client Authentication External JWT
      *
-     * Retrieves a list of external JWT signers for authentication
+     * <p>Retrieves a list of external JWT signers for authentication
      *
-     * @throws ApiException
-     *          if the Api call fails
+     * @throws ApiException if the Api call fails
      */
     @Test
     public void listExternalJwtSignersTest() throws ApiException {
         Integer limit = null;
         Integer offset = null;
         String filter = null;
-        CompletableFuture<ListClientExternalJwtSignersEnvelope> response = 
-        api.listExternalJwtSigners(limit, offset, filter);
-        
+        CompletableFuture<ListClientExternalJwtSignersEnvelope> response =
+                api.listExternalJwtSigners(limit, offset, filter);
+
         // TODO: test validations
     }
-    
 }

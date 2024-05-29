@@ -10,66 +10,42 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import org.openziti.edge.model.Link;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for CurrentApiSessionCertificateCreateResponse
- */
+/** Model tests for CurrentApiSessionCertificateCreateResponse */
 class CurrentApiSessionCertificateCreateResponseTest {
-    private final CurrentApiSessionCertificateCreateResponse model = new CurrentApiSessionCertificateCreateResponse();
+    private final CurrentApiSessionCertificateCreateResponse model =
+            new CurrentApiSessionCertificateCreateResponse();
 
-    /**
-     * Model tests for CurrentApiSessionCertificateCreateResponse
-     */
+    /** Model tests for CurrentApiSessionCertificateCreateResponse */
     @Test
     void testCurrentApiSessionCertificateCreateResponse() {
         // TODO: test CurrentApiSessionCertificateCreateResponse
     }
 
-    /**
-     * Test the property 'links'
-     */
+    /** Test the property 'links' */
     @Test
     void linksTest() {
         // TODO: test links
     }
 
-    /**
-     * Test the property 'id'
-     */
+    /** Test the property 'id' */
     @Test
     void idTest() {
         // TODO: test id
     }
 
-    /**
-     * Test the property 'cas'
-     */
+    /** Test the property 'cas' */
     @Test
     void casTest() {
         // TODO: test cas
     }
 
-    /**
-     * Test the property 'certificate'
-     */
+    /** Test the property 'certificate' */
     @Test
     void certificateTest() {
         // TODO: test certificate
     }
-
 }

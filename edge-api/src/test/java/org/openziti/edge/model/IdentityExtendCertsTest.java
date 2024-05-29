@@ -10,47 +10,29 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for IdentityExtendCerts
- */
+/** Model tests for IdentityExtendCerts */
 class IdentityExtendCertsTest {
     private final IdentityExtendCerts model = new IdentityExtendCerts();
 
-    /**
-     * Model tests for IdentityExtendCerts
-     */
+    /** Model tests for IdentityExtendCerts */
     @Test
     void testIdentityExtendCerts() {
         // TODO: test IdentityExtendCerts
     }
 
-    /**
-     * Test the property 'ca'
-     */
+    /** Test the property 'ca' */
     @Test
     void caTest() {
         // TODO: test ca
     }
 
-    /**
-     * Test the property 'clientCert'
-     */
+    /** Test the property 'clientCert' */
     @Test
     void clientCertTest() {
         // TODO: test clientCert
     }
-
 }

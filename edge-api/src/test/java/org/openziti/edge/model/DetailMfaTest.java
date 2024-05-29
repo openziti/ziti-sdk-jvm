@@ -10,102 +10,65 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.openziti.edge.model.Link;
-import org.openziti.edge.model.Tags;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for DetailMfa
- */
+/** Model tests for DetailMfa */
 class DetailMfaTest {
     private final DetailMfa model = new DetailMfa();
 
-    /**
-     * Model tests for DetailMfa
-     */
+    /** Model tests for DetailMfa */
     @Test
     void testDetailMfa() {
         // TODO: test DetailMfa
     }
 
-    /**
-     * Test the property 'links'
-     */
+    /** Test the property 'links' */
     @Test
     void linksTest() {
         // TODO: test links
     }
 
-    /**
-     * Test the property 'createdAt'
-     */
+    /** Test the property 'createdAt' */
     @Test
     void createdAtTest() {
         // TODO: test createdAt
     }
 
-    /**
-     * Test the property 'id'
-     */
+    /** Test the property 'id' */
     @Test
     void idTest() {
         // TODO: test id
     }
 
-    /**
-     * Test the property 'tags'
-     */
+    /** Test the property 'tags' */
     @Test
     void tagsTest() {
         // TODO: test tags
     }
 
-    /**
-     * Test the property 'updatedAt'
-     */
+    /** Test the property 'updatedAt' */
     @Test
     void updatedAtTest() {
         // TODO: test updatedAt
     }
 
-    /**
-     * Test the property 'isVerified'
-     */
+    /** Test the property 'isVerified' */
     @Test
     void isVerifiedTest() {
         // TODO: test isVerified
     }
 
-    /**
-     * Test the property 'provisioningUrl'
-     */
+    /** Test the property 'provisioningUrl' */
     @Test
     void provisioningUrlTest() {
         // TODO: test provisioningUrl
     }
 
-    /**
-     * Test the property 'recoveryCodes'
-     */
+    /** Test the property 'recoveryCodes' */
     @Test
     void recoveryCodesTest() {
         // TODO: test recoveryCodes
     }
-
 }

@@ -10,12 +10,14 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge;
 
 import java.net.http.HttpHeaders;
 
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class ApiException extends Exception {
     private static final long serialVersionUID = 1L;
 
@@ -33,18 +35,25 @@ public class ApiException extends Exception {
         super(message);
     }
 
-    public ApiException(String message, Throwable throwable, int code, HttpHeaders responseHeaders, String responseBody) {
+    public ApiException(
+            String message,
+            Throwable throwable,
+            int code,
+            HttpHeaders responseHeaders,
+            String responseBody) {
         super(message, throwable);
         this.code = code;
         this.responseHeaders = responseHeaders;
         this.responseBody = responseBody;
     }
 
-    public ApiException(String message, int code, HttpHeaders responseHeaders, String responseBody) {
+    public ApiException(
+            String message, int code, HttpHeaders responseHeaders, String responseBody) {
         this(message, (Throwable) null, code, responseHeaders, responseBody);
     }
 
-    public ApiException(String message, Throwable throwable, int code, HttpHeaders responseHeaders) {
+    public ApiException(
+            String message, Throwable throwable, int code, HttpHeaders responseHeaders) {
         this(message, throwable, code, responseHeaders, null);
     }
 
@@ -57,7 +66,8 @@ public class ApiException extends Exception {
         this.code = code;
     }
 
-    public ApiException(int code, String message, HttpHeaders responseHeaders, String responseBody) {
+    public ApiException(
+            int code, String message, HttpHeaders responseHeaders, String responseBody) {
         this(code, message);
         this.responseHeaders = responseHeaders;
         this.responseBody = responseBody;

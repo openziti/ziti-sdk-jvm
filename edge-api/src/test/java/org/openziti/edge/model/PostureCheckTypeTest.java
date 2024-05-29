@@ -10,23 +10,15 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for PostureCheckType
- */
+/** Model tests for PostureCheckType */
 class PostureCheckTypeTest {
-    /**
-     * Model tests for PostureCheckType
-     */
+    /** Model tests for PostureCheckType */
     @Test
     void testPostureCheckType() {
         // TODO: test PostureCheckType
     }
-
 }

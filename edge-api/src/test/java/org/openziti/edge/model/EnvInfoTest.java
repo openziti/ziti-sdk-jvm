@@ -10,79 +10,53 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.Arrays;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for EnvInfo
- */
+/** Model tests for EnvInfo */
 class EnvInfoTest {
     private final EnvInfo model = new EnvInfo();
 
-    /**
-     * Model tests for EnvInfo
-     */
+    /** Model tests for EnvInfo */
     @Test
     void testEnvInfo() {
         // TODO: test EnvInfo
     }
 
-    /**
-     * Test the property 'arch'
-     */
+    /** Test the property 'arch' */
     @Test
     void archTest() {
         // TODO: test arch
     }
 
-    /**
-     * Test the property 'domain'
-     */
+    /** Test the property 'domain' */
     @Test
     void domainTest() {
         // TODO: test domain
     }
 
-    /**
-     * Test the property 'hostname'
-     */
+    /** Test the property 'hostname' */
     @Test
     void hostnameTest() {
         // TODO: test hostname
     }
 
-    /**
-     * Test the property 'os'
-     */
+    /** Test the property 'os' */
     @Test
     void osTest() {
         // TODO: test os
     }
 
-    /**
-     * Test the property 'osRelease'
-     */
+    /** Test the property 'osRelease' */
     @Test
     void osReleaseTest() {
         // TODO: test osRelease
     }
 
-    /**
-     * Test the property 'osVersion'
-     */
+    /** Test the property 'osVersion' */
     @Test
     void osVersionTest() {
         // TODO: test osVersion
     }
-
 }

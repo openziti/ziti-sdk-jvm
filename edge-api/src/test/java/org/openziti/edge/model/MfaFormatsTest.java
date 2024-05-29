@@ -10,23 +10,15 @@
  * Do not edit the class manually.
  */
 
-
 package org.openziti.edge.model;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-/**
- * Model tests for MfaFormats
- */
+/** Model tests for MfaFormats */
 class MfaFormatsTest {
-    /**
-     * Model tests for MfaFormats
-     */
+    /** Model tests for MfaFormats */
     @Test
     void testMfaFormats() {
         // TODO: test MfaFormats
     }
-
 }

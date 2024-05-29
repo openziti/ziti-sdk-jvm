@@ -12,162 +12,166 @@
 
 package org.openziti.edge.api;
 
-import org.openziti.edge.ApiClient;
-import org.openziti.edge.ApiException;
-import org.openziti.edge.ApiResponse;
-import org.openziti.edge.Pair;
-
-import org.openziti.edge.model.ApiErrorEnvelope;
-import org.openziti.edge.model.ListCurrentApiSessionServiceUpdatesEnvelope;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.InputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.http.HttpRequest;
-import java.nio.channels.Channels;
-import java.nio.channels.Pipe;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-
-import java.util.ArrayList;
-import java.util.StringJoiner;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import org.openziti.edge.ApiClient;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.ApiResponse;
+import org.openziti.edge.model.ListCurrentApiSessionServiceUpdatesEnvelope;
 
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2024-05-29T11:06:12.834975-04:00[America/New_York]", comments = "Generator version: 7.6.0")
+@javax.annotation.Generated(
+        value = "org.openapitools.codegen.languages.JavaClientCodegen",
+        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        comments = "Generator version: 7.6.0")
 public class ServicesApi {
-  private final HttpClient memberVarHttpClient;
-  private final ObjectMapper memberVarObjectMapper;
-  private final String memberVarBaseUri;
-  private final Consumer<HttpRequest.Builder> memberVarInterceptor;
-  private final Duration memberVarReadTimeout;
-  private final Consumer<HttpResponse<InputStream>> memberVarResponseInterceptor;
-  private final Consumer<HttpResponse<String>> memberVarAsyncResponseInterceptor;
+    private final HttpClient memberVarHttpClient;
+    private final ObjectMapper memberVarObjectMapper;
+    private final String memberVarBaseUri;
+    private final Consumer<HttpRequest.Builder> memberVarInterceptor;
+    private final Duration memberVarReadTimeout;
+    private final Consumer<HttpResponse<InputStream>> memberVarResponseInterceptor;
+    private final Consumer<HttpResponse<String>> memberVarAsyncResponseInterceptor;
 
-  public ServicesApi() {
-    this(new ApiClient());
-  }
-
-  public ServicesApi(ApiClient apiClient) {
-    memberVarHttpClient = apiClient.getHttpClient();
-    memberVarObjectMapper = apiClient.getObjectMapper();
-    memberVarBaseUri = apiClient.getBaseUri();
-    memberVarInterceptor = apiClient.getRequestInterceptor();
-    memberVarReadTimeout = apiClient.getReadTimeout();
-    memberVarResponseInterceptor = apiClient.getResponseInterceptor();
-    memberVarAsyncResponseInterceptor = apiClient.getAsyncResponseInterceptor();
-  }
-
-  private ApiException getApiException(String operationId, HttpResponse<String> response) {
-    String message = formatExceptionMessage(operationId, response.statusCode(), response.body());
-    return new ApiException(response.statusCode(), message, response.headers(), response.body());
-  }
-
-  private String formatExceptionMessage(String operationId, int statusCode, String body) {
-    if (body == null || body.isEmpty()) {
-      body = "[no body]";
+    public ServicesApi() {
+        this(new ApiClient());
     }
-    return operationId + " call failed with: " + statusCode + " - " + body;
-  }
 
-  /**
-   * Returns data indicating whether a client should updates it service list
-   * Retrieves data indicating the last time data relevant to this API Session was altered that would necessitate service refreshes. 
-   * @return CompletableFuture&lt;ListCurrentApiSessionServiceUpdatesEnvelope&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ListCurrentApiSessionServiceUpdatesEnvelope> listServiceUpdates() throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = listServiceUpdatesRequestBuilder();
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("listServiceUpdates", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<ListCurrentApiSessionServiceUpdatesEnvelope>() {})
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
-      });
+    public ServicesApi(ApiClient apiClient) {
+        memberVarHttpClient = apiClient.getHttpClient();
+        memberVarObjectMapper = apiClient.getObjectMapper();
+        memberVarBaseUri = apiClient.getBaseUri();
+        memberVarInterceptor = apiClient.getRequestInterceptor();
+        memberVarReadTimeout = apiClient.getReadTimeout();
+        memberVarResponseInterceptor = apiClient.getResponseInterceptor();
+        memberVarAsyncResponseInterceptor = apiClient.getAsyncResponseInterceptor();
     }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
-    }
-  }
 
-  /**
-   * Returns data indicating whether a client should updates it service list
-   * Retrieves data indicating the last time data relevant to this API Session was altered that would necessitate service refreshes. 
-   * @return CompletableFuture&lt;ApiResponse&lt;ListCurrentApiSessionServiceUpdatesEnvelope&gt;&gt;
-   * @throws ApiException if fails to make API call
-   */
-  public CompletableFuture<ApiResponse<ListCurrentApiSessionServiceUpdatesEnvelope>> listServiceUpdatesWithHttpInfo() throws ApiException {
-    try {
-      HttpRequest.Builder localVarRequestBuilder = listServiceUpdatesRequestBuilder();
-      return memberVarHttpClient.sendAsync(
-          localVarRequestBuilder.build(),
-          HttpResponse.BodyHandlers.ofString()).thenComposeAsync(localVarResponse -> {
-            if (memberVarAsyncResponseInterceptor != null) {
-              memberVarAsyncResponseInterceptor.accept(localVarResponse);
-            }
-            if (localVarResponse.statusCode()/ 100 != 2) {
-              return CompletableFuture.failedFuture(getApiException("listServiceUpdates", localVarResponse));
-            }
-            try {
-              String responseBody = localVarResponse.body();
-              return CompletableFuture.completedFuture(
-                  new ApiResponse<ListCurrentApiSessionServiceUpdatesEnvelope>(
-                      localVarResponse.statusCode(),
-                      localVarResponse.headers().map(),
-                      responseBody == null || responseBody.isBlank() ? null : memberVarObjectMapper.readValue(responseBody, new TypeReference<ListCurrentApiSessionServiceUpdatesEnvelope>() {}))
-              );
-            } catch (IOException e) {
-              return CompletableFuture.failedFuture(new ApiException(e));
-            }
+    private ApiException getApiException(String operationId, HttpResponse<String> response) {
+        String message =
+                formatExceptionMessage(operationId, response.statusCode(), response.body());
+        return new ApiException(
+                response.statusCode(), message, response.headers(), response.body());
+    }
+
+    private String formatExceptionMessage(String operationId, int statusCode, String body) {
+        if (body == null || body.isEmpty()) {
+            body = "[no body]";
         }
-      );
+        return operationId + " call failed with: " + statusCode + " - " + body;
     }
-    catch (ApiException e) {
-      return CompletableFuture.failedFuture(e);
+
+    /**
+     * Returns data indicating whether a client should updates it service list Retrieves data
+     * indicating the last time data relevant to this API Session was altered that would necessitate
+     * service refreshes.
+     *
+     * @return CompletableFuture&lt;ListCurrentApiSessionServiceUpdatesEnvelope&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ListCurrentApiSessionServiceUpdatesEnvelope> listServiceUpdates()
+            throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder = listServiceUpdatesRequestBuilder();
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "listServiceUpdates", localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            responseBody == null || responseBody.isBlank()
+                                                    ? null
+                                                    : memberVarObjectMapper.readValue(
+                                                            responseBody,
+                                                            new TypeReference<
+                                                                    ListCurrentApiSessionServiceUpdatesEnvelope>() {}));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
-  }
 
-  private HttpRequest.Builder listServiceUpdatesRequestBuilder() throws ApiException {
-
-    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
-
-    String localVarPath = "/current-api-session/service-updates";
-
-    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
-
-    localVarRequestBuilder.header("Accept", "application/json");
-
-    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
-    if (memberVarReadTimeout != null) {
-      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    /**
+     * Returns data indicating whether a client should updates it service list Retrieves data
+     * indicating the last time data relevant to this API Session was altered that would necessitate
+     * service refreshes.
+     *
+     * @return
+     *     CompletableFuture&lt;ApiResponse&lt;ListCurrentApiSessionServiceUpdatesEnvelope&gt;&gt;
+     * @throws ApiException if fails to make API call
+     */
+    public CompletableFuture<ApiResponse<ListCurrentApiSessionServiceUpdatesEnvelope>>
+            listServiceUpdatesWithHttpInfo() throws ApiException {
+        try {
+            HttpRequest.Builder localVarRequestBuilder = listServiceUpdatesRequestBuilder();
+            return memberVarHttpClient
+                    .sendAsync(localVarRequestBuilder.build(), HttpResponse.BodyHandlers.ofString())
+                    .thenComposeAsync(
+                            localVarResponse -> {
+                                if (memberVarAsyncResponseInterceptor != null) {
+                                    memberVarAsyncResponseInterceptor.accept(localVarResponse);
+                                }
+                                if (localVarResponse.statusCode() / 100 != 2) {
+                                    return CompletableFuture.failedFuture(
+                                            getApiException(
+                                                    "listServiceUpdates", localVarResponse));
+                                }
+                                try {
+                                    String responseBody = localVarResponse.body();
+                                    return CompletableFuture.completedFuture(
+                                            new ApiResponse<
+                                                    ListCurrentApiSessionServiceUpdatesEnvelope>(
+                                                    localVarResponse.statusCode(),
+                                                    localVarResponse.headers().map(),
+                                                    responseBody == null || responseBody.isBlank()
+                                                            ? null
+                                                            : memberVarObjectMapper.readValue(
+                                                                    responseBody,
+                                                                    new TypeReference<
+                                                                            ListCurrentApiSessionServiceUpdatesEnvelope>() {})));
+                                } catch (IOException e) {
+                                    return CompletableFuture.failedFuture(new ApiException(e));
+                                }
+                            });
+        } catch (ApiException e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
-    if (memberVarInterceptor != null) {
-      memberVarInterceptor.accept(localVarRequestBuilder);
-    }
-    return localVarRequestBuilder;
-  }
 
+    private HttpRequest.Builder listServiceUpdatesRequestBuilder() throws ApiException {
+
+        HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+        String localVarPath = "/current-api-session/service-updates";
+
+        localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+        localVarRequestBuilder.header("Accept", "application/json");
+
+        localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+        if (memberVarReadTimeout != null) {
+            localVarRequestBuilder.timeout(memberVarReadTimeout);
+        }
+        if (memberVarInterceptor != null) {
+            memberVarInterceptor.accept(localVarRequestBuilder);
+        }
+        return localVarRequestBuilder;
+    }
 }
