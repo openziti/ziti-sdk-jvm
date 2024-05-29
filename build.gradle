@@ -98,6 +98,8 @@ openApiGenerate {
     id.set("edge-api".toString())
     modelPackage.set("org.openziti.edge.model")
     apiPackage.set("org.openziti.edge.api")
+    generateModelTests.set(false)
+    generateApiTests.set(false)
     configOptions = [
             dateLibrary: "java8",
             library: "native",

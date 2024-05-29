@@ -4,7 +4,7 @@ Ziti Edge Client
 
 - API version: 0.26.18
 
-- Build date: 2024-05-29T11:06:12.834975-04:00[America/New_York]
+- Build date: 2024-05-29T12:39:01.933257-04:00[America/New_York]
 
 - Generator version: 7.6.0
 

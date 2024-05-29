@@ -25,7 +25,7 @@ import java.util.StringJoiner;
 @JsonPropertyOrder({Link.JSON_PROPERTY_COMMENT, Link.JSON_PROPERTY_HREF, Link.JSON_PROPERTY_METHOD})
 @javax.annotation.Generated(
         value = "org.openapitools.codegen.languages.JavaClientCodegen",
-        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        date = "2024-05-29T12:39:01.933257-04:00[America/New_York]",
         comments = "Generator version: 7.6.0")
 public class Link {
     public static final String JSON_PROPERTY_COMMENT = "comment";

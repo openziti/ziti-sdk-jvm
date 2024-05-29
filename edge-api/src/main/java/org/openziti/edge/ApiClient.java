@@ -52,7 +52,7 @@ import org.openapitools.jackson.nullable.JsonNullableModule;
  */
 @javax.annotation.Generated(
         value = "org.openapitools.codegen.languages.JavaClientCodegen",
-        date = "2024-05-29T11:06:12.834975-04:00[America/New_York]",
+        date = "2024-05-29T12:39:01.933257-04:00[America/New_York]",
         comments = "Generator version: 7.6.0")
 public class ApiClient {
 
