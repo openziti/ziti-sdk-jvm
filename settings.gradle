@@ -15,6 +15,7 @@
  */
 
 rootProject.name = 'ziti-jvm'
+include 'edge-api'
 include 'ziti'
 include 'ziti-netty'
 include 'ziti-springboot'
