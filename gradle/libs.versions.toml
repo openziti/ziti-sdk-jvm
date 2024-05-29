@@ -4,6 +4,7 @@ kotlin = "1.9.23"
 dokka = "1.9.20"
 nexus = "1.3.0"
 semver-git = "2.3.7"
+openapi-gen = "7.6.0"
 
 lazysodium-java = "5.1.4"
 coroutines = "1.8.1"
@@ -14,6 +15,7 @@ tls-channel = "0.9.0"
 jjwt = "0.12.5"
 netty = "4.1.110.Final"
 springboot = "3.2.5"
+ziti-api = "0.26.19"
 
 [libraries]
 
@@ -44,4 +46,6 @@ kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotl
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus" }
 semver-git = { id = "io.wusa.semver-git-plugin", version.ref = "semver-git" }
+openapi = { id = "org.openapi.generator", version.ref = "openapi-gen" }
+
 
