@@ -27,6 +27,7 @@ import org.openziti.identity.IdentityConfig
 import org.openziti.identity.KeyStoreIdentity
 import org.openziti.identity.findIdentityAlias
 import org.openziti.identity.keystoreFromConfig
+import org.openziti.net.internal.Sockets
 import java.net.URL
 import java.security.KeyStore
 import java.time.Instant
@@ -36,6 +37,9 @@ import kotlin.test.*
  *
  */
 internal class ControllerTest {
+    init {
+        Sockets.init(false)
+    }
 
     internal lateinit var cfg: IdentityConfig
     internal lateinit var ks: KeyStore
@@ -70,7 +74,7 @@ internal class ControllerTest {
         }
 
         assertNotNull(v)
-        assertTrue { v.runtimeVersion.startsWith("go1.") }
+        assertTrue { v.runtimeVersion?.startsWith("go1.") ?: false }
     }
 
     @Test

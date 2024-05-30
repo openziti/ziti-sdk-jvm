@@ -20,16 +20,21 @@ import com.google.gson.JsonObject
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.future.await
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import org.openziti.Errors
 import org.openziti.ZitiException
+import org.openziti.edge.ApiClient
+import org.openziti.edge.api.InformationalApi
 import org.openziti.getZitiError
 import org.openziti.impl.ZitiImpl
 import org.openziti.net.internal.Sockets
@@ -45,7 +50,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.IOException
 import java.net.URL
+import java.net.http.HttpClient
 import java.util.*
+import java.util.function.Consumer
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
@@ -54,9 +61,6 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     val SdkInfo = mapOf("type" to "ziti-sdk-java") + Version.VersionInfo
 
     internal interface API {
-        @GET("version")
-        fun version(): Deferred<Response<ControllerVersion>>
-
         @GET("current-api-session")
         fun currentApiSession(): Deferred<Response<ApiSession>>
 
@@ -141,8 +145,12 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         setLevel(level)
     }
 
+    private val edgeApi: ApiClient
+    private val infoClient: InformationalApi
+
     val clt: OkHttpClient
     val retrofit: Retrofit
+
     init {
         clt = OkHttpClient.Builder().apply {
             socketFactory(Sockets.bypassSocketFactory())
@@ -160,12 +168,30 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
             .build()
         api = retrofit.create(API::class.java)
         errorConverter = retrofit.responseBodyConverter(Response::class.java, emptyArray())
+
+        edgeApi = ApiClient().apply {
+            setHttpClientBuilder(
+                HttpClient.newBuilder()
+                    .sslContext(sslContext)
+                    .executor(Dispatchers.IO.asExecutor()))
+            updateBaseUri(endpoint.toString())
+            setBasePath("/")
+        }
+
+        edgeApi.requestInterceptor = Consumer { req ->
+            apiSession?.let {
+                req.header("zt-session", it.token)
+            }
+        }
+
+        // always uses root
+        infoClient = InformationalApi(edgeApi)
     }
 
-    suspend fun version(): ControllerVersion {
-        val ver = api.version().await().data!!
-        i { "controller[${retrofit.baseUrl()}] version(${ver.version}/${ver.revision})"}
-        val prefix = ver.apiVersions.run { get("edge-client") ?: get("edge") }?.get("v1")?.path
+    suspend fun version(): org.openziti.edge.model.Version {
+        val ver = infoClient.listVersion().await().data
+        i { "controller[${edgeApi.baseUri}] version(${ver.version}/${ver.revision})"}
+        val prefix = ver.apiVersions?.run { get("edge-client") ?: get("edge") }?.get("v1")?.path
 
         prefix?.let { apiPrefix = it } ?: w {"did not receive expected apiVersions mapping"}
         return ver

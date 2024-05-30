@@ -63,16 +63,6 @@ abstract class ApiObject(val _links: Map<String, Link>? = null)
 
 internal class SessionReq(val serviceId: String, val type: SessionType = SessionType.Dial)
 
-internal data class ApiVersion (val path: String)
-
-internal data class ControllerVersion(
-    val buildDate: String,
-    val revision: String,
-    val runtimeVersion: String,
-    val version: String,
-    val apiVersions: Map<String, Map<String,ApiVersion>>
-)
-
 internal class Login(val username: String, val password: String)
 internal class ApiSession(
     val id: String,
