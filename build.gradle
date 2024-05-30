@@ -51,9 +51,7 @@ version = "${semver.info}"
 
 subprojects {
     group = rootProject.group
-    if (it.name != 'edge-api') {
-        version = rootProject.version
-    }
+    version = rootProject.version
 
     repositories {
         mavenCentral()
