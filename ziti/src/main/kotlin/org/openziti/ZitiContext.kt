@@ -22,6 +22,7 @@ import org.openziti.api.MFAEnrollment
 import org.openziti.api.MFAType
 import org.openziti.api.Service
 import org.openziti.api.ServiceTerminator
+import org.openziti.edge.model.TerminatorClientDetail
 import org.openziti.identity.Identity
 import java.io.Writer
 import java.net.InetSocketAddress
@@ -74,7 +75,7 @@ interface ZitiContext: Identity {
     fun getService(name: String): Service?
     fun getService(name: String, timeout: Long): Service
     fun getService(addr: InetSocketAddress, timeout: Long): Service
-    fun getServiceTerminators(service: Service): Collection<ServiceTerminator>
+    fun getServiceTerminators(service: Service): Collection<TerminatorClientDetail>
 
     /**
      * connect to Ziti service.

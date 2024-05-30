@@ -22,8 +22,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.future.asDeferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.future.await
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -32,11 +34,10 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.openziti.Errors
 import org.openziti.ZitiException
 import org.openziti.edge.ApiClient
-import org.openziti.edge.api.EdgeRouterApi
-import org.openziti.edge.api.InformationalApi
-import org.openziti.edge.api.SessionApi
+import org.openziti.edge.api.*
 import org.openziti.edge.model.Meta
 import org.openziti.edge.model.SessionCreate
+import org.openziti.edge.model.TerminatorClientDetail
 import org.openziti.getZitiError
 import org.openziti.impl.ZitiImpl
 import org.openziti.net.internal.Sockets
@@ -53,7 +54,7 @@ import retrofit2.http.*
 import java.io.IOException
 import java.net.URL
 import java.net.http.HttpClient
-import java.util.*
+import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
@@ -97,19 +98,9 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         @POST("/current-identity/mfa/recovery-codes")
         fun newMFACodes(@Body code: MFACode): Deferred<Response<Unit>>
 
-        @GET("/current-api-session/service-updates")
-        fun getServiceUpdates(): Deferred<Response<ServiceUpdates>>
-
         @GET("services")
         fun getServicesAsync(@Query("offset") offset: Int = 0, @Query("limit") limit: Int? = null)
                 : Deferred<Response<Collection<Service>>>
-
-        @GET("services/{service_id}/terminators")
-        fun getServiceTerminators(
-            @Path("service_id") service_id: String,
-            @Query("offset") offset: Int = 0,
-            @Query("limit") limit: Int = 100
-        ): Deferred<Response<Collection<ServiceTerminator>>>
 
         @POST("identities")
         fun createIdentity(@Body req: CreateIdentity): Call<Response<Id>>
@@ -123,6 +114,8 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         @DELETE("{p}")
         fun delete(@Header("zt-session") session: String, @Path("p", encoded = true) path: String): Call<Response<Unit>>
     }
+
+    private val pageSize = 100
 
     internal var apiPrefix: String = ""
     internal val api: API
@@ -233,15 +226,10 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     }
 
     internal suspend fun getServiceUpdates() =
-        if (!hasServiceUpdates) ServiceUpdates(Date())
-        else api.runCatching {
-            getServiceUpdates().await().data!!
+        CurrentApiSessionApi(edgeApi).listServiceUpdates().runCatching {
+            await().data
         }.getOrElse {
-            if (it is HttpException && it.code() == 404) {
-                hasServiceUpdates = false
-                ServiceUpdates(Date())
-            } else
-                convertError(it)
+            convertError(it)
         }
 
     internal fun getServices() = pagingRequest {
@@ -254,7 +242,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         }
         val sessionApi = SessionApi(edgeApi)
         return pagingApiRequest { offset ->
-            sessionApi.listSessions(25, offset, sessionFilter).asDeferred()
+            sessionApi.listSessions(pageSize, offset, sessionFilter)
         }
     }
 
@@ -265,8 +253,8 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         }.getOrElse { convertError(it) }
     }
 
-    internal fun getServiceTerminators(s: Service): Flow<ServiceTerminator> = pagingRequest {
-            offset ->  api.getServiceTerminators(s.id, offset = offset)
+    internal fun getServiceTerminators(s: Service): Flow<TerminatorClientDetail> = pagingApiRequest {
+            offset -> ServiceApi(edgeApi).listServiceTerminators(s.id, pageSize, offset, null)
     }
 
     internal suspend fun postMFA() = api.postMFA().await().data
@@ -325,7 +313,8 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     }
 
     private inline fun <reified Env, T> pagingApiRequest(
-        crossinline req: (offset: Int) -> Deferred<Env>): Flow<T> {
+        crossinline req: (offset: Int) -> CompletableFuture<Env>
+    ): Flow<T> {
 
         val metaFunc = Env::class.memberFunctions.first { it.name == "getMeta" }
         val dataFunc = Env::class.memberFunctions.first { it.name == "getData" }

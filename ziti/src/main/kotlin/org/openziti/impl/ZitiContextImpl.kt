@@ -25,6 +25,7 @@ import org.openziti.*
 import org.openziti.api.*
 import org.openziti.edge.model.CurrentIdentityEdgeRouterDetail
 import org.openziti.edge.model.DialBind
+import org.openziti.edge.model.TerminatorClientDetail
 import org.openziti.identity.Identity
 import org.openziti.net.*
 import org.openziti.net.dns.ZitiDNSManager
@@ -38,6 +39,7 @@ import java.io.Writer
 import java.net.*
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
+import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -126,7 +128,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         emitAll(serviceCh)
     }
 
-    override fun getServiceTerminators(service: Service): Collection<ServiceTerminator> = runBlocking {
+    override fun getServiceTerminators(service: Service): Collection<TerminatorClientDetail> = runBlocking {
         controller.getServiceTerminators(service).toCollection(mutableListOf())
     }
 
@@ -310,13 +312,13 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     private fun runServiceUpdates() = async {
-        var lastUpdate = Date(0)
+        var lastUpdate = OffsetDateTime.MIN
         while (true) {
             val oneUpdate = async {
                 d("[${id.name()}] slept and restarting on t[${Thread.currentThread().name}]")
                 val updt = controller.getServiceUpdates()
 
-                if (updt.lastChangeAt.after(lastUpdate)) {
+                if (updt.lastChangeAt.isAfter(lastUpdate)) {
                     lastUpdate = updt.lastChangeAt
 
                     val services = controller.getServices().toList()
@@ -471,7 +473,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     internal val channels = ConcurrentHashMap<String, Channel>()
 
     internal suspend fun getChannel(ns: Session): Channel {
-        val ers = ns.edgeRouters ?: throw ZitiException(Errors.EdgeRouterUnavailable)
+        val ers = ns.edgeRouters
+
+        if (ers.isEmpty()) throw ZitiException(Errors.EdgeRouterUnavailable)
 
         val addrList = ers.map { it.supportedProtocols["tls"] }.filterNotNull()
 
