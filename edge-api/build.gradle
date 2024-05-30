@@ -6,10 +6,6 @@ plugins {
     alias(libs.plugins.openapi)
 }
 
-group = 'org.openziti'
-version = libs.versions.ziti.api.get()
-
-
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
