@@ -29,12 +29,7 @@ import java.util.*
 
 internal const val ClientV1Cfg = "ziti-tunneler-client.v1"
 internal const val InterceptV1Cfg = "intercept.v1"
-internal enum class SessionType(val id: Byte) {
-    Invalid(0),
-    Dial(1),
-    Bind(2),
-    Unknown(3)
-}
+typealias SessionType = org.openziti.edge.model.DialBind
 
 enum class PostureQueryType {
     OS,
@@ -60,8 +55,6 @@ internal class Pagination(val limit: Int, val offset: Int, val totalCount: Int)
 internal data class Id(val id: String)
 data class Link(val href: String)
 abstract class ApiObject(val _links: Map<String, Link>? = null)
-
-internal class SessionReq(val serviceId: String, val type: SessionType = SessionType.Dial)
 
 internal class Login(val username: String, val password: String)
 internal class ApiSession(
@@ -172,37 +165,7 @@ class PostureResponse (val id: String, val typeId: PostureQueryType, val data: D
     }
 }
 
-internal data class EdgeRouter(
-    val name: String,
-    val hostname: String,
-    val supportedProtocols: Map<String, String>,
-    @Deprecated("use supportedProtocols") val urls: Map<String, String>)
-
-internal data class Session(val id: String, val token: String, val service: Id, val type: SessionType,
-                            var edgeRouters: Array<EdgeRouter>?) {
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Session
-
-        if (id != other.id) return false
-        if (token != other.token) return false
-        if (service != other.service) return false
-        if (type != other.type) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + token.hashCode()
-        result = 31 * result + service.hashCode()
-        result = 31 * result + type.hashCode()
-        return result
-    }
-}
+typealias Session = org.openziti.edge.model.SessionDetail
 
 internal class OneTimeToken(val token: String, val jwt: String, val issuedAt: Date)
 internal class Enrollment(val ott: OneTimeToken)

@@ -28,6 +28,7 @@ ext {
 dependencies {
     implementation(libs.kotlin.lib)
     implementation(libs.kotlin.coroutines.lib)
+    implementation(libs.kotlin.reflect)
     implementation(libs.slf4j.api)
     implementation(libs.gson)
 

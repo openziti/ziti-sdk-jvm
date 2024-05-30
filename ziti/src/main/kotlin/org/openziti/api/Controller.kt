@@ -22,10 +22,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.future.await
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -34,7 +32,11 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.openziti.Errors
 import org.openziti.ZitiException
 import org.openziti.edge.ApiClient
+import org.openziti.edge.api.EdgeRouterApi
 import org.openziti.edge.api.InformationalApi
+import org.openziti.edge.api.SessionApi
+import org.openziti.edge.model.Meta
+import org.openziti.edge.model.SessionCreate
 import org.openziti.getZitiError
 import org.openziti.impl.ZitiImpl
 import org.openziti.net.internal.Sockets
@@ -55,6 +57,7 @@ import java.util.*
 import java.util.function.Consumer
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
+import kotlin.reflect.full.memberFunctions
 
 internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustManager) :
     Logged by ZitiLog() {
@@ -72,9 +75,6 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
 
         @DELETE("current-api-session")
         fun logout(): Deferred<Unit>
-
-        @GET("/current-identity/edge-routers")
-        fun getEdgeRouters(): Deferred<Response<Collection<EdgeRouter>>>
 
         @GET("/current-identity/mfa")
         fun getMFA(): Deferred<Response<MFAEnrollment>>
@@ -116,14 +116,6 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
 
         @GET("identities/{id}")
         fun getIdentity(@Path("id") id: String): Call<Response<Identity>>
-
-        @GET("sessions")
-        fun getSessionsAsync(@Query("filter") filter: String? = null,
-                             @Query("offset") offset: Int = 0,
-                             @Query("limit") limit: Int? = null): Deferred<Response<Collection<Session>>>
-
-        @POST("sessions")
-        fun createNetworkSession(@Body req: SessionReq): Deferred<Response<Session>>
 
         @POST("posture-response")
         fun sendPosture (@Body pr: PostureResponse): Deferred<Response<JsonObject>>
@@ -260,16 +252,17 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         val sessionFilter = apiSession?.let {
             "apiSession=\"${it.id}\""
         }
-        return pagingRequest { offset ->  api.getSessionsAsync(sessionFilter, offset = offset) }
+        val sessionApi = SessionApi(edgeApi)
+        return pagingApiRequest { offset ->
+            sessionApi.listSessions(25, offset, sessionFilter).asDeferred()
+        }
     }
 
     internal suspend fun createNetSession(s: Service, t: SessionType): Session {
-        try {
-            val response = api.createNetworkSession(SessionReq(s.id, t)).await()
-            return response.data!!
-        } catch (ex: Exception) {
-            convertError(ex)
-        }
+        val req = SessionCreate().type(t).serviceId(s.id)
+        return SessionApi(edgeApi).createSession(req).runCatching {
+            await().data!!
+        }.getOrElse { convertError(it) }
     }
 
     internal fun getServiceTerminators(s: Service): Flow<ServiceTerminator> = pagingRequest {
@@ -331,11 +324,44 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         }
     }
 
+    private inline fun <reified Env, T> pagingApiRequest(
+        crossinline req: (offset: Int) -> Deferred<Env>): Flow<T> {
+
+        val metaFunc = Env::class.memberFunctions.first { it.name == "getMeta" }
+        val dataFunc = Env::class.memberFunctions.first { it.name == "getData" }
+
+        return flow {
+            var offset = 0
+            val p0 = req(offset)
+            val resp = p0.await()
+            val meta = metaFunc.call(resp) as Meta
+            val pagination = meta.pagination
+            val pages = mutableListOf(p0)
+            pagination?.let {
+                while (it.totalCount.toInt() > offset + it.limit.toInt()) {
+                    offset += pagination.limit.toInt()
+                    pages.add(req(offset))
+                }
+            }
+
+            pages.forEach {
+                val r = it.await()
+                val d = dataFunc.call(r) as Collection<T>
+                emitAll(d.asFlow())
+            }
+        }
+    }
+
     internal suspend fun sendPostureResp(pr: PostureResponse) {
         api.sendPosture(pr).await()
     }
 
-    internal suspend fun getEdgeRouters() = api.getEdgeRouters().await().data ?: emptyList()
+    internal suspend fun getEdgeRouters() =
+        EdgeRouterApi(edgeApi).currentIdentityEdgeRouters.runCatching {
+            await().data
+        }.getOrElse {
+            convertError(it)
+        }
 
     private fun convertError(t: Throwable): Nothing {
         val errCode = when (t) {

@@ -23,6 +23,8 @@ import org.junit.After
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
+import org.openziti.edge.model.DialBind
+import org.openziti.edge.model.SessionDetail
 import org.openziti.identity.IdentityConfig
 import org.openziti.identity.KeyStoreIdentity
 import org.openziti.identity.findIdentityAlias
@@ -87,6 +89,8 @@ internal class ControllerTest {
         assertTrue { s.expiresAt.toInstant().isAfter(Instant.now()) }
     }
 
+    fun SessionDetail.display() = "${id} ${serviceId} ${type} ${edgeRouters.size} edge routers"
+
     @Test
     fun testGetSession() {
         runBlocking {
@@ -95,15 +99,20 @@ internal class ControllerTest {
             val services = ctrl.getServices().toList()
             Assume.assumeTrue(!services.isEmpty())
 
+            ctrl.getEdgeRouters().forEach {
+                println("ER[${it.name}/${it.id}] online[${it.isOnline}] ${it.supportedProtocols}")
+            }
+
             println(services[0])
             for (serv in services) {
-                val session = ctrl.createNetSession(serv, SessionType.Dial)
+                val st = serv.permissions.first()
+                val session = ctrl.createNetSession(serv, st)
                 println(session)
                 assertEquals(serv.id, session.service.id)
             }
 
             ctrl.getSessions().collect {
-                println(it)
+                println(it.display())
             }
         }
     }
