@@ -248,7 +248,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | A response containg the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
+| **200** | A response containing the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
@@ -326,7 +326,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | A response containg the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
+| **200** | A response containing the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
