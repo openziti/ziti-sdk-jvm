@@ -16,6 +16,9 @@
 
 package org.openziti
 
+import org.openziti.edge.ApiException
+import org.openziti.edge.model.ApiError
+
 
 sealed class Errors {
     object NotEnrolled : Errors()

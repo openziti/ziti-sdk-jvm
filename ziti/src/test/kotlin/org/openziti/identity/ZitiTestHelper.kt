@@ -65,16 +65,17 @@ internal object ZitiTestHelper {
     }
 
     fun createDevice(name: String, enrollment: String = "ott"): Pair<String, Identity> {
-        val id = controller!!.createIdentity(name = name, enrollment = enrollment)
-        val device = controller!!.getIdentity(id.id)
-        objects.add("/identities/${id.id}")
-        return "/identities/${id.id}" to device!!
+        TODO()
+//        val id = controller!!.createIdentity(name = name, enrollment = enrollment)
+//        val device = controller!!.getIdentity(id.id)
+//        objects.add("/identities/${id.id}")
+//        return "/identities/${id.id}" to device!!
     }
 
-    fun getDevice(id: String) = controller!!.getIdentity(id)
+    fun getDevice(id: String): Identity? = TODO() //controller!!.getIdentity(id)
 
     fun delete(path: String) {
-        controller?.api?.delete(session, path)?.execute()
+        //controller?.api?.delete(session, path)?.execute()
     }
 
     fun cleanup() {

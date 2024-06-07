@@ -44,6 +44,13 @@ jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", v
 netty-transport = { group = "io.netty", name = "netty-transport", version.ref = "netty" }
 netty-http = { group = "io.netty", name = "netty-codec-http", version.ref = "netty" }
 
+jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson" }
+jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
+jackson-bind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jackson-datatype = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }
+
+
+
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }

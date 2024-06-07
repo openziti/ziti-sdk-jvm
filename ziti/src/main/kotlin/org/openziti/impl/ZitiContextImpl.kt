@@ -25,6 +25,7 @@ import org.openziti.*
 import org.openziti.api.*
 import org.openziti.edge.model.CurrentIdentityEdgeRouterDetail
 import org.openziti.edge.model.DialBind
+import org.openziti.edge.model.IdentityDetail
 import org.openziti.edge.model.TerminatorClientDetail
 import org.openziti.identity.Identity
 import org.openziti.net.*
@@ -114,8 +115,13 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         start()
     }
 
-    override fun getIdentity() = apiSession.mapNotNull{ it?.identity }
-    override fun getId(): ApiIdentity? = apiSession.value?.identity
+    override fun getIdentity() = apiSession.mapNotNull{
+        getId()
+    }
+
+    override fun getId(): IdentityDetail? = apiSession.value?.identity?.let {
+        IdentityDetail().name(it.name).id(it.id)
+    }
 
     override fun getStatus() = statusCh.value
     override fun statusUpdates(): StateFlow<ZitiContext.Status> = statusCh
@@ -202,9 +208,11 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             }
 
             apiSession.value = session
-            val mfa = session.authQueries.find { it.typeId == MFAType.MFA && it.provider == "ziti" }
+            val mfa = session.authQueries.find {
+                it.typeId == "MFA" && it.provider.value == "ziti"
+            }
             if (mfa != null) {
-                updateStatus(ZitiContext.Status.NeedsAuth(mfa.typeId ?: MFAType.CUSTOM, mfa.provider))
+                updateStatus(ZitiContext.Status.NeedsAuth(mfa.typeId, mfa.provider.value))
                 val success = runCatching {
                     val code = authCode.receive()
                     controller.authMFA(code)
@@ -293,10 +301,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             if (it == null) {
                 cancel()
             } else {
-                val refreshDelay = it.expiresAt.time - it.updatedAt.time - 10_000
+                val refreshDelay = it.expiresAt.toEpochSecond() - it.updatedAt.toEpochSecond() - 10
 
                 if (refreshDelay > 0) {
-                    d { "waiting for refresh ${refreshDelay / 1000} seconds" }
+                    d { "waiting for refresh ${refreshDelay} seconds" }
                     delay(refreshDelay)
                 }
 
@@ -599,9 +607,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
 
         runBlocking {
-            postureService.getPosture().forEach {
-                controller.sendPostureResp(it)
-            }
+            controller.sendPostureResp(postureService.getPosture())
 
             serviceCh.emitAll(events.asFlow())
         }

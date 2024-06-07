@@ -26,15 +26,16 @@ ext {
 }
 
 dependencies {
+    api(project(":edge-api"))
+
     implementation(libs.kotlin.lib)
     implementation(libs.kotlin.coroutines.lib)
     implementation(libs.kotlin.reflect)
     implementation(libs.slf4j.api)
     implementation(libs.gson)
+    implementation(libs.jackson.bind)
 
     implementation(libs.tls.channel)
-
-    api(project(":edge-api"))
 
     implementation('com.squareup.retrofit2:retrofit:2.11.0')
     implementation('com.squareup.retrofit2:converter-gson:2.11.0')
@@ -78,7 +79,9 @@ tasks.register("fullJar", Jar) {
     manifest.from jar.manifest
     archiveClassifier = 'full'
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
-        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/**/module-info.class'
+        exclude 'META-INF/LICENSE', 'META-INF/NOTICE',
+                'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA',
+                'META-INF/**/module-info.class'
     }
     with jar
 }

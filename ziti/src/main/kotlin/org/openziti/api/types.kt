@@ -23,6 +23,7 @@ import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import org.openziti.edge.model.CurrentApiSessionDetail
 import org.openziti.net.Protocol
 import org.openziti.util.SystemInfo
 import java.util.*
@@ -57,15 +58,7 @@ data class Link(val href: String)
 abstract class ApiObject(val _links: Map<String, Link>? = null)
 
 internal class Login(val username: String, val password: String)
-internal class ApiSession(
-    val id: String,
-    val token: String,
-    val identity: Identity,
-    val updatedAt: Date,
-    val expiresAt: Date,
-    val expirationSeconds: Int,
-    val authQueries: Array<AuthQueryMFA>
-)
+typealias ApiSession = CurrentApiSessionDetail
 
 internal class ServiceUpdates(val lastChangeAt: Date)
 

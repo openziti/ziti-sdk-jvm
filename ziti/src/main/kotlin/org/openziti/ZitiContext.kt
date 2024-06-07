@@ -22,6 +22,7 @@ import org.openziti.api.MFAEnrollment
 import org.openziti.api.MFAType
 import org.openziti.api.Service
 import org.openziti.api.ServiceTerminator
+import org.openziti.edge.model.IdentityDetail
 import org.openziti.edge.model.TerminatorClientDetail
 import org.openziti.identity.Identity
 import java.io.Writer
@@ -50,7 +51,7 @@ interface ZitiContext: Identity {
 
     sealed class Status {
         object Loading: Status()
-        class NeedsAuth(val type: MFAType, val provider: String): Status()
+        class NeedsAuth(val type: String?, val provider: String): Status()
         object Active: Status()
         object Disabled: Status()
         class NotAuthorized(val ex: Throwable): Status()
@@ -68,8 +69,8 @@ interface ZitiContext: Identity {
 
     fun serviceUpdates(): Flow<ServiceEvent>
 
-    fun getIdentity(): Flow<ApiIdentity>
-    fun getId(): ApiIdentity?
+    fun getIdentity(): Flow<IdentityDetail>
+    fun getId(): IdentityDetail?
 
     fun getService(addr: InetSocketAddress): Service?
     fun getService(name: String): Service?

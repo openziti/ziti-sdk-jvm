@@ -114,6 +114,9 @@ internal class ControllerTest {
             ctrl.getSessions().collect {
                 println(it.display())
             }
+
+            val mfa = ctrl.getMFAEnrollment()
+            println(mfa)
         }
     }
 
