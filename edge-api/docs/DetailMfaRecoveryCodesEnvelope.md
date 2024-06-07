@@ -7,7 +7,7 @@
 
 | Name | Type | Description | Notes |
 |------------ | ------------- | ------------- | -------------|
-|**error** | [**DetailMfaRecoveryCodes**](DetailMfaRecoveryCodes.md) |  |  |
+|**data** | [**DetailMfaRecoveryCodes**](DetailMfaRecoveryCodes.md) |  |  |
 |**meta** | [**Meta**](Meta.md) |  |  |
 
 

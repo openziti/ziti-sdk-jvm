@@ -18,7 +18,7 @@ plugins {
     alias(libs.plugins.kotlin) apply(false)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.semver.git)
-    alias(libs.plugins.openapi)
+    alias(libs.plugins.openapi) apply(false)
 }
 
 semver {
@@ -82,6 +82,9 @@ nexusPublishing {
     }
 }
 
+gradle.rootProject {
+    apply plugin: libs.plugins.openapi.get().pluginId
+}
 // generate Ziti Edge API client
 // only needed if new version was published in github.com/openziti/edge-api
 // run `./gradlew :openApiGenerate`, check build, commit, push

@@ -194,7 +194,7 @@ CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
 
 ## createMfaRecoveryCodes
 
-> CompletableFuture<DetailMfaRecoveryCodesEnvelope> createMfaRecoveryCodes(mfaValidation)
+> CompletableFuture<Empty> createMfaRecoveryCodes(mfaValidation)
 
 For a completed MFA enrollment regenerate the recovery codes
 
@@ -230,7 +230,7 @@ public class Example {
         MfaApi apiInstance = new MfaApi(defaultClient);
         MfaCode mfaValidation = new MfaCode(); // MfaCode | An MFA validation request
         try {
-            CompletableFuture<DetailMfaRecoveryCodesEnvelope> result = apiInstance.createMfaRecoveryCodes(mfaValidation);
+            CompletableFuture<Empty> result = apiInstance.createMfaRecoveryCodes(mfaValidation);
             System.out.println(result.get());
         } catch (ApiException e) {
             System.err.println("Exception when calling MfaApi#createMfaRecoveryCodes");
@@ -252,7 +252,7 @@ public class Example {
 
 ### Return type
 
-CompletableFuture<[**DetailMfaRecoveryCodesEnvelope**](DetailMfaRecoveryCodesEnvelope.md)>
+CompletableFuture<[**Empty**](Empty.md)>
 
 
 ### Authorization
@@ -267,13 +267,13 @@ CompletableFuture<[**DetailMfaRecoveryCodesEnvelope**](DetailMfaRecoveryCodesEnv
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | The recovery codes of an MFA enrollment |  -  |
+| **200** | Base empty response |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 
 ## createMfaRecoveryCodesWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailMfaRecoveryCodesEnvelope>> createMfaRecoveryCodes createMfaRecoveryCodesWithHttpInfo(mfaValidation)
+> CompletableFuture<ApiResponse<Empty>> createMfaRecoveryCodes createMfaRecoveryCodesWithHttpInfo(mfaValidation)
 
 For a completed MFA enrollment regenerate the recovery codes
 
@@ -310,7 +310,7 @@ public class Example {
         MfaApi apiInstance = new MfaApi(defaultClient);
         MfaCode mfaValidation = new MfaCode(); // MfaCode | An MFA validation request
         try {
-            CompletableFuture<ApiResponse<DetailMfaRecoveryCodesEnvelope>> response = apiInstance.createMfaRecoveryCodesWithHttpInfo(mfaValidation);
+            CompletableFuture<ApiResponse<Empty>> response = apiInstance.createMfaRecoveryCodesWithHttpInfo(mfaValidation);
             System.out.println("Status code: " + response.get().getStatusCode());
             System.out.println("Response headers: " + response.get().getHeaders());
             System.out.println("Response body: " + response.get().getData());
@@ -341,7 +341,7 @@ public class Example {
 
 ### Return type
 
-CompletableFuture<ApiResponse<[**DetailMfaRecoveryCodesEnvelope**](DetailMfaRecoveryCodesEnvelope.md)>>
+CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
 
 
 ### Authorization
@@ -356,7 +356,7 @@ CompletableFuture<ApiResponse<[**DetailMfaRecoveryCodesEnvelope**](DetailMfaReco
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | The recovery codes of an MFA enrollment |  -  |
+| **200** | Base empty response |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 
@@ -850,7 +850,7 @@ CompletableFuture<ApiResponse<Void>>
 
 ## detailMfaRecoveryCodes
 
-> CompletableFuture<Empty> detailMfaRecoveryCodes(mfaValidationCode, mfaValidation)
+> CompletableFuture<DetailMfaRecoveryCodesEnvelope> detailMfaRecoveryCodes(mfaValidationCode, mfaValidation)
 
 For a completed MFA enrollment view the current recovery codes
 
@@ -887,7 +887,7 @@ public class Example {
         String mfaValidationCode = "mfaValidationCode_example"; // String | 
         MfaCode mfaValidation = new MfaCode(); // MfaCode | An MFA validation request
         try {
-            CompletableFuture<Empty> result = apiInstance.detailMfaRecoveryCodes(mfaValidationCode, mfaValidation);
+            CompletableFuture<DetailMfaRecoveryCodesEnvelope> result = apiInstance.detailMfaRecoveryCodes(mfaValidationCode, mfaValidation);
             System.out.println(result.get());
         } catch (ApiException e) {
             System.err.println("Exception when calling MfaApi#detailMfaRecoveryCodes");
@@ -910,7 +910,7 @@ public class Example {
 
 ### Return type
 
-CompletableFuture<[**Empty**](Empty.md)>
+CompletableFuture<[**DetailMfaRecoveryCodesEnvelope**](DetailMfaRecoveryCodesEnvelope.md)>
 
 
 ### Authorization
@@ -925,13 +925,13 @@ CompletableFuture<[**Empty**](Empty.md)>
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Base empty response |  -  |
+| **200** | The recovery codes of an MFA enrollment |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 
 ## detailMfaRecoveryCodesWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> detailMfaRecoveryCodes detailMfaRecoveryCodesWithHttpInfo(mfaValidationCode, mfaValidation)
+> CompletableFuture<ApiResponse<DetailMfaRecoveryCodesEnvelope>> detailMfaRecoveryCodes detailMfaRecoveryCodesWithHttpInfo(mfaValidationCode, mfaValidation)
 
 For a completed MFA enrollment view the current recovery codes
 
@@ -969,7 +969,7 @@ public class Example {
         String mfaValidationCode = "mfaValidationCode_example"; // String | 
         MfaCode mfaValidation = new MfaCode(); // MfaCode | An MFA validation request
         try {
-            CompletableFuture<ApiResponse<Empty>> response = apiInstance.detailMfaRecoveryCodesWithHttpInfo(mfaValidationCode, mfaValidation);
+            CompletableFuture<ApiResponse<DetailMfaRecoveryCodesEnvelope>> response = apiInstance.detailMfaRecoveryCodesWithHttpInfo(mfaValidationCode, mfaValidation);
             System.out.println("Status code: " + response.get().getStatusCode());
             System.out.println("Response headers: " + response.get().getHeaders());
             System.out.println("Response body: " + response.get().getData());
@@ -1001,7 +1001,7 @@ public class Example {
 
 ### Return type
 
-CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
+CompletableFuture<ApiResponse<[**DetailMfaRecoveryCodesEnvelope**](DetailMfaRecoveryCodesEnvelope.md)>>
 
 
 ### Authorization
@@ -1016,7 +1016,7 @@ CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Base empty response |  -  |
+| **200** | The recovery codes of an MFA enrollment |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 

@@ -2,9 +2,9 @@
 
 Ziti Edge Client
 
-- API version: 0.26.18
+- API version: 0.26.20
 
-- Build date: 2024-05-29T12:39:01.933257-04:00[America/New_York]
+- Build date: 2024-06-07T09:12:49.062759-04:00[America/New_York]
 
 - Generator version: 7.6.0
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>edge-api</artifactId>
-  <version>0.26.18</version>
+  <version>0.26.20</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:edge-api:0.26.18"
+compile "org.openziti:edge-api:0.26.20"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/edge-api-0.26.18.jar`
+- `target/edge-api-0.26.20.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -174,14 +174,18 @@ Class | Method | HTTP request | Description
 *EnrollApi* | [**enrollOttWithHttpInfo**](docs/EnrollApi.md#enrollOttWithHttpInfo) | **POST** /enroll/ott | Enroll an identity via one-time-token
 *EnrollApi* | [**enrollOttCa**](docs/EnrollApi.md#enrollOttCa) | **POST** /enroll/ottca | Enroll an identity via one-time-token with a pre-exchanged client certificate
 *EnrollApi* | [**enrollOttCaWithHttpInfo**](docs/EnrollApi.md#enrollOttCaWithHttpInfo) | **POST** /enroll/ottca | Enroll an identity via one-time-token with a pre-exchanged client certificate
-*EnrollApi* | [**ernollUpdb**](docs/EnrollApi.md#ernollUpdb) | **POST** /enroll/updb | Enroll an identity via one-time-token
-*EnrollApi* | [**ernollUpdbWithHttpInfo**](docs/EnrollApi.md#ernollUpdbWithHttpInfo) | **POST** /enroll/updb | Enroll an identity via one-time-token
+*EnrollApi* | [**enrollUpdb**](docs/EnrollApi.md#enrollUpdb) | **POST** /enroll/updb | Enroll an identity via one-time-token
+*EnrollApi* | [**enrollUpdbWithHttpInfo**](docs/EnrollApi.md#enrollUpdbWithHttpInfo) | **POST** /enroll/updb | Enroll an identity via one-time-token
+*EnrollApi* | [**enrollmentChallenge**](docs/EnrollApi.md#enrollmentChallenge) | **POST** /enroll/challenge | Allows verification of a controller or cluster of controllers as being the valid target for enrollment.
+*EnrollApi* | [**enrollmentChallengeWithHttpInfo**](docs/EnrollApi.md#enrollmentChallengeWithHttpInfo) | **POST** /enroll/challenge | Allows verification of a controller or cluster of controllers as being the valid target for enrollment.
 *EnrollApi* | [**extendCurrentIdentityAuthenticator**](docs/EnrollApi.md#extendCurrentIdentityAuthenticator) | **POST** /current-identity/authenticators/{id}/extend | Allows the current identity to recieve a new certificate associated with a certificate based authenticator
 *EnrollApi* | [**extendCurrentIdentityAuthenticatorWithHttpInfo**](docs/EnrollApi.md#extendCurrentIdentityAuthenticatorWithHttpInfo) | **POST** /current-identity/authenticators/{id}/extend | Allows the current identity to recieve a new certificate associated with a certificate based authenticator
 *EnrollApi* | [**extendRouterEnrollment**](docs/EnrollApi.md#extendRouterEnrollment) | **POST** /enroll/extend/router | Extend the life of a currently enrolled router&#39;s certificates
 *EnrollApi* | [**extendRouterEnrollmentWithHttpInfo**](docs/EnrollApi.md#extendRouterEnrollmentWithHttpInfo) | **POST** /enroll/extend/router | Extend the life of a currently enrolled router&#39;s certificates
 *EnrollApi* | [**extendVerifyCurrentIdentityAuthenticator**](docs/EnrollApi.md#extendVerifyCurrentIdentityAuthenticator) | **POST** /current-identity/authenticators/{id}/extend-verify | Allows the current identity to validate reciept of a new client certificate
 *EnrollApi* | [**extendVerifyCurrentIdentityAuthenticatorWithHttpInfo**](docs/EnrollApi.md#extendVerifyCurrentIdentityAuthenticatorWithHttpInfo) | **POST** /current-identity/authenticators/{id}/extend-verify | Allows the current identity to validate reciept of a new client certificate
+*EnrollApi* | [**getEnrollmentJwks**](docs/EnrollApi.md#getEnrollmentJwks) | **GET** /enroll/jwks | List JSON Web Keys associated with enrollment
+*EnrollApi* | [**getEnrollmentJwksWithHttpInfo**](docs/EnrollApi.md#getEnrollmentJwksWithHttpInfo) | **GET** /enroll/jwks | List JSON Web Keys associated with enrollment
 *ExtendEnrollmentApi* | [**extendCurrentIdentityAuthenticator**](docs/ExtendEnrollmentApi.md#extendCurrentIdentityAuthenticator) | **POST** /current-identity/authenticators/{id}/extend | Allows the current identity to recieve a new certificate associated with a certificate based authenticator
 *ExtendEnrollmentApi* | [**extendCurrentIdentityAuthenticatorWithHttpInfo**](docs/ExtendEnrollmentApi.md#extendCurrentIdentityAuthenticatorWithHttpInfo) | **POST** /current-identity/authenticators/{id}/extend | Allows the current identity to recieve a new certificate associated with a certificate based authenticator
 *ExtendEnrollmentApi* | [**extendRouterEnrollment**](docs/ExtendEnrollmentApi.md#extendRouterEnrollment) | **POST** /enroll/extend/router | Extend the life of a currently enrolled router&#39;s certificates
@@ -297,10 +301,12 @@ Class | Method | HTTP request | Description
  - [DetailSpecEnvelope](docs/DetailSpecEnvelope.md)
  - [DialBind](docs/DialBind.md)
  - [Empty](docs/Empty.md)
+ - [EnrollUpdbRequest](docs/EnrollUpdbRequest.md)
  - [EnrollmentCerts](docs/EnrollmentCerts.md)
  - [EnrollmentCertsEnvelope](docs/EnrollmentCertsEnvelope.md)
  - [EntityRef](docs/EntityRef.md)
  - [EnvInfo](docs/EnvInfo.md)
+ - [ErOttEnrollmentRequest](docs/ErOttEnrollmentRequest.md)
  - [IdentityAuthenticators](docs/IdentityAuthenticators.md)
  - [IdentityAuthenticatorsCert](docs/IdentityAuthenticatorsCert.md)
  - [IdentityAuthenticatorsUpdb](docs/IdentityAuthenticatorsUpdb.md)
@@ -312,6 +318,8 @@ Class | Method | HTTP request | Description
  - [IdentityExtendEnrollmentEnvelope](docs/IdentityExtendEnrollmentEnvelope.md)
  - [IdentityExtendEnrollmentRequest](docs/IdentityExtendEnrollmentRequest.md)
  - [IdentityExtendValidateEnrollmentRequest](docs/IdentityExtendValidateEnrollmentRequest.md)
+ - [Jwk](docs/Jwk.md)
+ - [Jwks](docs/Jwks.md)
  - [Link](docs/Link.md)
  - [ListAuthenticatorsEnvelope](docs/ListAuthenticatorsEnvelope.md)
  - [ListClientExternalJwtSignersEnvelope](docs/ListClientExternalJwtSignersEnvelope.md)
@@ -331,7 +339,11 @@ Class | Method | HTTP request | Description
  - [MfaCode](docs/MfaCode.md)
  - [MfaFormats](docs/MfaFormats.md)
  - [MfaProviders](docs/MfaProviders.md)
+ - [NonceChallenge](docs/NonceChallenge.md)
+ - [NonceSignature](docs/NonceSignature.md)
  - [OsType](docs/OsType.md)
+ - [OtherPrime](docs/OtherPrime.md)
+ - [OttEnrollmentRequest](docs/OttEnrollmentRequest.md)
  - [Pagination](docs/Pagination.md)
  - [PostureCheckType](docs/PostureCheckType.md)
  - [PostureQueries](docs/PostureQueries.md)

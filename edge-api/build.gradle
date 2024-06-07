@@ -3,7 +3,6 @@ plugins {
     id 'java'
     id 'maven-publish'
     alias(libs.plugins.spotless)
-    alias(libs.plugins.openapi)
 }
 
 sourceCompatibility = JavaVersion.VERSION_11
@@ -90,7 +89,4 @@ tasks.named('spotlessApply').get().mustRunAfter(':openApiGenerate')
 tasks.named('spotlessJava').get().mustRunAfter(':openApiGenerate')
 tasks.named('spotlessMisc').get().mustRunAfter(':openApiGenerate')
 
-tasks.named('openApiGenerate').each {
-    it.get().finalizedBy('spotlessApply')
-}
 

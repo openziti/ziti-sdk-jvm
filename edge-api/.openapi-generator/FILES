@@ -49,10 +49,12 @@ docs/DialBind.md
 docs/EdgeRouterApi.md
 docs/Empty.md
 docs/EnrollApi.md
+docs/EnrollUpdbRequest.md
 docs/EnrollmentCerts.md
 docs/EnrollmentCertsEnvelope.md
 docs/EntityRef.md
 docs/EnvInfo.md
+docs/ErOttEnrollmentRequest.md
 docs/ExtendEnrollmentApi.md
 docs/ExternalJwtSignerApi.md
 docs/IdentityAuthenticators.md
@@ -67,6 +69,8 @@ docs/IdentityExtendEnrollmentEnvelope.md
 docs/IdentityExtendEnrollmentRequest.md
 docs/IdentityExtendValidateEnrollmentRequest.md
 docs/InformationalApi.md
+docs/Jwk.md
+docs/Jwks.md
 docs/Link.md
 docs/ListAuthenticatorsEnvelope.md
 docs/ListClientExternalJwtSignersEnvelope.md
@@ -87,7 +91,11 @@ docs/MfaApi.md
 docs/MfaCode.md
 docs/MfaFormats.md
 docs/MfaProviders.md
+docs/NonceChallenge.md
+docs/NonceSignature.md
 docs/OsType.md
+docs/OtherPrime.md
+docs/OttEnrollmentRequest.md
 docs/Pagination.md
 docs/PostureCheckType.md
 docs/PostureChecksApi.md
@@ -192,10 +200,12 @@ src/main/java/org/openziti/edge/model/DetailSpecBodyEnvelope.java
 src/main/java/org/openziti/edge/model/DetailSpecEnvelope.java
 src/main/java/org/openziti/edge/model/DialBind.java
 src/main/java/org/openziti/edge/model/Empty.java
+src/main/java/org/openziti/edge/model/EnrollUpdbRequest.java
 src/main/java/org/openziti/edge/model/EnrollmentCerts.java
 src/main/java/org/openziti/edge/model/EnrollmentCertsEnvelope.java
 src/main/java/org/openziti/edge/model/EntityRef.java
 src/main/java/org/openziti/edge/model/EnvInfo.java
+src/main/java/org/openziti/edge/model/ErOttEnrollmentRequest.java
 src/main/java/org/openziti/edge/model/IdentityAuthenticators.java
 src/main/java/org/openziti/edge/model/IdentityAuthenticatorsCert.java
 src/main/java/org/openziti/edge/model/IdentityAuthenticatorsUpdb.java
@@ -207,6 +217,8 @@ src/main/java/org/openziti/edge/model/IdentityExtendCerts.java
 src/main/java/org/openziti/edge/model/IdentityExtendEnrollmentEnvelope.java
 src/main/java/org/openziti/edge/model/IdentityExtendEnrollmentRequest.java
 src/main/java/org/openziti/edge/model/IdentityExtendValidateEnrollmentRequest.java
+src/main/java/org/openziti/edge/model/Jwk.java
+src/main/java/org/openziti/edge/model/Jwks.java
 src/main/java/org/openziti/edge/model/Link.java
 src/main/java/org/openziti/edge/model/ListAuthenticatorsEnvelope.java
 src/main/java/org/openziti/edge/model/ListClientExternalJwtSignersEnvelope.java
@@ -226,7 +238,11 @@ src/main/java/org/openziti/edge/model/Meta.java
 src/main/java/org/openziti/edge/model/MfaCode.java
 src/main/java/org/openziti/edge/model/MfaFormats.java
 src/main/java/org/openziti/edge/model/MfaProviders.java
+src/main/java/org/openziti/edge/model/NonceChallenge.java
+src/main/java/org/openziti/edge/model/NonceSignature.java
 src/main/java/org/openziti/edge/model/OsType.java
+src/main/java/org/openziti/edge/model/OtherPrime.java
+src/main/java/org/openziti/edge/model/OttEnrollmentRequest.java
 src/main/java/org/openziti/edge/model/Pagination.java
 src/main/java/org/openziti/edge/model/PostureCheckType.java
 src/main/java/org/openziti/edge/model/PostureQueries.java

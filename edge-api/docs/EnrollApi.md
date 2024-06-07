@@ -14,20 +14,24 @@ All URIs are relative to *https://demo.ziti.dev/edge/client/v1*
 | [**enrollOttWithHttpInfo**](EnrollApi.md#enrollOttWithHttpInfo) | **POST** /enroll/ott | Enroll an identity via one-time-token |
 | [**enrollOttCa**](EnrollApi.md#enrollOttCa) | **POST** /enroll/ottca | Enroll an identity via one-time-token with a pre-exchanged client certificate |
 | [**enrollOttCaWithHttpInfo**](EnrollApi.md#enrollOttCaWithHttpInfo) | **POST** /enroll/ottca | Enroll an identity via one-time-token with a pre-exchanged client certificate |
-| [**ernollUpdb**](EnrollApi.md#ernollUpdb) | **POST** /enroll/updb | Enroll an identity via one-time-token |
-| [**ernollUpdbWithHttpInfo**](EnrollApi.md#ernollUpdbWithHttpInfo) | **POST** /enroll/updb | Enroll an identity via one-time-token |
+| [**enrollUpdb**](EnrollApi.md#enrollUpdb) | **POST** /enroll/updb | Enroll an identity via one-time-token |
+| [**enrollUpdbWithHttpInfo**](EnrollApi.md#enrollUpdbWithHttpInfo) | **POST** /enroll/updb | Enroll an identity via one-time-token |
+| [**enrollmentChallenge**](EnrollApi.md#enrollmentChallenge) | **POST** /enroll/challenge | Allows verification of a controller or cluster of controllers as being the valid target for enrollment. |
+| [**enrollmentChallengeWithHttpInfo**](EnrollApi.md#enrollmentChallengeWithHttpInfo) | **POST** /enroll/challenge | Allows verification of a controller or cluster of controllers as being the valid target for enrollment. |
 | [**extendCurrentIdentityAuthenticator**](EnrollApi.md#extendCurrentIdentityAuthenticator) | **POST** /current-identity/authenticators/{id}/extend | Allows the current identity to recieve a new certificate associated with a certificate based authenticator |
 | [**extendCurrentIdentityAuthenticatorWithHttpInfo**](EnrollApi.md#extendCurrentIdentityAuthenticatorWithHttpInfo) | **POST** /current-identity/authenticators/{id}/extend | Allows the current identity to recieve a new certificate associated with a certificate based authenticator |
 | [**extendRouterEnrollment**](EnrollApi.md#extendRouterEnrollment) | **POST** /enroll/extend/router | Extend the life of a currently enrolled router&#39;s certificates |
 | [**extendRouterEnrollmentWithHttpInfo**](EnrollApi.md#extendRouterEnrollmentWithHttpInfo) | **POST** /enroll/extend/router | Extend the life of a currently enrolled router&#39;s certificates |
 | [**extendVerifyCurrentIdentityAuthenticator**](EnrollApi.md#extendVerifyCurrentIdentityAuthenticator) | **POST** /current-identity/authenticators/{id}/extend-verify | Allows the current identity to validate reciept of a new client certificate |
 | [**extendVerifyCurrentIdentityAuthenticatorWithHttpInfo**](EnrollApi.md#extendVerifyCurrentIdentityAuthenticatorWithHttpInfo) | **POST** /current-identity/authenticators/{id}/extend-verify | Allows the current identity to validate reciept of a new client certificate |
+| [**getEnrollmentJwks**](EnrollApi.md#getEnrollmentJwks) | **GET** /enroll/jwks | List JSON Web Keys associated with enrollment |
+| [**getEnrollmentJwksWithHttpInfo**](EnrollApi.md#getEnrollmentJwksWithHttpInfo) | **GET** /enroll/jwks | List JSON Web Keys associated with enrollment |
 
 
 
 ## enroll
 
-> CompletableFuture<Empty> enroll(token, method)
+> CompletableFuture<String> enroll(token, method)
 
 Enroll an identity via one-time-token
 
@@ -53,7 +57,7 @@ public class Example {
         UUID token = UUID.randomUUID(); // UUID | 
         String method = "method_example"; // String | 
         try {
-            CompletableFuture<Empty> result = apiInstance.enroll(token, method);
+            CompletableFuture<String> result = apiInstance.enroll(token, method);
             System.out.println(result.get());
         } catch (ApiException e) {
             System.err.println("Exception when calling EnrollApi#enroll");
@@ -76,7 +80,7 @@ public class Example {
 
 ### Return type
 
-CompletableFuture<[**Empty**](Empty.md)>
+CompletableFuture<**String**>
 
 
 ### Authorization
@@ -91,13 +95,13 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Base empty response |  -  |
+| **200** | A response for multi-format legacy enrollment. |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
 ## enrollWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> enroll enrollWithHttpInfo(token, method)
+> CompletableFuture<ApiResponse<String>> enroll enrollWithHttpInfo(token, method)
 
 Enroll an identity via one-time-token
 
@@ -124,7 +128,7 @@ public class Example {
         UUID token = UUID.randomUUID(); // UUID | 
         String method = "method_example"; // String | 
         try {
-            CompletableFuture<ApiResponse<Empty>> response = apiInstance.enrollWithHttpInfo(token, method);
+            CompletableFuture<ApiResponse<String>> response = apiInstance.enrollWithHttpInfo(token, method);
             System.out.println("Status code: " + response.get().getStatusCode());
             System.out.println("Response headers: " + response.get().getHeaders());
             System.out.println("Response body: " + response.get().getData());
@@ -156,7 +160,7 @@ public class Example {
 
 ### Return type
 
-CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
+CompletableFuture<ApiResponse<**String**>>
 
 
 ### Authorization
@@ -171,7 +175,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Base empty response |  -  |
+| **200** | A response for multi-format legacy enrollment. |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
@@ -317,7 +321,7 @@ No authorization required
 
 ## enrollErOtt
 
-> CompletableFuture<EnrollmentCertsEnvelope> enrollErOtt(token)
+> CompletableFuture<EnrollmentCertsEnvelope> enrollErOtt(erOttEnrollmentRequest)
 
 Enroll an edge-router
 
@@ -340,9 +344,9 @@ public class Example {
         defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
 
         EnrollApi apiInstance = new EnrollApi(defaultClient);
-        UUID token = UUID.randomUUID(); // UUID | 
+        ErOttEnrollmentRequest erOttEnrollmentRequest = new ErOttEnrollmentRequest(); // ErOttEnrollmentRequest | An OTT enrollment request
         try {
-            CompletableFuture<EnrollmentCertsEnvelope> result = apiInstance.enrollErOtt(token);
+            CompletableFuture<EnrollmentCertsEnvelope> result = apiInstance.enrollErOtt(erOttEnrollmentRequest);
             System.out.println(result.get());
         } catch (ApiException e) {
             System.err.println("Exception when calling EnrollApi#enrollErOtt");
@@ -360,7 +364,7 @@ public class Example {
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **token** | **UUID**|  | |
+| **erOttEnrollmentRequest** | [**ErOttEnrollmentRequest**](ErOttEnrollmentRequest.md)| An OTT enrollment request | |
 
 ### Return type
 
@@ -373,7 +377,7 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
+- **Content-Type**: application/json
 - **Accept**: application/json
 
 ### HTTP response details
@@ -384,7 +388,7 @@ No authorization required
 
 ## enrollErOttWithHttpInfo
 
-> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollErOtt enrollErOttWithHttpInfo(token)
+> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollErOtt enrollErOttWithHttpInfo(erOttEnrollmentRequest)
 
 Enroll an edge-router
 
@@ -408,9 +412,9 @@ public class Example {
         defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
 
         EnrollApi apiInstance = new EnrollApi(defaultClient);
-        UUID token = UUID.randomUUID(); // UUID | 
+        ErOttEnrollmentRequest erOttEnrollmentRequest = new ErOttEnrollmentRequest(); // ErOttEnrollmentRequest | An OTT enrollment request
         try {
-            CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> response = apiInstance.enrollErOttWithHttpInfo(token);
+            CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> response = apiInstance.enrollErOttWithHttpInfo(erOttEnrollmentRequest);
             System.out.println("Status code: " + response.get().getStatusCode());
             System.out.println("Response headers: " + response.get().getHeaders());
             System.out.println("Response body: " + response.get().getData());
@@ -437,7 +441,7 @@ public class Example {
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **token** | **UUID**|  | |
+| **erOttEnrollmentRequest** | [**ErOttEnrollmentRequest**](ErOttEnrollmentRequest.md)| An OTT enrollment request | |
 
 ### Return type
 
@@ -450,7 +454,7 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
+- **Content-Type**: application/json
 - **Accept**: application/json
 
 ### HTTP response details
@@ -462,7 +466,7 @@ No authorization required
 
 ## enrollOtt
 
-> CompletableFuture<String> enrollOtt(token)
+> CompletableFuture<EnrollmentCertsEnvelope> enrollOtt(ottEnrollmentRequest)
 
 Enroll an identity via one-time-token
 
@@ -485,9 +489,9 @@ public class Example {
         defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
 
         EnrollApi apiInstance = new EnrollApi(defaultClient);
-        UUID token = UUID.randomUUID(); // UUID | 
+        OttEnrollmentRequest ottEnrollmentRequest = new OttEnrollmentRequest(); // OttEnrollmentRequest | An OTT enrollment request
         try {
-            CompletableFuture<String> result = apiInstance.enrollOtt(token);
+            CompletableFuture<EnrollmentCertsEnvelope> result = apiInstance.enrollOtt(ottEnrollmentRequest);
             System.out.println(result.get());
         } catch (ApiException e) {
             System.err.println("Exception when calling EnrollApi#enrollOtt");
@@ -505,11 +509,11 @@ public class Example {
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **token** | **UUID**|  | |
+| **ottEnrollmentRequest** | [**OttEnrollmentRequest**](OttEnrollmentRequest.md)| An OTT enrollment request | |
 
 ### Return type
 
-CompletableFuture<**String**>
+CompletableFuture<[**EnrollmentCertsEnvelope**](EnrollmentCertsEnvelope.md)>
 
 
 ### Authorization
@@ -518,19 +522,19 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
-- **Accept**: application/x-x509-user-cert, application/json
+- **Content-Type**: application/json
+- **Accept**: application/json
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | A PEM encoded certificate signed by the internal Ziti CA |  -  |
+| **200** | A response containing and identities client certificate chains |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
 ## enrollOttWithHttpInfo
 
-> CompletableFuture<ApiResponse<String>> enrollOtt enrollOttWithHttpInfo(token)
+> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollOtt enrollOttWithHttpInfo(ottEnrollmentRequest)
 
 Enroll an identity via one-time-token
 
@@ -554,9 +558,9 @@ public class Example {
         defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
 
         EnrollApi apiInstance = new EnrollApi(defaultClient);
-        UUID token = UUID.randomUUID(); // UUID | 
+        OttEnrollmentRequest ottEnrollmentRequest = new OttEnrollmentRequest(); // OttEnrollmentRequest | An OTT enrollment request
         try {
-            CompletableFuture<ApiResponse<String>> response = apiInstance.enrollOttWithHttpInfo(token);
+            CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> response = apiInstance.enrollOttWithHttpInfo(ottEnrollmentRequest);
             System.out.println("Status code: " + response.get().getStatusCode());
             System.out.println("Response headers: " + response.get().getHeaders());
             System.out.println("Response body: " + response.get().getData());
@@ -583,11 +587,11 @@ public class Example {
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **token** | **UUID**|  | |
+| **ottEnrollmentRequest** | [**OttEnrollmentRequest**](OttEnrollmentRequest.md)| An OTT enrollment request | |
 
 ### Return type
 
-CompletableFuture<ApiResponse<**String**>>
+CompletableFuture<ApiResponse<[**EnrollmentCertsEnvelope**](EnrollmentCertsEnvelope.md)>>
 
 
 ### Authorization
@@ -596,20 +600,20 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
-- **Accept**: application/x-x509-user-cert, application/json
+- **Content-Type**: application/json
+- **Accept**: application/json
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | A PEM encoded certificate signed by the internal Ziti CA |  -  |
+| **200** | A response containing and identities client certificate chains |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
 
 ## enrollOttCa
 
-> CompletableFuture<Empty> enrollOttCa(token)
+> CompletableFuture<Empty> enrollOttCa(ottEnrollmentRequest)
 
 Enroll an identity via one-time-token with a pre-exchanged client certificate
 
@@ -632,9 +636,9 @@ public class Example {
         defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
 
         EnrollApi apiInstance = new EnrollApi(defaultClient);
-        UUID token = UUID.randomUUID(); // UUID | 
+        OttEnrollmentRequest ottEnrollmentRequest = new OttEnrollmentRequest(); // OttEnrollmentRequest | An OTT enrollment request
         try {
-            CompletableFuture<Empty> result = apiInstance.enrollOttCa(token);
+            CompletableFuture<Empty> result = apiInstance.enrollOttCa(ottEnrollmentRequest);
             System.out.println(result.get());
         } catch (ApiException e) {
             System.err.println("Exception when calling EnrollApi#enrollOttCa");
@@ -652,7 +656,7 @@ public class Example {
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **token** | **UUID**|  | |
+| **ottEnrollmentRequest** | [**OttEnrollmentRequest**](OttEnrollmentRequest.md)| An OTT enrollment request | |
 
 ### Return type
 
@@ -665,7 +669,7 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
+- **Content-Type**: application/json
 - **Accept**: application/json
 
 ### HTTP response details
@@ -676,7 +680,7 @@ No authorization required
 
 ## enrollOttCaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> enrollOttCa enrollOttCaWithHttpInfo(token)
+> CompletableFuture<ApiResponse<Empty>> enrollOttCa enrollOttCaWithHttpInfo(ottEnrollmentRequest)
 
 Enroll an identity via one-time-token with a pre-exchanged client certificate
 
@@ -700,9 +704,9 @@ public class Example {
         defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
 
         EnrollApi apiInstance = new EnrollApi(defaultClient);
-        UUID token = UUID.randomUUID(); // UUID | 
+        OttEnrollmentRequest ottEnrollmentRequest = new OttEnrollmentRequest(); // OttEnrollmentRequest | An OTT enrollment request
         try {
-            CompletableFuture<ApiResponse<Empty>> response = apiInstance.enrollOttCaWithHttpInfo(token);
+            CompletableFuture<ApiResponse<Empty>> response = apiInstance.enrollOttCaWithHttpInfo(ottEnrollmentRequest);
             System.out.println("Status code: " + response.get().getStatusCode());
             System.out.println("Response headers: " + response.get().getHeaders());
             System.out.println("Response body: " + response.get().getData());
@@ -729,7 +733,7 @@ public class Example {
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **token** | **UUID**|  | |
+| **ottEnrollmentRequest** | [**OttEnrollmentRequest**](OttEnrollmentRequest.md)| An OTT enrollment request | |
 
 ### Return type
 
@@ -742,7 +746,7 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
+- **Content-Type**: application/json
 - **Accept**: application/json
 
 ### HTTP response details
@@ -752,9 +756,9 @@ No authorization required
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
 
-## ernollUpdb
+## enrollUpdb
 
-> CompletableFuture<Empty> ernollUpdb(token)
+> CompletableFuture<Empty> enrollUpdb(token, updbCredentials)
 
 Enroll an identity via one-time-token
 
@@ -778,11 +782,12 @@ public class Example {
 
         EnrollApi apiInstance = new EnrollApi(defaultClient);
         UUID token = UUID.randomUUID(); // UUID | 
+        EnrollUpdbRequest updbCredentials = new EnrollUpdbRequest(); // EnrollUpdbRequest | 
         try {
-            CompletableFuture<Empty> result = apiInstance.ernollUpdb(token);
+            CompletableFuture<Empty> result = apiInstance.enrollUpdb(token, updbCredentials);
             System.out.println(result.get());
         } catch (ApiException e) {
-            System.err.println("Exception when calling EnrollApi#ernollUpdb");
+            System.err.println("Exception when calling EnrollApi#enrollUpdb");
             System.err.println("Status code: " + e.getCode());
             System.err.println("Reason: " + e.getResponseBody());
             System.err.println("Response headers: " + e.getResponseHeaders());
@@ -798,6 +803,7 @@ public class Example {
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **token** | **UUID**|  | |
+| **updbCredentials** | [**EnrollUpdbRequest**](EnrollUpdbRequest.md)|  | |
 
 ### Return type
 
@@ -810,7 +816,7 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
+- **Content-Type**: application/json
 - **Accept**: application/json
 
 ### HTTP response details
@@ -820,9 +826,9 @@ No authorization required
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
-## ernollUpdbWithHttpInfo
+## enrollUpdbWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> ernollUpdb ernollUpdbWithHttpInfo(token)
+> CompletableFuture<ApiResponse<Empty>> enrollUpdb enrollUpdbWithHttpInfo(token, updbCredentials)
 
 Enroll an identity via one-time-token
 
@@ -847,20 +853,21 @@ public class Example {
 
         EnrollApi apiInstance = new EnrollApi(defaultClient);
         UUID token = UUID.randomUUID(); // UUID | 
+        EnrollUpdbRequest updbCredentials = new EnrollUpdbRequest(); // EnrollUpdbRequest | 
         try {
-            CompletableFuture<ApiResponse<Empty>> response = apiInstance.ernollUpdbWithHttpInfo(token);
+            CompletableFuture<ApiResponse<Empty>> response = apiInstance.enrollUpdbWithHttpInfo(token, updbCredentials);
             System.out.println("Status code: " + response.get().getStatusCode());
             System.out.println("Response headers: " + response.get().getHeaders());
             System.out.println("Response body: " + response.get().getData());
         } catch (InterruptedException | ExecutionException e) {
             ApiException apiException = (ApiException)e.getCause();
-            System.err.println("Exception when calling EnrollApi#ernollUpdb");
+            System.err.println("Exception when calling EnrollApi#enrollUpdb");
             System.err.println("Status code: " + apiException.getCode());
             System.err.println("Response headers: " + apiException.getResponseHeaders());
             System.err.println("Reason: " + apiException.getResponseBody());
             e.printStackTrace();
         } catch (ApiException e) {
-            System.err.println("Exception when calling EnrollApi#ernollUpdb");
+            System.err.println("Exception when calling EnrollApi#enrollUpdb");
             System.err.println("Status code: " + e.getCode());
             System.err.println("Response headers: " + e.getResponseHeaders());
             System.err.println("Reason: " + e.getResponseBody());
@@ -876,6 +883,7 @@ public class Example {
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **token** | **UUID**|  | |
+| **updbCredentials** | [**EnrollUpdbRequest**](EnrollUpdbRequest.md)|  | |
 
 ### Return type
 
@@ -888,7 +896,7 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
+- **Content-Type**: application/json
 - **Accept**: application/json
 
 ### HTTP response details
@@ -896,6 +904,153 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
 | **404** | The requested resource does not exist |  -  |
+| **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+
+
+## enrollmentChallenge
+
+> CompletableFuture<NonceSignature> enrollmentChallenge(nonce)
+
+Allows verification of a controller or cluster of controllers as being the valid target for enrollment.
+
+A caller may submit a nonce and a key id (kid) from the enrollment JWKS endpoint or enrollment JWT that will be used to sign the nonce. The resulting signature may be validated with the associated public key in order to verify a networks identity during enrollment. The nonce must be a valid formatted UUID. 
+
+### Example
+
+```java
+// Import classes:
+import org.openziti.edge.ApiClient;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.Configuration;
+import org.openziti.edge.models.*;
+import org.openziti.edge.api.EnrollApi;
+import java.util.concurrent.CompletableFuture;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
+
+        EnrollApi apiInstance = new EnrollApi(defaultClient);
+        NonceChallenge nonce = new NonceChallenge(); // NonceChallenge | 
+        try {
+            CompletableFuture<NonceSignature> result = apiInstance.enrollmentChallenge(nonce);
+            System.out.println(result.get());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling EnrollApi#enrollmentChallenge");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **nonce** | [**NonceChallenge**](NonceChallenge.md)|  | |
+
+### Return type
+
+CompletableFuture<[**NonceSignature**](NonceSignature.md)>
+
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | A nonce challenge response. The contents will be the signature of the nonce, the key id used, and algorithm used to produce the signature. |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
+| **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+
+## enrollmentChallengeWithHttpInfo
+
+> CompletableFuture<ApiResponse<NonceSignature>> enrollmentChallenge enrollmentChallengeWithHttpInfo(nonce)
+
+Allows verification of a controller or cluster of controllers as being the valid target for enrollment.
+
+A caller may submit a nonce and a key id (kid) from the enrollment JWKS endpoint or enrollment JWT that will be used to sign the nonce. The resulting signature may be validated with the associated public key in order to verify a networks identity during enrollment. The nonce must be a valid formatted UUID. 
+
+### Example
+
+```java
+// Import classes:
+import org.openziti.edge.ApiClient;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.ApiResponse;
+import org.openziti.edge.Configuration;
+import org.openziti.edge.models.*;
+import org.openziti.edge.api.EnrollApi;
+import java.util.concurrent.CompletableFuture;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
+
+        EnrollApi apiInstance = new EnrollApi(defaultClient);
+        NonceChallenge nonce = new NonceChallenge(); // NonceChallenge | 
+        try {
+            CompletableFuture<ApiResponse<NonceSignature>> response = apiInstance.enrollmentChallengeWithHttpInfo(nonce);
+            System.out.println("Status code: " + response.get().getStatusCode());
+            System.out.println("Response headers: " + response.get().getHeaders());
+            System.out.println("Response body: " + response.get().getData());
+        } catch (InterruptedException | ExecutionException e) {
+            ApiException apiException = (ApiException)e.getCause();
+            System.err.println("Exception when calling EnrollApi#enrollmentChallenge");
+            System.err.println("Status code: " + apiException.getCode());
+            System.err.println("Response headers: " + apiException.getResponseHeaders());
+            System.err.println("Reason: " + apiException.getResponseBody());
+            e.printStackTrace();
+        } catch (ApiException e) {
+            System.err.println("Exception when calling EnrollApi#enrollmentChallenge");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **nonce** | [**NonceChallenge**](NonceChallenge.md)|  | |
+
+### Return type
+
+CompletableFuture<ApiResponse<[**NonceSignature**](NonceSignature.md)>>
+
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | A nonce challenge response. The contents will be the signature of the nonce, the key id used, and algorithm used to produce the signature. |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
 
@@ -1134,7 +1289,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | A response containg the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
+| **200** | A response containing the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
@@ -1212,7 +1367,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | A response containg the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
+| **200** | A response containing the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
@@ -1386,4 +1541,139 @@ CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
+
+
+## getEnrollmentJwks
+
+> CompletableFuture<Jwks> getEnrollmentJwks()
+
+List JSON Web Keys associated with enrollment
+
+Returns a list of JSON Web Keys (JWKS) that are used for enrollment signing. The keys listed here are used to sign and co-sign enrollment JWTs. They can be verified through a challenge endpoint, using the public keys from this endpoint to verify the target machine has possession of the related private key. 
+
+### Example
+
+```java
+// Import classes:
+import org.openziti.edge.ApiClient;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.Configuration;
+import org.openziti.edge.models.*;
+import org.openziti.edge.api.EnrollApi;
+import java.util.concurrent.CompletableFuture;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
+
+        EnrollApi apiInstance = new EnrollApi(defaultClient);
+        try {
+            CompletableFuture<Jwks> result = apiInstance.getEnrollmentJwks();
+            System.out.println(result.get());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling EnrollApi#getEnrollmentJwks");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+CompletableFuture<[**Jwks**](Jwks.md)>
+
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | A JWKS response for enrollment. |  -  |
+
+## getEnrollmentJwksWithHttpInfo
+
+> CompletableFuture<ApiResponse<Jwks>> getEnrollmentJwks getEnrollmentJwksWithHttpInfo()
+
+List JSON Web Keys associated with enrollment
+
+Returns a list of JSON Web Keys (JWKS) that are used for enrollment signing. The keys listed here are used to sign and co-sign enrollment JWTs. They can be verified through a challenge endpoint, using the public keys from this endpoint to verify the target machine has possession of the related private key. 
+
+### Example
+
+```java
+// Import classes:
+import org.openziti.edge.ApiClient;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.ApiResponse;
+import org.openziti.edge.Configuration;
+import org.openziti.edge.models.*;
+import org.openziti.edge.api.EnrollApi;
+import java.util.concurrent.CompletableFuture;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
+
+        EnrollApi apiInstance = new EnrollApi(defaultClient);
+        try {
+            CompletableFuture<ApiResponse<Jwks>> response = apiInstance.getEnrollmentJwksWithHttpInfo();
+            System.out.println("Status code: " + response.get().getStatusCode());
+            System.out.println("Response headers: " + response.get().getHeaders());
+            System.out.println("Response body: " + response.get().getData());
+        } catch (InterruptedException | ExecutionException e) {
+            ApiException apiException = (ApiException)e.getCause();
+            System.err.println("Exception when calling EnrollApi#getEnrollmentJwks");
+            System.err.println("Status code: " + apiException.getCode());
+            System.err.println("Response headers: " + apiException.getResponseHeaders());
+            System.err.println("Reason: " + apiException.getResponseBody());
+            e.printStackTrace();
+        } catch (ApiException e) {
+            System.err.println("Exception when calling EnrollApi#getEnrollmentJwks");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+CompletableFuture<ApiResponse<[**Jwks**](Jwks.md)>>
+
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | A JWKS response for enrollment. |  -  |
 

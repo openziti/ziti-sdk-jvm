@@ -9,7 +9,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Client
-  version: 0.26.18
+  version: 0.26.20
 servers:
 - url: https://demo.ziti.dev/edge/client/v1
 paths:
@@ -1796,8 +1796,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/empty"
-          description: Base empty response
+                $ref: "#/components/schemas/detailMfaRecoveryCodesEnvelope"
+          description: The recovery codes of an MFA enrollment
         "401":
           content:
             application/json:
@@ -1864,8 +1864,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/detailMfaRecoveryCodesEnvelope"
-          description: The recovery codes of an MFA enrollment
+                $ref: "#/components/schemas/empty"
+          description: Base empty response
         "401":
           content:
             application/json:
@@ -2004,11 +2004,11 @@ paths:
           content:
             application/x-pem-file:
               schema:
-                $ref: "#/components/schemas/empty"
+                type: string
             application/json:
               schema:
-                $ref: "#/components/schemas/empty"
-          description: Base empty response
+                type: string
+          description: A response for multi-format legacy enrollment.
         "404":
           content:
             application/x-pem-file:
@@ -2116,18 +2116,96 @@ paths:
       - Enroll
       x-accepts:
       - application/json
+  /enroll/challenge:
+    post:
+      description: |
+        A caller may submit a nonce and a key id (kid) from the enrollment JWKS endpoint or enrollment JWT that will
+        be used to sign the nonce. The resulting signature may be validated with the associated public key in order
+        to verify a networks identity during enrollment. The nonce must be a valid formatted UUID.
+      operationId: enrollmentChallenge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/nonceChallenge"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/nonceSignature"
+          description: "A nonce challenge response. The contents will be the signature\
+            \ of the nonce, the key id used, and algorithm used to produce the signature."
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+      summary: Allows verification of a controller or cluster of controllers as being
+        the valid target for enrollment.
+      tags:
+      - Enroll
+      x-codegen-request-body-name: nonce
+      x-content-type: application/json
+      x-accepts:
+      - application/json
   /enroll/erott:
     post:
       description: |
         Enrolls an edge-router via a one-time-token to establish a certificate based identity.
       operationId: enrollErOtt
-      parameters:
-      - in: query
-        name: token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/erOttEnrollmentRequest"
+        description: An OTT enrollment request
         required: true
-        schema:
-          format: uuid
-          type: string
       responses:
         "200":
           content:
@@ -2158,6 +2236,8 @@ paths:
       summary: Enroll an edge-router
       tags:
       - Enroll
+      x-codegen-request-body-name: erOttEnrollmentRequest
+      x-content-type: application/json
       x-accepts:
       - application/json
   /enroll/extend/router:
@@ -2185,7 +2265,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/enrollmentCertsEnvelope"
-          description: "A response containg the edge routers new signed certificates\
+          description: "A response containing the edge routers new signed certificates\
             \ (server chain, server cert, CAs)."
         "401":
           content:
@@ -2234,6 +2314,25 @@ paths:
       x-content-type: application/json
       x-accepts:
       - application/json
+  /enroll/jwks:
+    get:
+      description: |
+        Returns a list of JSON Web Keys (JWKS) that are used for enrollment signing. The keys listed here are used
+        to sign and co-sign enrollment JWTs. They can be verified through a challenge endpoint, using the public keys
+        from this endpoint to verify the target machine has possession of the related private key.
+      operationId: getEnrollmentJwks
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/jwks"
+          description: A JWKS response for enrollment.
+      summary: List JSON Web Keys associated with enrollment
+      tags:
+      - Enroll
+      x-accepts:
+      - application/json
   /enroll/ott:
     post:
       description: |
@@ -2241,43 +2340,22 @@ paths:
         expects a PEM encoded CSRs to be provided for fulfillment. It is up to the enrolling identity to manage the
         private key backing the CSR request.
       operationId: enrollOtt
-      parameters:
-      - in: query
-        name: token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ottEnrollmentRequest"
+        description: An OTT enrollment request
         required: true
-        schema:
-          format: uuid
-          type: string
       responses:
         "200":
           content:
-            application/x-x509-user-cert:
-              example: |
-                -----BEGIN CERTIFICATE-----
-                MIICzDCCAlGgAwIBAgIRAPkVg1jVKqnNGFpSB3lPbaIwCgYIKoZIzj0EAwIwXjEL
-                MAkGA1UEBhMCVVMxCzAJBgNVBAgMAk5DMRMwEQYDVQQKDApOZXRGb3VuZHJ5MS0w
-                KwYDVQQDDCROZXRGb3VuZHJ5IFppdGkgRXh0ZXJuYWwgQVBJIFJvb3QgQ0EwHhcN
-                MTgxMTE1MTI1NzE3WhcNMTkxMTI1MTI1NzE3WjBrMQswCQYDVQQGEwJVUzELMAkG
-                A1UECAwCTkMxEjAQBgNVBAcMCUNoYXJsb3R0ZTETMBEGA1UECgwKTmV0Rm91bmRy
-                eTEPMA0GA1UECwwGQWR2RGV2MRUwEwYDVQQDDAxaaXRpQ2xpZW50MDEwdjAQBgcq
-                hkjOPQIBBgUrgQQAIgNiAATTl2ft+/K9RvDgki9gSr9udNcV2bxD4LrWEdCdXNzF
-                iVUiEcEte9z/M0JRt8lgo17OjFvS+ecrAmLtIZNmQnH3+9YeafjeNPpvQsMKxlTN
-                MnU7Hka11GHc6swQZSyHvlKjgcUwgcIwCQYDVR0TBAIwADARBglghkgBhvhCAQEE
-                BAMCBaAwMwYJYIZIAYb4QgENBCYWJE9wZW5TU0wgR2VuZXJhdGVkIENsaWVudCBD
-                ZXJ0aWZpY2F0ZTAdBgNVHQ4EFgQUtx+Tej6lSYdjb8Jbc2QuvoEsI/swHwYDVR0j
-                BBgwFoAUcdTlRrnP43ZbQ3PGAbZMPE26+H4wDgYDVR0PAQH/BAQDAgXgMB0GA1Ud
-                JQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDBDAKBggqhkjOPQQDAgNpADBmAjEAuXDS
-                H7KKMr+la+Yuh8d8Q9cLtXzdS0j6a8e7iOyPJmdWq2WuzNdbCfAfLgKXuxhSAjEA
-                sadZrXl1OBv11RGAKdYBIyRmfYUotCFAtCNKcfgBUxci0TDaKDA7r3jnjKT1d7Fs
-                -----END CERTIFICATE-----
+            application/json:
               schema:
-                type: string
-          description: A PEM encoded certificate signed by the internal Ziti CA
+                $ref: "#/components/schemas/enrollmentCertsEnvelope"
+          description: A response containing and identities client certificate chains
         "404":
           content:
-            application/x-x509-user-cert:
-              schema:
-                $ref: "#/components/schemas/apiErrorEnvelope"
             application/json:
               example:
                 error:
@@ -2291,12 +2369,11 @@ paths:
                 meta:
                   apiEnrollmentVersion: 0.0.1
                   apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
           description: The requested resource does not exist
         "429":
           content:
-            application/x-x509-user-cert:
-              schema:
-                $ref: "#/components/schemas/apiErrorEnvelope"
             application/json:
               example:
                 error:
@@ -2310,14 +2387,17 @@ paths:
                 meta:
                   apiEnrollmentVersion: 0.0.1
                   apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
       summary: Enroll an identity via one-time-token
       tags:
       - Enroll
+      x-codegen-request-body-name: ottEnrollmentRequest
+      x-content-type: application/json
       x-accepts:
       - application/json
-      - application/x-x509-user-cert
   /enroll/ottca:
     post:
       description: |
@@ -2328,13 +2408,13 @@ paths:
 
         As the client certificate has been pre-exchanged there is no CSR input to this enrollment method.
       operationId: enrollOttCa
-      parameters:
-      - in: query
-        name: token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ottEnrollmentRequest"
+        description: An OTT enrollment request
         required: true
-        schema:
-          format: uuid
-          type: string
       responses:
         "200":
           content:
@@ -2364,13 +2444,15 @@ paths:
       summary: Enroll an identity via one-time-token with a pre-exchanged client certificate
       tags:
       - Enroll
+      x-codegen-request-body-name: ottEnrollmentRequest
+      x-content-type: application/json
       x-accepts:
       - application/json
   /enroll/updb:
     post:
       description: |
         Enrolls an identity via a one-time-token to establish an initial username and password combination
-      operationId: ernollUpdb
+      operationId: enrollUpdb
       parameters:
       - in: query
         name: token
@@ -2378,6 +2460,12 @@ paths:
         schema:
           format: uuid
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/enrollUpdb_request"
+        required: true
       responses:
         "200":
           content:
@@ -2425,6 +2513,8 @@ paths:
       summary: Enroll an identity via one-time-token
       tags:
       - Enroll
+      x-codegen-request-body-name: updbCredentials
+      x-content-type: application/json
       x-accepts:
       - application/json
   /enumerated-capabilities:
@@ -5219,17 +5309,7 @@ components:
         updatedAt: 2000-01-23T04:56:07.000+00:00
     detailMfaRecoveryCodesEnvelope:
       example:
-        meta:
-          apiEnrollmentVersion: apiEnrollmentVersion
-          apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
-          filterableFields:
-          - filterableFields
-          - filterableFields
-        error:
+        data:
           createdAt: 2000-01-23T04:56:07.000+00:00
           _links:
             key:
@@ -5242,13 +5322,23 @@ components:
           - recoveryCodes
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          pagination:
+            offset: 6.027456183070403
+            limit: 0.8008281904610115
+            totalCount: 1.4658129805029452
+          filterableFields:
+          - filterableFields
+          - filterableFields
       properties:
-        error:
+        data:
           $ref: "#/components/schemas/detailMfaRecoveryCodes"
         meta:
           $ref: "#/components/schemas/meta"
       required:
-      - error
+      - data
       - meta
       type: object
     detailServiceEnvelope:
@@ -5568,7 +5658,7 @@ components:
           description: A PEM encoded set of CA certificates to trust
           type: string
         cert:
-          description: A PEM encoded cert for the server
+          description: A PEM encoded set of certificates to use as the client chain
           type: string
         serverCert:
           description: A PEM encoded set of certificates to use as the servers chain
@@ -5648,6 +5738,15 @@ components:
           type: string
         osVersion:
           maxLength: 255
+          type: string
+      type: object
+    erOttEnrollmentRequest:
+      properties:
+        clientCsr:
+          type: string
+        serverCsr:
+          type: string
+        token:
           type: string
       type: object
     identityAuthenticators:
@@ -5922,6 +6021,183 @@ components:
           type: string
       required:
       - clientCert
+      type: object
+    jwk:
+      example:
+        oth:
+        - r: r
+          d: d
+          t: t
+        - r: r
+          d: d
+          t: t
+        d: d
+        e: e
+        crv: crv
+        use: use
+        kid: kid
+        x5c:
+        - x5c
+        - x5c
+        dp: dp
+        dq: dq
+        "n": "n"
+        p: p
+        kty: kty
+        q: q
+        x5t#S256: x5t#S256
+        x5t: x5t
+        key_ops:
+        - key_ops
+        - key_ops
+        qi: qi
+        x: x
+        x5u: x5u
+        "y": "y"
+        alg: alg
+      properties:
+        alg:
+          description: Algorithm intended for use with the key.
+          type: string
+        crv:
+          description: Curve for ECC Public Keys.
+          type: string
+        d:
+          description: ECC Private Key or RSA Private Exponent.
+          type: string
+        dp:
+          description: First Factor CRT Exponent for RSA.
+          type: string
+        dq:
+          description: Second Factor CRT Exponent for RSA.
+          type: string
+        e:
+          description: Exponent for RSA Public Key.
+          type: string
+        key_ops:
+          description: "Intended key operations, e.g., sign, verify."
+          items:
+            type: string
+          type: array
+        kid:
+          description: Key ID.
+          type: string
+        kty:
+          description: Key Type.
+          type: string
+        "n":
+          description: Modulus for RSA Public Key.
+          type: string
+        oth:
+          description: Other Primes Info not represented by the first two primes.
+          items:
+            $ref: "#/components/schemas/otherPrime"
+          type: array
+        p:
+          description: First Prime Factor for RSA.
+          type: string
+        q:
+          description: Second Prime Factor for RSA.
+          type: string
+        qi:
+          description: First CRT Coefficient for RSA.
+          type: string
+        use:
+          description: "Public key use, e.g., sig (signature) or enc (encryption)."
+          type: string
+        x:
+          description: X Coordinate for ECC Public Keys.
+          type: string
+        x5c:
+          description: X.509 Certificate Chain.
+          items:
+            type: string
+          type: array
+        x5t:
+          description: X.509 Certificate SHA-1 Thumbprint.
+          type: string
+        x5t#S256:
+          description: X.509 Certificate SHA-256 Thumbprint.
+          type: string
+        x5u:
+          description: X.509 URL.
+          type: string
+        "y":
+          description: Y Coordinate for ECC Public Keys.
+          type: string
+      required:
+      - kty
+      type: object
+    jwks:
+      example:
+        keys:
+        - oth:
+          - r: r
+            d: d
+            t: t
+          - r: r
+            d: d
+            t: t
+          d: d
+          e: e
+          crv: crv
+          use: use
+          kid: kid
+          x5c:
+          - x5c
+          - x5c
+          dp: dp
+          dq: dq
+          "n": "n"
+          p: p
+          kty: kty
+          q: q
+          x5t#S256: x5t#S256
+          x5t: x5t
+          key_ops:
+          - key_ops
+          - key_ops
+          qi: qi
+          x: x
+          x5u: x5u
+          "y": "y"
+          alg: alg
+        - oth:
+          - r: r
+            d: d
+            t: t
+          - r: r
+            d: d
+            t: t
+          d: d
+          e: e
+          crv: crv
+          use: use
+          kid: kid
+          x5c:
+          - x5c
+          - x5c
+          dp: dp
+          dq: dq
+          "n": "n"
+          p: p
+          kty: kty
+          q: q
+          x5t#S256: x5t#S256
+          x5t: x5t
+          key_ops:
+          - key_ops
+          - key_ops
+          qi: qi
+          x: x
+          x5u: x5u
+          "y": "y"
+          alg: alg
+      properties:
+        keys:
+          items:
+            $ref: "#/components/schemas/jwk"
+          type: array
       type: object
     link:
       description: A link to another resource
@@ -6942,6 +7218,38 @@ components:
       - ziti
       - url
       type: string
+    nonceChallenge:
+      properties:
+        keyId:
+          type: string
+        nonce:
+          format: uuid
+          type: string
+      required:
+      - keyId
+      - nonce
+      type: object
+    nonceSignature:
+      example:
+        signature: signature
+        caPool: caPool
+        kid: kid
+        algorithm: algorithm
+      properties:
+        algorithm:
+          type: string
+        caPool:
+          type: string
+        kid:
+          type: string
+        signature:
+          type: string
+      required:
+      - algorithm
+      - caPool
+      - kid
+      - signature
+      type: object
     osType:
       enum:
       - Windows
@@ -6951,6 +7259,29 @@ components:
       - Linux
       - macOS
       type: string
+    otherPrime:
+      example:
+        r: r
+        d: d
+        t: t
+      properties:
+        d:
+          description: Factor CRT exponent.
+          type: string
+        r:
+          description: Prime factor.
+          type: string
+        t:
+          description: Factor CRT coefficient.
+          type: string
+      type: object
+    ottEnrollmentRequest:
+      properties:
+        clientCsr:
+          type: string
+        token:
+          type: string
+      type: object
     pagination:
       example:
         offset: 6.027456183070403
@@ -7909,6 +8240,17 @@ components:
           type: string
         version:
           example: v0.9.0
+          type: string
+      type: object
+    enrollUpdb_request:
+      properties:
+        password:
+          maxLength: 100
+          minLength: 5
+          type: string
+        username:
+          maxLength: 100
+          minLength: 4
           type: string
       type: object
     identityAuthenticators_cert:
