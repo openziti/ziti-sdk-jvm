@@ -188,8 +188,12 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
             convertError(it)
         }
 
-    internal fun getServices() = pagingRequest {
-        offset -> api.getServicesAsync(offset = offset, limit = 25)
+    internal fun getServices(): Flow<ServiceDetail> {
+        val serviceApi = ServiceApi(edgeApi)
+
+        return pagingApiRequest {
+                offset -> serviceApi.listServices(25,  offset, null, null, null, null)
+        }
     }
 
     internal fun getSessions(): Flow<Session> {
@@ -202,7 +206,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         }
     }
 
-    internal suspend fun createNetSession(s: Service, t: SessionType): Session {
+    internal suspend fun createNetSession(s: ServiceDetail, t: SessionType): Session {
         val req = SessionCreate().type(t).serviceId(s.id)
         return SessionApi(edgeApi).createSession(req).runCatching {
             await().data!!

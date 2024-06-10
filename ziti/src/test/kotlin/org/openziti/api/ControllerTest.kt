@@ -16,14 +16,14 @@
 
 package org.openziti.api
 
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
 import org.junit.After
 import org.junit.Assume
 import org.junit.Before
-import org.junit.Test
-import org.openziti.edge.model.DialBind
 import org.openziti.edge.model.SessionDetail
 import org.openziti.identity.IdentityConfig
 import org.openziti.identity.KeyStoreIdentity
@@ -34,6 +34,7 @@ import java.net.URL
 import java.security.KeyStore
 import java.time.Instant
 import kotlin.test.*
+import kotlin.test.Test
 
 /**
  *

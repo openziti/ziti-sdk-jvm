@@ -16,8 +16,6 @@
 
 package org.openziti.posture
 
-import org.openziti.api.PostureQuery
-import org.openziti.api.PostureResponse
 import org.openziti.edge.model.PostureResponseCreate
 import java.util.*
 
@@ -33,7 +31,7 @@ internal object PostureLoader {
 }
 
 interface PostureService {
-    fun registerServiceCheck(serviceId: String, query: PostureQuery)
+    fun registerServiceCheck(serviceId: String, query: org.openziti.edge.model.PostureQuery)
     fun getPosture(): List<PostureResponseCreate>
 }
 

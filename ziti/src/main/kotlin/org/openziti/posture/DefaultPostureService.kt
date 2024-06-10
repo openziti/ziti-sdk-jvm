@@ -16,9 +16,9 @@
 
 package org.openziti.posture
 
-import org.openziti.api.PostureQuery
 import org.openziti.api.PostureQueryType
 import org.openziti.edge.model.PostureCheckType
+import org.openziti.edge.model.PostureQuery
 import org.openziti.edge.model.PostureResponseCreate
 import org.openziti.edge.model.PostureResponseMacAddressCreate
 import org.openziti.edge.model.PostureResponseOperatingSystemCreate
@@ -49,7 +49,7 @@ internal class DefaultPostureService: PostureService, Logged by ZitiLog() {
             }.toTypedArray()
     }
 
-    override fun registerServiceCheck(serviceId: String, query: PostureQuery) {
+    override fun registerServiceCheck(serviceId: String, query: org.openziti.edge.model.PostureQuery) {
         queries.put(query.id, query)
     }
 
@@ -58,14 +58,14 @@ internal class DefaultPostureService: PostureService, Logged by ZitiLog() {
 
     internal fun processQuery(q: PostureQuery): PostureResponseCreate? {
         return when(q.queryType) {
-            PostureQueryType.OS -> PostureResponseOperatingSystemCreate().apply {
+            PostureCheckType.OS -> PostureResponseOperatingSystemCreate().apply {
                 id(q.id)
                 typeId(PostureCheckType.OS)
                 type(osName)
                 version(osVersion)
                 build("")
             }
-            PostureQueryType.MAC -> PostureResponseMacAddressCreate().apply {
+            PostureCheckType.MAC -> PostureResponseMacAddressCreate().apply {
                 id(q.id)
                 typeId(PostureCheckType.MAC)
                 macAddresses(macs.toList())

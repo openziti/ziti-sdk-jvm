@@ -34,6 +34,7 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.gson)
     implementation(libs.jackson.bind)
+    implementation(libs.jackson.kotlin)
 
     implementation(libs.tls.channel)
 

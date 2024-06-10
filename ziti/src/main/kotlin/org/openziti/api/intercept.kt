@@ -16,6 +16,7 @@
 
 package org.openziti.api
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
@@ -56,9 +57,13 @@ fun String.asInterceptAddr(): InterceptAddress {
     }
 }
 
-@JsonAdapter(InterceptAddressDeserializer::class)
+// @JsonAdapter(InterceptAddressDeserializer::class)
 sealed class InterceptAddress {
     abstract fun matches(addr: Any): Boolean
+    companion object {
+        @JsonCreator @JvmStatic
+        fun readJson(s: String): InterceptAddress = s.asInterceptAddr()
+    }
 }
 
 data class CIDRBlock(val ip: InetAddress, val bits: Int): InterceptAddress() {

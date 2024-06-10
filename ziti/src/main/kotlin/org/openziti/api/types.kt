@@ -16,14 +16,17 @@
 
 package org.openziti.api
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.*
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.TypeAdapter
 import com.google.gson.annotations.JsonAdapter
-import com.google.gson.annotations.SerializedName
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import org.openziti.edge.model.CurrentApiSessionDetail
+import org.openziti.edge.model.PostureCheckType
+import org.openziti.edge.model.ServiceDetail
 import org.openziti.net.Protocol
 import org.openziti.util.SystemInfo
 import java.util.*
@@ -89,36 +92,70 @@ data class InterceptConfig(
     }
 }
 
-class Service internal constructor(
-    internal val id: String,
-    val name: String,
-    val encryptionRequired: Boolean,
-    internal val permissions: Set<SessionType>,
-    @SerializedName("postureQueries") internal val postureSets: Array<PostureSet>?,
-    internal val config: Map<String,JsonObject>
-) {
-    val interceptConfig: InterceptConfig?
-        get() =
-            getConfig(InterceptV1Cfg, InterceptConfig::class.java) ?:
-            getConfig(ClientV1Cfg, ClientV1Config::class.java)?.let {
-                InterceptConfig(
-                    protocols = setOf(Protocol.TCP),
-                    addresses = setOf(it.hostname.asInterceptAddr()),
-                    portRanges = sortedSetOf(PortRange(it.port, it.port))
-                )
-            }
+typealias Service = ServiceDetail
 
-    fun <C> getConfig(configType: String, cls: Class<out C>): C? = Gson().fromJson(config[configType],cls)
+fun Service.failingPostureChecks(): Map<PostureCheckType, Int> {
+    val failing = postureQueries.flatMap {
+        if (it.isPassing) emptyList()
+        else it.postureQueries.filter { !it.isPassing }
+    }.groupBy{ it.queryType }
 
-    fun failingPostureChecks(): Map<PostureQueryType, Int> {
-        val failing = postureSets?.flatMap {
-            if (it.isPassing) emptyList()
-            else it.postureQueries.filter { it.queryType != null }.filter { !it.isPassing }
-        }?.groupBy{ it.queryType ?: PostureQueryType.UKNOWN }
-
-        return failing?.entries?.fold(mapOf()){ m, e -> m + (e.key to e.value.size) } ?: emptyMap()
-    }
+    return failing.entries.fold(mapOf()){ m, e -> m + (e.key to e.value.size) } ?: emptyMap()
 }
+
+fun <C> Service.getConfig(configType: String, cls: Class<out C>): C? {
+    val tree = config[configType]
+
+    tree?.let {
+        val mapper = ObjectMapper().registerModule(kotlinModule())
+        val str = mapper.writeValueAsString(tree)
+        val v = mapper.readValue(str, cls)
+        return v
+    }
+    return null
+}
+
+fun Service.interceptConfig(): InterceptConfig? =
+    getConfig(InterceptV1Cfg, InterceptConfig::class.java) ?:
+    getConfig(ClientV1Cfg, ClientV1Config::class.java)?.let {
+        InterceptConfig(
+            protocols = setOf(Protocol.TCP),
+            addresses = setOf(it.hostname.asInterceptAddr()),
+            portRanges = sortedSetOf(PortRange(it.port, it.port))
+        )
+    }
+
+
+//class Service internal constructor(
+//    internal val id: String,
+//    val name: String,
+//    val encryptionRequired: Boolean,
+//    internal val permissions: Set<SessionType>,
+//    @SerializedName("postureQueries") internal val postureSets: Array<PostureSet>?,
+//    internal val config: Map<String,JsonObject>
+//) {
+//    val interceptConfig: InterceptConfig?
+//        get() =
+//            getConfig(InterceptV1Cfg, InterceptConfig::class.java) ?:
+//            getConfig(ClientV1Cfg, ClientV1Config::class.java)?.let {
+//                InterceptConfig(
+//                    protocols = setOf(Protocol.TCP),
+//                    addresses = setOf(it.hostname.asInterceptAddr()),
+//                    portRanges = sortedSetOf(PortRange(it.port, it.port))
+//                )
+//            }
+//
+//    fun <C> getConfig(configType: String, cls: Class<out C>): C? = Gson().fromJson(config[configType],cls)
+//
+//    fun failingPostureChecks(): Map<PostureQueryType, Int> {
+//        val failing = postureSets?.flatMap {
+//            if (it.isPassing) emptyList()
+//            else it.postureQueries.filter { it.queryType != null }.filter { !it.isPassing }
+//        }?.groupBy{ it.queryType ?: PostureQueryType.UKNOWN }
+//
+//        return failing?.entries?.fold(mapOf()){ m, e -> m + (e.key to e.value.size) } ?: emptyMap()
+//    }
+//}
 
 data class ServiceTerminator internal constructor(
     val id: String,
