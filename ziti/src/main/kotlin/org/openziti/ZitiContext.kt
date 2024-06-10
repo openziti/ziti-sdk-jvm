@@ -19,11 +19,8 @@ package org.openziti
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import org.openziti.api.MFAEnrollment
-import org.openziti.api.MFAType
 import org.openziti.api.Service
-import org.openziti.api.ServiceTerminator
 import org.openziti.edge.model.IdentityDetail
-import org.openziti.edge.model.ServiceDetail
 import org.openziti.edge.model.TerminatorClientDetail
 import org.openziti.identity.Identity
 import java.io.Writer
@@ -32,7 +29,6 @@ import java.net.Socket
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.concurrent.CompletionStage
-import org.openziti.api.Identity as ApiIdentity
 
 /**
  * Object representing an instantiated Ziti identity.
@@ -48,7 +44,7 @@ interface ZitiContext: Identity {
         ConfigurationChange
     }
 
-    data class ServiceEvent(val service: ServiceDetail, val type: ServiceUpdate)
+    data class ServiceEvent(val service: Service, val type: ServiceUpdate)
 
     sealed class Status {
         object Loading: Status()

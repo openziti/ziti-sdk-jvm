@@ -16,16 +16,8 @@
 
 package org.openziti.posture
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.kotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.google.gson.Gson
 import org.junit.Before
 import org.junit.Test
-import org.openziti.api.PortRange
 import org.openziti.edge.model.PostureCheckType
 import org.openziti.edge.model.PostureQuery
 import org.openziti.edge.model.PostureResponseOperatingSystemCreate
@@ -50,30 +42,4 @@ class DefaultPostureServiceTest {
         val osResp = posture[0] as PostureResponseOperatingSystemCreate
         assertEquals(System.getProperty("os.name"), osResp.type)
     }
-
-    data class U(val low: Int) {
-        @JsonCreator
-        fun fromJson(v: Any): U {
-            println(v)
-            return U(v as Int)
-        }
-    }
-    data class S(val s: String)
-    @Test
-    fun testSer() {
-        val p1 = PortRange(22,22)
-
-        val mapper = ObjectMapper().registerModule(kotlinModule())
-
-        val foo = mapper.writeValueAsString(U(3))
-
-        val f = mapper.readValue<U>(foo)
-
-        val s1 = mapper.writeValueAsString(p1)
-        val str = Gson().toJson(p1)
-        val u: U = mapper.readValue(str)
-        val range  = mapper.readValue<PortRange>(str)
-        println(range)
-    }
-
 }

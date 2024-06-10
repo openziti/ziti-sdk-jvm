@@ -26,7 +26,6 @@ import org.openziti.api.*
 import org.openziti.edge.model.CurrentIdentityEdgeRouterDetail
 import org.openziti.edge.model.DialBind
 import org.openziti.edge.model.IdentityDetail
-import org.openziti.edge.model.ServiceDetail
 import org.openziti.edge.model.TerminatorClientDetail
 import org.openziti.identity.Identity
 import org.openziti.net.*
@@ -49,6 +48,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 import kotlin.random.Random
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 /**
  * Object maintaining current Ziti session.
@@ -87,10 +88,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val authCode = kotlinx.coroutines.channels.Channel<String>(capacity = 1, BufferOverflow.DROP_OLDEST)
 
     private val servicesLoaded = CompletableDeferred<Unit>()
-    private val servicesByName = ConcurrentHashMap<String, ServiceDetail>()
-    private val servicesById = ConcurrentHashMap<String, ServiceDetail>()
+    private val servicesByName = ConcurrentHashMap<String, Service>()
+    private val servicesById = ConcurrentHashMap<String, Service>()
 
-    private val servicesByAddr = mutableMapOf<InetAddress, MutableMap<PortRange,ServiceDetail>>()
+    private val servicesByAddr = mutableMapOf<InetAddress, MutableMap<PortRange,Service>>()
 
     data class SessionKey (val serviceId: String, val type: DialBind)
     private val networkSessions = ConcurrentHashMap<SessionKey, Session>()
@@ -304,7 +305,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
                 if (refreshDelay > 0) {
                     d { "waiting for refresh ${refreshDelay} seconds" }
-                    delay(refreshDelay)
+                    delay(refreshDelay.toDuration(DurationUnit.SECONDS))
                 }
 
                 controller.runCatching { currentApiSession() }.onFailure { ex ->
@@ -366,7 +367,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal suspend fun getNetworkSession(service: ServiceDetail, st: SessionType): Session {
+    internal suspend fun getNetworkSession(service: Service, st: SessionType): Session {
         checkEnabled()
 
         d("getNetworkSession(${service.name})")
@@ -534,7 +535,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal fun processServiceUpdates(services: Collection<ServiceDetail>) {
+    internal fun processServiceUpdates(services: Collection<Service>) {
         val events = mutableListOf<ZitiContext.ServiceEvent>()
 
         val currentIds = services.map { it.id }.toCollection(mutableSetOf())
