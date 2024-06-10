@@ -16,7 +16,6 @@
 
 package org.openziti.posture
 
-import org.openziti.api.PostureQueryType
 import org.openziti.edge.model.PostureCheckType
 import org.openziti.edge.model.PostureQuery
 import org.openziti.edge.model.PostureResponseCreate
