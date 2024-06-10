@@ -65,7 +65,7 @@ object ZitiEnroller {
         val showCodes by option(help = "display recovery codes").flag(default = false)
         val newCodes by option(help = "generate new recovery codes").flag(default = false)
 
-        fun readMFACode(type: MFAType, provider: String): Deferred<String> {
+        fun readMFACode(type: String?, provider: String): Deferred<String> {
             println("Enter MFA code $type/$provider: ")
             return CompletableFuture.supplyAsync {
                 var s: String? = null
