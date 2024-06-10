@@ -230,7 +230,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
         writeOp?.cancel("close")
 
         deregister()
-        super<InputChannel>.close()
+        super.close()
 
         runCatching { shutdownOutput() }
         runCatching { closeInternal() }

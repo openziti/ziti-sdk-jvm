@@ -49,7 +49,7 @@ internal class DefaultPostureService: PostureService, Logged by ZitiLog() {
             }.toTypedArray()
     }
 
-    override fun registerServiceCheck(serviceId: String, query: org.openziti.edge.model.PostureQuery) {
+    override fun registerServiceCheck(serviceId: String, query: PostureQuery) {
         queries.put(query.id, query)
     }
 

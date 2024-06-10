@@ -636,7 +636,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         return "${id?.name ?: name()}[${id?.id}]@${controller()}"
     }
 
-    suspend internal fun waitForActive() {
+    internal suspend fun waitForActive() {
         checkEnabled()
         // wait for active
         statusCh.takeWhile { it != ZitiContext.Status.Active }.collect()

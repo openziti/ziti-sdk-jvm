@@ -17,7 +17,6 @@
 package org.openziti.api
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.flow.Flow
@@ -99,7 +98,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         }
     }
 
-    suspend internal fun login(login: Login? = null): ApiSession {
+    internal suspend fun login(login: Login? = null): ApiSession {
         // validate current session
         if (apiSession != null) {
             apiSession = runCatching {  currentApiSession() }.getOrNull()
@@ -217,27 +216,6 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
         }
 
         return CurrentIdentityApi(edgeApi).detailMfa().await().data.recoveryCodes?.toTypedArray() ?: emptyArray()
-    }
-
-    private fun <T> pagingRequest(req: (offset: Int) -> Deferred<Response<Collection<T>>>) = flow {
-        var offset = 0
-
-        val p0 = req(offset)
-        val resp = p0.await()
-        val pagination = resp.meta.pagination!!
-
-        val pages = mutableListOf(p0)
-
-        while (pagination.totalCount > offset + pagination.limit) {
-            offset += pagination.limit
-            pages.add(req(offset))
-        }
-
-        pages.forEach { p ->
-            p.await().data?.let {
-                emitAll(it.asFlow())
-            }
-        }
     }
 
     private inline fun <reified Env, T> pagingApiRequest(

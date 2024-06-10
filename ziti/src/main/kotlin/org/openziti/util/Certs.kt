@@ -90,9 +90,7 @@ fun readCerts(pemInput: Reader) = PemReader(pemInput).use { reader ->
 
 fun readKey(input: Reader): PrivateKey {
     val parser = PEMParser(input)
-    val po = parser.readObject()// as PEMKeyPair
-
-    val pk = when(po) {
+    val pk = when(val po = parser.readObject()) {// as PEMKeyPair
         is PEMKeyPair -> JcaPEMKeyConverter().getKeyPair(po).private
         is PrivateKeyInfo -> JcaPEMKeyConverter().getPrivateKey(po)
         else -> error("unsupported key format")
