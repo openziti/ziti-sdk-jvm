@@ -19,6 +19,7 @@ plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.dokka)
     id 'maven-publish'
+    alias(libs.plugins.shadow)
 }
 
 ext {
@@ -71,16 +72,11 @@ sourceSets.main {
     resources.srcDir(files(generatedResourcesDir).builtBy(versionProps))
 }
 
-
-tasks.register("fullJar", Jar) {
+shadowJar {
     manifest.from jar.manifest
     archiveClassifier = 'full'
-    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
-        exclude 'META-INF/LICENSE', 'META-INF/NOTICE',
-                'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA',
-                'META-INF/**/module-info.class'
-    }
-    with jar
+    mergeServiceFiles()
+    configurations = [ project.configurations.runtimeClasspath ]
 }
 
 tasks.register('sourcesJar', Jar) {
@@ -97,7 +93,6 @@ tasks.register('dokkaJar', Jar) {
 artifacts {
     archives(sourcesJar)
     archives(dokkaJar)
-    archives(fullJar)
 }
 
 publishing {
@@ -106,7 +101,6 @@ publishing {
             from components.java
             artifact sourcesJar
             artifact dokkaJar
-            artifact fullJar
         }
     }
 }

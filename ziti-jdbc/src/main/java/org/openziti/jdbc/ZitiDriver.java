@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import org.openziti.Ziti;
 import org.openziti.ZitiContext;
-import org.openziti.api.Service;
 
 public class ZitiDriver implements java.sql.Driver {
   private static final Logger log = Logger.getLogger(ZitiDriver.class.getName());
