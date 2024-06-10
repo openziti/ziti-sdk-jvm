@@ -21,6 +21,8 @@ import com.google.gson.JsonObject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.junit.Assume
 import org.junit.BeforeClass
 import org.junit.Test
@@ -53,8 +55,9 @@ class ZitiSocketFactoryTest {
             }
             tm = tmf.trustManagers[0] as X509TrustManager
 
-            dns = Dns { hostname ->
-                listOf(getDNSResolver().resolve(hostname) ?: InetAddress.getByName(hostname)).filterNotNull()
+            dns = object : Dns {
+                override fun lookup(hostname: String): List<InetAddress> =
+                    listOf(getDNSResolver().resolve(hostname) ?: InetAddress.getByName(hostname)).filterNotNull()
             }
             runBlocking {
                 delay(4000)
@@ -74,14 +77,13 @@ class ZitiSocketFactoryTest {
             .build()
 
         val req = Request.Builder()
-            .post(RequestBody.create(MediaType.get("text/plain"),"this is request body"))
-            //.get()
+            .post("this is request body".toRequestBody("text/plain".toMediaType()))
             .url("http://httpbin.ziti/anything").build()
         val call = clt.newCall(req)
         val resp = call.execute()
         println(resp)
-        println(resp.headers())
-        val respBody = Gson().fromJson(resp.body()?.byteStream()?.reader(), JsonObject::class.java)
+        println(resp.headers)
+        val respBody = Gson().fromJson(resp.body?.byteStream()?.reader(), JsonObject::class.java)
         println(respBody)
     }
 
