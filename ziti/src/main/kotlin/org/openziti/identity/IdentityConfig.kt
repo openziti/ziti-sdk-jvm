@@ -26,7 +26,7 @@ internal class IdentityConfig(val ztAPI: String, val id: Id) {
     companion object {
         fun load(r: Reader): IdentityConfig = Gson().fromJson(r, IdentityConfig::class.java)
 
-        fun load(f: File): IdentityConfig = load(f.reader());
+        fun load(f: File): IdentityConfig = load(f.reader())
 
         fun load(path: String): IdentityConfig = load(File(path))
     }

@@ -19,6 +19,7 @@ plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.dokka)
     id 'maven-publish'
+    alias(libs.plugins.shadow)
 }
 
 ext {
@@ -26,17 +27,18 @@ ext {
 }
 
 dependencies {
+    api(project(":edge-api"))
+
     implementation(libs.kotlin.lib)
     implementation(libs.kotlin.coroutines.lib)
+    implementation(libs.kotlin.reflect)
     implementation(libs.slf4j.api)
     implementation(libs.gson)
+    implementation(libs.jackson.bind)
+    implementation(libs.jackson.kotlin)
 
     implementation(libs.tls.channel)
-
-    implementation('com.squareup.retrofit2:retrofit:2.11.0')
-    implementation('com.squareup.retrofit2:converter-gson:2.11.0')
-    implementation('com.squareup.okhttp3:logging-interceptor:3.14.9')
-    implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
+    implementation(libs.okhttp3)
 
     implementation(libs.jjwt.api)
     implementation(libs.jjwt.impl)
@@ -70,14 +72,11 @@ sourceSets.main {
     resources.srcDir(files(generatedResourcesDir).builtBy(versionProps))
 }
 
-
-tasks.register("fullJar", Jar) {
+shadowJar {
     manifest.from jar.manifest
     archiveClassifier = 'full'
-    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
-        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/**/module-info.class'
-    }
-    with jar
+    mergeServiceFiles()
+    configurations = [ project.configurations.runtimeClasspath ]
 }
 
 tasks.register('sourcesJar', Jar) {
@@ -94,7 +93,6 @@ tasks.register('dokkaJar', Jar) {
 artifacts {
     archives(sourcesJar)
     archives(dokkaJar)
-    archives(fullJar)
 }
 
 publishing {
@@ -103,7 +101,6 @@ publishing {
             from components.java
             artifact sourcesJar
             artifact dokkaJar
-            artifact fullJar
         }
     }
 }

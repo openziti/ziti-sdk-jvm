@@ -16,9 +16,11 @@
 
 package org.openziti.posture
 
-import org.openziti.api.PostureQuery
-import org.openziti.api.PostureQueryType
-import org.openziti.api.PostureResponse
+import org.openziti.edge.model.PostureCheckType
+import org.openziti.edge.model.PostureQuery
+import org.openziti.edge.model.PostureResponseCreate
+import org.openziti.edge.model.PostureResponseMacAddressCreate
+import org.openziti.edge.model.PostureResponseOperatingSystemCreate
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.net.NetworkInterface
@@ -50,14 +52,23 @@ internal class DefaultPostureService: PostureService, Logged by ZitiLog() {
         queries.put(query.id, query)
     }
 
-    override fun getPosture(): Array<PostureResponse> {
-        return queries.map{ processQuery(it.value) }.filterNotNull().toTypedArray()
-    }
+    override fun getPosture(): List<PostureResponseCreate> =
+        queries.map { processQuery(it.value) }.filterNotNull()
 
-    internal fun processQuery(q: PostureQuery): PostureResponse? {
+    internal fun processQuery(q: PostureQuery): PostureResponseCreate? {
         return when(q.queryType) {
-            PostureQueryType.OS -> PostureResponse.OS(q.id, osName, osVersion, "")
-            PostureQueryType.MAC -> PostureResponse.MAC(q.id, macs)
+            PostureCheckType.OS -> PostureResponseOperatingSystemCreate().apply {
+                id(q.id)
+                typeId(PostureCheckType.OS)
+                type(osName)
+                version(osVersion)
+                build("")
+            }
+            PostureCheckType.MAC -> PostureResponseMacAddressCreate().apply {
+                id(q.id)
+                typeId(PostureCheckType.MAC)
+                macAddresses(macs.toList())
+            }
             else -> {
                 w{"unsupported posture type: $q"}
                 null

@@ -36,10 +36,10 @@ class ZitiSSLSocketFactory: SSLSocketFactory(), Logged by ZitiLog() {
         it.trustManagers[0] as X509TrustManager
     }
 
-    val defaultFactory = SSLSocketFactory.getDefault() as SSLSocketFactory;
+    val defaultFactory = getDefault() as SSLSocketFactory
 
     override fun getDefaultCipherSuites(): Array<String> {
-        return defaultFactory.defaultCipherSuites;
+        return defaultFactory.defaultCipherSuites
     }
 
     override fun createSocket(s: Socket?, host: String, port: Int, autoClose: Boolean): Socket {
@@ -72,7 +72,7 @@ class ZitiSSLSocketFactory: SSLSocketFactory(), Logged by ZitiLog() {
     }
 
     override fun getSupportedCipherSuites(): Array<String> {
-        return defaultFactory.supportedCipherSuites;
+        return defaultFactory.supportedCipherSuites
     }
 
 }

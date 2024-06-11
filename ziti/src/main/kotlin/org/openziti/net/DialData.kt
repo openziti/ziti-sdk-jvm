@@ -16,12 +16,13 @@
 
 package org.openziti.net
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.google.gson.annotations.SerializedName
 
 enum class Protocol {
-    @SerializedName("tcp") TCP,
-    @SerializedName("udp") UDP,
-    @SerializedName("sctp") SCTP,
+    @SerializedName("tcp") @JsonAlias("tcp") TCP,
+    @SerializedName("udp") @JsonAlias("udp") UDP,
+    @SerializedName("sctp") @JsonAlias("sctp") SCTP,
 }
 
 data class DialData(

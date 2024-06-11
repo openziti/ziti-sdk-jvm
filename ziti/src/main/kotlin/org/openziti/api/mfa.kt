@@ -16,9 +16,12 @@
 
 package org.openziti.api
 
+import org.openziti.edge.model.DetailMfa
+
 enum class MFAType {
     MFA,
-    CUSTOM
+    CUSTOM,
+    Invalid
 }
 
 data class AuthQueryMFA (
@@ -31,11 +34,7 @@ data class AuthQueryMFA (
     val format: String
 )
 
-data class MFAEnrollment (
-    val isVerified: Boolean,
-    val recoveryCodes: Array<String>,
-    val provisioningUrl: String
-)
+typealias MFAEnrollment = DetailMfa
 
 data class MFACode (
     val code: String

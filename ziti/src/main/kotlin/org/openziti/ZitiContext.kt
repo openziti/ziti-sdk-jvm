@@ -19,9 +19,9 @@ package org.openziti
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import org.openziti.api.MFAEnrollment
-import org.openziti.api.MFAType
 import org.openziti.api.Service
-import org.openziti.api.ServiceTerminator
+import org.openziti.edge.model.IdentityDetail
+import org.openziti.edge.model.TerminatorClientDetail
 import org.openziti.identity.Identity
 import java.io.Writer
 import java.net.InetSocketAddress
@@ -29,7 +29,6 @@ import java.net.Socket
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.concurrent.CompletionStage
-import org.openziti.api.Identity as ApiIdentity
 
 /**
  * Object representing an instantiated Ziti identity.
@@ -49,7 +48,7 @@ interface ZitiContext: Identity {
 
     sealed class Status {
         object Loading: Status()
-        class NeedsAuth(val type: MFAType, val provider: String): Status()
+        class NeedsAuth(val type: String?, val provider: String): Status()
         object Active: Status()
         object Disabled: Status()
         class NotAuthorized(val ex: Throwable): Status()
@@ -67,14 +66,14 @@ interface ZitiContext: Identity {
 
     fun serviceUpdates(): Flow<ServiceEvent>
 
-    fun getIdentity(): Flow<ApiIdentity>
-    fun getId(): ApiIdentity?
+    fun getIdentity(): Flow<IdentityDetail>
+    fun getId(): IdentityDetail?
 
     fun getService(addr: InetSocketAddress): Service?
     fun getService(name: String): Service?
     fun getService(name: String, timeout: Long): Service
     fun getService(addr: InetSocketAddress, timeout: Long): Service
-    fun getServiceTerminators(service: Service): Collection<ServiceTerminator>
+    fun getServiceTerminators(service: Service): Collection<TerminatorClientDetail>
 
     /**
      * connect to Ziti service.

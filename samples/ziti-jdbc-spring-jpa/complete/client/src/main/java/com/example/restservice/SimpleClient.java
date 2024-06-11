@@ -2,10 +2,7 @@ package com.example.restservice;
 
 import okhttp3.*;
 import org.openziti.Ziti;
-import org.openziti.ZitiConnection;
 import org.openziti.ZitiContext;
-import org.openziti.api.InterceptAddress;
-import org.openziti.api.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +13,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 public class SimpleClient {
@@ -73,7 +69,7 @@ public class SimpleClient {
     try {
       zitiContext = Ziti.newContext(identityFile, "".toCharArray());
 
-      Service svc = zitiContext.getService(serviceName,10000);
+      var svc = zitiContext.getService(serviceName,10000);
       if (svc == null) {
         throw new IllegalArgumentException(String.format("Service %s is not available on the OpenZiti network",serviceName));
       }

@@ -124,7 +124,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
 
         val (service,ns) = ctx.runCatching {
             val service = getService(serviceName) ?: throw ZitiException(Errors.ServiceNotAvailable)
-            val ns = getNetworkSession(service, SessionType.Dial)
+            val ns = getNetworkSession(service, SessionType.DIAL)
             service to ns
         }.getOrElse {
             w{"failed to connect: $it"}
@@ -230,7 +230,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
         writeOp?.cancel("close")
 
         deregister()
-        super<InputChannel>.close()
+        super.close()
 
         runCatching { shutdownOutput() }
         runCatching { closeInternal() }

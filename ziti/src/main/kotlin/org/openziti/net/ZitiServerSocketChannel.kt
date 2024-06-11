@@ -75,10 +75,11 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
         require(::localAddr.isInitialized)
 
         val servResult = runCatching { ctx.getService(localAddr.service, 5000L) }
-        val service = servResult.getOrNull() ?:
-        throw BindException("no permission to bind to service[${localAddr.service}]")
+        val service = servResult.getOrElse {
+            throw BindException("no permission to bind to service[${localAddr.service}]")
+        }
 
-        if (!service.permissions.contains(SessionType.Bind)) {
+        if (!service.permissions.contains(SessionType.BIND)) {
             throw BindException("no permission to bind to service[${service.name}]")
         }
         return service
@@ -123,7 +124,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
         }
 
         try {
-            val session = ctx.getNetworkSession(localAddr.service, SessionType.Bind)
+            val session = ctx.getNetworkSession(localAddr.service, SessionType.BIND)
             token = session.token
             val ch = ctx.getChannel(session)
             ch.registerReceiver(connId, this@ZitiServerSocketChannel)
@@ -293,10 +294,11 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
                     val listenerStr = Base64.Default.encode(listenerId)
                     val body = "id[$connId] serviceName[${localAddr.service}] listenerId[$listenerStr] " +
                             "closed[${!isOpen}] encrypted[${keyPair != null}]"
+                    val st: Byte = 2
                     val m = Message(ZitiProtocol.ContentType.ConnInspectResponse, body = body.toByteArray())
                         .setHeader(Header.ConnId, connId)
                         .setHeader(Header.ReplyFor, msg.seqNo)
-                        .setHeader(Header.ConnTypeHeader, byteArrayOf(SessionType.Bind.id))
+                        .setHeader(Header.ConnTypeHeader, byteArrayOf(st))
                     it.Send(m)
                 }
             }

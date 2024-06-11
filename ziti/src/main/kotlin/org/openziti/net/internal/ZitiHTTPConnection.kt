@@ -17,6 +17,7 @@
 package org.openziti.net.internal
 
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.internal.http.HttpMethod
 import okio.BufferedSink
 import org.openziti.net.ZitiSocketFactory
@@ -48,7 +49,7 @@ class ZitiHTTPConnection(url: URL) :
         if (HttpMethod.permitsRequestBody(method)) {
             req.method(method, object : RequestBody(){
                 override fun contentType(): MediaType? {
-                    return req.build().header("Content-Type")?.let { MediaType.parse(it) }
+                    return req.build().header("Content-Type")?.toMediaTypeOrNull()
                 }
 
                 override fun contentLength(): Long {
@@ -82,38 +83,25 @@ class ZitiHTTPConnection(url: URL) :
         d("disconnect()")
     }
 
-    override fun getResponseCode(): Int {
-        return execute().code()
-    }
+    override fun getResponseCode() = execute().code
 
-    override fun getResponseMessage(): String {
-        return execute().message()
-    }
+    override fun getResponseMessage() = execute().message
 
-    override fun getHeaderField(name: String): String? {
-        return execute().header(name)
-    }
+    override fun getHeaderField(name: String) = execute().header(name)
 
-    override fun getContentLengthLong(): Long {
-        return execute().body()?.contentLength() ?: 0
-    }
+    override fun getContentLengthLong(): Long = execute().body?.contentLength() ?: 0
 
-    override fun getHeaderFields(): MutableMap<String, MutableList<String>> {
-        return execute().headers().toMultimap()
-    }
+    override fun getHeaderFields() = execute().headers.toMultimap()
 
     override fun getContentLength(): Int {
-        return execute().body()?.contentLength()?.toInt() ?: 0
+        return execute().body?.contentLength()?.toInt() ?: 0
     }
 
     override fun getOutputStream(): OutputStream {
         return body
     }
 
-    override fun getInputStream(): InputStream {
-        execute()
-        return response?.body()?.byteStream()!!
-    }
+    override fun getInputStream(): InputStream = execute().body?.byteStream()!!
 
     inner class Output : OutputStream() {
         override fun write(b: Int) = error("not implemented")
@@ -140,8 +128,10 @@ class ZitiHTTPConnection(url: URL) :
         val clt = OkHttpClient.Builder()
             .retryOnConnectionFailure(false)
             .socketFactory(factory)
-            .dns { mutableListOf(ZitiDNSManager.resolve(it) ?: InetAddress.getByName(it)) }
+            .dns ( object : Dns {
+                override fun lookup(hostname: String): List<InetAddress> =
+                    mutableListOf(ZitiDNSManager.resolve(hostname) ?: InetAddress.getByName(hostname))
+            } )
             .build()
-
     }
 }

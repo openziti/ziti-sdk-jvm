@@ -33,7 +33,7 @@ object Version {
         }
     }
 
-    val version = VersionInfo["version"]
-    val revision = VersionInfo["revision"]
-    val branch = VersionInfo["branch"]
+    val version = VersionInfo["version"].toString()
+    val revision = VersionInfo["revision"].toString()
+    val branch = VersionInfo["branch"].toString()
 }

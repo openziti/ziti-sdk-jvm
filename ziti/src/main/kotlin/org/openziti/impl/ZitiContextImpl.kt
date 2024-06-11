@@ -23,6 +23,10 @@ import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.selects.select
 import org.openziti.*
 import org.openziti.api.*
+import org.openziti.edge.model.CurrentIdentityEdgeRouterDetail
+import org.openziti.edge.model.DialBind
+import org.openziti.edge.model.IdentityDetail
+import org.openziti.edge.model.TerminatorClientDetail
 import org.openziti.identity.Identity
 import org.openziti.net.*
 import org.openziti.net.dns.ZitiDNSManager
@@ -36,7 +40,7 @@ import java.io.Writer
 import java.net.*
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
-import java.util.*
+import java.time.OffsetDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -44,7 +48,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 import kotlin.random.Random
-import org.openziti.api.Identity as ApiIdentity
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 /**
  * Object maintaining current Ziti session.
@@ -69,7 +74,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         get() = Dispatchers.IO + supervisor
 
     private val apiSession = MutableStateFlow<ApiSession?>(null)
-    private val currentEdgeRouters = MutableStateFlow<Collection<EdgeRouter>>(emptyList())
+    private val currentEdgeRouters =
+        MutableStateFlow<Collection<CurrentIdentityEdgeRouterDetail>>(emptyList())
 
     private val controller: Controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager())
     private val postureService = PostureService()
@@ -87,7 +93,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     private val servicesByAddr = mutableMapOf<InetAddress, MutableMap<PortRange,Service>>()
 
-    data class SessionKey (val serviceId: String, val type: SessionType)
+    data class SessionKey (val serviceId: String, val type: DialBind)
     private val networkSessions = ConcurrentHashMap<SessionKey, Session>()
 
     private val connCounter = AtomicInteger(0)
@@ -109,8 +115,13 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         start()
     }
 
-    override fun getIdentity() = apiSession.mapNotNull{ it?.identity }
-    override fun getId(): ApiIdentity? = apiSession.value?.identity
+    override fun getIdentity() = apiSession.mapNotNull{
+        getId()
+    }
+
+    override fun getId(): IdentityDetail? = apiSession.value?.identity?.let {
+        IdentityDetail().name(it.name).id(it.id)
+    }
 
     override fun getStatus() = statusCh.value
     override fun statusUpdates(): StateFlow<ZitiContext.Status> = statusCh
@@ -123,7 +134,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         emitAll(serviceCh)
     }
 
-    override fun getServiceTerminators(service: Service): Collection<ServiceTerminator> = runBlocking {
+    override fun getServiceTerminators(service: Service): Collection<TerminatorClientDetail> = runBlocking {
         controller.getServiceTerminators(service).toCollection(mutableListOf())
     }
 
@@ -197,9 +208,11 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             }
 
             apiSession.value = session
-            val mfa = session.authQueries.find { it.typeId == MFAType.MFA && it.provider == "ziti" }
+            val mfa = session.authQueries.find {
+                it.typeId == "MFA" && it.provider.value == "ziti"
+            }
             if (mfa != null) {
-                updateStatus(ZitiContext.Status.NeedsAuth(mfa.typeId ?: MFAType.CUSTOM, mfa.provider))
+                updateStatus(ZitiContext.Status.NeedsAuth(mfa.typeId, mfa.provider.value))
                 val success = runCatching {
                     val code = authCode.receive()
                     controller.authMFA(code)
@@ -288,11 +301,11 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             if (it == null) {
                 cancel()
             } else {
-                val refreshDelay = it.expiresAt.time - it.updatedAt.time - 10_000
+                val refreshDelay = it.expiresAt.toEpochSecond() - it.updatedAt.toEpochSecond() - 10
 
                 if (refreshDelay > 0) {
-                    d { "waiting for refresh ${refreshDelay / 1000} seconds" }
-                    delay(refreshDelay)
+                    d { "waiting for refresh ${refreshDelay} seconds" }
+                    delay(refreshDelay.toDuration(DurationUnit.SECONDS))
                 }
 
                 controller.runCatching { currentApiSession() }.onFailure { ex ->
@@ -307,13 +320,13 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     private fun runServiceUpdates() = async {
-        var lastUpdate = Date(0)
+        var lastUpdate = OffsetDateTime.MIN
         while (true) {
             val oneUpdate = async {
                 d("[${id.name()}] slept and restarting on t[${Thread.currentThread().name}]")
                 val updt = controller.getServiceUpdates()
 
-                if (updt.lastChangeAt.after(lastUpdate)) {
+                if (updt.lastChangeAt.isAfter(lastUpdate)) {
                     lastUpdate = updt.lastChangeAt
 
                     val services = controller.getServices().toList()
@@ -399,8 +412,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         val targetAddr = getDnsTarget(addr) ?: getIPtarget(addr) ?: return null
 
         val service = servicesById.values.firstOrNull { s ->
-            s.permissions.contains(SessionType.Dial) &&
-            s.interceptConfig?.let { cfg ->
+            s.permissions.contains(SessionType.DIAL) &&
+            s.interceptConfig()?.let { cfg ->
                 cfg.protocols.contains(proto) &&
                         cfg.portRanges.any { it.contains(addr.port) } &&
                         cfg.addresses.any { it.matches(targetAddr) }
@@ -440,7 +453,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     internal fun getServiceForAddress(host: String, port: Int): Service? {
         return servicesByName.values.find { svc ->
-            svc.interceptConfig?.let {
+            svc.interceptConfig()?.let {
                 it.addresses.any { it.matches(host) } && it.portRanges.any { r -> port in r.low..r.high }
             } ?: false
         }
@@ -453,7 +466,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                     serviceUpdates().filter {
                         it.type == ZitiContext.ServiceUpdate.Available &&
                             servicesByName.get(it.service.name)?.let { svc ->
-                                svc.interceptConfig?.let {
+                                svc.interceptConfig()?.let {
                                     it.addresses.any { it.matches(host) } && it.portRanges.any { r -> port in r.low..r.high }
                                 } ?: false
                             } ?: false
@@ -468,7 +481,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     internal val channels = ConcurrentHashMap<String, Channel>()
 
     internal suspend fun getChannel(ns: Session): Channel {
-        val ers = ns.edgeRouters ?: throw ZitiException(Errors.EdgeRouterUnavailable)
+        val ers = ns.edgeRouters
+
+        if (ers.isEmpty()) throw ZitiException(Errors.EdgeRouterUnavailable)
 
         val addrList = ers.map { it.supportedProtocols["tls"] }.filterNotNull()
 
@@ -500,14 +515,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal fun connectAll(routers: Collection<EdgeRouter>) = launch {
-        routers.forEach {
-            it.supportedProtocols["tls"]?.let {
-                getChannel(it)
-            }
-        }
-    }
-
     internal suspend fun connectAll(chList: List<Channel>): Channel? {
         if (chList.isEmpty()) return null
 
@@ -521,7 +528,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     // can't just replace old with new as updates do not contain session token
     // do update list of edge routers for this session
     private fun updateSession(s: Session): Session? {
-        val sessionKey = SessionKey(s.service.id, s.type)
+        val sessionKey = SessionKey(s.serviceId, s.type)
         networkSessions.containsKey(sessionKey) || return null
         return networkSessions.merge(sessionKey, s) { old, new ->
             old.apply { edgeRouters = new.edgeRouters }
@@ -539,7 +546,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         for (rid in removeIds) {
             servicesById.remove(rid)?.let {
                 servicesByName.remove(it.name)
-                it.interceptConfig?.addresses?.forEach {
+                it.interceptConfig()?.addresses?.forEach {
                     when(it) {
                         is CIDRBlock -> rtMgr.removeRoute(it)
                         is DNSName -> ZitiDNSManager.unregisterHostname(it.name)
@@ -549,8 +556,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 events.add(ZitiContext.ServiceEvent(it, ZitiContext.ServiceUpdate.Unavailable))
             }
 
-            networkSessions.remove(SessionKey(rid, SessionType.Dial))
-            networkSessions.remove(SessionKey(rid, SessionType.Bind))
+            networkSessions.remove(SessionKey(rid, SessionType.DIAL))
+            networkSessions.remove(SessionKey(rid, SessionType.BIND))
         }
 
         // update
@@ -566,8 +573,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             }
             servicesById.put(s.id, s)
 
-            val addresses = s.interceptConfig?.addresses ?: emptySet()
-            val oldAddresses = oldV?.interceptConfig?.addresses ?: emptySet()
+            val addresses = s.interceptConfig()?.addresses ?: emptySet()
+            val oldAddresses = oldV?.interceptConfig()?.addresses ?: emptySet()
 
             val removedAddresses = oldAddresses - addresses
             removedAddresses.forEach {
@@ -592,17 +599,15 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 route?.let { rtMgr.addRoute(it) }
             }
 
-            s.postureSets?.forEach {
-                it.postureQueries.forEach {
+            s.postureQueries.forEach {
+                it.postureQueries.filterNotNull().forEach {
                     postureService.registerServiceCheck(s.id, it)
                 }
             }
         }
 
         runBlocking {
-            postureService.getPosture().forEach {
-                controller.sendPostureResp(it)
-            }
+            controller.sendPostureResp(postureService.getPosture())
 
             serviceCh.emitAll(events.asFlow())
         }
@@ -631,7 +636,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         return "${id?.name ?: name()}[${id?.id}]@${controller()}"
     }
 
-    suspend internal fun waitForActive() {
+    internal suspend fun waitForActive() {
         checkEnabled()
         // wait for active
         statusCh.takeWhile { it != ZitiContext.Status.Active }.collect()
@@ -682,14 +687,15 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         writer.appendLine()
         writer.appendLine("=== Services ===")
         servicesByName.forEach { (name, s) ->
-            writer.appendLine("name: $name id: ${s.id} permissions: ${s.permissions.joinToString()} intercept: ${s.interceptConfig}")
+            writer.appendLine("name: $name id: ${s.id} permissions: ${s.permissions.joinToString()}" +
+                    " intercept: ${s.interceptConfig()}")
         }
         writer.flush()
 
         writer.appendLine()
         writer.appendLine("=== Available Edge Routers[${currentEdgeRouters.value.size}] ===")
         currentEdgeRouters.value.forEach {
-            writer.appendLine(it.toString())
+            writer.appendLine("ER[${it.name}/${it.id}] online[${it.isOnline}] ${it.supportedProtocols}")
         }
         writer.appendLine("=== Channels[${channels.size}] ===")
         channels.forEach { (name, ch) ->

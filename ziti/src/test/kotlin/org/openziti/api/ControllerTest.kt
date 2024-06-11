@@ -16,26 +16,33 @@
 
 package org.openziti.api
 
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
 import org.junit.After
 import org.junit.Assume
 import org.junit.Before
-import org.junit.Test
+import org.openziti.edge.model.SessionDetail
 import org.openziti.identity.IdentityConfig
 import org.openziti.identity.KeyStoreIdentity
 import org.openziti.identity.findIdentityAlias
 import org.openziti.identity.keystoreFromConfig
+import org.openziti.net.internal.Sockets
 import java.net.URL
 import java.security.KeyStore
 import java.time.Instant
 import kotlin.test.*
+import kotlin.test.Test
 
 /**
  *
  */
 internal class ControllerTest {
+    init {
+        Sockets.init(false)
+    }
 
     internal lateinit var cfg: IdentityConfig
     internal lateinit var ks: KeyStore
@@ -70,7 +77,7 @@ internal class ControllerTest {
         }
 
         assertNotNull(v)
-        assertTrue { v.runtimeVersion.startsWith("go1.") }
+        assertTrue { v.runtimeVersion?.startsWith("go1.") ?: false }
     }
 
     @Test
@@ -83,6 +90,8 @@ internal class ControllerTest {
         assertTrue { s.expiresAt.toInstant().isAfter(Instant.now()) }
     }
 
+    fun SessionDetail.display() = "${id} ${serviceId} ${type} ${edgeRouters.size} edge routers"
+
     @Test
     fun testGetSession() {
         runBlocking {
@@ -91,16 +100,24 @@ internal class ControllerTest {
             val services = ctrl.getServices().toList()
             Assume.assumeTrue(!services.isEmpty())
 
+            ctrl.getEdgeRouters().forEach {
+                println("ER[${it.name}/${it.id}] online[${it.isOnline}] ${it.supportedProtocols}")
+            }
+
             println(services[0])
             for (serv in services) {
-                val session = ctrl.createNetSession(serv, SessionType.Dial)
+                val st = serv.permissions.first()
+                val session = ctrl.createNetSession(serv, st)
                 println(session)
                 assertEquals(serv.id, session.service.id)
             }
 
             ctrl.getSessions().collect {
-                println(it)
+                println(it.display())
             }
+
+            val mfa = ctrl.getMFAEnrollment()
+            println(mfa)
         }
     }
 

@@ -32,3 +32,5 @@ include 'ziti-jdbc-spring-jpa:initial:server'
 include 'ziti-jdbc-spring-jpa:initial:client'
 include ':ziti-jdbc-spring-jpa:complete:server'
 include 'ziti-jdbc-spring-jpa:complete:client'
+
+includeBuild('..')

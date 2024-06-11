@@ -18,9 +18,9 @@ package org.openziti.posture
 
 import org.junit.Before
 import org.junit.Test
-import org.openziti.api.PostureQuery
-import org.openziti.api.PostureQueryType
-import org.openziti.api.PostureResponse
+import org.openziti.edge.model.PostureCheckType
+import org.openziti.edge.model.PostureQuery
+import org.openziti.edge.model.PostureResponseOperatingSystemCreate
 import kotlin.test.assertEquals
 
 class DefaultPostureServiceTest {
@@ -33,11 +33,13 @@ class DefaultPostureServiceTest {
 
     @Test
     fun testOSposture() {
-        postureService.registerServiceCheck("some-service-id", PostureQuery(PostureQueryType.OS, "query-id", false, null))
+        postureService.registerServiceCheck("some-service-id",
+            PostureQuery().queryType(PostureCheckType.OS).id("query-id").isPassing(false)
+        )
 
         val posture = postureService.getPosture()
         assertEquals(1, posture.size)
-        val osResp = posture[0].data as PostureResponse.OS
+        val osResp = posture[0] as PostureResponseOperatingSystemCreate
         assertEquals(System.getProperty("os.name"), osResp.type)
     }
 }

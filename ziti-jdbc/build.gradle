@@ -17,6 +17,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    alias(libs.plugins.shadow)
 }
 
 ext {
@@ -45,20 +46,17 @@ tasks.register('packageJavadoc', Jar) {
     archiveClassifier = 'javadoc'
 }
 
-tasks.register('fullJar', Jar) {
+shadowJar {
     manifest.from jar.manifest
     archiveClassifier = 'full'
-    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
-        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/**/module-info.class'
-    }
-    with jar
+    configurations = [ project.configurations.runtimeClasspath ]
+    mergeServiceFiles()
     dependsOn(":ziti:jar")
 }
 
 artifacts {
     archives(sourcesJar)
     archives(packageJavadoc)
-    archives(fullJar)
 }
 
 jar {
@@ -73,7 +71,6 @@ publishing {
             from components.java
             artifact sourcesJar
             artifact packageJavadoc
-            artifact fullJar
         }
     }
 }
