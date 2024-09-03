@@ -18,7 +18,7 @@ jjwt = "0.12.5"
 netty = "4.1.112.Final"
 springboot = "3.2.5"
 ziti-api = "0.26.20"
-jackson = "2.17.1"
+jackson = "2.17.2"
 jakarta-annotation = "1.3.5"
 okhttp3 = "4.12.0"
 
