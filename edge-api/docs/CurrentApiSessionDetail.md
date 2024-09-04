@@ -20,6 +20,7 @@ An API Session object for the current API session
 |**identity** | [**EntityRef**](EntityRef.md) |  |  |
 |**identityId** | **String** |  |  |
 |**ipAddress** | **String** |  |  |
+|**isCertExtendable** | **Boolean** |  |  |
 |**isMfaComplete** | **Boolean** |  |  |
 |**isMfaRequired** | **Boolean** |  |  |
 |**lastActivityAt** | **OffsetDateTime** |  |  [optional] |
