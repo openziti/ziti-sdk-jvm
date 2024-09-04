@@ -25,6 +25,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.http.HttpHost;
@@ -87,8 +88,8 @@ public class ZitiSSLConnectionSocketFactory extends AbstractZitiConnectionSocket
   }
 
   @Override
-  public Socket createSocket(HttpContext context) {
-    return new Socket();
+  public Socket createSocket(HttpContext context) throws IOException {
+    return Ziti.getSocketFactory().createSocket();
   }
 
 
@@ -104,9 +105,9 @@ public class ZitiSSLConnectionSocketFactory extends AbstractZitiConnectionSocket
       }
     }
 
-    // can leave as unresolved since ziti performs a service lookup using the address and port
-    final InetSocketAddress address = InetSocketAddress.createUnresolved(host.getHostName(), host.getPort());
-    final Socket sock = sslSocketFactory.createSocket(address.getAddress(), address.getPort());
+    socket.connect(inetSocketAddress, timeValue.toMillisecondsIntBound());
+
+    final SSLSocket sock = (SSLSocket) sslSocketFactory.createSocket(socket, inetSocketAddress.getHostName(), inetSocketAddress.getPort(), true);
     if (localAddress != null) {
       sock.bind(localAddress);
     }
