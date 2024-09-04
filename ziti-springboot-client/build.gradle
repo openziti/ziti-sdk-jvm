@@ -33,7 +33,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot:${springbootVersion}")
     implementation("org.springframework.boot:spring-boot-autoconfigure:${springbootVersion}")
     implementation("org.springframework.boot:spring-boot-starter-web:${springbootVersion}")
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
+    implementation('org.apache.httpcomponents.client5:httpclient5:5.3')
     implementation("commons-beanutils:commons-beanutils:1.9.4")
 
     compileOnly('org.projectlombok:lombok:1.18.34')
