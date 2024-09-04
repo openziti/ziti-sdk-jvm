@@ -2,11 +2,11 @@
 
 Ziti Edge Client
 
-- API version: 0.26.20
+- API version: 0.26.27
 
-- Build date: 2024-06-07T09:12:49.062759-04:00[America/New_York]
+- Build date: 2024-09-04T10:11:22.635226-04:00[America/New_York]
 
-- Generator version: 7.6.0
+- Generator version: 7.8.0
 
 OpenZiti Edge Client API
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>edge-api</artifactId>
-  <version>0.26.20</version>
+  <version>0.26.27</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:edge-api:0.26.20"
+compile "org.openziti:edge-api:0.26.27"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/edge-api-0.26.20.jar`
+- `target/edge-api-0.26.27.jar`
 - `target/lib/*.jar`
 
 ## Getting Started

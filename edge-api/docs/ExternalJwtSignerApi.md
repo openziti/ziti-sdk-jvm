@@ -24,7 +24,6 @@ Retrieves a list of external JWT signers for authentication
 import org.openziti.edge.ApiClient;
 import org.openziti.edge.ApiException;
 import org.openziti.edge.Configuration;
-import org.openziti.edge.auth.*;
 import org.openziti.edge.models.*;
 import org.openziti.edge.api.ExternalJwtSignerApi;
 import java.util.concurrent.CompletableFuture;
@@ -33,16 +32,6 @@ public class Example {
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
         defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
-        
-        // Configure API key authorization: ztSession
-        ApiKeyAuth ztSession = (ApiKeyAuth) defaultClient.getAuthentication("ztSession");
-        ztSession.setApiKey("YOUR API KEY");
-        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
-        //ztSession.setApiKeyPrefix("Token");
-
-        // Configure OAuth2 access token for authorization: oauth2
-        OAuth oauth2 = (OAuth) defaultClient.getAuthentication("oauth2");
-        oauth2.setAccessToken("YOUR ACCESS TOKEN");
 
         ExternalJwtSignerApi apiInstance = new ExternalJwtSignerApi(defaultClient);
         Integer limit = 56; // Integer | 
@@ -78,7 +67,7 @@ CompletableFuture<[**ListClientExternalJwtSignersEnvelope**](ListClientExternalJ
 
 ### Authorization
 
-[ztSession](../README.md#ztSession), [oauth2](../README.md#oauth2)
+No authorization required
 
 ### HTTP request headers
 
@@ -109,7 +98,6 @@ import org.openziti.edge.ApiClient;
 import org.openziti.edge.ApiException;
 import org.openziti.edge.ApiResponse;
 import org.openziti.edge.Configuration;
-import org.openziti.edge.auth.*;
 import org.openziti.edge.models.*;
 import org.openziti.edge.api.ExternalJwtSignerApi;
 import java.util.concurrent.CompletableFuture;
@@ -118,16 +106,6 @@ public class Example {
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
         defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
-        
-        // Configure API key authorization: ztSession
-        ApiKeyAuth ztSession = (ApiKeyAuth) defaultClient.getAuthentication("ztSession");
-        ztSession.setApiKey("YOUR API KEY");
-        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
-        //ztSession.setApiKeyPrefix("Token");
-
-        // Configure OAuth2 access token for authorization: oauth2
-        OAuth oauth2 = (OAuth) defaultClient.getAuthentication("oauth2");
-        oauth2.setAccessToken("YOUR ACCESS TOKEN");
 
         ExternalJwtSignerApi apiInstance = new ExternalJwtSignerApi(defaultClient);
         Integer limit = 56; // Integer | 
@@ -172,7 +150,7 @@ CompletableFuture<ApiResponse<[**ListClientExternalJwtSignersEnvelope**](ListCli
 
 ### Authorization
 
-[ztSession](../README.md#ztSession), [oauth2](../README.md#oauth2)
+No authorization required
 
 ### HTTP request headers
 

@@ -17,6 +17,7 @@ A singular authenticator resource
 |**fingerprint** | **String** |  |  [optional] |
 |**identity** | [**EntityRef**](EntityRef.md) |  |  |
 |**identityId** | **String** |  |  |
+|**isIssuedByNetwork** | **Boolean** |  |  [optional] |
 |**method** | **String** |  |  |
 |**username** | **String** |  |  [optional] |
 

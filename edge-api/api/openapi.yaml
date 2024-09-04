@@ -9,7 +9,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Client
-  version: 0.26.20
+  version: 0.26.27
 servers:
 - url: https://demo.ziti.dev/edge/client/v1
 paths:
@@ -2627,10 +2627,6 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
-      security:
-      - ztSession: []
-      - oauth2:
-        - openid
       summary: List Client Authentication External JWT
       tags:
       - External JWT Signer
@@ -4336,6 +4332,8 @@ components:
             type: string
           ipAddress:
             type: string
+          isCertExtendable:
+            type: boolean
           isMfaComplete:
             type: boolean
           isMfaRequired:
@@ -4352,6 +4350,7 @@ components:
         - identity
         - identityId
         - ipAddress
+        - isCertExtendable
         - isMfaComplete
         - isMfaRequired
         - token
@@ -4449,6 +4448,8 @@ components:
             $ref: "#/components/schemas/entityRef"
           identityId:
             type: string
+          isIssuedByNetwork:
+            type: boolean
           method:
             type: string
           username:
@@ -4480,6 +4481,7 @@ components:
         fingerprint: fingerprint
         certPem: certPem
         id: id
+        isIssuedByNetwork: true
         tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
         username: username
@@ -4577,12 +4579,19 @@ components:
       allOf:
       - $ref: "#/components/schemas/baseEntity"
       - properties:
+          clientId:
+            nullable: true
+            type: string
           externalAuthUrl:
             format: url
             type: string
           name:
             example: MyApps Signer
             type: string
+          scopes:
+            items:
+              type: string
+            type: array
         required:
         - externalAuthUrl
         - name
@@ -4590,6 +4599,7 @@ components:
       description: A External JWT Signer resource
       example:
         createdAt: 2000-01-23T04:56:07.000+00:00
+        clientId: clientId
         externalAuthUrl: http://example.com/aeiou
         _links:
           key:
@@ -4598,6 +4608,9 @@ components:
             href: https://openapi-generator.tech
         name: MyApps Signer
         id: id
+        scopes:
+        - scopes
+        - scopes
         tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
     clientExternalJwtSignerList:
@@ -4909,6 +4922,7 @@ components:
         identityId: identityId
         authenticatorId: authenticatorId
         id: id
+        isCertExtendable: true
         updatedAt: 2000-01-23T04:56:07.000+00:00
     currentApiSessionDetailEnvelope:
       example:
@@ -4958,6 +4972,7 @@ components:
           identityId: identityId
           authenticatorId: authenticatorId
           id: id
+          isCertExtendable: true
           updatedAt: 2000-01-23T04:56:07.000+00:00
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
@@ -5157,6 +5172,7 @@ components:
           fingerprint: fingerprint
           certPem: certPem
           id: id
+          isIssuedByNetwork: true
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
           username: username
@@ -6245,6 +6261,7 @@ components:
           fingerprint: fingerprint
           certPem: certPem
           id: id
+          isIssuedByNetwork: true
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
           username: username
@@ -6268,6 +6285,7 @@ components:
           fingerprint: fingerprint
           certPem: certPem
           id: id
+          isIssuedByNetwork: true
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
           username: username
@@ -6294,6 +6312,7 @@ components:
       example:
         data:
         - createdAt: 2000-01-23T04:56:07.000+00:00
+          clientId: clientId
           externalAuthUrl: http://example.com/aeiou
           _links:
             key:
@@ -6302,9 +6321,13 @@ components:
               href: https://openapi-generator.tech
           name: MyApps Signer
           id: id
+          scopes:
+          - scopes
+          - scopes
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
         - createdAt: 2000-01-23T04:56:07.000+00:00
+          clientId: clientId
           externalAuthUrl: http://example.com/aeiou
           _links:
             key:
@@ -6313,6 +6336,9 @@ components:
               href: https://openapi-generator.tech
           name: MyApps Signer
           id: id
+          scopes:
+          - scopes
+          - scopes
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
         meta:
