@@ -409,29 +409,50 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     internal fun getDialAddress(addr: InetSocketAddress, proto: Protocol = Protocol.TCP): ZitiAddress.Dial? {
         isEnabled() || return null
 
-        val targetAddr = getDnsTarget(addr) ?: getIPtarget(addr) ?: return null
+        val targetIP = getIPtarget(addr)
+        val targetAddr = getDnsTarget(addr)
+
+        val matchAddr = targetAddr ?: targetIP ?: return null
 
         val service = servicesById.values.firstOrNull { s ->
             s.permissions.contains(SessionType.DIAL) &&
             s.interceptConfig()?.let { cfg ->
                 cfg.protocols.contains(proto) &&
                         cfg.portRanges.any { it.contains(addr.port) } &&
-                        cfg.addresses.any { it.matches(targetAddr) }
+                        cfg.addresses.any { it.matches(matchAddr) }
             } ?: false
         } ?: return null
+
+        val identity = service.interceptConfig()?.dialOptions
+            ?.get("identity")?.toString()?.run {
+                replace("\$dst_protocol", proto.name)
+                replace("\$dst_port", addr.port.toString())
+
+                if (targetAddr != null) {
+                    replace("\$dst_hostname", targetAddr)
+                } else {
+                    replace("\$dst_ip", targetIP.toString())
+                }
+            }
 
         return ZitiAddress.Dial(
             service = service.name,
             callerId = name(),
+            identity = identity,
             appData = DialData(
                 dstProtocol = proto,
-                dstHostname = if (targetAddr is String) targetAddr else null,
-                dstIp = if (targetAddr is InetAddress) targetAddr.hostAddress else null,
+                dstHostname = targetAddr,
+                dstIp = targetIP?.hostAddress,
                 dstPort = addr.port.toString()
             ))
     }
 
-    override fun getService(addr: InetSocketAddress): Service? = getServiceForAddress(addr.hostString, addr.port)
+    override fun getService(addr: InetSocketAddress): Service? {
+        runBlocking {
+            serviceUpdates().first()
+        }
+        return getServiceForAddress(addr.hostString, addr.port)
+    }
 
     override fun getService(name: String): Service? {
         return servicesByName.get(name)

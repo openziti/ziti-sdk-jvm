@@ -17,24 +17,11 @@
 package org.openziti.api
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.annotations.JsonAdapter
 import org.openziti.util.IPUtil
-import java.lang.reflect.Type
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 
-
-class InterceptAddressDeserializer: JsonDeserializer<InterceptAddress> {
-    override fun deserialize(
-        json: JsonElement,
-        typeOfT: Type,
-        context: JsonDeserializationContext?
-    ): InterceptAddress = json.asString.asInterceptAddr()
-}
 
 fun String.asInterceptAddr(): InterceptAddress {
     val addr = this
@@ -57,7 +44,6 @@ fun String.asInterceptAddr(): InterceptAddress {
     }
 }
 
-// @JsonAdapter(InterceptAddressDeserializer::class)
 sealed class InterceptAddress {
     abstract fun matches(addr: Any): Boolean
     companion object {
