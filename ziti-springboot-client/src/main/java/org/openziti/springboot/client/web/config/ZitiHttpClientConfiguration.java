@@ -80,37 +80,36 @@ public class ZitiHttpClientConfiguration {
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.rest-template-builder.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean
-  public RestTemplateBuilder zitiRestTemplateBuilder(@Qualifier("zitiHttpClient") HttpClient httpClient) {
+  @Bean("zitiRestTemplateBuilder")
+  public RestTemplateBuilder restTemplateBuilder(@Qualifier("zitiHttpClient") HttpClient httpClient) {
     return new RestTemplateBuilder()
-        .requestFactory(() -> zitiClientHttpRequestFactory(httpClient));
+        .requestFactory(() -> clientHttpRequestFactory(httpClient));
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.request-factory.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean
-  public ClientHttpRequestFactory zitiClientHttpRequestFactory(@Qualifier("zitiHttpClient") HttpClient httpClient) {
+  @Bean("zitiClientHttpRequestFactory")
+  public ClientHttpRequestFactory clientHttpRequestFactory(@Qualifier("zitiHttpClient") HttpClient httpClient) {
     final HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
     clientHttpRequestFactory.setHttpClient(httpClient);
     return clientHttpRequestFactory;
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.context.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean
-  public ZitiContext zitiContext(
-      @Value("${spring.ziti.httpclient.identity.file:}") Resource identityFile,
-      @Value("${spring.ziti.httpclient.identity.password:}") String password) throws IOException {
+  @Bean("zitiContext")
+  public ZitiContext context(@Value("${spring.ziti.client.identity.file:}") Resource identityFile,
+      @Value("${spring.ziti.client.identity.password:}") String password) throws IOException {
 
     if (identityFile == null) {
-      throw new BeanCreationException("To use the default ziti setup please add a property named "
-                                      + "`spring.ziti.httpclient.identity.file` pointing to a ziti identity file.");
+      throw new BeanCreationException("NO identity file specified. To use the default ziti setup please add a property named "
+                                      + "`spring.ziti.client.identity.file` pointing to a ziti identity file.");
     }
 
     return Ziti.newContext(identityFile.getInputStream(), password.toCharArray());
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.connection-factory.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean
-  public ZitiConnectionSocketFactory zitiConnectionSocketFactory(ZitiContext zitiContext) {
+  @Bean("zitiConnectionSocketFactory")
+  public ZitiConnectionSocketFactory connectionSocketFactory(ZitiContext zitiContext) {
     if (zitiConnectionSocketFactory == null) {
       zitiConnectionSocketFactory = new ZitiConnectionSocketFactory(zitiContext);
     }
@@ -118,8 +117,8 @@ public class ZitiHttpClientConfiguration {
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.ssl-connection-factory.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean
-  public ZitiSSLConnectionSocketFactory zitiSSLConnectionSocketFactory(ZitiContext zitiContext) {
+  @Bean("zitiSSLConnectionSocketFactory")
+  public ZitiSSLConnectionSocketFactory sslConnectionSocketFactory(ZitiContext zitiContext) {
     if (zitiSSLConnectionSocketFactory == null) {
       zitiSSLConnectionSocketFactory = new ZitiSSLConnectionSocketFactory(zitiContext);
     }
@@ -127,13 +126,13 @@ public class ZitiHttpClientConfiguration {
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.connection-manager.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean
-  public PoolingHttpClientConnectionManager zitiPoolingConnectionManager(
+  @Bean("zitiPoolingConnectionManager")
+  public PoolingHttpClientConnectionManager poolingConnectionManager(
       ZitiConnectionSocketFactory zitiConnectionSocketFactory,
       ZitiSSLConnectionSocketFactory zitiSSLConnectionSocketFactory,
       DnsResolver zitiDnsResolver,
-      @Value("${spring.ziti.httpclient.max-total:}") Integer maxTotal,
-      @Value("${spring.ziti.httpclient.max-per-route:}") Integer maxPerRoute) {
+      @Value("${spring.ziti.client.httpclient.max-total:}") Integer maxTotal,
+      @Value("${spring.ziti.client.httpclient.max-per-route:}") Integer maxPerRoute) {
 
     final Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
         .register(URIScheme.HTTPS.getId(), zitiSSLConnectionSocketFactory)
@@ -150,9 +149,9 @@ public class ZitiHttpClientConfiguration {
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.connection-keep-alive-strategy.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean
-  public ConnectionKeepAliveStrategy zitiConnectionKeepAliveStrategy(
-      @Value("${spring.ziti.httpclient.keep-alive-time:}") Long keepAliveTime) {
+  @Bean("zitiConnectionKeepAliveStrategy")
+  public ConnectionKeepAliveStrategy connectionKeepAliveStrategy(
+      @Value("${spring.ziti.client.httpclient.keep-alive-time:}") Long keepAliveTime) {
     return (response, context) -> {
       final Iterator<HeaderElement> it = MessageSupport.iterate(response, HeaderElements.KEEP_ALIVE);
       while (it.hasNext()) {
@@ -169,12 +168,12 @@ public class ZitiHttpClientConfiguration {
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.http-client.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean
-  public CloseableHttpClient zitiHttpClient(
+  @Bean("zitiHttpClient")
+  public CloseableHttpClient httpClient(
       @Qualifier("zitiPoolingConnectionManager") PoolingHttpClientConnectionManager poolingHttpClientConnectionManager,
       @Qualifier("zitiConnectionKeepAliveStrategy") ConnectionKeepAliveStrategy connectionKeepAliveStrategy,
-      @Value("${spring.ziti.httpclient.connection-request-timeout:}") Long connectionRequestTimeout,
-      @Value("${spring.ziti.httpclient.response-timeout:}") Integer responseTimeout) {
+      @Value("${spring.ziti.client.httpclient.connection-request-timeout:}") Long connectionRequestTimeout,
+      @Value("${spring.ziti.client.httpclient.response-timeout:}") Integer responseTimeout) {
 
     return HttpClients.custom()
         .setDefaultRequestConfig(RequestConfig.custom()
@@ -193,8 +192,8 @@ public class ZitiHttpClientConfiguration {
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.dns-resolver.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean
-  public static DnsResolver zitiDnsResolver() {
+  @Bean("zitiDnsResolver")
+  public static DnsResolver dnsResolver() {
     return new DnsResolver() {
       @Override
       public InetAddress[] resolve(String hostname) throws UnknownHostException {
