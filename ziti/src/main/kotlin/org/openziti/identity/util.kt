@@ -103,12 +103,14 @@ internal fun loadKeystore(f: File, pwd: CharArray): KeyStore {
 
 internal fun loadKeystore(stream: InputStream, pwd: CharArray): KeyStore {
     val log = ZitiLog()
-    val ks = loadKeystore(stream, pwd, log)
+    val bytes = stream.readNBytes(16 * 1024)
+    val ks = loadKeystore(bytes.inputStream(), pwd, log)
     if (ks != null) {
         return ks
     }
 
-    throw IllegalArgumentException("unsupported format")
+    val id = IdentityConfig.load(bytes.inputStream().reader())
+    return keystoreFromConfig(id)
 }
 
 internal fun loadKeystore(stream: InputStream, pwd: CharArray, log: ZitiLog): KeyStore? {

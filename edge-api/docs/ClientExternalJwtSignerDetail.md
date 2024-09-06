@@ -13,8 +13,10 @@ A External JWT Signer resource
 |**id** | **String** |  |  |
 |**tags** | [**Tags**](Tags.md) |  |  [optional] |
 |**updatedAt** | **OffsetDateTime** |  |  |
+|**clientId** | **String** |  |  [optional] |
 |**externalAuthUrl** | **String** |  |  |
 |**name** | **String** |  |  |
+|**scopes** | **List&lt;String&gt;** |  |  [optional] |
 
 
 

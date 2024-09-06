@@ -133,7 +133,7 @@ class EnrollTest {
         assertNotNull("Name", identity.name())
 
         val controller =
-            Controller(URI.create(identity.controller()).toURL(), identity.sslContext(), identity.trustManager())
+            Controller(URI.create(identity.controller()).toURL(), identity.sslContext())
         val loginResp = controller.login()
         assertNotNull("login with device cert", loginResp.token)
         controller.logout()

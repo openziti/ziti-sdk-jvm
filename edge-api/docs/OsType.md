@@ -7,15 +7,15 @@
 
 * `WINDOWS` (value: `"Windows"`)
 
-* `WINDOWSSERVER` (value: `"WindowsServer"`)
+* `WINDOWS_SERVER` (value: `"WindowsServer"`)
 
 * `ANDROID` (value: `"Android"`)
 
-* `IOS` (value: `"iOS"`)
+* `I_OS` (value: `"iOS"`)
 
 * `LINUX` (value: `"Linux"`)
 
-* `MACOS` (value: `"macOS"`)
+* `MAC_OS` (value: `"macOS"`)
 
 
 

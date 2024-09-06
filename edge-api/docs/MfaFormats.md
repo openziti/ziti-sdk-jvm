@@ -9,7 +9,7 @@
 
 * `ALPHA` (value: `"alpha"`)
 
-* `ALPHANUMERIC` (value: `"alphaNumeric"`)
+* `ALPHA_NUMERIC` (value: `"alphaNumeric"`)
 
 
 

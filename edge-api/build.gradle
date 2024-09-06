@@ -47,6 +47,7 @@ publishing {
 }
 
 ext {
+    description "OpenZiti Edge API client"
     jackson_version = libs.versions.jackson.get()
     jakarta_annotation_version = libs.versions.jakarta.annotation.get()
 }
@@ -88,5 +89,7 @@ spotless {
 tasks.named('spotlessApply').get().mustRunAfter(':openApiGenerate')
 tasks.named('spotlessJava').get().mustRunAfter(':openApiGenerate')
 tasks.named('spotlessMisc').get().mustRunAfter(':openApiGenerate')
+
+apply from: rootProject.file('publish.gradle')
 
 
