@@ -16,6 +16,7 @@
 
 package org.openziti.api
 
+import com.fasterxml.jackson.module.kotlin.treeToValue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
@@ -30,7 +31,6 @@ import org.openziti.edge.ApiClient
 import org.openziti.edge.ApiException
 import org.openziti.edge.api.*
 import org.openziti.edge.model.*
-import org.openziti.edge.model.Meta
 import org.openziti.getZitiError
 import org.openziti.impl.ZitiImpl
 import org.openziti.util.Logged
@@ -274,8 +274,12 @@ internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X
     }
 
     private fun getError(resp: String): String {
-        val apiError = edgeApi.objectMapper.convertValue(resp, ApiError::class.java)
-        return apiError.code ?: apiError.message!!
+
+        val err = edgeApi.objectMapper.treeToValue<ApiErrorEnvelope>(
+            edgeApi.objectMapper.readTree(resp)
+        ).error
+
+        return err.code ?: err.message!!
     }
 
     private fun getClientInfo(): Authenticate = Authenticate().apply {
