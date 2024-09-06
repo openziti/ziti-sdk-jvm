@@ -77,7 +77,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val currentEdgeRouters =
         MutableStateFlow<Collection<CurrentIdentityEdgeRouterDetail>>(emptyList())
 
-    private val controller: Controller = Controller(URI.create(id.controller()).toURL(), sslContext(), trustManager())
+    private val controller: Controller = Controller(URI.create(id.controller()).toURL(), sslContext())
     private val postureService = PostureService()
 
     private val statusCh: MutableStateFlow<ZitiContext.Status>
