@@ -33,6 +33,7 @@ import org.openziti.ZitiContext
 import org.openziti.netty.ZitiChannelFactory
 import org.openziti.netty.ZitiResolverGroup
 import org.openziti.netty.ZitiServerChannelFactory
+import java.net.URI
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import javax.net.ssl.SSLContext
@@ -78,7 +79,7 @@ object HttpSample {
         val url by argument(name = "URL")
 
         override fun run() {
-            val uri = URL(url)
+            val uri = URI.create(url).toURL()
             val tls = uri.protocol == "https"
             val port = if (uri.port == -1) uri.defaultPort else uri.port
 

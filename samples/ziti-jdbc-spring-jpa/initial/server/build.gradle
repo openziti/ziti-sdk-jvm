@@ -15,14 +15,13 @@
  */
 
 plugins {
-	id 'org.springframework.boot' version '2.7.5'
-	id 'io.spring.dependency-management' version '1.1.0'
-	id 'java'
+	alias(libs.plugins.org.springframework.boot)
+	alias(libs.plugins.io.spring.dependency.management)
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation "org.openziti:ziti-springboot:${versions.ziti}"
+	implementation libs.ziti.springboot
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
 
 }

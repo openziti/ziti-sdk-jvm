@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-plugins {
-	id 'java'
-}
-
 ext {
    javaMainClass = "org.openziti.jdbc.PostgresqlExample"
 }
 
 dependencies {
-	implementation "org.openziti:ziti-jdbc:${versions.ziti}"
-	implementation deps.ziti
-        implementation 'org.postgresql:postgresql:42.5.1'
-        implementation deps.slf4jSimple
+	implementation libs.ziti.jdbc
+	implementation libs.ziti
+    implementation 'org.postgresql:postgresql:42.7.4'
+    implementation libs.slf4j.simple
 }
 
 task runWithJavaExec(type: JavaExec) {

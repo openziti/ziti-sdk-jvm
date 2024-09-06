@@ -15,16 +15,13 @@
  */
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
+    alias(libs.plugins.kotlin.jvm)
 }
 
-group 'org.openziti'
-
-
 dependencies {
-    implementation deps.kotlin
-    implementation deps.kotlinCoroutines
+    implementation libs.kotlin.stdlib
+    implementation libs.kotlinx.coroutines
 
-    api deps.ziti
-    implementation deps.slf4jSimple
+    api libs.ziti
+    implementation libs.slf4j.simple
 }

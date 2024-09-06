@@ -16,11 +16,11 @@
 
 package org.openziti.sample.springboot
 
+import jakarta.servlet.http.HttpServletRequest
 import org.openziti.springboot.ZitiTomcatCustomizer
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
 
 
 @SpringBootApplication(
