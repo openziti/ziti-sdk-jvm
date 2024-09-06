@@ -54,7 +54,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>3.0.0</version>
 				<configuration>
-					<mainClass>org.openziti.jdbc.PostgresqlExample</mainClass>
+					<mainClass>org.openziti.sample.jdbc.PostgresqlExample</mainClass>
 					<arguments>
 						<argument>network/databaseClient.json</argument>
 					</arguments>
