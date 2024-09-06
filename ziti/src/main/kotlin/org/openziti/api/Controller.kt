@@ -43,10 +43,9 @@ import java.net.http.HttpClient
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
 import kotlin.reflect.full.memberFunctions
 
-internal class Controller(endpoint: URL, sslContext: SSLContext, trustManager: X509TrustManager) :
+internal class Controller(endpoint: URL, sslContext: SSLContext):
     Logged by ZitiLog() {
 
     private val pageSize = 100

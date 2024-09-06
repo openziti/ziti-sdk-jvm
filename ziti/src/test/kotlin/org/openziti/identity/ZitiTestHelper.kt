@@ -58,7 +58,7 @@ internal object ZitiTestHelper {
         val url = props.getProperty("controller") ?: fail("need controller")
 
         ctrlURI = URI.create(url)
-        controller = Controller(ctrlURI.toURL(), controllerSSL, TrustAll)
+        controller = Controller(ctrlURI.toURL(), controllerSSL)
 
         val s = controller!!.login(Login(username, password))
         session = s.token

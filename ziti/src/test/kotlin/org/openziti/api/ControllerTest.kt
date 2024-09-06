@@ -58,7 +58,7 @@ internal class ControllerTest {
 
         identity = KeyStoreIdentity(ks, findIdentityAlias(ks))
 
-        ctrl = Controller(URL(identity.controller()), identity.sslContext(), identity.trustManager())
+        ctrl = Controller(URL(identity.controller()), identity.sslContext())
     }
 
     @After
