@@ -7,6 +7,6 @@ server:
 
 spring:
   ziti:
-    httpclient:
+    client:
       identity:
         file: classpath:client1.zid
