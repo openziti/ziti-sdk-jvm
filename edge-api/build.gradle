@@ -47,6 +47,7 @@ publishing {
 }
 
 ext {
+    description "OpenZiti Edge API client"
     jackson_version = libs.versions.jackson.get()
     jakarta_annotation_version = libs.versions.jakarta.annotation.get()
 }
