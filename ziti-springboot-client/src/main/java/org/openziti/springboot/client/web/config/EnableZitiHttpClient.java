@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Import;
 @Target(ElementType.TYPE)
 @Documented
 @Import({ZitiHttpClientConfiguration.class})
-@ConditionalOnProperty(value = "spring.ziti.httpclient.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.ziti.client.enabled", havingValue = "true", matchIfMissing = true)
 public @interface EnableZitiHttpClient {
 
 
