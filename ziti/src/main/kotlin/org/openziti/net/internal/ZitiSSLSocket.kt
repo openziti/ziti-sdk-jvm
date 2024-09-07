@@ -35,13 +35,20 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
         val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
             init(null as KeyStore?)
         }
-        val tls = SSLContext.getDefault().apply {
+        val tls = SSLContext.getInstance("TLSv1.3").apply {
             init(null, tmf.trustManagers, SecureRandom())
         }
     }
 
     constructor(s: Socket, addr: InetAddress, port: Int): this(s, addr.hostName, port)
     constructor(s: Socket, host: String, port: Int): this(s, tls.createSSLEngine(host, port))
+
+    private val sslBuffer: ByteBuffer = ByteBuffer.allocate(32 * 1024)
+
+    init {
+        engine.useClientMode = true
+        engine.beginHandshake()
+    }
 
     inner class Output : OutputStream() {
         val buffer = ByteBuffer.allocate(32 * 1024)
@@ -50,11 +57,12 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
         }
 
         override fun write(b: ByteArray, off: Int, len: Int) {
-            d{"writing $len bytes"}
+            v{"writing $len bytes"}
             if (len + buffer.position() > buffer.capacity()) {
                 flush()
             }
             buffer.put(b, off, len)
+            flush()
         }
 
         override fun flush() {
@@ -62,7 +70,7 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
             buffer.flip()
             if (buffer.hasRemaining()) {
                 val res = engine.wrap(buffer, wrapped)
-                d{"flushing ${res.bytesProduced()} bytes"}
+                v{"flushing ${res.bytesProduced()} bytes"}
                 transport.getOutputStream()?.apply {
                     write(wrapped.array(), 0, wrapped.position())
                     flush()
@@ -73,11 +81,16 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
     }
 
     val output = Output()
-    override fun getOutputStream(): OutputStream = output
+    override fun getOutputStream(): OutputStream {
+        doHandshake()
+        return output
+    }
 
     inner class Input : InputStream() {
-        val sslBuffer = ByteBuffer.allocate(32 * 1024)
-        val input = transport.getInputStream()
+        private val plainBuffer: ByteBuffer = ByteBuffer.allocate(32 * 1024).apply {
+            flip()
+        }
+        private val input: InputStream = transport.getInputStream()
 
         override fun read(): Int {
             val buf = ByteArray(1)
@@ -85,58 +98,72 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
             return if (read == 1) (buf[0].toInt() and 0xFF) else -1
         }
 
-        override fun read(out: ByteArray, off: Int, len: Int): Int {
-            val outBuffer = ByteBuffer.wrap(out, off, len)
-            sslBuffer.compact()
-            val b = ByteArray(sslBuffer.remaining())
-            val read = input.read(b)
-            d("read read=$read sslBuf=$sslBuffer")
-            if (read > 0) {
-                sslBuffer.put(b, 0, read)
-                d("read read=$read sslBuf=$sslBuffer")
-                sslBuffer.flip()
+        private fun copyPlainText(out: ByteArray, off: Int, len: Int): Int {
+            plainBuffer.flip()
+            val count = if (len > plainBuffer.remaining()) plainBuffer.remaining() else len
+            plainBuffer.get(out, off, count)
+            plainBuffer.compact()
+            return count
+        }
 
-                while(sslBuffer.remaining() > 0 && outBuffer.remaining() > 0) {
-                    val res = engine.unwrap(sslBuffer, outBuffer)
-                    v("unwrap cons/prod=${res.bytesConsumed()}/${res.bytesProduced()} $sslBuffer $outBuffer")
-                    if (res.bytesProduced() == 0)
-                        break
+        override fun read(out: ByteArray, off: Int, len: Int): Int {
+            val count = copyPlainText(out, off, len)
+            if (count > 0) return count
+
+            sslBuffer.flip()
+            with(engine.unwrap(sslBuffer, plainBuffer)) {
+                sslBuffer.compact()
+                if (bytesProduced() > 0) {
+                    plainBuffer.flip()
+                    return copyPlainText(out, off, len)
                 }
-                d("sslBuf=$sslBuffer outBuffer=$outBuffer")
-                return outBuffer.position()
             }
-            else {
-                return read
+
+            while(plainBuffer.position() == 0) {
+                val b = ByteArray(sslBuffer.remaining())
+                val read = input.read(b)
+                if (read < 0) {
+                    return -1
+                }
+                sslBuffer.put(b, 0, read)
+                sslBuffer.flip()
+                engine.unwrap(sslBuffer, plainBuffer)
+                sslBuffer.compact()
             }
+            return copyPlainText(out, off, len)
         }
     }
 
     val input = Input()
-    override fun getInputStream(): InputStream = input
+    override fun getInputStream(): InputStream {
+        doHandshake()
+        return input
+    }
 
     override fun startHandshake() {
         engine.beginHandshake()
     }
 
+    private fun doHandshake() = synchronized(this) {
 
-    override fun getSession(): SSLSession {
+        if (engine.handshakeStatus == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
+            return
+        }
 
         val empty = ByteBuffer.wrap(ByteArray(0))
 
         val unwrapped = ByteBuffer.allocate(32 * 1024)
         val ssl_in = ByteArray(32 * 1024)
-        var read = 0
-        var processed = 0
-
 
         while (engine.handshakeStatus != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
-            d("continuing handshake status=${engine.handshakeStatus}")
+            v("continuing handshake status=${engine.handshakeStatus}")
 
             when (engine.handshakeStatus) {
                 SSLEngineResult.HandshakeStatus.NEED_WRAP -> {
                     val wrapped = ByteBuffer.allocate(32 * 1024)
                     val res = engine.wrap(empty, wrapped)
-                    d("res = $res")
+                    v("res = $res")
+
                     transport.getOutputStream().apply {
                         write(wrapped.array(), 0, res.bytesProduced())
                         flush()
@@ -146,29 +173,31 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
                     engine.delegatedTask?.run()
                 }
                 SSLEngineResult.HandshakeStatus.NEED_UNWRAP -> {
-                    var res: SSLEngineResult
 
-                    v("unwrapping bytes $processed..$read")
-                    res = engine.unwrap(ByteBuffer.wrap(ssl_in, processed, read - processed), unwrapped)
-                    v("res = $res")
-                    processed += res.bytesConsumed()
+                    sslBuffer.flip()
+                    v("unwrapping bytes $sslBuffer")
+                    with(engine.unwrap(sslBuffer, unwrapped)) {
+                        v("res = $this")
+                        sslBuffer.compact()
 
-                    // if there are not enough bytes to unwrap try reading and continue main loop
-                    if (res.status == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
-                        val r = transport.getInputStream().read(ssl_in, read, ssl_in.size - read)
-                        if (r > 0) {
-                            read += r
+                        // if there are not enough bytes to unwrap try reading and continue main loop
+                        if (status == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
+                            val r = transport.getInputStream().read(ssl_in, 0, sslBuffer.remaining())
+                            if (r < 0) {
+                                throw SSLHandshakeException("connection closed during SSL handshake")
+                            }
+                            sslBuffer.put(ssl_in, 0, r)
                         }
-
-                        v("read $r/$read")
                     }
                 }
-
-                SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING -> return engine.session
-
                 else -> { }
             }
         }
+
+    }
+
+    override fun getSession(): SSLSession {
+        doHandshake()
         return engine.session
     }
 
@@ -223,9 +252,5 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
 
     override fun setEnableSessionCreation(flag: Boolean) {
         engine.enableSessionCreation = flag
-    }
-
-    init {
-        engine.useClientMode = true
     }
 }
