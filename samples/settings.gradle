@@ -16,6 +16,8 @@
 
 rootProject.name = 'ziti-jvm-samples'
 
+includeBuild("..")
+
 include 'ziti-enroller'
 include 'ziti-half-close'
 include 'sample'
