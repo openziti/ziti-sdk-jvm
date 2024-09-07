@@ -38,5 +38,5 @@ jobs:
       - name: check samples build
         run: |
           cd samples
-          ../gradlew --include-build=.. build
+          ../gradlew --info --include-build=.. build
 

@@ -26,6 +26,7 @@ repositories {
 
 group = "org.openziti.sample"
 version = "0.0.1-SNAPSHOT"
+println("ziti-version = ${libs.versions.openziti.get()}")
 
 subprojects {
     apply plugin: "java"

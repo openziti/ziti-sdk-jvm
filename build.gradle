@@ -46,6 +46,7 @@ ext {
     gitBranch = semver.info.branch.name
 }
 
+println(rootProject.name)
 group = "org.openziti"
 version = "${semver.info}"
 
