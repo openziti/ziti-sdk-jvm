@@ -16,7 +16,7 @@
 
 rootProject.name = 'ziti-jvm-samples'
 
-includeBuild("..")
+//includeBuild("..")
 
 include 'ziti-enroller'
 include 'ziti-half-close'
@@ -32,5 +32,5 @@ include 'ziti-jdbc-postgresql'
 include 'ziti-jdbc-mssql'
 include 'ziti-jdbc-spring-jpa:initial:server'
 include 'ziti-jdbc-spring-jpa:initial:client'
-include ':ziti-jdbc-spring-jpa:complete:server'
+include 'ziti-jdbc-spring-jpa:complete:server'
 include 'ziti-jdbc-spring-jpa:complete:client'

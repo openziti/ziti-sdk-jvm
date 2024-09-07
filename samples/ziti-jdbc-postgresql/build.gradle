@@ -19,8 +19,8 @@ ext {
 }
 
 dependencies {
-	implementation "org.openziti:ziti-jdbc:+"
-	implementation libs.ziti
+    implementation libs.ziti
+	implementation libs.ziti.jdbc
     implementation 'org.postgresql:postgresql:42.7.4'
     implementation libs.slf4j.simple
 }
