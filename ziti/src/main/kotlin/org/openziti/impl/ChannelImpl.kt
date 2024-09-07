@@ -160,7 +160,9 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
     }
 
     private suspend fun onDisconnect(ex: Throwable?) {
-        w{ "channel disconnected: ${ex?.localizedMessage}" }
+        ex.takeIf { it !is CancellationException }?.let { err ->
+            e(err){ "channel disconnected" }
+        }
         chState.value = Channel.State.Disconnected(ex?.cause)
 
         for (v in waiters.values) v.cancel()

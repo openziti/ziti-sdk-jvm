@@ -249,8 +249,8 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
                 val ch = channel.getCompleted()
                 ch.SendSynch(finMsg)
             }.invokeOnCompletion { ex ->
-                if (ex != null) {
-                    w { "failed to send FIN message: $ex" }
+                ex.takeIf { it !is CancellationException }?.let { e ->
+                    w{ "failed to send FIN message: $e" }
                 }
             }
         }
@@ -271,7 +271,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
                         val ch = channel.getCompleted()
                         ch.SendSynch(closeMsg)
                     }.invokeOnCompletion {
-                        it?.let {
+                        it.takeIf { it !is CancellationException }?.let {
                             w { "failed to send StateClosed message: ${it.localizedMessage}" }
                         }
                     }
