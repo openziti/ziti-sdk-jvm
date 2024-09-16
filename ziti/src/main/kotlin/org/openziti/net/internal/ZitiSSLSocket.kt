@@ -44,6 +44,7 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
     constructor(s: Socket, host: String, port: Int): this(s, tls.createSSLEngine(host, port))
 
     private val sslBuffer: ByteBuffer = ByteBuffer.allocate(32 * 1024)
+    private val hsListeners = mutableListOf<HandshakeCompletedListener>()
 
     init {
         engine.useClientMode = true
@@ -114,7 +115,6 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
             with(engine.unwrap(sslBuffer, plainBuffer)) {
                 sslBuffer.compact()
                 if (bytesProduced() > 0) {
-                    plainBuffer.flip()
                     return copyPlainText(out, off, len)
                 }
             }
@@ -194,6 +194,12 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
             }
         }
 
+        val ev = HandshakeCompletedEvent(this, engine.session)
+        synchronized(hsListeners) {
+            hsListeners.forEach {
+                it.handshakeCompleted(ev)
+            }
+        }
     }
 
     override fun getSession(): SSLSession {
@@ -243,11 +249,21 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
     override fun getSupportedProtocols(): Array<String> = engine.supportedProtocols
 
     override fun addHandshakeCompletedListener(listener: HandshakeCompletedListener?) {
-        error("not implemented")
+        listener?.let {
+            synchronized(hsListeners) {
+                hsListeners.add(it)
+            }
+            if (engine.handshakeStatus == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING)
+                listener.handshakeCompleted(HandshakeCompletedEvent(this, engine.session))
+        }
     }
 
     override fun removeHandshakeCompletedListener(listener: HandshakeCompletedListener?) {
-        error("not implemented")
+        listener?.let {
+            synchronized(hsListeners) {
+                hsListeners.remove(it)
+            }
+        }
     }
 
     override fun setEnableSessionCreation(flag: Boolean) {
