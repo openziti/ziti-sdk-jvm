@@ -125,7 +125,8 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
                 chState.value = Channel.State.Connecting
                 val jobs = mutableListOf<Deferred<Unit>>()
                 try {
-                    peer = Transport.dial(addr, id.sslContext(), CONNECT_TIMEOUT)
+                    peer = Transport.dial(addr, id.sslContext(), CONNECT_TIMEOUT, EDGE_APP_PROTOCOL)
+                    d{ "connected with ${peer.applicationProtocol()}"}
                     jobs += async { txer(peer) }
                     jobs += async { rxer(peer) }
 
@@ -310,5 +311,6 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
 
     companion object {
         const val CONNECT_TIMEOUT: Long = 20_000
+        const val EDGE_APP_PROTOCOL = "ziti-edge"
     }
 }

@@ -35,30 +35,46 @@ import java.nio.channels.SocketChannel
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLEngine
 
 internal interface Transport : Closeable {
 
     companion object {
-        suspend fun dial(address: String, ssl: SSLContext, timeout: Long): Transport {
+        suspend fun dial(address: String, ssl: SSLContext, timeout: Long, vararg protos: String): Transport {
             val url = URI.create(address)
-            val tls = TLS(url.host, url.port, ssl)
+            val tls = TLS(url.host, url.port, ssl, *protos)
             tls.connect(timeout)
             return tls
         }
     }
 
+    fun applicationProtocol(): String?
     fun isClosed(): Boolean
     suspend fun connect(timeout: Long)
 
     suspend fun write(buf: ByteBuffer)
     suspend fun read(buf: ByteBuffer, full: Boolean = true): Int
 
-    class TLS(host: String, port: Int, val sslContext: SSLContext) : Transport {
+    class TLS(host: String, port: Int, sslContext: SSLContext, vararg appProto: String) : Transport {
         lateinit var socket: AsynchronousTlsChannel
-        val addr = InetSocketAddress(InetAddress.getByName(host), port)
+        private val addr = InetSocketAddress(InetAddress.getByName(host), port)
+        private val sslEngine: SSLEngine
+
+        init {
+            val sslParms = sslContext.defaultSSLParameters
+            sslParms.applicationProtocols = appProto
+
+            sslEngine = sslContext.createSSLEngine(host, port).apply {
+                sslParameters = sslParms
+                useClientMode = true
+            }
+        }
+
+        override fun applicationProtocol(): String? = sslEngine.applicationProtocol
 
         override suspend fun connect(timeout: Long) {
-            val connOp = connectAsync(addr, sslContext)
+            val connOp = connectAsync(addr, sslEngine)
+            sslEngine.handshakeStatus
             socket = kotlin.runCatching {
                 withTimeout(timeout) {
                     connOp.await()
@@ -98,19 +114,19 @@ internal interface Transport : Closeable {
         companion object {
             val asyncGroup = AsynchronousTlsChannelGroup()
 
-            internal fun connectAsync(address: InetSocketAddress, ssl: SSLContext): Deferred<AsynchronousTlsChannel> {
+            internal fun connectAsync(address: InetSocketAddress, ssl: SSLEngine): Deferred<AsynchronousTlsChannel> {
                 val deferred = CompletableDeferred<AsynchronousTlsChannel>()
                 val sockCh = SocketChannel.open()
-                val sslEngine = ssl.createSSLEngine(address.hostString, address.port).apply {
-                    useClientMode = true
-                }
+
                 val f = CompletableFuture.supplyAsync {
                     sockCh.connect(address)
-                    sockCh.configureBlocking(false)
-                    val tlsCh = ClientTlsChannel.newBuilder(sockCh, SSLEngineWrapper(sslEngine))
+                    val tlsCh = ClientTlsChannel.newBuilder(sockCh, ssl)
                         .withEncryptedBufferAllocator(HeapBufferAllocator())
                         .withPlainBufferAllocator(HeapBufferAllocator())
                         .build()
+                    tlsCh.handshake()
+
+                    sockCh.configureBlocking(false)
                     AsynchronousTlsChannel(asyncGroup, tlsCh, sockCh)
                 }
                 f.whenComplete { ch, ex ->

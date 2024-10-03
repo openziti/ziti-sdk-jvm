@@ -52,6 +52,35 @@ User-Agent: ziti/1.0.2
         }
     }
 
+    @Test(timeout = 65000)
+    fun testALPN() {
+        runBlocking {
+            val t = Transport.dial("tls://google.com:443",
+                SSLContext.getDefault(), 61_000, "http/1.1", "foo", "bar")
+
+            val applicationProtocol = t.applicationProtocol()
+            assertThat("alpn match", "http/1.1" == applicationProtocol)
+
+            val req = """GET /robots.txt HTTP/1.1
+Accept: */*
+Connection: keep-alive
+Host: google.com
+User-Agent: ziti/1.0.2
+
+"""
+            t.write(StandardCharsets.UTF_8.encode(req))
+            val respBuf = ByteBuffer.allocate(1024)
+            t.read(respBuf, false)
+
+            respBuf.flip()
+            val resp = StandardCharsets.UTF_8.decode(respBuf)
+            println(resp)
+            val lines = resp.toString().reader().readLines()
+            assertThat(lines[0], CoreMatchers.startsWith("HTTP/1.1"))
+            t.close()
+        }
+    }
+
     @Test(timeout = 20000, expected = SocketTimeoutException::class)
     fun testCancel() {
         runBlocking {
