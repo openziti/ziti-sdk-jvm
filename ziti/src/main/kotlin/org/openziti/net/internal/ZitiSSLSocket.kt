@@ -52,7 +52,12 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
     }
 
     inner class Output : OutputStream() {
-        val buffer = ByteBuffer.allocate(32 * 1024)
+        private val buffer = ByteBuffer.allocate(32 * 1024)
+
+        override fun close() {
+            this@ZitiSSLSocket.close()
+        }
+
         override fun write(b: Int) {
             buffer.put(b.toByte())
         }
@@ -81,7 +86,7 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
         }
     }
 
-    val output = Output()
+    private val output = Output()
     override fun getOutputStream(): OutputStream {
         doHandshake()
         return output
@@ -92,6 +97,10 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
             flip()
         }
         private val input: InputStream = transport.getInputStream()
+
+        override fun close() {
+            this@ZitiSSLSocket.close()
+        }
 
         override fun read(): Int {
             val buf = ByteArray(1)
@@ -268,5 +277,17 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
 
     override fun setEnableSessionCreation(flag: Boolean) {
         engine.enableSessionCreation = flag
+    }
+
+    override fun isClosed(): Boolean {
+        return transport.isClosed
+    }
+
+    override fun close() {
+        if (!isClosed) {
+            runCatching {
+                transport.close()
+            }
+        }
     }
 }
