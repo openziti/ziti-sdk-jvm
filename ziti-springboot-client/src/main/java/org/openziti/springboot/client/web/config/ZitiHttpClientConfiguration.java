@@ -100,7 +100,7 @@ public class ZitiHttpClientConfiguration {
       @Value("${spring.ziti.client.identity.password:}") String password) throws IOException {
 
     if (identityFile == null) {
-      throw new BeanCreationException("NO identity file specified. To use the default ziti setup please add a property named "
+      throw new BeanCreationException("No identity file specified. To use the default ziti setup please add a property named "
                                       + "`spring.ziti.client.identity.file` pointing to a ziti identity file.");
     }
 
@@ -128,9 +128,9 @@ public class ZitiHttpClientConfiguration {
   @ConditionalOnProperty(value = "spring.ziti.client.connection-manager.enabled", havingValue = "true", matchIfMissing = true)
   @Bean("zitiPoolingConnectionManager")
   public PoolingHttpClientConnectionManager poolingConnectionManager(
-      ZitiConnectionSocketFactory zitiConnectionSocketFactory,
-      ZitiSSLConnectionSocketFactory zitiSSLConnectionSocketFactory,
-      DnsResolver zitiDnsResolver,
+      @Qualifier("zitiConnectionSocketFactory") ZitiConnectionSocketFactory zitiConnectionSocketFactory,
+      @Qualifier("zitiSSLConnectionSocketFactory") ZitiSSLConnectionSocketFactory zitiSSLConnectionSocketFactory,
+      @Qualifier("zitiDnsResolver") DnsResolver zitiDnsResolver,
       @Value("${spring.ziti.client.httpclient.max-total:}") Integer maxTotal,
       @Value("${spring.ziti.client.httpclient.max-per-route:}") Integer maxPerRoute) {
 
