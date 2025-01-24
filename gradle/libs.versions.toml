@@ -8,6 +8,10 @@ openapi-gen = "7.11.0"
 spotless = "7.0.2"
 shadow-jar = "8.1.1"
 
+# OpenZiti Edge API
+ziti-api = "0.26.38"
+
+# third party
 lazysodium-java = "5.1.4"
 coroutines = "1.10.1"
 slf4j = "2.0.16"
@@ -17,7 +21,6 @@ tls-channel = "0.9.1"
 jjwt = "0.12.6"
 netty = "4.1.117.Final"
 springboot = "3.2.5"
-ziti-api = "0.26.28"
 jackson = "2.18.2"
 jakarta-annotation = "1.3.5"
 okhttp3 = "4.12.0"
