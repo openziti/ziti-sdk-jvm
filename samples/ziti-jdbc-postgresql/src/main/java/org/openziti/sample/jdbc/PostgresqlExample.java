@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.openziti.jdbc;
+package org.openziti.sample.jdbc;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -21,6 +21,7 @@ import java.util.Properties;
 
 import org.openziti.Ziti;
 import org.openziti.ZitiContext;
+import org.openziti.jdbc.ZitiDriver;
 
 public class PostgresqlExample {
     public static void main(String[] args) throws Exception {

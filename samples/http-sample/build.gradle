@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-plugins {
-    id("java")
-}
-
 dependencies {
-    implementation deps.ziti
-    implementation deps.slf4jSimple
+    implementation libs.ziti
+    implementation libs.slf4j.simple
 }

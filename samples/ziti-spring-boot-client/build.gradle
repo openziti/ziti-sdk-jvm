@@ -15,44 +15,24 @@
  */
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
-    id("java")
-
-    id('org.springframework.boot') version '3.2.2'
-    id('io.spring.dependency-management') version '1.1.4'
-    id("org.jetbrains.kotlin.plugin.spring") version "1.9.22"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.org.springframework.boot)
+    alias(libs.plugins.io.spring.dependency.management)
+    alias(libs.plugins.org.jetbrains.kotlin.plugin.spring)
 }
 
-group = "org.openziti.sample"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_17
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
 
 dependencies {
     implementation('org.springframework.boot:spring-boot-starter')
     implementation('org.springframework.boot:spring-boot-starter-web')
 
-    implementation("org.openziti:ziti-springboot-client:${versions.ziti}")
-    compileOnly('org.projectlombok:lombok:1.18.30')
-    annotationProcessor('org.projectlombok:lombok:1.18.30')
+    implementation libs.ziti.springboot.client
+    compileOnly('org.projectlombok:lombok:1.18.34')
+    annotationProcessor('org.projectlombok:lombok:1.18.34')
 
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.2.+")
-
-    testImplementation('org.springframework.boot:spring-boot-starter-test')
-    testCompileOnly('org.projectlombok:lombok:1.18.24')
-    testAnnotationProcessor('org.projectlombok:lombok:1.18.24')
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
-}
-
-task wrapper(type: Wrapper){
-    gradleVersion = '8.6'
+    implementation libs.httpclient5
 }
 
 tasks.register("prepareKotlinBuildScriptModel"){}

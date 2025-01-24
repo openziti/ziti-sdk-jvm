@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-plugins {
-	id 'java'
-}
-
 ext {
    javaMainClass = "org.openziti.jdbc.MSSQLExample"
 }
 
 dependencies {
-	implementation "org.openziti:ziti-jdbc:${versions.ziti}"
-	implementation deps.ziti
+	implementation libs.ziti.jdbc
+	implementation libs.ziti
     implementation files('lib/mssql-jdbc-12.6.0.jre11.jar')
-        implementation deps.slf4jSimple
+    implementation libs.slf4j.simple
 }
 
 task runWithJavaExec(type: JavaExec) {

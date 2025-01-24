@@ -15,24 +15,16 @@
  */
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
+    alias(libs.plugins.kotlin.jvm)
     id 'application'
 }
 
-group 'org.openziti'
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    implementation deps.ziti
-    implementation deps.kotlin
-    implementation deps.kotlinCoroutines
-    implementation deps.slf4jSimple
-
-
-    implementation('com.github.ajalt:clikt:2.8.0')
+    implementation libs.ziti
+    implementation libs.kotlin.stdlib
+    implementation libs.kotlinx.coroutines
+    implementation libs.slf4j.simple
+    implementation libs.clikt
 }
 
 application {

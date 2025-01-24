@@ -20,6 +20,7 @@ import org.openziti.Ziti;
 
 import java.io.ByteArrayOutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 
 /**
@@ -31,7 +32,7 @@ public class HttpSample {
         try {
             Ziti.init(args[0], "".toCharArray(), true);
 
-            URL url = new URL(args[1]);
+            URL url = URI.create(args[1]).toURL();
 
             runHttp(url);
 

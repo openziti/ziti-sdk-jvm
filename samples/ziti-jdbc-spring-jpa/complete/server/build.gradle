@@ -15,27 +15,21 @@
  */
 
 plugins {
-	id 'org.springframework.boot' version '2.7.5'
-	id 'io.spring.dependency-management' version '1.1.0'
-	id 'java'
+	alias(libs.plugins.org.springframework.boot)
+	alias(libs.plugins.io.spring.dependency.management)
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 
-	implementation "org.openziti:ziti-springboot:${versions.ziti}"
-	implementation "org.openziti:ziti-jdbc:${versions.ziti}"
+	implementation libs.ziti.springboot
+	implementation libs.ziti.jdbc
 
 	implementation 'org.postgresql:postgresql'
-
-	testImplementation('org.springframework.boot:spring-boot-starter-test')
 }
 
 bootRun {
 	systemProperty 'ziti.id', findProperty('ziti.id') ?: '../../network/private-service.json'
 }
 
-test {
-	useJUnitPlatform()
-}

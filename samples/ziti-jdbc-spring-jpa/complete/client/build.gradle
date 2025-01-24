@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-plugins {
-	id 'java'
-}
-
 ext {
    javaMainClass = "com.example.restservice.SimpleClient"
 }
 
-repositories {
-	mavenCentral()
-}
-
 dependencies {
-	implementation "org.openziti:ziti:${versions.ziti}"
-	implementation 'com.squareup.okhttp3:okhttp:4.10.0'
-	implementation 'org.slf4j:slf4j-api:2.0.5'
-	implementation 'org.slf4j:slf4j-simple:2.0.5'
+	implementation libs.ziti
+	implementation libs.okhttp3.okhttp
+	implementation libs.slf4j.simple
 }
 
 task runWithJavaExec(type: JavaExec) {
