@@ -98,6 +98,7 @@ No authorization required
 | **200** | A response for multi-format legacy enrollment. |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## enrollWithHttpInfo
 
@@ -178,6 +179,7 @@ No authorization required
 | **200** | A response for multi-format legacy enrollment. |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## enrollCa
@@ -243,6 +245,7 @@ No authorization required
 | **200** | Base empty response |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## enrollCaWithHttpInfo
 
@@ -317,6 +320,7 @@ No authorization required
 | **200** | Base empty response |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## enrollErOtt
@@ -385,6 +389,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | A response containing the edge routers signed certificates (server chain, server cert, CAs). |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## enrollErOttWithHttpInfo
 
@@ -462,6 +467,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | A response containing the edge routers signed certificates (server chain, server cert, CAs). |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## enrollOtt
@@ -531,6 +537,7 @@ No authorization required
 | **200** | A response containing and identities client certificate chains |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## enrollOttWithHttpInfo
 
@@ -609,6 +616,7 @@ No authorization required
 | **200** | A response containing and identities client certificate chains |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## enrollOttCa
@@ -677,6 +685,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## enrollOttCaWithHttpInfo
 
@@ -754,6 +763,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## enrollUpdb
@@ -825,6 +835,7 @@ No authorization required
 | **200** | Base empty response |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## enrollUpdbWithHttpInfo
 
@@ -905,6 +916,7 @@ No authorization required
 | **200** | Base empty response |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## enrollmentChallenge

@@ -83,6 +83,7 @@ CompletableFuture<[**ListCurrentApiSessionServiceUpdatesEnvelope**](ListCurrentA
 | **200** | Data indicating necessary service updates |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## listServiceUpdatesWithHttpInfo
 
@@ -168,4 +169,5 @@ CompletableFuture<ApiResponse<[**ListCurrentApiSessionServiceUpdatesEnvelope**](
 | **200** | Data indicating necessary service updates |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 

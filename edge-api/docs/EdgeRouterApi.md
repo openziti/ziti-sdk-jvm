@@ -83,6 +83,7 @@ CompletableFuture<[**ListCurrentIdentityEdgeRoutersEnvelope**](ListCurrentIdenti
 | **200** | A list of edge routers |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## getCurrentIdentityEdgeRoutersWithHttpInfo
 
@@ -168,4 +169,5 @@ CompletableFuture<ApiResponse<[**ListCurrentIdentityEdgeRoutersEnvelope**](ListC
 | **200** | A list of edge routers |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 

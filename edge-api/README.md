@@ -2,11 +2,11 @@
 
 Ziti Edge Client
 
-- API version: 0.26.27
+- API version: 0.26.38
 
-- Build date: 2024-09-04T10:11:22.635226-04:00[America/New_York]
+- Build date: 2025-01-24T15:38:47.422198133-05:00[America/New_York]
 
-- Generator version: 7.8.0
+- Generator version: 7.11.0
 
 OpenZiti Edge Client API
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>edge-api</artifactId>
-  <version>0.26.27</version>
+  <version>0.26.38</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:edge-api:0.26.27"
+compile "org.openziti:edge-api:0.26.38"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/edge-api-0.26.27.jar`
+- `target/edge-api-0.26.38.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -186,6 +186,8 @@ Class | Method | HTTP request | Description
 *EnrollApi* | [**extendVerifyCurrentIdentityAuthenticatorWithHttpInfo**](docs/EnrollApi.md#extendVerifyCurrentIdentityAuthenticatorWithHttpInfo) | **POST** /current-identity/authenticators/{id}/extend-verify | Allows the current identity to validate reciept of a new client certificate
 *EnrollApi* | [**getEnrollmentJwks**](docs/EnrollApi.md#getEnrollmentJwks) | **GET** /enroll/jwks | List JSON Web Keys associated with enrollment
 *EnrollApi* | [**getEnrollmentJwksWithHttpInfo**](docs/EnrollApi.md#getEnrollmentJwksWithHttpInfo) | **GET** /enroll/jwks | List JSON Web Keys associated with enrollment
+*EnrollmentApi* | [**listNetworkJWTs**](docs/EnrollmentApi.md#listNetworkJWTs) | **GET** /network-jwts | Returns a list of JWTs suitable for bootstrapping network trust.
+*EnrollmentApi* | [**listNetworkJWTsWithHttpInfo**](docs/EnrollmentApi.md#listNetworkJWTsWithHttpInfo) | **GET** /network-jwts | Returns a list of JWTs suitable for bootstrapping network trust.
 *ExtendEnrollmentApi* | [**extendCurrentIdentityAuthenticator**](docs/ExtendEnrollmentApi.md#extendCurrentIdentityAuthenticator) | **POST** /current-identity/authenticators/{id}/extend | Allows the current identity to recieve a new certificate associated with a certificate based authenticator
 *ExtendEnrollmentApi* | [**extendCurrentIdentityAuthenticatorWithHttpInfo**](docs/ExtendEnrollmentApi.md#extendCurrentIdentityAuthenticatorWithHttpInfo) | **POST** /current-identity/authenticators/{id}/extend | Allows the current identity to recieve a new certificate associated with a certificate based authenticator
 *ExtendEnrollmentApi* | [**extendRouterEnrollment**](docs/ExtendEnrollmentApi.md#extendRouterEnrollment) | **POST** /enroll/extend/router | Extend the life of a currently enrolled router&#39;s certificates
@@ -267,6 +269,7 @@ Class | Method | HTTP request | Description
  - [ApiSessionDetail](docs/ApiSessionDetail.md)
  - [ApiVersion](docs/ApiVersion.md)
  - [AuthQueryDetail](docs/AuthQueryDetail.md)
+ - [AuthQueryType](docs/AuthQueryType.md)
  - [Authenticate](docs/Authenticate.md)
  - [AuthenticatorDetail](docs/AuthenticatorDetail.md)
  - [AuthenticatorPatch](docs/AuthenticatorPatch.md)
@@ -329,6 +332,7 @@ Class | Method | HTTP request | Description
  - [ListCurrentApiSessionServiceUpdatesEnvelope](docs/ListCurrentApiSessionServiceUpdatesEnvelope.md)
  - [ListCurrentIdentityEdgeRoutersEnvelope](docs/ListCurrentIdentityEdgeRoutersEnvelope.md)
  - [ListEnumeratedCapabilitiesEnvelope](docs/ListEnumeratedCapabilitiesEnvelope.md)
+ - [ListNetworkJWTsEnvelope](docs/ListNetworkJWTsEnvelope.md)
  - [ListProtocolsEnvelope](docs/ListProtocolsEnvelope.md)
  - [ListServiceEdgeRoutersEnvelope](docs/ListServiceEdgeRoutersEnvelope.md)
  - [ListServicesEnvelope](docs/ListServicesEnvelope.md)
@@ -339,6 +343,7 @@ Class | Method | HTTP request | Description
  - [MfaCode](docs/MfaCode.md)
  - [MfaFormats](docs/MfaFormats.md)
  - [MfaProviders](docs/MfaProviders.md)
+ - [NetworkJWT](docs/NetworkJWT.md)
  - [NonceChallenge](docs/NonceChallenge.md)
  - [NonceSignature](docs/NonceSignature.md)
  - [OsType](docs/OsType.md)

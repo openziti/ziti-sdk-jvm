@@ -9,7 +9,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Client
-  version: 0.26.27
+  version: 0.26.38
 servers:
 - url: https://demo.ziti.dev/edge/client/v1
 paths:
@@ -600,6 +600,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -698,6 +705,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -798,6 +812,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -881,6 +902,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -942,6 +970,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -1561,6 +1596,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -2052,6 +2094,16 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/x-pem-file:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       summary: Enroll an identity via one-time-token
       tags:
       - Enroll
@@ -2111,6 +2163,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       summary: Enroll an identity with a pre-exchanged certificate
       tags:
       - Enroll
@@ -2233,6 +2292,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       summary: Enroll an edge-router
       tags:
       - Enroll
@@ -2391,6 +2457,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       summary: Enroll an identity via one-time-token
       tags:
       - Enroll
@@ -2441,6 +2514,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       summary: Enroll an identity via one-time-token with a pre-exchanged client certificate
       tags:
       - Enroll
@@ -2510,6 +2590,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       summary: Enroll an identity via one-time-token
       tags:
       - Enroll
@@ -2627,9 +2714,81 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       summary: List Client Authentication External JWT
       tags:
       - External JWT Signer
+      x-accepts:
+      - application/json
+  /network-jwts:
+    get:
+      description: Returns a list of JWTs for trusting a network
+      operationId: listNetworkJWTs
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listNetworkJWTsEnvelope"
+          description: A list of network JWTs
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+      summary: Returns a list of JWTs suitable for bootstrapping network trust.
+      tags:
+      - Enrollment
       x-accepts:
       - application/json
   /posture-response:
@@ -2719,6 +2878,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -2819,6 +2985,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -2859,6 +3032,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security: []
       summary: Return a list of the listening Edge protocols
       tags:
@@ -2979,6 +3159,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -3057,6 +3244,24 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The supplied session does not have the correct access rights
             to request this resource
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
         "409":
           content:
             application/json:
@@ -3096,6 +3301,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -3179,6 +3391,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -3300,6 +3519,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -3423,6 +3649,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -3669,6 +3902,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -3775,6 +4015,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -3889,6 +4136,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -4008,6 +4262,13 @@ paths:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The resource requested is rate limited and the rate limit has
             been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
       security:
       - ztSession: []
       - oauth2:
@@ -4385,19 +4646,28 @@ components:
       x-omitempty: true
     authQueryDetail:
       example:
+        clientId: clientId
         provider: ziti
         httpUrl: httpUrl
         minLength: 6
         format: numeric
-        typeId: typeId
+        typeId: MFA
+        id: id
+        scopes:
+        - scopes
+        - scopes
         httpMethod: httpMethod
         maxLength: 0
       properties:
+        clientId:
+          type: string
         format:
           $ref: "#/components/schemas/mfaFormats"
         httpMethod:
           type: string
         httpUrl:
+          type: string
+        id:
           type: string
         maxLength:
           type: integer
@@ -4405,8 +4675,12 @@ components:
           type: integer
         provider:
           $ref: "#/components/schemas/mfaProviders"
+        scopes:
+          items:
+            type: string
+          type: array
         typeId:
-          type: string
+          $ref: "#/components/schemas/authQueryType"
       required:
       - provider
       type: object
@@ -4414,6 +4688,12 @@ components:
       items:
         $ref: "#/components/schemas/authQueryDetail"
       type: array
+    authQueryType:
+      enum:
+      - MFA
+      - TOTP
+      - EXT-JWT
+      type: string
     authenticate:
       description: A generic authenticate object meant for use with the /authenticate
         path. Required fields depend on authentication method.
@@ -4579,6 +4859,9 @@ components:
       allOf:
       - $ref: "#/components/schemas/baseEntity"
       - properties:
+          audience:
+            nullable: true
+            type: string
           clientId:
             nullable: true
             type: string
@@ -4599,6 +4882,7 @@ components:
       description: A External JWT Signer resource
       example:
         createdAt: 2000-01-23T04:56:07.000+00:00
+        audience: audience
         clientId: clientId
         externalAuthUrl: http://example.com/aeiou
         _links:
@@ -4886,18 +5170,28 @@ components:
         - configTypes
         - configTypes
         authQueries:
-        - provider: ziti
+        - clientId: clientId
+          provider: ziti
           httpUrl: httpUrl
           minLength: 6
           format: numeric
-          typeId: typeId
+          typeId: MFA
+          id: id
+          scopes:
+          - scopes
+          - scopes
           httpMethod: httpMethod
           maxLength: 0
-        - provider: ziti
+        - clientId: clientId
+          provider: ziti
           httpUrl: httpUrl
           minLength: 6
           format: numeric
-          typeId: typeId
+          typeId: MFA
+          id: id
+          scopes:
+          - scopes
+          - scopes
           httpMethod: httpMethod
           maxLength: 0
         expirationSeconds: 1
@@ -4936,18 +5230,28 @@ components:
           - configTypes
           - configTypes
           authQueries:
-          - provider: ziti
+          - clientId: clientId
+            provider: ziti
             httpUrl: httpUrl
             minLength: 6
             format: numeric
-            typeId: typeId
+            typeId: MFA
+            id: id
+            scopes:
+            - scopes
+            - scopes
             httpMethod: httpMethod
             maxLength: 0
-          - provider: ziti
+          - clientId: clientId
+            provider: ziti
             httpUrl: httpUrl
             minLength: 6
             format: numeric
-            typeId: typeId
+            typeId: MFA
+            id: id
+            scopes:
+            - scopes
+            - scopes
             httpMethod: httpMethod
             maxLength: 0
           expirationSeconds: 1
@@ -5044,6 +5348,7 @@ components:
           roleAttributes:
           - null
           - null
+          edgeRouterConnectionStatus: online
           hasEdgeRouterConnection: true
           serviceHostingPrecedences: null
           envInfo:
@@ -5805,6 +6110,12 @@ components:
             format: date-time
             nullable: true
             type: string
+          edgeRouterConnectionStatus:
+            enum:
+            - online
+            - offline
+            - unknown
+            type: string
           enrollment:
             $ref: "#/components/schemas/identityEnrollments"
           envInfo:
@@ -5842,6 +6153,7 @@ components:
         - authenticators
         - defaultHostingCost
         - disabled
+        - edgeRouterConnectionStatus
         - enrollment
         - envInfo
         - externalId
@@ -5898,6 +6210,7 @@ components:
         roleAttributes:
         - null
         - null
+        edgeRouterConnectionStatus: online
         hasEdgeRouterConnection: true
         serviceHostingPrecedences: null
         envInfo:
@@ -6312,6 +6625,7 @@ components:
       example:
         data:
         - createdAt: 2000-01-23T04:56:07.000+00:00
+          audience: audience
           clientId: clientId
           externalAuthUrl: http://example.com/aeiou
           _links:
@@ -6327,6 +6641,7 @@ components:
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
         - createdAt: 2000-01-23T04:56:07.000+00:00
+          audience: audience
           clientId: clientId
           externalAuthUrl: http://example.com/aeiou
           _links:
@@ -6643,6 +6958,35 @@ components:
         data:
           items:
             $ref: "#/components/schemas/capabilities"
+          type: array
+        meta:
+          $ref: "#/components/schemas/meta"
+      required:
+      - data
+      - meta
+      type: object
+    listNetworkJWTsEnvelope:
+      example:
+        data:
+        - name: name
+          token: token
+        - name: name
+          token: token
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          pagination:
+            offset: 6.027456183070403
+            limit: 0.8008281904610115
+            totalCount: 1.4658129805029452
+          filterableFields:
+          - filterableFields
+          - filterableFields
+      properties:
+        data:
+          description: An array of network JWTs
+          items:
+            $ref: "#/components/schemas/networkJWT"
           type: array
         meta:
           $ref: "#/components/schemas/meta"
@@ -7244,6 +7588,26 @@ components:
       - ziti
       - url
       type: string
+    networkJWT:
+      allOf:
+      - properties:
+          name:
+            type: string
+          token:
+            type: string
+        required:
+        - name
+        - token
+        type: object
+      description: A network JWT
+      example:
+        name: name
+        token: token
+    networkJWTList:
+      description: An array of network JWTs
+      items:
+        $ref: "#/components/schemas/networkJWT"
+      type: array
     nonceChallenge:
       properties:
         keyId:
