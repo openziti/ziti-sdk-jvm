@@ -99,8 +99,10 @@ CompletableFuture<[**Empty**](Empty.md)>
 | **200** | The delete request was successful and the resource has been removed |  -  |
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
+| **404** | The requested resource does not exist |  -  |
 | **409** | The resource requested to be removed/altered cannot be as it is referenced by another object. |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## deleteServiceWithHttpInfo
 
@@ -190,8 +192,10 @@ CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
 | **200** | The delete request was successful and the resource has been removed |  -  |
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
+| **404** | The requested resource does not exist |  -  |
 | **409** | The resource requested to be removed/altered cannot be as it is referenced by another object. |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## detailService
@@ -273,6 +277,7 @@ CompletableFuture<[**DetailServiceEnvelope**](DetailServiceEnvelope.md)>
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## detailServiceWithHttpInfo
 
@@ -363,6 +368,7 @@ CompletableFuture<ApiResponse<[**DetailServiceEnvelope**](DetailServiceEnvelope.
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## listServiceEdgeRouters
@@ -639,6 +645,7 @@ CompletableFuture<[**ListClientTerminatorsEnvelope**](ListClientTerminatorsEnvel
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## listServiceTerminatorsWithHttpInfo
 
@@ -735,6 +742,7 @@ CompletableFuture<ApiResponse<[**ListClientTerminatorsEnvelope**](ListClientTerm
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## listServices
@@ -826,6 +834,7 @@ CompletableFuture<[**ListServicesEnvelope**](ListServicesEnvelope.md)>
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## listServicesWithHttpInfo
 
@@ -926,6 +935,7 @@ CompletableFuture<ApiResponse<[**ListServicesEnvelope**](ListServicesEnvelope.md
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## patchService
@@ -1010,6 +1020,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## patchServiceWithHttpInfo
 
@@ -1103,6 +1114,7 @@ CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## updateService
@@ -1187,6 +1199,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## updateServiceWithHttpInfo
 
@@ -1280,4 +1293,5 @@ CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 

@@ -9,6 +9,7 @@ docs/ApiFieldError.md
 docs/ApiSessionDetail.md
 docs/ApiVersion.md
 docs/AuthQueryDetail.md
+docs/AuthQueryType.md
 docs/Authenticate.md
 docs/AuthenticationApi.md
 docs/AuthenticatorDetail.md
@@ -50,6 +51,7 @@ docs/EdgeRouterApi.md
 docs/Empty.md
 docs/EnrollApi.md
 docs/EnrollUpdbRequest.md
+docs/EnrollmentApi.md
 docs/EnrollmentCerts.md
 docs/EnrollmentCertsEnvelope.md
 docs/EntityRef.md
@@ -80,6 +82,7 @@ docs/ListCurrentApiSessionCertificatesEnvelope.md
 docs/ListCurrentApiSessionServiceUpdatesEnvelope.md
 docs/ListCurrentIdentityEdgeRoutersEnvelope.md
 docs/ListEnumeratedCapabilitiesEnvelope.md
+docs/ListNetworkJWTsEnvelope.md
 docs/ListProtocolsEnvelope.md
 docs/ListServiceEdgeRoutersEnvelope.md
 docs/ListServicesEnvelope.md
@@ -91,6 +94,7 @@ docs/MfaApi.md
 docs/MfaCode.md
 docs/MfaFormats.md
 docs/MfaProviders.md
+docs/NetworkJWT.md
 docs/NonceChallenge.md
 docs/NonceSignature.md
 docs/OsType.md
@@ -147,6 +151,7 @@ src/main/java/org/openziti/edge/api/CurrentApiSessionApi.java
 src/main/java/org/openziti/edge/api/CurrentIdentityApi.java
 src/main/java/org/openziti/edge/api/EdgeRouterApi.java
 src/main/java/org/openziti/edge/api/EnrollApi.java
+src/main/java/org/openziti/edge/api/EnrollmentApi.java
 src/main/java/org/openziti/edge/api/ExtendEnrollmentApi.java
 src/main/java/org/openziti/edge/api/ExternalJwtSignerApi.java
 src/main/java/org/openziti/edge/api/InformationalApi.java
@@ -166,6 +171,7 @@ src/main/java/org/openziti/edge/model/ApiFieldError.java
 src/main/java/org/openziti/edge/model/ApiSessionDetail.java
 src/main/java/org/openziti/edge/model/ApiVersion.java
 src/main/java/org/openziti/edge/model/AuthQueryDetail.java
+src/main/java/org/openziti/edge/model/AuthQueryType.java
 src/main/java/org/openziti/edge/model/Authenticate.java
 src/main/java/org/openziti/edge/model/AuthenticatorDetail.java
 src/main/java/org/openziti/edge/model/AuthenticatorPatch.java
@@ -228,6 +234,7 @@ src/main/java/org/openziti/edge/model/ListCurrentApiSessionCertificatesEnvelope.
 src/main/java/org/openziti/edge/model/ListCurrentApiSessionServiceUpdatesEnvelope.java
 src/main/java/org/openziti/edge/model/ListCurrentIdentityEdgeRoutersEnvelope.java
 src/main/java/org/openziti/edge/model/ListEnumeratedCapabilitiesEnvelope.java
+src/main/java/org/openziti/edge/model/ListNetworkJWTsEnvelope.java
 src/main/java/org/openziti/edge/model/ListProtocolsEnvelope.java
 src/main/java/org/openziti/edge/model/ListServiceEdgeRoutersEnvelope.java
 src/main/java/org/openziti/edge/model/ListServicesEnvelope.java
@@ -238,6 +245,7 @@ src/main/java/org/openziti/edge/model/Meta.java
 src/main/java/org/openziti/edge/model/MfaCode.java
 src/main/java/org/openziti/edge/model/MfaFormats.java
 src/main/java/org/openziti/edge/model/MfaProviders.java
+src/main/java/org/openziti/edge/model/NetworkJWT.java
 src/main/java/org/openziti/edge/model/NonceChallenge.java
 src/main/java/org/openziti/edge/model/NonceSignature.java
 src/main/java/org/openziti/edge/model/OsType.java

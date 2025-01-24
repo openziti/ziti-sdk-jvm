@@ -22,6 +22,7 @@ Detail of a specific identity
 |**disabled** | **Boolean** |  |  |
 |**disabledAt** | **OffsetDateTime** |  |  [optional] |
 |**disabledUntil** | **OffsetDateTime** |  |  [optional] |
+|**edgeRouterConnectionStatus** | [**EdgeRouterConnectionStatusEnum**](#EdgeRouterConnectionStatusEnum) |  |  |
 |**enrollment** | [**IdentityEnrollments**](IdentityEnrollments.md) |  |  |
 |**envInfo** | [**EnvInfo**](EnvInfo.md) |  |  |
 |**externalId** | **String** |  |  |
@@ -37,6 +38,16 @@ Detail of a specific identity
 |**serviceHostingPrecedences** | **Map&lt;String, TerminatorPrecedence&gt;** |  |  |
 |**type** | [**EntityRef**](EntityRef.md) |  |  |
 |**typeId** | **String** |  |  |
+
+
+
+## Enum: EdgeRouterConnectionStatusEnum
+
+| Name | Value |
+|---- | -----|
+| ONLINE | &quot;online&quot; |
+| OFFLINE | &quot;offline&quot; |
+| UNKNOWN | &quot;unknown&quot; |
 
 
 

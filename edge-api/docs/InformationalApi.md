@@ -498,6 +498,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | A list of supported Edge protocols |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## listProtocolsWithHttpInfo
 
@@ -569,6 +570,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | A list of supported Edge protocols |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 
 ## listRoot
