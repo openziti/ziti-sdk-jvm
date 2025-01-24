@@ -4,8 +4,12 @@ updates:
   - package-ecosystem: "gradle"
     open-pull-requests-limit: 10
     directory: "."
+    groups:
+      third-party:
+        patterns:
+          - "*"
     schedule:
-      interval: daily
+      interval: weekly
 
   - package-ecosystem: github-actions
     directory: "/"
