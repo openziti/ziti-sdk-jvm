@@ -23,12 +23,10 @@ import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.selects.select
 import org.openziti.*
 import org.openziti.api.*
-import org.openziti.edge.model.CurrentIdentityEdgeRouterDetail
-import org.openziti.edge.model.DialBind
-import org.openziti.edge.model.IdentityDetail
-import org.openziti.edge.model.TerminatorClientDetail
+import org.openziti.edge.model.*
 import org.openziti.identity.Identity
 import org.openziti.net.*
+import org.openziti.net.Protocol
 import org.openziti.net.dns.ZitiDNSManager
 import org.openziti.net.nio.connectSuspend
 import org.openziti.net.routing.RouteManager
@@ -119,8 +117,11 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         getId()
     }
 
-    override fun getId(): IdentityDetail? = apiSession.value?.identity?.let {
-        IdentityDetail().name(it.name).id(it.id)
+    override fun getId(): IdentityDetail? = apiSession.value?.identity?.let { ref ->
+        IdentityDetail().apply {
+            ref.id?.let { id(it) }
+            ref.name?.let { name(it) }
+        }
     }
 
     override fun getStatus() = statusCh.value
@@ -209,10 +210,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
             apiSession.value = session
             val mfa = session.authQueries.find {
-                it.typeId == "MFA" && it.provider.value == "ziti"
+                it.typeId == AuthQueryType.MFA && it.provider.value == "ziti"
             }
             if (mfa != null) {
-                updateStatus(ZitiContext.Status.NeedsAuth(mfa.typeId, mfa.provider.value))
+                updateStatus(ZitiContext.Status.NeedsAuth(mfa.typeId!!, mfa.provider.value))
                 val success = runCatching {
                     val code = authCode.receive()
                     controller.authMFA(code)

@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import org.openziti.api.MFAEnrollment
 import org.openziti.api.Service
+import org.openziti.edge.model.AuthQueryType
 import org.openziti.edge.model.IdentityDetail
 import org.openziti.edge.model.TerminatorClientDetail
 import org.openziti.identity.Identity
@@ -48,7 +49,7 @@ interface ZitiContext: Identity {
 
     sealed class Status {
         object Loading: Status()
-        class NeedsAuth(val type: String?, val provider: String): Status()
+        class NeedsAuth(val type: AuthQueryType, val provider: String): Status()
         object Active: Status()
         object Disabled: Status()
         class NotAuthorized(val ex: Throwable): Status()
