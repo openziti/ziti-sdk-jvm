@@ -16,56 +16,52 @@
 
 plugins {
     alias(libs.plugins.dokka)
-    id 'java'
-    id 'maven-publish'
+    id("java")
+    id("maven-publish")
 }
 
 ext {
-    description "Ziti adapter for Spring Boot Client(s)"
+    description = "Ziti adapter for Spring Boot Client(s)"
 }
 
 repositories {
     mavenCentral()
 }
 
+val springbootVersion = libs.versions.springboot.get()
+val lombokVersion = libs.versions.lombok.get()
+
 dependencies {
-    def springbootVersion = libs.versions.springboot.get()
     implementation("org.springframework.boot:spring-boot:${springbootVersion}")
     implementation("org.springframework.boot:spring-boot-autoconfigure:${springbootVersion}")
     implementation("org.springframework.boot:spring-boot-starter-web:${springbootVersion}")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.4.1")
     implementation("commons-beanutils:commons-beanutils:1.10.0")
 
-    compileOnly('org.projectlombok:lombok:1.18.36')
-    annotationProcessor('org.projectlombok:lombok:1.18.36')
+    compileOnly("org.projectlombok:lombok:${lombokVersion}")
+    annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 
     implementation(project(":ziti"))
-
 }
 
-tasks.register('sourcesJar', Jar) {
-    from sourceSets.main.java.srcDirs
-    archiveClassifier = "sources"
+java {
+    withSourcesJar()
 }
 
-tasks.register('dokkaJar', Jar) {
-    archiveClassifier = "javadoc"
-    from dokkaJavadoc.outputDirectory
+tasks.register<Jar>("dokkaJar") {
+    dependsOn(tasks.dokkaJavadoc)
+    archiveClassifier.set("javadoc")
+    from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
 }
 
-artifacts {
-    archives(sourcesJar)
-    archives(dokkaJar)
-}
 
 publishing {
     publications {
-        zitiNetty(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-            artifact dokkaJar
+        create<MavenPublication>("zitiNetty") {
+            from(components["java"])
+            artifact(tasks["dokkaJar"])
         }
     }
 }
 
-apply from: rootProject.file('publish.gradle')
+apply(from = rootProject.file("publish.gradle"))

@@ -17,54 +17,54 @@
 plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.dokka)
-    id 'maven-publish'
+    `maven-publish`
 }
 
 ext {
-    description "Netty Adapter for Ziti"
+    description = "vert.x support for Ziti"
 }
 
-repositories {
-    mavenCentral()
+java {
+    withSourcesJar()
+}
+
+sourceSets {
+    create("samples") {
+        kotlin {
+            compileClasspath += main.get().output + main.get().compileClasspath
+            runtimeClasspath += output + compileClasspath
+        }
+    }
 }
 
 dependencies {
     api(project(":ziti"))
+    implementation(project(":ziti-netty"))
 
     implementation(libs.kotlin.lib)
-    implementation(libs.netty.transport)
+    implementation("io.vertx:vertx-core:4.5.12")
 
     testApi(libs.jupiter.api)
     testImplementation(libs.jupiter.engine)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.gson)
-    testImplementation(libs.netty.http)
+
+    "samplesImplementation"(libs.slf4j.simple)
 }
 
-tasks.register('sourcesJar', Jar) {
-    from sourceSets.main.java.srcDirs
-    from sourceSets.main.kotlin.srcDirs
-    archiveClassifier = "sources"
-}
-
-tasks.register('dokkaJar', Jar) {
-    archiveClassifier = "javadoc"
-    from dokkaJavadoc.outputDirectory
-}
-
-artifacts {
-    archives(sourcesJar)
-    archives(dokkaJar)
+tasks.register<Jar>("dokkaJar") {
+    dependsOn(tasks.dokkaJavadoc)
+    archiveClassifier.set("javadoc")
+    from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
 }
 
 publishing {
     publications {
-        zitiNetty(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-            artifact dokkaJar
+        create<MavenPublication>("zitiVertx") {
+            from(components["java"])
+            artifact(tasks["dokkaJar"])
         }
     }
 }
 
-apply from: rootProject.file('publish.gradle')
+apply(from = rootProject.file("publish.gradle"))
