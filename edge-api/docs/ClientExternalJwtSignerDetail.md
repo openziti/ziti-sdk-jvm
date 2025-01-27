@@ -18,6 +18,7 @@ A External JWT Signer resource
 |**externalAuthUrl** | **String** |  |  |
 |**name** | **String** |  |  |
 |**scopes** | **List&lt;String&gt;** |  |  [optional] |
+|**targetToken** | **TargetToken** |  |  [optional] |
 
 
 

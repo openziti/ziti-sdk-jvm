@@ -9,7 +9,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Client
-  version: 0.26.38
+  version: 0.26.39
 servers:
 - url: https://demo.ziti.dev/edge/client/v1
 paths:
@@ -4875,6 +4875,8 @@ components:
             items:
               type: string
             type: array
+          targetToken:
+            $ref: "#/components/schemas/targetToken"
         required:
         - externalAuthUrl
         - name
@@ -4891,6 +4893,7 @@ components:
             comment: comment
             href: https://openapi-generator.tech
         name: MyApps Signer
+        targetToken: ACCESS
         id: id
         scopes:
         - scopes
@@ -6634,6 +6637,7 @@ components:
               comment: comment
               href: https://openapi-generator.tech
           name: MyApps Signer
+          targetToken: ACCESS
           id: id
           scopes:
           - scopes
@@ -6650,6 +6654,7 @@ components:
               comment: comment
               href: https://openapi-generator.tech
           name: MyApps Signer
+          targetToken: ACCESS
           id: id
           scopes:
           - scopes
@@ -8519,6 +8524,14 @@ components:
       description: "A map of user defined fields and values. The values are limited\
         \ to the following types/values: null, string, boolean"
       example: {}
+    targetToken:
+      description: Defines the target token type
+      enum:
+      - ACCESS
+      - ID
+      nullable: true
+      type: string
+      x-nullable: true
     terminatorClientDetail:
       allOf:
       - $ref: "#/components/schemas/baseEntity"

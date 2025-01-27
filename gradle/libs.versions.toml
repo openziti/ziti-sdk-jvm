@@ -9,7 +9,7 @@ spotless = "7.0.2"
 shadow-jar = "8.3.5"
 
 # OpenZiti Edge API
-ziti-api = "0.26.38"
+ziti-api = "0.26.39"
 
 # third party
 lazysodium-java = "5.1.4"

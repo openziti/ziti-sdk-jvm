@@ -131,6 +131,7 @@ docs/SessionDetail.md
 docs/SessionEdgeRouter.md
 docs/SpecDetail.md
 docs/Tags.md
+docs/TargetToken.md
 docs/TerminatorClientDetail.md
 docs/TerminatorPrecedence.md
 docs/Version.md
@@ -278,6 +279,7 @@ src/main/java/org/openziti/edge/model/SessionDetail.java
 src/main/java/org/openziti/edge/model/SessionEdgeRouter.java
 src/main/java/org/openziti/edge/model/SpecDetail.java
 src/main/java/org/openziti/edge/model/Tags.java
+src/main/java/org/openziti/edge/model/TargetToken.java
 src/main/java/org/openziti/edge/model/TerminatorClientDetail.java
 src/main/java/org/openziti/edge/model/TerminatorPrecedence.java
 src/main/java/org/openziti/edge/model/Version.java
