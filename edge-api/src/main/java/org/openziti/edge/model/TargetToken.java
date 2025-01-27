@@ -15,23 +15,15 @@ package org.openziti.edge.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-/** Gets or Sets postureCheckType */
-public enum PostureCheckType {
-    OS("OS"),
+/** Defines the target token type */
+public enum TargetToken {
+    ACCESS("ACCESS"),
 
-    PROCESS("PROCESS"),
-
-    DOMAIN("DOMAIN"),
-
-    MAC("MAC"),
-
-    MFA("MFA"),
-
-    PROCESS_MULTI("PROCESS_MULTI");
+    ID("ID");
 
     private String value;
 
-    PostureCheckType(String value) {
+    TargetToken(String value) {
         this.value = value;
     }
 
@@ -46,13 +38,13 @@ public enum PostureCheckType {
     }
 
     @JsonCreator
-    public static PostureCheckType fromValue(String value) {
-        for (PostureCheckType b : PostureCheckType.values()) {
+    public static TargetToken fromValue(String value) {
+        for (TargetToken b : TargetToken.values()) {
             if (b.value.equals(value)) {
                 return b;
             }
         }
-        throw new IllegalArgumentException("Unexpected value '" + value + "'");
+        return null;
     }
 
     /**

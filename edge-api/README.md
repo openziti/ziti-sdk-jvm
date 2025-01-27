@@ -2,9 +2,9 @@
 
 Ziti Edge Client
 
-- API version: 0.26.38
+- API version: 0.26.39
 
-- Build date: 2025-01-24T15:38:47.422198133-05:00[America/New_York]
+- Build date: 2025-01-27T11:11:53.726065456-05:00[America/New_York]
 
 - Generator version: 7.11.0
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>edge-api</artifactId>
-  <version>0.26.38</version>
+  <version>0.26.39</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:edge-api:0.26.38"
+compile "org.openziti:edge-api:0.26.39"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/edge-api-0.26.38.jar`
+- `target/edge-api-0.26.39.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -376,6 +376,7 @@ Class | Method | HTTP request | Description
  - [SessionEdgeRouter](docs/SessionEdgeRouter.md)
  - [SpecDetail](docs/SpecDetail.md)
  - [Tags](docs/Tags.md)
+ - [TargetToken](docs/TargetToken.md)
  - [TerminatorClientDetail](docs/TerminatorClientDetail.md)
  - [TerminatorPrecedence](docs/TerminatorPrecedence.md)
  - [Version](docs/Version.md)
