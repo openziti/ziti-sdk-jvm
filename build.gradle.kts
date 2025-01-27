@@ -1,4 +1,8 @@
+import io.wusa.Info
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.text.SimpleDateFormat
+import java.util.*
 
 /*
  * Copyright (c) 2018-2021 NetFoundry Inc.
@@ -17,10 +21,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  */
 
 plugins {
-    alias(libs.plugins.kotlin) apply(false)
+    alias(libs.plugins.kotlin).apply(false)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.semver.git)
-    alias(libs.plugins.openapi) apply(false)
+    alias(libs.plugins.openapi)
 }
 
 semver {
@@ -30,27 +34,31 @@ semver {
         branch {
             regex = "main"
             incrementer = "PATCH_INCREMENTER"
-            formatter = { info -> "${info.version.major}.${info.version.minor}.${info.version.patch}" }
+            formatter = Transformer<Any, Info> { info ->
+                "${info.version.major}.${info.version.minor}.${info.version.patch}"
+            }
         }
         branch {
             regex = ".+"
             incrementer = "PATCH_INCREMENTER"
-            formatter = { info ->
-                def v = info.version
+            formatter = Transformer<Any, Info> { info ->
+                val v = info.version
                 """${v.major}.${v.minor}.${v.patch}-${info.branch.id}-${v.suffix?.count ?: "0"}.${v.suffix?.sha}"""
             }
         }
     }
 }
 
+val gitCommit = semver.info.shortCommit
 ext {
-    gitCommit = semver.info.shortCommit
-    gitBranch = semver.info.branch.name
+    set("gitCommit", semver.info.shortCommit)
+    set("gitBranch", semver.info.branch.name)
 }
 
-println(rootProject.name)
 group = "org.openziti"
 version = "${semver.info}"
+
+println("${project.name}: ${project.version}")
 
 subprojects {
     group = rootProject.group
@@ -60,33 +68,33 @@ subprojects {
         mavenCentral()
     }
 
-    tasks.withType(PublishToMavenRepository).configureEach {
+    tasks.withType<PublishToMavenRepository>().configureEach {
         onlyIf { !semver.info.dirty }
     }
 
-    tasks.withType(JavaCompile).configureEach {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
     }
 
-    tasks.withType(KotlinCompile).configureEach {
-        kotlinOptions {
-            jvmTarget = JavaVersion.VERSION_17
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
-    tasks.withType(Jar).configureEach {
+    tasks.withType<Jar>().configureEach {
         manifest {
             attributes(
-                    'Built-By'       : System.properties['user.name'],
-                    'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
-                    'Build-Revision' : semver.info.commit,
-                    'Implementation-Version': "${project.version}",
-                    'Created-By'     : "Gradle ${gradle.gradleVersion}",
-                    'Build-Jdk'      : "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
-                    'Build-OS'       : "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}",
-                    'Specification-Vendor': "OpenZiti",
-                    'Implementation-Vendor': "OpenZiti",
+                "Built-By"       to System.getProperty("user.name"),
+                    "Build-Timestamp" to SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(Date()),
+                    "Build-Revision" to gitCommit,
+                    "Implementation-Version" to "${project.version}",
+                    "Created-By"     to "Gradle ${gradle.gradleVersion}",
+                    "Build-Jdk"      to "${System.getProperty("java.version")} (${System.getProperty("java.vendor")} ${System.getProperty("java.vm.version")})",
+                    "Build-OS"       to "${System.getProperty("os.name")} ${System.getProperty("os.arch")} ${System.getProperty("os.version")}",
+                    "Specification-Vendor" to "OpenZiti",
+                    "Implementation-Vendor" to "OpenZiti",
             )
         }
     }
@@ -101,30 +109,32 @@ nexusPublishing {
     }
 }
 
-gradle.rootProject {
-    apply plugin: libs.plugins.openapi.get().pluginId
-}
+
 // generate Ziti Edge API client
 // only needed if new version was published in github.com/openziti/edge-api
 // run `./gradlew :openApiGenerate`, check build, commit, push
-def edgeApiVersion = libs.versions.ziti.api.get()
+val edgeApiVersion = libs.versions.ziti.api.get()
+
 openApiGenerate {
     applyDefaults()
 
     remoteInputSpec.set("https://raw.githubusercontent.com/openziti/edge-api/v${edgeApiVersion}/client.yml")
-    outputDir.set("$projectDir/edge-api".toString())
-    generatorName.set('java')
-    groupId.set("org.openziti".toString())
-    id.set("edge-api".toString())
+    outputDir.set("$projectDir/edge-api")
+    generatorName.set("java")
+    groupId.set("org.openziti")
+    id.set("edge-api")
     modelPackage.set("org.openziti.edge.model")
     apiPackage.set("org.openziti.edge.api")
     generateModelTests.set(false)
     generateApiTests.set(false)
-    configOptions = [
-            dateLibrary: "java8",
-            library: "native",
-            asyncNative: true.toString(),
-    ]
+    configOptions = mapOf(
+        "dateLibrary" to "java8",
+        "library" to "native",
+        "asyncNative" to true.toString(),
+    )
 }
 
-tasks.named('openApiGenerate').get().finalizedBy(':edge-api:spotlessApply')
+tasks.named("openApiGenerate").get().finalizedBy(":edge-api:spotlessApply")
+
+
+
