@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 /*
  * Copyright (c) 2018-2021 NetFoundry Inc.
  *
@@ -18,12 +20,12 @@ plugins {
     id("java-library")
     alias(libs.plugins.kotlin)
     alias(libs.plugins.dokka)
-    id 'maven-publish'
+    id("maven-publish")
     alias(libs.plugins.shadow)
 }
 
 ext {
-    description "Ziti SDK for JVM"
+    description = "Ziti SDK for JVM"
 }
 
 dependencies {
@@ -44,11 +46,11 @@ dependencies {
     implementation(libs.jjwt.impl)
     implementation(libs.jjwt.gson)
 
-    implementation('io.dropwizard.metrics:metrics-core:4.2.30')
-    implementation('org.bouncycastle:bcpkix-jdk18on:1.80')
+    implementation("io.dropwizard.metrics:metrics-core:4.2.30")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.80")
 
     implementation(libs.sodium) {
-        exclude module: 'slf4j-api'
+        exclude(module = "slf4j-api")
     }
 
     testApi(libs.jupiter.api)
@@ -58,51 +60,47 @@ dependencies {
     testImplementation(libs.slf4j.simple)
 }
 
-def generatedResourcesDir = "${buildDir}/generated-resources/main"
+val generatedResourcesDir = "${buildDir}/generated-resources/main"
 
-tasks.register("versionProps", WriteProperties) {
+val gitCommit = rootProject.ext["gitCommit"]
+val gitBranch = rootProject.ext["gitBranch"]
+
+tasks.register<WriteProperties>("versionProps") {
     destinationFile = file("${generatedResourcesDir}/org/openziti/util/ziti-version.properties")
 
     property("version", "${project.version}")
-    property("revision", gitCommit)
-    property("branch", gitBranch)
+    property("revision", "$gitCommit")
+    property("branch", "$gitBranch")
 }
 
 sourceSets.main {
-    resources.srcDir(files(generatedResourcesDir).builtBy(versionProps))
+    resources.srcDir(files(generatedResourcesDir).builtBy(tasks["versionProps"]))
 }
 
-shadowJar {
-    manifest.from jar.manifest
-    archiveClassifier = 'full'
+java {
+    withSourcesJar()
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+    manifest.inheritFrom(tasks.jar.get().manifest)
+    archiveClassifier.set("full")
     mergeServiceFiles()
-    configurations = [ project.configurations.runtimeClasspath ]
+    configurations = listOf(project.configurations.runtimeClasspath.get())
 }
 
-tasks.register('sourcesJar', Jar) {
-    from sourceSets.main.java.srcDirs
-    from sourceSets.main.kotlin.srcDirs
-    archiveClassifier = "sources"
-}
-
-tasks.register('dokkaJar', Jar) {
-    archiveClassifier = "javadoc"
-    from dokkaJavadoc.outputDirectory
-}
-
-artifacts {
-    archives(sourcesJar)
-    archives(dokkaJar)
+tasks.register<Jar>("dokkaJar") {
+    dependsOn(tasks.dokkaJavadoc)
+    archiveClassifier.set("javadoc")
+    from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
 }
 
 publishing {
     publications {
-        zitiJava(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-            artifact dokkaJar
+        create<MavenPublication>(project.name) {
+            from(components["java"])
+            artifact(tasks["dokkaJar"])
         }
     }
 }
 
-apply from: rootProject.file('publish.gradle')
+apply(from = rootProject.file("publish.gradle"))

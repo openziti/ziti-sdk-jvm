@@ -17,55 +17,48 @@
 plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.dokka)
-    id 'maven-publish'
+    id("maven-publish")
 
     alias(libs.plugins.kotlin.spring)
 }
 
 ext {
-    description "Ziti adapter for Spring Boot"
+    description = "Ziti adapter for Spring Boot"
 }
 
 repositories {
     mavenCentral()
 }
 
+val springbootVersion = libs.versions.springboot.get()
+
 dependencies {
     implementation(libs.kotlin.lib)
 
-    def springbootVersion = libs.versions.springboot.get()
     implementation("org.springframework.boot:spring-boot:${springbootVersion}")
     implementation("org.springframework.boot:spring-boot-autoconfigure:${springbootVersion}")
     implementation("org.springframework.boot:spring-boot-starter-tomcat:${springbootVersion}")
 
     implementation(project(":ziti"))
-
 }
 
-tasks.register('sourcesJar', Jar) {
-    from sourceSets.main.java.srcDirs
-    from sourceSets.main.kotlin.srcDirs
-    archiveClassifier = "sources"
+java {
+    withSourcesJar()
 }
 
-tasks.register('dokkaJar', Jar) {
-    archiveClassifier = "javadoc"
-    from dokkaJavadoc.outputDirectory
-}
-
-artifacts {
-    archives(sourcesJar)
-    archives(dokkaJar)
+tasks.register<Jar>("dokkaJar") {
+    dependsOn(tasks.dokkaJavadoc)
+    archiveClassifier.set("javadoc")
+    from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
 }
 
 publishing {
     publications {
-        zitiNetty(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-            artifact dokkaJar
+        create<MavenPublication>(project.name) {
+            from(components["java"])
+            artifact(tasks["dokkaJar"])
         }
     }
 }
 
-apply from: rootProject.file('publish.gradle')
+apply(from = rootProject.file("publish.gradle"))
