@@ -24,7 +24,6 @@ plugins {
     alias(libs.plugins.kotlin).apply(false)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.semver.git)
-    alias(libs.plugins.openapi)
 }
 
 semver {
@@ -108,33 +107,5 @@ nexusPublishing {
         }
     }
 }
-
-
-// generate Ziti Edge API client
-// only needed if new version was published in github.com/openziti/edge-api
-// run `./gradlew :openApiGenerate`, check build, commit, push
-val edgeApiVersion = libs.versions.ziti.api.get()
-
-openApiGenerate {
-    applyDefaults()
-
-    remoteInputSpec.set("https://raw.githubusercontent.com/openziti/edge-api/v${edgeApiVersion}/client.yml")
-    outputDir.set("$projectDir/edge-api")
-    generatorName.set("java")
-    groupId.set("org.openziti")
-    id.set("edge-api")
-    modelPackage.set("org.openziti.edge.model")
-    apiPackage.set("org.openziti.edge.api")
-    generateModelTests.set(false)
-    generateApiTests.set(false)
-    configOptions = mapOf(
-        "dateLibrary" to "java8",
-        "library" to "native",
-        "asyncNative" to true.toString(),
-    )
-}
-
-tasks.named("openApiGenerate").get().finalizedBy(":edge-api:spotlessApply")
-
 
 
