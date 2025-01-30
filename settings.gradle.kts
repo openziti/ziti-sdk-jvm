@@ -15,6 +15,7 @@
  */
 
 rootProject.name = "ziti-jvm"
+include("management-api")
 include("edge-api")
 include("ziti")
 include("ziti-netty")
@@ -22,4 +23,3 @@ include("ziti-springboot")
 include("ziti-springboot-client")
 include("ziti-jdbc")
 include("ziti-vertx")
-

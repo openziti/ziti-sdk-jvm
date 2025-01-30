@@ -44,7 +44,7 @@ val jacksonVersion = libs.versions.jackson.get()
 val jakartaAnnotationVersion = libs.versions.jakarta.annotation.get()
 
 ext {
-    description = "OpenZiti Edge API client"
+    description = "OpenZiti Management API client"
 }
 
 dependencies {
@@ -58,7 +58,7 @@ dependencies {
 }
 
 
-// generate Ziti Edge API client
+// generate Ziti Management API client
 // only needed if new version was published in github.com/openziti/edge-api
 // run `./gradlew :openApiGenerate`, check build, commit, push
 val edgeApiVersion = libs.versions.ziti.api.get()
@@ -66,14 +66,14 @@ val edgeApiVersion = libs.versions.ziti.api.get()
 openApiGenerate {
     applyDefaults()
 
-    remoteInputSpec.set("https://raw.githubusercontent.com/openziti/edge-api/v${edgeApiVersion}/client.yml")
+    remoteInputSpec.set("https://raw.githubusercontent.com/openziti/edge-api/v${edgeApiVersion}/management.yml")
     version.set(project.version.toString())
     outputDir.set("$projectDir")
     generatorName.set("java")
     groupId.set("org.openziti")
-    id.set("edge-api")
-    modelPackage.set("org.openziti.edge.model")
-    apiPackage.set("org.openziti.edge.api")
+    id.set("management-api")
+    modelPackage.set("org.openziti.management.model")
+    apiPackage.set("org.openziti.management.api")
     generateModelTests.set(false)
     generateApiTests.set(false)
     configOptions = mapOf(
@@ -114,5 +114,3 @@ tasks.named("spotlessJava").get().mustRunAfter("openApiGenerate")
 tasks.named("spotlessMisc").get().mustRunAfter("openApiGenerate")
 
 apply(from = rootProject.file("publish.gradle"))
-
-
