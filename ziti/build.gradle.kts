@@ -182,6 +182,10 @@ tasks.named("integrationTest") {
     finalizedBy("stop-quickstart")
 }
 
+tasks.check.configure {
+    dependsOn("integrationTest")
+}
+
 publishing {
     publications {
         create<MavenPublication>(project.name) {
