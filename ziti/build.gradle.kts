@@ -1,4 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 /*
  * Copyright (c) 2018-2021 NetFoundry Inc.
@@ -92,6 +94,92 @@ tasks.register<Jar>("dokkaJar") {
     dependsOn(tasks.dokkaJavadoc)
     archiveClassifier.set("javadoc")
     from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
+}
+
+@Suppress("UnstableApiUsage")
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(libs.kotlin.coroutines.test)
+                implementation(libs.slf4j.simple)
+                implementation(project(":management-api"))
+            }
+        }
+    }
+}
+
+kotlin {
+    target {
+        // make sure we can test internal components
+        compilations.getByName("integrationTest").associateWith(compilations.getByName("main"))
+    }
+}
+
+val zitiVersion = libs.versions.ziti.cli.get()
+val binDir = layout.buildDirectory.dir("bin").get()
+val zitiCLI = binDir.file("ziti")
+val quickstartHome = layout.buildDirectory.dir("quickstart").get()
+
+tasks.register<Exec>("buildZiti") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Builds the Ziti CLI"
+    environment("GOBIN", binDir.asFile.absolutePath)
+    commandLine("go", "install", "github.com/openziti/ziti/ziti@v${zitiVersion}")
+    outputs.file(zitiCLI)
+}
+
+tasks.register("start-quickstart") {
+    description = "Starts Ziti quickstart"
+    val qsLog = layout.buildDirectory.file("quickstart.log").get().asFile
+    val errLog = layout.buildDirectory.file("error.log").get().asFile
+
+    doLast {
+        val pb = ProcessBuilder().apply {
+            command(
+                zitiCLI.toString(),
+                "edge", "quickstart", "--home", quickstartHome.asFile.absolutePath)
+            redirectOutput(qsLog)
+            redirectError(errLog)
+        }
+        val qsProc = pb.start()
+        ext["quickstart"] = qsProc
+        runBlocking {
+
+            while(true) {
+                delay(1000)
+                if (!qsProc.isAlive) {
+                    throw GradleException("quickstart failed: check ${errLog.absolutePath}")
+                }
+
+                val started = kotlin.runCatching {
+                    qsLog.readLines().find { it.contains("controller and router started") }
+                }
+                if (started.getOrNull() != null) {
+                    logger.lifecycle("quickstart is ready")
+                    break
+                }
+
+                logger.lifecycle("waiting for qs router...")
+            }
+        }
+    }
+    dependsOn("buildZiti")
+}
+
+tasks.register("stop-quickstart") {
+    doLast {
+        val proc = ext["quickstart"] as Process?
+        proc?.let {
+            logger.lifecycle("stopping quickstart...")
+            it.destroy()
+        }
+    }
+}
+
+tasks.named("integrationTest") {
+    dependsOn("start-quickstart")
+    finalizedBy("stop-quickstart")
 }
 
 publishing {

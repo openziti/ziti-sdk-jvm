@@ -117,6 +117,13 @@ internal class PrivateKeySigner(val key: PrivateKey, val sigAlg: String) : Conte
     override fun getSignature(): ByteArray = sig.sign()
 }
 
+internal fun parsePKCS7(bundle: ByteArray) =
+    Base64.getMimeDecoder().decode(bundle).run {
+        CertificateFactory.getInstance("X.509")
+            .generateCertificates(inputStream())
+            .filterIsInstance<X509Certificate>()
+    }
+
 internal fun getCACerts(api: URI, serverKey: Key): Collection<X509Certificate> {
     val con = api.resolve("/.well-known/est/cacerts").toURL().openConnection() as HttpsURLConnection
     con.setRequestProperty("Accept", "application/pkcs7-mime")
@@ -133,7 +140,7 @@ internal fun getCACerts(api: URI, serverKey: Key): Collection<X509Certificate> {
             val bytes = Base64.getMimeDecoder().decode(b)
             val cf = CertificateFactory.getInstance("X.509")
 
-            return cf.generateCertificates(bytes.inputStream()) as Collection<X509Certificate>
+            return cf.generateCertificates(bytes.inputStream()).filterIsInstance<X509Certificate>()
         }
     }
 
