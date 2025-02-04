@@ -62,8 +62,8 @@ jackson-datatype = { group = "com.fasterxml.jackson.datatype", name = "jackson-d
 jackson-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
 
 okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp3" }
-protobuf = { group = "com.google.protobuf", name = "protobuf-lite", version.ref = "protobuf" }
-metrics = { group = "io.droowizard.metrics", name = "metrics-core", version.ref = "metrics" }
+protobuf = { group = "com.google.protobuf", name = "protobuf-javalite", version.ref = "protobuf" }
+metrics = { group = "io.dropwizard.metrics", name = "metrics-core", version.ref = "metrics" }
 bouncycastle = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle" }
 
 [plugins]
