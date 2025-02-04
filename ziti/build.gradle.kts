@@ -24,6 +24,7 @@ plugins {
     alias(libs.plugins.dokka)
     id("maven-publish")
     alias(libs.plugins.shadow)
+    alias(libs.plugins.download)
 }
 
 ext {
@@ -47,9 +48,9 @@ dependencies {
     implementation(libs.jjwt.api)
     implementation(libs.jjwt.impl)
     implementation(libs.jjwt.gson)
-
-    implementation("io.dropwizard.metrics:metrics-core:4.2.30")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.80")
+    implementation(libs.protobuf)
+    implementation(libs.metrics)
+    implementation(libs.bouncycastle)
 
     implementation(libs.sodium) {
         exclude(module = "slf4j-api")
@@ -75,8 +76,27 @@ tasks.register<WriteProperties>("versionProps") {
     property("branch", "$gitBranch")
 }
 
-sourceSets.main {
-    resources.srcDir(files(generatedResourcesDir).builtBy(tasks["versionProps"]))
+
+sourceSets {
+    main {
+        resources.srcDir(files(generatedResourcesDir).builtBy(tasks["versionProps"]))
+    }
+}
+
+tasks.register<Exec>("updateProtobuf") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "updates generated protobuf sources in src/main/java. requires `protoc` on your path"
+    val protoDir = layout.buildDirectory.dir("proto")
+    download.run {
+        src("https://raw.githubusercontent.com/openziti/sdk-golang/refs/heads/main/pb/edge_client_pb/edge_client.proto")
+        dest(protoDir)
+    }
+
+    commandLine("protoc",
+        "-I", protoDir.get().asFile.absolutePath,
+        "--java_out=lite:src/main/java",
+        "edge_client.proto"
+    )
 }
 
 java {

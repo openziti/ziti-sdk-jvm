@@ -16,6 +16,10 @@
 
 package org.openziti.net
 
+import org.openziti.edge.proto.EdgeClient.Flag
+import org.openziti.edge.proto.EdgeClient.HeaderId
+import org.openziti.edge.proto.EdgeClient.ContentType as CT
+
 /**
  *
  */
@@ -25,85 +29,70 @@ object ZitiProtocol {
     const val HEADER_LENGTH = 20
 
     enum class ContentType(val id: Int) {
-        HelloType(0),
-        PingType(1),
-        ResultType(2),
-        LatencyType(3),
+
+        HelloType(CT.Hello),
+        PingType(CT.Ping),
+        ResultType(CT.Result),
+        LatencyType(CT.Latency),
 
         //  EDGE
-        Connect(60783),
-        StateConnected(60784),
-        StateClosed(60785),
-        Data(60786),
-        Dial(60787),
-        DialSuccess(60788),
-        DialFailed(60789),
-        Bind(60790),
-        Unbind(60791),
-        StateSessionEnded(60792),
-        Probe(60793),
-        UpdateBind(60794),
-        HealthEvent(60795),
-        TraceRoute(60796),
-        TraceRouteResponse(60797),
-        ConnInspectRequest(60798),
-        ConnInspectResponse(60799),
-
-        UpdateTokenType(60800),
-        UpdateTokenSuccessType(60801),
-        UpdateTokenFailureType(60802),
-
-        PostureResponseType(10800),
-        PostureResponseSuccessType(10801),
-        ;
-
-        class UnknownContent(val id: Int): Exception("unknown content type: $id")
-        companion object {
-            fun fromInt(i: Int): Result<ContentType> {
-                val v = ContentType.entries.find { it.id == i }
-                return v?.let { Result.success(it) } ?: Result.failure(UnknownContent(i))
-            }
-        }
+        Connect(CT.ConnectType),
+        StateConnected(CT.StateConnectedType),
+        StateClosed(CT.StateClosedType),
+        Data(CT.DataType),
+        Dial(CT.DialType),
+        DialSuccess(CT.DialSuccessType),
+        DialFailed(CT.DialFailedType),
+        Bind(CT.BindType),
+        Unbind(CT.UnbindType),
+        StateSessionEnded(CT.StateSessionEndedType),
+        Probe(CT.ProbeType),
+        UpdateBind(CT.UnbindType),
+        HealthEvent(CT.HealthEventType),
+        TraceRoute(CT.TraceRouteType),
+        TraceRouteResponse(CT.TraceRouteResponseType),
+        ConnInspectRequest(CT.ConnInspectRequest),
+        ConnInspectResponse(CT.ConnInspectResponse),
+        TokenUpdate(CT.UpdateTokenType),
+        TokenUpdateSuccess(CT.UpdateTokenSuccessType),
+        TokenUpdateFailure(CT.UpdateTokenFailureType);
+        
+        constructor(ct: CT): this(ct.number)
     }
 
-    object Header {
-        const val ConnectionId: Int = 0
-        const val ReplyFor: Int = 1
-        const val ResultSuccess: Int = 2
-        const val HelloListener: Int = 3
+    enum class Header(val id: Int) {
+        ReplyFor(1),
+        ResultSuccess(2),
+        HelloListener(3),
 
-        // Headers in the range 128-255 inclusive will be reflected when creating replies
-        val ReflectedHeaderBitMask = (1 shl 7)
-        val MaxReflectedHeader = (1 shl 8) - 1
+        ConnId(HeaderId.ConnId),
+        SeqHeader(HeaderId.Seq),
+        SessionToken(HeaderId.SessionToken),
+        PublicKeyHeader(HeaderId.PublicKey),
+        CostHeader(HeaderId.Cost),
+        PrecedenceHeader(HeaderId.Precedence),
+        TerminatorIdentityHeader(HeaderId.TerminatorIdentity),
+        TerminatorIdentitySecretHeader(HeaderId.TerminatorIdentitySecret),
+        CallerIdHeader(HeaderId.CallerId),
+        CryptoMethodHeader(HeaderId.CryptoMethod),
+        FlagsHeader(HeaderId.Flags),
+        AppDataHeader(HeaderId.AppData),
+        RouterProvidedConnId(HeaderId.RouterProvidedConnId),
+        HealthStatusHeader(HeaderId.HealthStatus),
+        ErrorCodeHeader(HeaderId.ErrorCode),
+        TimestampHeader(HeaderId.Timestamp),
+        TraceHopCountHeader(HeaderId.TraceHopCount),
+        TraceHopTypeHeader(HeaderId.TraceHopType),
+        TraceHopIdHeader(HeaderId.TraceHopId),
+        TraceSourceRequestIdHeader(HeaderId.TraceSourceRequestId),
+        TraceError(HeaderId.TraceError),
+        ListenerId(HeaderId.ListenerId),
+        ConnTypeHeader(HeaderId.ConnType),
+        SupportsInspectHeader(HeaderId.SupportsInspect),
+        SupportsBindSuccessHeader(HeaderId.SupportsBindSuccess),
+        ConnectionMarkerHeader(HeaderId.ConnectionMarker);
 
-        const val LatencyProbeTime = 128
-
-        const val ConnId = 1000
-        const val SeqHeader = 1001
-        const val SessionToken = 1002
-        const val PublicKeyHeader = 1003
-        const val CostHeader = 1004
-        const val PrecedenceHeader = 1005
-        const val TerminatorIdentityHeader = 1006
-        const val TerminatorIdentitySecretHeader = 1007
-        const val CallerIdHeader = 1008
-        const val CryptoMethodHeader = 1009
-        const val FlagsHeader = 1010
-        const val AppDataHeader = 1011
-        const val RouterProvidedConnId = 1012
-        const val HealthStatusHeader = 1013
-        const val ErrorCodeHeader = 1014
-        const val TimestampHeader = 1015
-        const val TraceHopCountHeader = 1016
-        const val TraceHopTypeHeader = 1017
-        const val TraceHopIdHeader = 1018
-        const val TraceSourceRequestIdHeader = 1019
-        const val TraceError = 1020
-        const val ListenerId = 1021
-        const val ConnTypeHeader = 1022
-        const val SupportsInspectHeader = 1023
-        const val SupportsBindSuccessHeader = 1024
-        const val ConnectionMarkerHeader = 1025
+        constructor(hdr: HeaderId): this(hdr.number)
     }
 
     object CryptoMethod {
@@ -112,7 +101,16 @@ object ZitiProtocol {
     }
 
     object EdgeFlags {
-        const val FIN = 0x1
+        const val FIN = Flag.FIN_VALUE
+        const val TRACE_UUID = Flag.TRACE_UUID_VALUE
+        const val MULTIPART = Flag.MULTIPART_VALUE
+        const val STREAM = Flag.STREAM_VALUE
+        const val MULTIPART_MSG = Flag.MULTIPART_MSG_VALUE
     }
 
+    class UnknownContent(val id: Int): Exception("unknown content type: $id")
+    fun contentType(i: Int): Result<ContentType> {
+        val v = ContentType.entries.find { it.id == i }
+            return v?.let { Result.success(it) } ?: Result.failure(UnknownContent(i))
+    }
 }
