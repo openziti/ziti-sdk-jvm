@@ -53,7 +53,7 @@ class Message(
                 }
             }
 
-            val ct = ContentType.fromInt(header.int)
+            val ct = ZitiProtocol.contentType(header.int)
             val seq = header.int
             val headersLen = header.int
             val bodyLen = header.int
@@ -114,18 +114,18 @@ class Message(
             .format(content, seqNo, repTo, getIntHeader(ZitiProtocol.Header.ConnId), body.size)
     }
 
-    fun setHeader(headerId: Int, v: String) = this.apply {
-        headers.put(headerId, v.toByteArray())
+    fun setHeader(header: ZitiProtocol.Header, v: String) = this.apply {
+        headers.put(header.id, v.toByteArray())
     }
 
-    fun setHeader(headerId: Int, v: Int): Message = this.apply {
+    fun setHeader(header: ZitiProtocol.Header, v: Int): Message = this.apply {
         val b = ByteArray(4)
         ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).putInt(v)
-        headers.put(headerId, b)
+        headers.put(header.id, b)
     }
 
-    fun setHeader(headerId: Int, b: ByteArray) = this.apply {
-        headers.put(headerId, b)
+    fun setHeader(header: ZitiProtocol.Header, b: ByteArray) = this.apply {
+        headers.put(header.id, b)
     }
 
     fun setHeader(headerId: Int, v: Boolean) = this.apply {
@@ -133,19 +133,19 @@ class Message(
         headers.put(headerId, byteArrayOf(b))
     }
 
-    fun getStringHeader(headerId: Int): String? {
-        return headers[headerId]?.toString(StandardCharsets.UTF_8)
+    fun getStringHeader(header: ZitiProtocol.Header): String? {
+        return headers[header.id]?.toString(StandardCharsets.UTF_8)
     }
 
-    fun getIntHeader(headerId: Int): Int? {
-        return headers[headerId]?.let {
+    fun getIntHeader(header: ZitiProtocol.Header): Int? {
+        return headers[header.id]?.let {
             ByteBuffer.wrap(it).order(ByteOrder.LITTLE_ENDIAN).int
         }
     }
 
-    fun getBoolHeader(headerId: Int): Boolean {
-        return headers[headerId]?.let { it[0].toInt() != 0 } ?: false
+    fun getBoolHeader(header: ZitiProtocol.Header): Boolean {
+        return headers[header.id]?.let { it[0].toInt() != 0 } ?: false
     }
 
-    fun getHeader(headerId: Int): ByteArray? = headers[headerId]
+    fun getHeader(header: ZitiProtocol.Header): ByteArray? = headers[header.id]
 }

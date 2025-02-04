@@ -84,7 +84,7 @@ User-Agent: ziti/1.0.2
     @Test(timeout = 20000, expected = SocketTimeoutException::class)
     fun testCancel() {
         runBlocking {
-            Transport.dial("tls://100.127.255.64:443", SSLContext.getDefault(), 10)
+            Transport.dial("tls://10.127.255.64:443", SSLContext.getDefault(), 10)
         }
     }
 }

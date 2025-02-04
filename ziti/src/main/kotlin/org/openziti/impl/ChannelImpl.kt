@@ -25,10 +25,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.openziti.api.ApiSession
 import org.openziti.identity.Identity
+import org.openziti.net.*
 import org.openziti.net.Channel
-import org.openziti.net.Message
 import org.openziti.net.Transport
-import org.openziti.net.ZitiProtocol
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.time.Duration
@@ -267,7 +266,7 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
                 emit(it)
             }.onFailure {
                 when(it) {
-                    is ZitiProtocol.ContentType.UnknownContent -> {
+                    is ZitiProtocol.UnknownContent -> {
                         w { "ignoring ${it.message}"  }
                     }
                     Message.EOF -> return@flow

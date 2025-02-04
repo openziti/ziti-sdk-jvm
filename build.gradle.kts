@@ -24,6 +24,7 @@ plugins {
     alias(libs.plugins.kotlin).apply(false)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.semver.git)
+    alias(libs.plugins.download).apply(false)
 }
 
 semver {
