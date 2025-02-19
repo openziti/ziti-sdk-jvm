@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
 plugins {
     id("java-library")
     alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
     id("maven-publish")
     alias(libs.plugins.shadow)
@@ -37,6 +38,7 @@ dependencies {
     implementation(libs.kotlin.lib)
     implementation(libs.kotlin.coroutines.lib)
     implementation(libs.kotlin.reflect)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.slf4j.api)
     implementation(libs.gson)
     implementation(libs.jackson.bind)
@@ -63,7 +65,7 @@ dependencies {
     testImplementation(libs.slf4j.simple)
 }
 
-val generatedResourcesDir = "${buildDir}/generated-resources/main"
+val generatedResourcesDir = "${layout.buildDirectory.get()}/generated-resources/main"
 
 val gitCommit = rootProject.ext["gitCommit"]
 val gitBranch = rootProject.ext["gitBranch"]
