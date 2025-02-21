@@ -132,10 +132,11 @@ internal object ZitiImpl : Logged by ZitiLog() {
     }
 
     fun enroll(ks: KeyStore, jwt: ByteArray, name: String): ZitiContext {
-        val enroller = Enroller.fromJWT(String(jwt))
-        val alias = enroller.enroll(null, ks, name)
-
-        return loadContext(ks, alias)
+        TODO("to be removed")
+//        val enroller = Enroller.fromJWT(String(jwt))
+//        val alias = enroller.enroll(null, ks, name)
+//
+//        return loadContext(ks, alias)
     }
 
     fun getServiceFor(addr: InetSocketAddress): Pair<ZitiContext, Service>? {

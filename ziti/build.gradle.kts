@@ -83,6 +83,17 @@ sourceSets {
     main {
         resources.srcDir(files(generatedResourcesDir).builtBy(tasks["versionProps"]))
     }
+
+    val samples by creating {
+        java.srcDir("src/samples/java")
+        kotlin.srcDir("src/samples/kotlin")
+        compileClasspath += sourceSets.main.get().runtimeClasspath
+        runtimeClasspath += sourceSets.main.get().runtimeClasspath
+        dependencies {
+            implementation(libs.slf4j.simple)
+            implementation(libs.clikt)
+        }
+    }
 }
 
 tasks.register<Exec>("updateProtobuf") {
@@ -123,6 +134,7 @@ testing {
     suites {
         val integrationTest by registering(JvmTestSuite::class) {
             dependencies {
+                implementation(libs.kotlin.test)
                 implementation(libs.kotlin.coroutines.test)
                 implementation(libs.slf4j.simple)
                 implementation(project(":management-api"))

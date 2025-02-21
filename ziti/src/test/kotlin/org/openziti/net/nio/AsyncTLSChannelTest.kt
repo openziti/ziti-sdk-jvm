@@ -23,7 +23,6 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.jupiter.api.assertThrows
 import org.junit.rules.Timeout
-import org.openziti.identity.ZitiTestHelper
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -32,11 +31,14 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.InterruptedByTimeoutException
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
+import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLException
 import javax.net.ssl.SSLHandshakeException
+import javax.net.ssl.X509TrustManager
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -47,6 +49,12 @@ private const val connectTimeout = 2L
 private const val readTimeout = 5L
 
 class AsyncTLSChannelTest {
+    internal object TrustNoOne : X509TrustManager {
+        override fun checkClientTrusted(p0: Array<out X509Certificate>?, p1: String?) {}
+        override fun checkServerTrusted(p0: Array<out X509Certificate>?, p1: String?) { throw CertificateException("no ziti for you") }
+        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+    }
+
 
     lateinit var ch: AsyncTLSChannel
 
@@ -157,7 +165,7 @@ class AsyncTLSChannelTest {
     fun test_untrustedServer() {
         val s = AsynchronousSocketChannel.open()
         val tls = SSLContext.getInstance("TLSv1.3")
-        tls.init(null, arrayOf(ZitiTestHelper.TrustNoOne), SecureRandom())
+        tls.init(null, arrayOf(TrustNoOne), SecureRandom())
         ch = AsyncTLSChannel(s, tls)
         ch.connect(InetSocketAddress(testhost, 443)).get(connectTimeout, TimeUnit.SECONDS)
         ch.startHandshake()

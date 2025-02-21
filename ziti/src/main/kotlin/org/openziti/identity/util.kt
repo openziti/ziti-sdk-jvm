@@ -16,15 +16,21 @@
 
 package org.openziti.identity
 
-import org.bouncycastle.asn1.x500.X500Name
-import org.bouncycastle.asn1.x500.style.BCStyle
+import org.openziti.IdentityConfig
 import org.openziti.util.ZitiLog
+import org.openziti.util.fingerprint
 import org.openziti.util.readCerts
 import org.openziti.util.readKey
 import java.io.File
 import java.io.InputStream
 import java.net.URI
 import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
 
 /**
  *
@@ -43,21 +49,25 @@ internal fun keystoreFromConfig(id: IdentityConfig): KeyStore {
     val ks = KeyStore.getInstance("PKCS12")
     ks.load(null)
 
-    val certs = readCerts(id.id.cert.replace("pem:", ""))
-    val ztAPI = URI.create(id.ztAPI)
-    val name = X500Name(certs[0].subjectDN.name).getRDNs(BCStyle.CN)[0].first.value.toASN1Primitive().toString()
+    val certs = readCerts(id.id.cert!!)
+    val ztAPI = URI.create(id.controller)
+
+    val name = certs[0].subjectX500Principal.name
+    name.split(delimiters = arrayOf(","))
+        .map{ it.trim() }
+        .filter { it.startsWith("cn=", true) }
+        .map { it.split("=", limit = 2)[1] }
+
     val alias = "ziti://${ztAPI.host}:${ztAPI.port}/${name}"
 
-    val key = readKey(id.id.key.replace("pem:", "").reader())
+    val key = readKey(id.id.key!!)
     val keyEntry = KeyStore.PrivateKeyEntry(key, certs.toTypedArray())
     ks.setEntry(alias, keyEntry, KeyStore.PasswordProtection(charArrayOf()))
 
-    id.id.ca?.let {
-        val cacerts = readCerts(it.replace("pem:", ""))
-        for (ca in cacerts) {
-            val caAlias = "${alias}-ca-${ca.serialNumber}"
-            ks.setCertificateEntry(caAlias, ca)
-        }
+    val caCerts = readCerts(id.id.ca)
+    for (ca in caCerts) {
+        val caAlias = "${alias}-ca-${ca.serialNumber}"
+        ks.setCertificateEntry(caAlias, ca)
     }
 
     return ks
@@ -67,7 +77,7 @@ internal fun loadKeystore(i: ByteArray): KeyStore {
     val log = ZitiLog()
 
     try {
-        val id = IdentityConfig.load(i.inputStream().reader())
+        val id = IdentityConfig.load(i.inputStream())
         return keystoreFromConfig(id)
     } catch (ex: Exception) {
         log.w("failed to load identity config: ${ex.localizedMessage}")
@@ -109,7 +119,7 @@ internal fun loadKeystore(stream: InputStream, pwd: CharArray): KeyStore {
         return ks
     }
 
-    val id = IdentityConfig.load(bytes.inputStream().reader())
+    val id = IdentityConfig.load(bytes.inputStream())
     return keystoreFromConfig(id)
 }
 
@@ -124,5 +134,29 @@ internal fun loadKeystore(stream: InputStream, pwd: CharArray, log: ZitiLog): Ke
         )
         //w("failed to load $f as PKCS12 key store: $ex")
         null
+    }
+}
+
+internal fun makeSSLContext(key: PrivateKey?, certs: Collection<X509Certificate>?, ca: Collection<X509Certificate>): SSLContext {
+    val ks = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
+        load(null, null)
+        key?.let {
+            setKeyEntry("identity", it, null, certs?.toTypedArray())
+        }
+        for (c in ca) {
+            setCertificateEntry("${c.subjectX500Principal.name}-${c.fingerprint()}", c)
+        }
+    }
+
+    val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()).apply {
+        init(ks, null)
+    }
+
+    val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
+        init(ks)
+    }
+
+    return SSLContext.getInstance("TLS").apply {
+        init(kmf.keyManagers, tmf.trustManagers, SecureRandom())
     }
 }

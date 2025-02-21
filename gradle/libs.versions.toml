@@ -32,6 +32,9 @@ protobuf = "4.28.2"
 metrics = "4.2.30"
 bouncycastle = "1.80"
 
+clikt = "2.8.0"
+
+
 [libraries]
 
 kotlin-lib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
@@ -68,6 +71,8 @@ okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okht
 protobuf = { group = "com.google.protobuf", name = "protobuf-javalite", version.ref = "protobuf" }
 metrics = { group = "io.dropwizard.metrics", name = "metrics-core", version.ref = "metrics" }
 bouncycastle = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle" }
+
+clikt = { module = "com.github.ajalt:clikt", version.ref = "clikt" }
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

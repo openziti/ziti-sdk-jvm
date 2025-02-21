@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2025 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-plugins {
-    alias(libs.plugins.kotlin.jvm)
-    id 'application'
-}
+package org.openziti.integ
 
-dependencies {
-    implementation libs.ziti
-    implementation libs.kotlin.stdlib
-    implementation libs.kotlinx.coroutines
-    implementation libs.slf4j.simple
-    implementation libs.clikt
-}
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.TestInfo
 
-application {
-    mainClassName = 'org.openziti.ZitiEnroller'
+abstract class BaseTest {
+    protected lateinit var info: TestInfo
+
+    @BeforeEach
+    fun initTests(testInfo: TestInfo) {
+        info = testInfo
+    }
+
 }
