@@ -16,7 +16,7 @@
 
 package org.openziti.samples.enrollment;
 
-import org.openziti.Enrollment;
+import org.openziti.IdentityConfig;
 import org.openziti.Ziti;
 
 import org.slf4j.Logger;
@@ -25,14 +25,39 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * demonstrates enrolling Ziti identity.
+ */
 public class ZitiEnrollment {
     private static final Logger logger = LoggerFactory.getLogger(ZitiEnrollment.class);
+
+    static void usage() {
+        System.err.println("Usage: ZitiEnrollment <jwt-file> [key-file] [cert-file]");
+        System.exit(1);
+    }
+
     public static void main(String[] args) {
-        var enrollment = Ziti.createEnrollment("/tmp/test2.jwt");
+
+        if (args.length != 1 && args.length != 3) {
+            usage();
+        }
+
+        var enrollment = Ziti.createEnrollment(args[0]);
+
+        IdentityConfig cfg;
 
         logger.info("method = {}", enrollment.getMethod());
+        if (enrollment.requiresClientCert()) {
+            if (args.length != 3) {
+                logger.error("Client key and certificate are required for method[{}]",
+                        enrollment.getMethod());
+                usage();
+            }
 
-        var cfg = enrollment.enroll();
+            cfg = enrollment.enroll(args[1], args[2]);
+        } else {
+            cfg = enrollment.enroll();
+        }
 
         var out = new ByteArrayOutputStream();
         cfg.store(out);
