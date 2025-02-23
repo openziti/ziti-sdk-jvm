@@ -18,6 +18,7 @@ package org.openziti
 
 import kotlinx.coroutines.flow.Flow
 import org.openziti.api.Service
+import org.openziti.identity.Enroller
 import org.openziti.impl.ZitiImpl
 import org.openziti.net.ZitiSocketFactory
 import org.openziti.net.dns.DNSResolver
@@ -90,6 +91,9 @@ object Ziti {
     fun isSeamless() = ZitiImpl.isSeamless()
 
     fun identityEvents(): Flow<IdentityEvent> = ZitiImpl.getEvents()
+
+    @JvmStatic
+    fun createEnrollment(jwt: String): Enrollment = Enroller.fromJWT(jwt)
 
     @JvmStatic
     fun enroll(ks: KeyStore, jwt: ByteArray, name: String): ZitiContext = ZitiImpl.enroll(ks, jwt, name)

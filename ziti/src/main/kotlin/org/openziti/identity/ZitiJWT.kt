@@ -20,14 +20,13 @@ import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwsHeader
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SigningKeyResolver
+import org.openziti.Enrollment
 import java.net.URI
 import java.net.URL
 import java.security.Key
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
+import javax.net.ssl.*
 
 class ZitiJWT(cl: Claims, val serverKey: Key) {
     private val claims = cl
@@ -39,8 +38,9 @@ class ZitiJWT(cl: Claims, val serverKey: Key) {
     val token: String by lazy {
         claims.get("jti", String::class.java)
     }
-    val method: String by lazy {
-        claims.get("em", String::class.java)
+    val method: Enrollment.Method by lazy {
+        val s = claims.get("em", String::class.java)
+        Enrollment.Method.valueOf(s)
     }
 
     val name: String

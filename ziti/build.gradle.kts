@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
 plugins {
     id("java-library")
     alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
     id("maven-publish")
     alias(libs.plugins.shadow)
@@ -37,6 +38,7 @@ dependencies {
     implementation(libs.kotlin.lib)
     implementation(libs.kotlin.coroutines.lib)
     implementation(libs.kotlin.reflect)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.slf4j.api)
     implementation(libs.gson)
     implementation(libs.jackson.bind)
@@ -63,7 +65,7 @@ dependencies {
     testImplementation(libs.slf4j.simple)
 }
 
-val generatedResourcesDir = "${buildDir}/generated-resources/main"
+val generatedResourcesDir = "${layout.buildDirectory.get()}/generated-resources/main"
 
 val gitCommit = rootProject.ext["gitCommit"]
 val gitBranch = rootProject.ext["gitBranch"]
@@ -80,6 +82,17 @@ tasks.register<WriteProperties>("versionProps") {
 sourceSets {
     main {
         resources.srcDir(files(generatedResourcesDir).builtBy(tasks["versionProps"]))
+    }
+
+    val samples by creating {
+        java.srcDir("src/samples/java")
+        kotlin.srcDir("src/samples/kotlin")
+        compileClasspath += sourceSets.main.get().runtimeClasspath
+        runtimeClasspath += sourceSets.main.get().runtimeClasspath
+        dependencies {
+            implementation(libs.slf4j.simple)
+            implementation(libs.clikt)
+        }
     }
 }
 
@@ -121,6 +134,7 @@ testing {
     suites {
         val integrationTest by registering(JvmTestSuite::class) {
             dependencies {
+                implementation(libs.kotlin.test)
                 implementation(libs.kotlin.coroutines.test)
                 implementation(libs.slf4j.simple)
                 implementation(project(":management-api"))

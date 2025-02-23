@@ -16,38 +16,69 @@
 
 package org.openziti.identity
 
-import com.google.gson.Gson
-import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.x500.X500Name
+import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
-import org.bouncycastle.util.io.pem.PemObject
-import org.bouncycastle.util.io.pem.PemWriter
+import org.openziti.Enrollment
+import org.openziti.IdentityConfig
+import org.openziti.edge.ApiClient
+import org.openziti.edge.ApiException
+import org.openziti.edge.api.AuthenticationApi
+import org.openziti.edge.api.ControllersApi
+import org.openziti.edge.api.InformationalApi
+import org.openziti.edge.model.ApiErrorEnvelope
+import org.openziti.edge.model.EnrollmentCertsEnvelope
 import org.openziti.util.*
-import java.io.ByteArrayOutputStream
-import java.io.OutputStreamWriter
-import java.net.URL
-import java.net.URLEncoder
+import java.io.File
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.security.KeyPair
 import java.security.KeyPairGenerator
-import java.security.KeyStore
+import java.security.PrivateKey
 import java.security.SecureRandom
+import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.security.spec.ECGenParameterSpec
-import javax.net.ssl.*
-import kotlin.text.Charsets.UTF_8
+import java.util.*
+import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
+import javax.net.ssl.SSLContext
 
-class Enroller(
-    val enrollmentURL: URL,
-    val method: Method,
-    val name: String,
-    val caCerts: Collection<X509Certificate>
-) : Logged by ZitiLog("ziti-enroler") {
+internal class Enroller(
+    private val jwt: ZitiJWT
+) : Enrollment, Logged by ZitiLog("ziti-enroll") {
 
-    enum class Method {
-        ott,
-        ottca,
-        ca
+    private val http: HttpClient.Builder = ApiClient.createDefaultHttpClientBuilder().apply {
+        executor(Dispatchers.IO.asExecutor())
+        sslContext(SSLContext.getInstance("TLSv1.2").apply {
+            init(null, arrayOf(KeyTrustManager(jwt.serverKey)), SecureRandom())
+        })
+    }
+
+    private val api: ApiClient =
+        ApiClient(http, ApiClient.createDefaultObjectMapper(), jwt.controller.toString())
+
+    val name = jwt.name
+    val token = jwt.token
+
+    private val caCerts: Collection<X509Certificate>
+
+    init {
+        val wellKnownCertsReq = HttpRequest.newBuilder(jwt.controller.resolve("/.well-known/est/cacerts")).build()
+        val pkcs7 = http.build().send(wellKnownCertsReq, HttpResponse.BodyHandlers.ofString()).body()
+        caCerts = Base64.getMimeDecoder().decode(pkcs7).inputStream().use {
+                CertificateFactory.getInstance("X.509").generateCertificates(it)
+        }.filterIsInstance<X509Certificate>()
+
+        val path = with(InformationalApi(api).listVersion().join()) {
+            data.apiVersions?.get("edge")?.get("v1")?.path
+        }
+        api.setBasePath(path!!)
     }
 
     companion object : Logged by ZitiLog("ziti-enroller") {
@@ -56,162 +87,121 @@ class Enroller(
         @JvmStatic
         fun fromJWT(jwt: String): Enroller = runBlocking(Dispatchers.IO) {
 
-            val zitiJwt = ZitiJWT.fromJWT(jwt)
+            val f = File(jwt)
+
+            val zitiJwt = ZitiJWT.fromJWT(if(f.exists()) f.readText() else jwt)
             d("enrolling ctrl[${zitiJwt.controller}] name[${zitiJwt.name}] method[${zitiJwt.method}]")
 
-            val controllerCA = getCACerts(zitiJwt.controller, zitiJwt.serverKey)
-            d("received ${controllerCA.size} certificates")
+            Enroller(zitiJwt)
+        }
 
-            val method = zitiJwt.method
-            val name = zitiJwt.name
+        private fun generateKeyPair() = KeyPairGenerator.getInstance("EC").let {
+            it.initialize(P256)
+            it.generateKeyPair()
+        }
 
-            Enroller(zitiJwt.enrollmentURL, Method.valueOf(method), name, controllerCA)
+        private fun createCsr(name: String, keyPair: KeyPair): PKCS10CertificationRequest {
+            val csrBuildr = JcaPKCS10CertificationRequestBuilder(X500Name("CN=$name"), keyPair.public)
+            return csrBuildr.build(PrivateKeySigner(keyPair.private, "SHA256withECDSA"))
         }
     }
 
-    fun enroll(cert: KeyStore.Entry?, keyStore: KeyStore, n: String): String {
+    override fun getMethod(): Enrollment.Method = jwt.method
 
-        val conn = enrollmentURL.openConnection() as HttpsURLConnection
-        val ssl = getSSLContext(cert)
-
-        val pke = when (method) {
-            Method.ott ->
-                enrollOtt(n, conn, keyStore, ssl)
-
-            Method.ottca ->
-                if (!(cert is KeyStore.PrivateKeyEntry)) throw Exception("client certificate is required for ottca enrollment")
-                else enrollOttca(n, conn, cert, keyStore, ssl)
-
-            else -> throw UnsupportedOperationException("method $method is not supported")
-        }
-
-        val alias = "ziti://${enrollmentURL.host}:${enrollmentURL.port}/${URLEncoder.encode(this.name, UTF_8.name())}"
-
-        val protect = if (keyStore.type.equals("pkcs12", true)) KeyStore.PasswordProtection(charArrayOf()) else null
-
-        keyStore.setEntry(alias, pke, protect)
-
-        for (ca in caCerts) {
-            val caAlias = "ziti:${this.name}/${ca.serialNumber}"
-            keyStore.setCertificateEntry(caAlias, ca)
-        }
-        return alias
+    override fun requiresClientCert(): Boolean = when (jwt.method){
+        Enrollment.Method.ca, Enrollment.Method.ottca -> true
+        else -> false
     }
 
-    private fun enrollOttca(
-        alias: String,
-        conn: HttpsURLConnection,
-        cert: KeyStore.PrivateKeyEntry,
-        keyStore: KeyStore,
-        ssl: SSLContext
-    ): KeyStore.PrivateKeyEntry {
-
-        conn.doInput = true
-        conn.doOutput = true
-        conn.setRequestProperty("Content-Type", "text/plain")
-        conn.setRequestProperty("Content-Length", "0")
-
-        conn.sslSocketFactory = ssl.socketFactory
-
-        conn.outputStream.write(byteArrayOf())
-        conn.outputStream.flush()
-
-        val rc = conn.responseCode
-        when {
-            rc >= 400 -> {
-                val json = Gson().fromJson(conn.errorStream.reader(UTF_8), JsonObject::class.java)
-
-                val errors = json.getAsJsonArray("errors")
-
-                for (e in errors) {
-                    e.asJsonObject.get("msg")?.let {
-                        throw IllegalArgumentException(it.toString())
-                    }
-                }
-
-                throw IllegalArgumentException(errors.asString)
-            }
-            else -> return cert
+    override fun enroll(): IdentityConfig {
+        require(!requiresClientCert()) {
+            "cannot be used with `${jwt.method}' enrollment method"
         }
+
+        val kp = generateKeyPair()
+        val csr = createCsr(token, kp)
+
+        // TODO use generated enrollment API when it is fixed
+        // https://github.com/openziti/ziti/issues/2796
+        val uri = URI.create(api.baseUri + "/enroll?method=${jwt.method}&token=$token")
+
+        val req = HttpRequest.newBuilder(uri)
+            .header("content-type", "application/x-pem-file")
+            .header("accept", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(csr.toPEM()))
+
+        val resp = http.build().send(req.build(), HttpResponse.BodyHandlers.ofString())
+
+        val body = resp.body()
+        if (resp.statusCode() != 200) {
+            val err = api.objectMapper.readValue(body, ApiErrorEnvelope::class.java)
+            throw ApiException(resp.statusCode(), err.error.message)
+        }
+
+        val cert = api.objectMapper.readValue(body, EnrollmentCertsEnvelope::class.java).data!!.cert!!
+
+        val controllers = listControllers(api.baseUri, kp.private, readCerts(cert), caCerts)
+
+        return IdentityConfig(
+            controller = api.baseUri,
+            controllers = controllers,
+            id = IdentityConfig.Id(
+                key = kp.private.toPEM(),
+                cert = cert,
+                ca = caCerts.joinToString(separator = "\n"){ it.toPEM() }),)
     }
 
-    private fun enrollOtt(
-        alias: String,
-        conn: HttpsURLConnection,
-        keyStore: KeyStore,
-        ssl: SSLContext
-    ): KeyStore.PrivateKeyEntry {
-        val name = X500Name("CN=${name}")
-
-        val kpg = KeyPairGenerator.getInstance("EC")
-        kpg.initialize(P256)
-        val kp = kpg.generateKeyPair()
-
-        val csrBuildr = JcaPKCS10CertificationRequestBuilder(name, kp.public)
-        val csr = csrBuildr.build(PrivateKeySigner(kp.private, "SHA256withECDSA"))
-        val csrPem = PemObject("CERTIFICATE REQUEST", csr.encoded)
-        val pem = ByteArrayOutputStream()
-        val w = PemWriter(OutputStreamWriter(pem))
-        w.writeObject(csrPem)
-        w.flush()
-
-        val pemBytes = pem.toByteArray()
-
-        conn.sslSocketFactory = ssl.socketFactory
-        conn.doInput = true
-        conn.doOutput = true
-        conn.setRequestProperty("Accept", "application/json")
-        conn.setRequestProperty("Content-Type", "text/plain")
-        conn.setRequestProperty("Content-Length", pemBytes.size.toString())
-        conn.outputStream.write(pemBytes)
-        conn.outputStream.flush()
-
-        if (conn.responseCode >= 400) {
-            val error = Gson().fromJson(conn.errorStream.reader(UTF_8), JsonObject::class.java).getAsJsonObject("error")
-            throw IllegalArgumentException(error.get("message")?.toString() ?: "unknown error" )
-        } else {
-            val ct = conn.getHeaderField("Content-Type").lowercase()
-            val certs = when (ct) {
-                "application/x-pem-file" -> {
-                    readCerts(conn.inputStream.reader()).toTypedArray()
-                }
-                "application/json" -> {
-                    val data = Gson().fromJson(conn.inputStream.reader(UTF_8), JsonObject::class.java).getAsJsonObject("data")
-                    readCerts(data.getAsJsonPrimitive("cert").asString).toTypedArray()
-                }
-                else -> error("Invalid content-type: $ct")
-            }
-            return KeyStore.PrivateKeyEntry(kp.private, certs)
+    override fun enroll(key: String, cert: String): IdentityConfig {
+        require(requiresClientCert()) {
+            "cannot be used with `${jwt.method}' enrollment method"
         }
+
+        val pk = readKey(key)
+        val certs = readCerts(cert)
+
+        val ssl = makeSSLContext(pk, certs, caCerts)
+        http.sslContext(ssl)
+
+        // TODO use generated enrollment API when it is fixed
+        // https://github.com/openziti/ziti/issues/2796
+        val uri = URI.create(api.baseUri + "/enroll?method=${jwt.method}&token=$token")
+
+        val req = HttpRequest.newBuilder(uri)
+            .header("accept", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofByteArray(byteArrayOf()))
+
+        val resp = http.build().send(req.build(), HttpResponse.BodyHandlers.ofString())
+
+        val body = resp.body()
+        if (resp.statusCode() != 200) {
+            val err = api.objectMapper.readValue(body, ApiErrorEnvelope::class.java)
+            throw ApiException(resp.statusCode(), err.error.message)
+        }
+
+        val controllers = listControllers(api.baseUri, pk, certs, caCerts)
+
+        return IdentityConfig(
+            controller = api.baseUri,
+            controllers = controllers,
+            id = IdentityConfig.Id(
+                key = key,
+                cert = cert,
+                ca = caCerts.joinToString(separator = "\n"){ it.toPEM() }),)
     }
 
-    fun getSSLContext(clientCert: KeyStore.Entry?): SSLContext {
-        val ks = KeyStore.getInstance(KeyStore.getDefaultType()).apply { load(null) }
-        clientCert?.let {
-            ks.setEntry("client-cert", clientCert, null)
-        }
-        val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()).apply {
-            init(ks, charArrayOf())
-        }
-
-        var tms: Array<TrustManager>? = null
-
-        if (!caCerts.isEmpty()) {
-            caCerts.forEach {
-                ks.setCertificateEntry("ca-${it.serialNumber}", it)
+    private fun listControllers(ctrl: String, key: PrivateKey, certs: Collection<X509Certificate>, ca: Collection<X509Certificate>): List<String> {
+        val ssl = makeSSLContext(key, certs, ca)
+        val cb = ApiClient.createDefaultHttpClientBuilder().sslContext(ssl)
+        val api = ApiClient(cb, ApiClient.createDefaultObjectMapper(), ctrl)
+        val resp  = AuthenticationApi(api).authenticate("cert", null).thenApply {
+            api.requestInterceptor = Consumer { req ->
+                req.header("zt-session", it.data.token)
             }
+        }.thenCompose {
+            ControllersApi(api).listControllers(10, 0, null)
+        }.get(3, TimeUnit.SECONDS)
 
-            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
-                init(ks)
-            }
-
-            tms = tmf.trustManagers
-        }
-
-        val sc = SSLContext.getInstance("TLSv1.2").apply {
-            init(kmf.keyManagers, tms, SecureRandom())
-        }
-
-        return sc
+        return resp.data.mapNotNull { it.apiAddresses?.get("edge-client") }.flatten()
+            .filter {it.version == "v1" }.mapNotNull { it.url }
     }
 }

@@ -16,6 +16,7 @@ ziti-cli = "1.3.3"
 # third party
 lazysodium-java = "5.1.4"
 coroutines = "1.10.1"
+serialization = "1.8.0"
 slf4j = "2.0.16"
 jupiter = "5.11.4"
 gson = "2.11.0"
@@ -31,6 +32,9 @@ protobuf = "4.28.2"
 metrics = "4.2.30"
 bouncycastle = "1.80"
 
+clikt = "2.8.0"
+
+
 [libraries]
 
 kotlin-lib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
@@ -38,6 +42,8 @@ kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", vers
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
 kotlin-coroutines-lib = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines"}
 kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines"}
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+
 
 tls-channel = { group = "com.github.marianobarrios", name = "tls-channel", version.ref = "tls-channel" }
 sodium = { group = "com.goterl", name = "lazysodium-java", version.ref = "lazysodium-java" }
@@ -66,8 +72,11 @@ protobuf = { group = "com.google.protobuf", name = "protobuf-javalite", version.
 metrics = { group = "io.dropwizard.metrics", name = "metrics-core", version.ref = "metrics" }
 bouncycastle = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle" }
 
+clikt = { module = "com.github.ajalt:clikt", version.ref = "clikt" }
+
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus" }

@@ -30,7 +30,9 @@ jobs:
           cache-dependency-path: "**/*.sum"
 
       - name: Check
-        run: ./gradlew -S --info check
+        run: |
+          ./gradlew -S --info check 
+          ./gradlew --info samplesClasses
         timeout-minutes: 10
 
       - name: test artifacts

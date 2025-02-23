@@ -22,16 +22,19 @@ import org.bouncycastle.openssl.PEMParser
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
 import org.bouncycastle.operator.ContentSigner
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder
+import org.bouncycastle.pkcs.PKCS10CertificationRequest
+import org.bouncycastle.util.io.pem.PemObject
 import org.bouncycastle.util.io.pem.PemReader
+import org.bouncycastle.util.io.pem.PemWriter
 import java.io.OutputStream
 import java.io.Reader
+import java.io.StringWriter
 import java.net.Socket
-import java.net.URI
-import java.nio.charset.Charset
 import java.security.*
 import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import java.security.spec.PKCS8EncodedKeySpec
 import java.util.*
 import javax.net.ssl.*
 
@@ -79,14 +82,16 @@ internal class AliasKeyManager(val alias: String, delegate: KeyManager) : X509Ex
 
 internal val cf = CertificateFactory.getInstance("X.509")
 
-fun readCerts(pem: String) = readCerts(pem.reader())
+internal fun readCerts(pem: String) = readCerts(pem.removePrefix("pem:").reader())
 
-fun readCerts(pemInput: Reader) = PemReader(pemInput).use { reader ->
+internal fun readCerts(pemInput: Reader) = PemReader(pemInput).use { reader ->
     generateSequence { reader.readPemObject() }
         .filter { it.type == "CERTIFICATE" }
         .map { cf.generateCertificate(it.content.inputStream()) as X509Certificate }
         .toList()
 }
+
+internal fun readKey(pem: String) = readKey(pem.removePrefix("pem:").reader())
 
 fun readKey(input: Reader): PrivateKey {
     val parser = PEMParser(input)
@@ -118,31 +123,27 @@ internal class PrivateKeySigner(val key: PrivateKey, val sigAlg: String) : Conte
 }
 
 internal fun parsePKCS7(bundle: ByteArray) =
-    Base64.getMimeDecoder().decode(bundle).run {
-        CertificateFactory.getInstance("X.509")
-            .generateCertificates(inputStream())
-            .filterIsInstance<X509Certificate>()
-    }
+    Base64.getMimeDecoder().decode(bundle).inputStream().use { input ->
+        cf.generateCertificates(input)
+    }.filterIsInstance<X509Certificate>()
 
-internal fun getCACerts(api: URI, serverKey: Key): Collection<X509Certificate> {
-    val con = api.resolve("/.well-known/est/cacerts").toURL().openConnection() as HttpsURLConnection
-    con.setRequestProperty("Accept", "application/pkcs7-mime")
-    con.sslSocketFactory = with(SSLContext.getInstance("TLSv1.2")) {
-        init(null, arrayOf(KeyTrustManager(serverKey)), SecureRandom())
-        socketFactory
-    }
+internal fun ByteArray.toHEXString(): String = joinToString("") { "%02x".format(it) }
 
-    con.doInput = true
-
-    if (con.responseCode == 200) {
-        con.inputStream.use {
-            val b = it.readBytes().toString(Charset.defaultCharset())
-            val bytes = Base64.getMimeDecoder().decode(b)
-            val cf = CertificateFactory.getInstance("X.509")
-
-            return cf.generateCertificates(bytes.inputStream()).filterIsInstance<X509Certificate>()
+internal fun X509Certificate.fingerprint() =
+    encoded.inputStream().use { stream ->
+        DigestInputStream(stream, MessageDigest.getInstance("SHA-1")).use {
+            it.readAllBytes().toHEXString()
         }
     }
 
-    return emptyList()
+internal fun ByteArray.toPEM(name: String): String = StringWriter().use { out ->
+    PemWriter(out).use {
+        it.writeObject(PemObject(name, this))
+    }
+    out.toString()
 }
+
+internal fun PrivateKey.toPEM() = PKCS8EncodedKeySpec(this.encoded).encoded.toPEM("PRIVATE KEY")
+internal fun X509Certificate.toPEM() = encoded.toPEM("CERTIFICATE")
+internal fun PKCS10CertificationRequest.toPEM() = encoded.toPEM("CERTIFICATE REQUEST")
+

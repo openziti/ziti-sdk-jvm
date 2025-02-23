@@ -17,62 +17,46 @@
 package org.openziti.api
 
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.openziti.integ.ManagementHelper
-import org.openziti.integ.ManagementHelper.enrollmentApi
-import org.openziti.integ.ManagementHelper.identityApi
-import org.openziti.integ.ManagementHelper.sslContext
-import org.openziti.management.model.EnrollmentCreate
-import org.openziti.management.model.IdentityCreate
-import org.openziti.management.model.IdentityType
+import org.openziti.Enrollment
+import org.openziti.Ziti
+import org.openziti.integ.BaseTest
+import org.openziti.integ.ManagementHelper.createIdentity
+import org.openziti.integ.ManagementHelper.getIdentity
+import org.openziti.util.Version
+import org.openziti.util.readCerts
 import java.net.URL
-import java.time.OffsetDateTime
+import javax.security.auth.x500.X500Principal
+import javax.security.auth.x500.X500Principal.CANONICAL
 
 
-class ControllerTests {
-
-    companion object {
-        @JvmStatic
-        @BeforeAll
-        fun init() {
-            val identity = identityApi.createIdentity(
-                IdentityCreate().name("test-${System.nanoTime()}").isAdmin(false).type(IdentityType.DEVICE)
-            ).get().data!!
-
-            val exp = OffsetDateTime.now().plusDays(1)
-            val enrollReq = EnrollmentCreate()
-                .identityId(identity.id!!)
-                .method(EnrollmentCreate.MethodEnum.OTT)
-                .expiresAt(exp)
-            val enrollment = enrollmentApi.createEnrollment(enrollReq).get().data
-            val token = identityApi.getIdentityEnrollments(identity.id).get().data.first().jwt
-            println(token)
-        }
-
-    }
+class ControllerTests: BaseTest() {
 
     @Test
-    fun testCreateController() = runTest {
+    fun testOttEnrollment() = runTest {
+        val name = "id-${info.displayName}-${System.nanoTime()}"
+        val token = createIdentity(name)
 
-//        assertThrows<Controller.NotAvailableException> {
-//            Controller.getActiveController(listOf(), sslContext)
-//        }
-//
-//        assertThrows<Controller.NotAvailableException> {
-//            Controller.getActiveController(listOf(URL("https://google.com")), sslContext)
-//        }
-//
-//        val ctrl = assertDoesNotThrow {
-//            Controller.getActiveController(listOf(
-//                URL("https://google.com"),
-//                URL("https://localhost:1280")
-//            ), sslContext)
-//        }
-//
-//        Assertions.assertEquals("/edge/client/v1", ctrl.endpoint.path)
 
-        val ctrl = Controller(URL(ManagementHelper.api.baseUri), sslContext)
-        ctrl.version()
+        val enrollment = Ziti.createEnrollment(token)
+        assertEquals(enrollment.getMethod(), Enrollment.Method.ott)
+
+        val cfg = enrollment.enroll()
+
+        val appVersion = System.nanoTime().toString()
+        Ziti.setApplicationInfo(info.displayName, appVersion)
+        val ctrl = Controller(URL(cfg.controller), cfg.sslContext())
+
+        val session = ctrl.login()
+        assertEquals(name, session.identity.name)
+        ctrl.logout()
+
+        val identity = getIdentity(session.identityId)
+        val idInfo = identity.data.sdkInfo
+        assertEquals("ziti-sdk-java", idInfo.type)
+        assertEquals(Version.version, idInfo.version)
+        assertEquals(appVersion, idInfo.appVersion)
+        assertEquals(info.displayName, idInfo.appId)
     }
 }

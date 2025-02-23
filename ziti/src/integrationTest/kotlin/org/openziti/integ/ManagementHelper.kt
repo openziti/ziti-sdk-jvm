@@ -24,6 +24,10 @@ import org.openziti.management.api.EnrollmentApi
 import org.openziti.management.api.IdentityApi
 import org.openziti.management.api.InformationalApi
 import org.openziti.management.model.Authenticate
+import org.openziti.management.model.EnrollmentCreate
+import org.openziti.management.model.IdentityCreate
+import org.openziti.management.model.IdentityType
+import org.openziti.util.fingerprint
 import org.openziti.util.parsePKCS7
 import java.net.InetAddress
 import java.net.URI
@@ -33,6 +37,11 @@ import java.net.http.HttpResponse
 import java.security.KeyStore
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.time.Duration
+import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
@@ -73,7 +82,7 @@ internal object ManagementHelper {
         val ks = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
             load(null, null)
             this@makeSSL.forEach {
-                setCertificateEntry(it.subjectX500Principal.name, it)
+                setCertificateEntry("${it.subjectX500Principal.name}-${it.fingerprint()}", it)
             }
         }
 
@@ -107,4 +116,31 @@ internal object ManagementHelper {
             setRequestInterceptor { it.header("zt-session", token) }
         }
     }
+
+    internal fun getIdentity(id: String) = identityApi.detailIdentity(id).waitFor()
+    /**
+     * returns enrollment JWT
+     */
+    internal fun createIdentity(name: String = "test-${System.nanoTime()}"): String {
+        val identity = identityApi.createIdentity(
+            IdentityCreate()
+                .name(name)
+                .isAdmin(false)
+                .type(IdentityType.DEVICE)
+        ).get().data!!
+
+
+        val exp = OffsetDateTime.now().plusDays(1)
+        val enrollReq = EnrollmentCreate()
+            .identityId(identity.id!!)
+            .method(EnrollmentCreate.MethodEnum.OTT)
+            .expiresAt(exp)
+        enrollmentApi.createEnrollment(enrollReq).waitFor()
+
+        return identityApi.getIdentityEnrollments(identity.id).waitFor().data.first().jwt!!
+    }
+
+    internal fun <T> CompletableFuture<T>.waitFor(timeout: Duration = Duration.of(5, ChronoUnit.SECONDS)): T =
+        this.get(timeout.toMillis(), TimeUnit.MILLISECONDS)
+
 }

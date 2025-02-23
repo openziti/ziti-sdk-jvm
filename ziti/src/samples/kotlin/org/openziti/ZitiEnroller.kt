@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 NetFoundry, Inc.
+ * Copyright (c) 2018-2025 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,10 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.file
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.future.asDeferred
-import org.openziti.api.MFAType
-import org.openziti.identity.Enroller
 import java.io.FileNotFoundException
-import java.net.InetAddress
-import java.security.KeyStore
 import java.util.concurrent.CompletableFuture
 
 object ZitiEnroller {
@@ -46,14 +41,14 @@ object ZitiEnroller {
         }
 
         override fun run() {
-            val enroller = Enroller.fromJWT(jwt.readText())
-            val store = KeyStore.getInstance("PKCS12").apply {
-                load(null)
+            val enrollment = Ziti.createEnrollment(jwt.path)
+
+            require(!enrollment.requiresClientCert()) {
+                "enrollments requiring client certificates are not supported"
             }
 
-            enroller.enroll(null, store, InetAddress.getLocalHost().hostName)
-
-            store.store(out.outputStream(), charArrayOf())
+            val cfg = enrollment.enroll()
+            cfg.store(out.outputStream())
         }
     }
 
@@ -69,7 +64,7 @@ object ZitiEnroller {
             println("Enter MFA code $type/$provider: ")
             return CompletableFuture.supplyAsync {
                 var s: String? = null
-                while(s == null) s = readLine()
+                while (s == null) s = readLine()
                 s
             }.asDeferred()
         }
@@ -78,23 +73,26 @@ object ZitiEnroller {
             val ztx = Ziti.newContext(idFile, charArrayOf())
 
             val j = coroutineScope {
-                launch  {
+                launch {
                     ztx.statusUpdates().collect {
                         println("status: $it")
-                        when(it) {
+                        when (it) {
                             ZitiContext.Status.Loading -> {}
                             is ZitiContext.Status.NeedsAuth -> {
                                 println("identity is enrolled in MFA")
-                                val code = readMFACode(it.type, it.provider).await()
+                                val code = readMFACode(it.type.name, it.provider).await()
                                 ztx.authenticateMFA(code)
                             }
+
                             ZitiContext.Status.Active -> {
                                 println("verification success!")
                                 cancel()
                             }
+
                             is ZitiContext.Status.NotAuthorized -> {
                                 cancel("verification failed!", it.ex)
                             }
+
                             else -> cancel("unexpected status")
                         }
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NetFoundry, Inc.
+ * Copyright (c) 2018-2025 NetFoundry Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.openziti.identity
+package org.openziti.integ
 
-import com.google.gson.Gson
-import java.io.File
-import java.io.Reader
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.TestInfo
 
-internal class IdentityConfig(val ztAPI: String, val id: Id) {
-    internal class Id(val key: String, val cert: String, val ca: String?)
+abstract class BaseTest {
+    protected lateinit var info: TestInfo
 
-    companion object {
-        fun load(r: Reader): IdentityConfig = Gson().fromJson(r, IdentityConfig::class.java)
-
-        fun load(f: File): IdentityConfig = load(f.reader())
-
-        fun load(path: String): IdentityConfig = load(File(path))
+    @BeforeEach
+    fun initTests(testInfo: TestInfo) {
+        info = testInfo
     }
+
 }
