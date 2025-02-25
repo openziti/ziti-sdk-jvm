@@ -21,6 +21,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import org.openziti.identity.Identity
 import org.openziti.identity.makeSSLContext
 import org.openziti.util.readCerts
 import org.openziti.util.readKey
@@ -31,7 +32,7 @@ import java.security.PrivateKey
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 
-@Serializable data class IdentityConfig(
+@Serializable data class IdentityConfig (
     /**
      * Ziti controller address.
      */
@@ -40,7 +41,7 @@ import javax.net.ssl.SSLContext
     /**
      * List of ziti controller addresses.
      */
-    @SerialName("ztAPIs") val controllers: Collection<String> = emptyList(),
+    @SerialName("ztAPIs") val controllers: Collection<String> = listOf(controller),
 
     /**
      * Identity credentials.
