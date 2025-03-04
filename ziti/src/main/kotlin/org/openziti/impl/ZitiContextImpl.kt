@@ -22,9 +22,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.selects.select
 import org.openziti.*
+import org.openziti.ZitiException.Errors
 import org.openziti.api.*
 import org.openziti.edge.model.*
-import org.openziti.identity.Identity
+import org.openziti.Identity
 import org.openziti.net.*
 import org.openziti.net.Protocol
 import org.openziti.net.dns.ZitiDNSManager
@@ -34,15 +35,19 @@ import org.openziti.posture.PostureService
 import org.openziti.util.IPUtil
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
+import java.io.Closeable
 import java.io.Writer
 import java.net.*
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.time.OffsetDateTime
+import java.util.concurrent.CompletionStage
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Consumer
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 import kotlin.random.Random
@@ -53,7 +58,7 @@ import kotlin.time.toDuration
  * Object maintaining current Ziti session.
  *
  */
-internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : ZitiContext, Identity by id,
+internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : ZitiContext,
     CoroutineScope, Logged by ZitiLog() {
 
     private var _enabled: Boolean by Delegates.observable(enabled) { _, _, isEnabled ->
@@ -65,6 +70,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
+    private var _name: String = ""
+    override fun name(): String = _name
+
     private var refreshDelay = TimeUnit.MINUTES.toMillis(1)
 
     private val supervisor = SupervisorJob()
@@ -75,7 +83,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val currentEdgeRouters =
         MutableStateFlow<Collection<CurrentIdentityEdgeRouterDetail>>(emptyList())
 
-    private val controller: Controller = Controller(URI.create(id.controller()).toURL(), sslContext())
+    private val controller: Controller = Controller(id.controllers().random(), id.sslContext())
     private val postureService = PostureService()
 
     private val statusCh: MutableStateFlow<ZitiContext.Status>
@@ -124,8 +132,27 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
+    override fun onStatus(consumer: Consumer<ZitiContext.Status>): Future<Unit> {
+        val job = launch(Dispatchers.Default) {
+            statusUpdates().collect {
+                consumer.accept(it)
+            }
+        }
+
+        return job.asCompletableFuture()
+    }
+
     override fun getStatus() = statusCh.value
     override fun statusUpdates(): StateFlow<ZitiContext.Status> = statusCh
+
+    override fun onServiceEvent(consumer: Consumer<ZitiContext.ServiceEvent>): Future<Unit> {
+        val job = launch(Dispatchers.Default) {
+            serviceUpdates().collect {
+                consumer.accept(it)
+            }
+        }
+        return job.asCompletableFuture()
+    }
 
     override fun serviceUpdates(): Flow<ZitiContext.ServiceEvent> = flow {
         emitAll(servicesByName.values.map {
@@ -148,7 +175,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun isEnabled() = _enabled
     override fun setEnabled(v: Boolean) { _enabled = v }
     private fun checkEnabled() {
-        _enabled || throw ZitiException(Errors.ServiceNotAvailable)
+        _enabled || throw ZitiException(ZitiException.Errors.ServiceNotAvailable)
     }
 
     override fun dial(serviceName: String): ZitiConnection {
@@ -169,7 +196,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     internal fun dialById(serviceId: String): ZitiConnection =
         servicesById[serviceId]?.let {
             dial(it.name)
-        } ?: throw ZitiException(Errors.ServiceNotAvailable)
+        } ?: throw ZitiException(ZitiException.Errors.ServiceNotAvailable)
 
 
     internal fun dial(host: String, port: Int): ZitiConnection {
@@ -207,6 +234,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 updateStatus(ZitiContext.Status.NotAuthorized(it))
                 throw it
             }
+            _name = session.identity.name ?: ""
 
             apiSession.value = session
             val mfa = session.authQueries.find {
@@ -324,7 +352,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         var lastUpdate = OffsetDateTime.MIN
         while (true) {
             val oneUpdate = async {
-                d("[${id.name()}] slept and restarting on t[${Thread.currentThread().name}]")
+                d("[${name()}] slept and restarting on t[${Thread.currentThread().name}]")
                 val updt = controller.getServiceUpdates()
 
                 if (updt.lastChangeAt.isAfter(lastUpdate)) {
@@ -332,7 +360,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
                     val services = controller.getServices().toList()
                     processServiceUpdates(services)
-                    d("[${id.name()}] got ${services.size} services on t[${Thread.currentThread().name}]")
+                    d("[${name()}] got ${services.size} services on t[${Thread.currentThread().name}]")
                 }
             }
 
@@ -533,7 +561,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     internal fun getChannel(addr: String): Channel {
         return channels.computeIfAbsent(addr) {
-            Channel(it, id) { apiSession.value }
+            Channel(it, id.sslContext()) { apiSession.value }
         }
     }
 
@@ -654,8 +682,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     override fun toString(): String {
-        val id = getId()
-        return "${id?.name ?: name()}[${id?.id}]@${controller()}"
+        val detail = getId()
+        return "${detail?.name ?: name()}[${detail?.id}]@${controller.endpoint}"
     }
 
     internal suspend fun waitForActive() {
@@ -701,8 +729,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun dump(writer: Writer) {
         writer.appendLine("""
-            id:         ${id.name()}
-            controller: ${id.controller()}
+            name:       ${name()}
+            controller: ${id.controllers()}
             status:     ${getStatus()}
             """.trimIndent())
 

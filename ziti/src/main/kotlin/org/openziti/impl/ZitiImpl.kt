@@ -57,6 +57,18 @@ internal object ZitiImpl : Logged by ZitiLog() {
         i("ZitiSDK version ${Version.version} @${Version.revision}(${Version.branch})")
     }
 
+    fun loadContext(cfg: IdentityConfig, enabled: Boolean) =
+        ZitiContextImpl(cfg, enabled).also { ztx ->
+            contexts.add(ztx)
+            ztx.launch {
+                ztxEvents.emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Loaded, ztx))
+                ztx.serviceUpdates().collect {
+                    serviceEvents.emit(Pair(ztx, it))
+                }
+            }
+        }
+
+
     internal fun loadContext(ks: KeyStore, alias: String?): ZitiContextImpl {
         val idName = alias ?: findIdentityAlias(ks)
         val id = KeyStoreIdentity(ks, idName)
@@ -150,7 +162,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
     fun connect(addr: SocketAddress): ZitiConnection {
         when (addr) {
             is InetSocketAddress -> {
-                val (ztx, svc) = getServiceFor(addr) ?: throw ZitiException(Errors.ServiceNotAvailable)
+                val (ztx, svc) = getServiceFor(addr) ?: throw ZitiException(ZitiException.Errors.ServiceNotAvailable)
                 return ztx.dial(svc.name)
             }
             is ZitiAddress.Dial -> {
@@ -161,7 +173,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
                 }
 
                 e { "service @[$addr] not available in any contexts" }
-                throw ZitiException(Errors.ServiceNotAvailable)
+                throw ZitiException(ZitiException.Errors.ServiceNotAvailable)
             }
 
             else -> error("unsupported address type")

@@ -18,28 +18,21 @@ package org.openziti.net
 
 import kotlinx.coroutines.Deferred
 import org.openziti.api.ApiSession
-import org.openziti.identity.Identity
 import org.openziti.impl.ChannelImpl
 import java.io.Closeable
+import javax.net.ssl.SSLContext
 
-internal fun Channel(addr: String, id: Identity, apiSession: () -> ApiSession?): Channel {
-    val ch = ChannelImpl(addr, id, apiSession)
-    ch.start()
-    return ch
-}
+internal fun Channel(addr: String, ssl: SSLContext, apiSession: () -> ApiSession?): Channel
+        = ChannelImpl(addr, ssl, apiSession).apply { start() }
 
 internal interface Channel: Closeable {
 
     sealed class State {
-        object Initial : State() {
-            override fun toString() = "Initial"
-        }
-        object Connecting: State() {
-            override fun toString() = "Connecting"
-        }
+        data object Initial : State()
+        data object Connecting: State()
         data class Connected(val latency: Long): State()
         data class Disconnected(val err: Throwable?): State()
-        object Closed: State()
+        data object Closed: State()
     }
 
     interface MessageReceiver {

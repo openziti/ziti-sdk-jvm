@@ -16,7 +16,6 @@
 
 package org.openziti.api
 
-import com.fasterxml.jackson.module.kotlin.treeToValue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
@@ -25,112 +24,111 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.future.await
-import org.openziti.Errors
+import org.openziti.ZitiException.Errors
 import org.openziti.ZitiException
 import org.openziti.edge.ApiClient
 import org.openziti.edge.ApiException
 import org.openziti.edge.api.*
 import org.openziti.edge.model.*
-import org.openziti.getZitiError
 import org.openziti.impl.ZitiImpl
 import org.openziti.util.Logged
 import org.openziti.util.SystemInfoProvider
 import org.openziti.util.Version
 import org.openziti.util.ZitiLog
 import java.io.IOException
-import java.net.URL
 import java.net.http.HttpClient
+import java.net.http.HttpRequest
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import javax.net.ssl.SSLContext
 import kotlin.reflect.full.memberFunctions
 
-internal class Controller(endpoint: URL, sslContext: SSLContext):
+internal class Controller(endpoint: String, sslContext: SSLContext):
     Logged by ZitiLog() {
 
     private val pageSize = 100
 
-    internal var apiPrefix: String = ""
-    internal var apiSession: ApiSession? = null
+    private val http = HttpClient.newBuilder()
+        .sslContext(sslContext)
+        .executor(Dispatchers.IO.asExecutor())
 
     private val edgeApi: ApiClient = ApiClient().apply {
-        setHttpClientBuilder(
-            HttpClient.newBuilder()
-                .sslContext(sslContext)
-                .executor(Dispatchers.IO.asExecutor()))
-        updateBaseUri(endpoint.toString())
-        setBasePath("/")
+        setHttpClientBuilder(http)
+        updateBaseUri(endpoint)
+        setBasePath("")
+        setRequestInterceptor(ReqInterceptor())
     }
     private val infoClient: InformationalApi
+        get() = InformationalApi(edgeApi)
 
-    init {
 
-        edgeApi.requestInterceptor = Consumer { req ->
-            apiSession?.let {
-                req.header("zt-session", it.token)
-            }
-            val r = req.build()
-            i("${r.method()} ${r.uri()} session=${apiSession?.id} t[${Thread.currentThread().name}]")
+    internal val endpoint: String
+        get() = edgeApi.baseUri
+
+    internal suspend fun switchEndpoint(endpoint: String) {
+        val orig = edgeApi.baseUri
+        runCatching {
+            edgeApi.updateBaseUri(endpoint)
+            edgeApi.setBasePath("")
+            version()
+        }.onFailure {
+            edgeApi.updateBaseUri(orig)
+            throw it
         }
-
-        // always uses root
-        infoClient = InformationalApi(edgeApi)
     }
 
-    suspend fun version(): org.openziti.edge.model.Version {
-        val ver = infoClient.listVersion().await().data
-        i { "controller[${edgeApi.baseUri}] version(${ver.version}/${ver.revision})"}
-        val prefix = ver.apiVersions?.run { get("edge-client") ?: get("edge") }?.get("v1")?.path
-
-        prefix?.let {
-            apiPrefix = it
-            edgeApi.setBasePath(it)
-        } ?: w {"did not receive expected apiVersions mapping"}
-        return ver
-    }
-
-    internal suspend fun currentApiSession(): ApiSession {
+    internal suspend fun listControllers(): List<ControllerDetail> {
         return runCatching {
-            CurrentApiSessionApi(edgeApi).currentAPISession.await().data
+            ControllersApi(edgeApi).listControllers(100, 0, null).await().data
         }.getOrElse {
             convertError(it)
         }
     }
 
+    suspend fun version(): org.openziti.edge.model.Version {
+        val version = infoClient.listVersion().await().data
+        i { "controller[${edgeApi.baseUri}] version(${version.version}/${version.revision})"}
+        val prefix = version.apiVersions?.run { get("edge-client") ?: get("edge") }?.get("v1")?.path
+
+        prefix?.let {
+            edgeApi.setBasePath(it)
+        } ?: w {"did not receive expected apiVersions mapping"}
+        return version
+    }
+
+    internal suspend fun currentApiSession(): ApiSession = runCatching {
+        CurrentApiSessionApi(edgeApi).currentAPISession.await().data
+    }.getOrElse {
+        convertError(it)
+    }
+
     internal suspend fun login(login: Login? = null): ApiSession {
-        // validate current session
-        if (apiSession != null) {
-            apiSession = runCatching {  currentApiSession() }.getOrNull()
+        runCatching { version() }.getOrElse { convertError(it) }
+
+        val method = if (login == null) "cert" else "password"
+        val auth = getClientInfo()
+        if (login != null) {
+            auth.username(login.username)
+            auth.password(login.password)
         }
 
-        if (apiSession == null) {
-            runCatching { version() }.getOrElse { convertError(it) }
-
-            val method = if (login == null) "cert" else "password"
-            val auth = getClientInfo()
-            if (login != null) {
-                auth.username(login.username)
-                auth.password(login.password)
-            }
-
-            apiSession = runCatching {
-                AuthenticationApi(edgeApi).authenticate(method, auth).await().data
-            }.getOrElse {
-                convertError(it)
-            }
+        val apiSession = runCatching {
+            AuthenticationApi(edgeApi).authenticate(method, auth).await().data
+        }.getOrElse {
+            convertError(it)
         }
-        return apiSession!!
+        edgeApi.requestInterceptor = ReqInterceptor(apiSession)
+
+        return apiSession
     }
 
     suspend fun logout() {
         CurrentApiSessionApi(edgeApi).currentApiSessionDelete().runCatching {
             await()
         }
-        apiSession = null
     }
 
-    fun shutdown() {
-    }
+    fun shutdown() = Unit
 
     internal suspend fun getServiceUpdates() =
         CurrentApiSessionApi(edgeApi).listServiceUpdates().runCatching {
@@ -148,22 +146,11 @@ internal class Controller(endpoint: URL, sslContext: SSLContext):
         }
     }
 
-    internal fun getSessions(): Flow<Session> {
-        val sessionFilter = apiSession?.let {
-            "apiSession=\"${it.id}\""
-        }
-        val sessionApi = SessionApi(edgeApi)
-        return pagingApiRequest { limit, offset ->
-            sessionApi.listSessions(limit, offset, sessionFilter)
-        }
-    }
-
-    internal suspend fun createNetSession(s: Service, t: SessionType): Session {
+    internal suspend fun createNetSession(s: Service, t: SessionType): Session  = runCatching {
         val req = SessionCreate().type(t).serviceId(s.id)
-        return SessionApi(edgeApi).createSession(req).runCatching {
-            await().data!!
-        }.getOrElse { convertError(it) }
-    }
+        SessionApi(edgeApi).createSession(req).await().data!!
+    }.getOrElse { convertError(it) }
+
 
     internal fun getServiceTerminators(s: Service): Flow<TerminatorClientDetail> {
         val serviceApi = ServiceApi(edgeApi)
@@ -261,12 +248,9 @@ internal class Controller(endpoint: URL, sslContext: SSLContext):
     private fun convertError(t: Throwable): Nothing {
         val errCode = when (t) {
             is CancellationException -> throw t
-            is ApiException -> getZitiError(getError(t.responseBody))
+            is ApiException -> ZitiException.getZitiError(getError(t.responseBody))
             is IOException -> Errors.ControllerUnavailable
             else -> Errors.WTF(t.toString())
-        }
-        if (errCode is Errors.NotAuthorized) {
-            apiSession = null
         }
 
         throw ZitiException(errCode,  t)
@@ -274,9 +258,7 @@ internal class Controller(endpoint: URL, sslContext: SSLContext):
 
     private fun getError(resp: String): String {
 
-        val err = edgeApi.objectMapper.treeToValue<ApiErrorEnvelope>(
-            edgeApi.objectMapper.readTree(resp)
-        ).error
+        val err = edgeApi.objectMapper.readValue(resp, ApiErrorEnvelope::class.java).error
 
         return err.code ?: err.message!!
     }
@@ -296,5 +278,13 @@ internal class Controller(endpoint: URL, sslContext: SSLContext):
             .osRelease(info.osRelease)
             .osVersion(info.osVersion)
         configTypes = listOf(InterceptV1Cfg, ClientV1Cfg)
+    }
+
+    internal inner class ReqInterceptor(val session: ApiSession? = null): Consumer<HttpRequest.Builder> {
+        override fun accept(req: HttpRequest.Builder) {
+            session?.let { req.header("zt-session", session.token) }
+            val r = req.build()
+            d {"${r.method()} ${r.uri()} session=${session?.id}"}
+        }
     }
 }

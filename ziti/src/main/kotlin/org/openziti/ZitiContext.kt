@@ -23,21 +23,23 @@ import org.openziti.api.Service
 import org.openziti.edge.model.AuthQueryType
 import org.openziti.edge.model.IdentityDetail
 import org.openziti.edge.model.TerminatorClientDetail
-import org.openziti.identity.Identity
+import java.io.Closeable
 import java.io.Writer
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.concurrent.CompletionStage
+import java.util.concurrent.Future
+import java.util.function.Consumer
 
 /**
  * Object representing an instantiated Ziti identity.
- * It main purpose is to instantiate
+ * Its main purpose is to instantiate
  * - connections to Ziti services
  * - binding for hosting Ziti services in the app
  */
-interface ZitiContext: Identity {
+interface ZitiContext {
 
     enum class ServiceUpdate {
         Available,
@@ -53,18 +55,36 @@ interface ZitiContext: Identity {
         object Active: Status()
         object Disabled: Status()
         class NotAuthorized(val ex: Throwable): Status()
-        class Unavailable(val ex: Exception): Status()
-        class Impaired(val ex: Exception): Status()
+        class Unavailable(val ex: Throwable): Status()
 
         override fun toString(): String = this::class.java.simpleName
     }
 
+    fun name(): String
     fun isEnabled(): Boolean
     fun setEnabled(v: Boolean)
 
+    /**
+     * register for status updates.
+     *
+     * The resulting future never completes, unless cancelled or the context is destroyed.
+     *
+     * @param consumer callback to be called on status change
+     * @return future that can be cancelled to stop receiving updates
+     */
+    fun onStatus(consumer: Consumer<Status>): Future<Unit>
     fun getStatus(): Status
     fun statusUpdates(): StateFlow<Status>
 
+    /**
+     * register for service updates.
+     *
+     * The resulting future never completes, unless cancelled or the context is destroyed.
+     *
+     * @param consumer callback to be called on service change
+     * @return future that can be cancelled to stop receiving updates
+     */
+    fun onServiceEvent(consumer: Consumer<ServiceEvent>): Future<Unit>
     fun serviceUpdates(): Flow<ServiceEvent>
 
     fun getIdentity(): Flow<IdentityDetail>
