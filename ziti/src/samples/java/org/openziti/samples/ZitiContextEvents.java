@@ -45,8 +45,8 @@ public class ZitiContextEvents {
                 System.out.printf(">>> status = %s%n", status);
             });
 
-            ziti.onServiceEvent(service -> {
-                System.out.printf(">>> %s = %s%n", service.getService().getName(), service.getType());
+            ziti.onServiceEvent(event -> {
+                System.out.printf(">>> %s = %s%n", event.getService().getName(), event.getType());
             });
 
             Thread.sleep(5000);
