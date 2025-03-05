@@ -16,9 +16,9 @@
 
 apply plugin: 'signing'
 
-project.plugins.withType(MavenPublishPlugin).all {
+project.plugins.withType(MavenPublishPlugin).configureEach {
     def pubExt = project.extensions.getByType(PublishingExtension)
-    pubExt.publications.withType(MavenPublication).all { pub ->
+    pubExt.publications.withType(MavenPublication).configureEach { pub ->
 
         if (rootProject.hasProperty('signingKey')) {
             def signingKey = findProperty("signingKey")

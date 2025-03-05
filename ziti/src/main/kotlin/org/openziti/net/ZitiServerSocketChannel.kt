@@ -48,8 +48,10 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.Channel as Chan
 
-internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousServerSocketChannel(null),
-    Channel.MessageReceiver, Logged by ZitiLog() {
+internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl):
+    AsynchronousServerSocketChannel(null),
+    Channel.MessageReceiver,
+    Logged by ZitiLog() {
 
     lateinit var localAddr: ZitiAddress.Bind
     var channel: Channel? = null
@@ -311,5 +313,9 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl): AsynchronousSe
     companion object {
         val REBIND_DELAY = 3.seconds
         val MAX_REBIND_INTERVAL = 5
+    }
+
+    private inner class Binder(val ch: Channel) {
+
     }
 }
