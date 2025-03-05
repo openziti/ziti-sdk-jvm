@@ -1,5 +1,6 @@
 name: CI build
-
+permissions:
+  contents: read
 on:
   workflow_dispatch:
 

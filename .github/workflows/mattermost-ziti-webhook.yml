@@ -1,4 +1,6 @@
 name: ziti-mattermost-action-py
+permissions: {}
+
 on:
   issues:
   issue_comment:
