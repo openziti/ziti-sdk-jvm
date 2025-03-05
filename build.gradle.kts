@@ -49,6 +49,7 @@ semver {
 }
 
 val gitCommit = semver.info.shortCommit
+val dirty = semver.info.dirty
 ext {
     set("gitCommit", semver.info.shortCommit)
     set("gitBranch", semver.info.branch.name)
@@ -68,7 +69,7 @@ subprojects {
     }
 
     tasks.withType<PublishToMavenRepository>().configureEach {
-        onlyIf { !semver.info.dirty }
+        onlyIf { !dirty }
     }
 
     tasks.withType<JavaCompile>().configureEach {
