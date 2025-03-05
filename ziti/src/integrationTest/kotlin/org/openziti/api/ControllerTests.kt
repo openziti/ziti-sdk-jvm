@@ -18,38 +18,44 @@ package org.openziti.api
 
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.openziti.Enrollment
+import org.openziti.IdentityConfig
 import org.openziti.Ziti
 import org.openziti.integ.BaseTest
 import org.openziti.integ.ManagementHelper.createIdentity
 import org.openziti.integ.ManagementHelper.getIdentity
 import org.openziti.util.Version
-import org.openziti.util.readCerts
-import java.net.URL
-import javax.security.auth.x500.X500Principal
-import javax.security.auth.x500.X500Principal.CANONICAL
+import java.net.ConnectException
 
 
 class ControllerTests: BaseTest() {
 
-    @Test
-    fun testOttEnrollment() = runTest {
-        val name = "id-${info.displayName}-${System.nanoTime()}"
-        val token = createIdentity(name)
+    lateinit var cfg: IdentityConfig
+    lateinit var idName: String
+    lateinit var appVersion: String
 
+    @BeforeEach
+    fun initIdentity() {
+        appVersion = System.nanoTime().toString()
+        Ziti.setApplicationInfo(info.displayName, appVersion)
+
+        idName = "id-${info.displayName}-${System.nanoTime()}"
+        val token = createIdentity(idName)
 
         val enrollment = Ziti.createEnrollment(token)
         assertEquals(enrollment.getMethod(), Enrollment.Method.ott)
 
-        val cfg = enrollment.enroll()
+        cfg = enrollment.enroll()
+    }
 
-        val appVersion = System.nanoTime().toString()
-        Ziti.setApplicationInfo(info.displayName, appVersion)
-        val ctrl = Controller(URL(cfg.controller), cfg.sslContext())
-
+    @Test
+    fun testOttEnrollment() = runTest {
+        val ctrl = Controller(cfg.controller, cfg.sslContext())
         val session = ctrl.login()
-        assertEquals(name, session.identity.name)
+        assertEquals(idName, session.identity.name)
         ctrl.logout()
 
         val identity = getIdentity(session.identityId)
@@ -58,5 +64,17 @@ class ControllerTests: BaseTest() {
         assertEquals(Version.version, idInfo.version)
         assertEquals(appVersion, idInfo.appVersion)
         assertEquals(info.displayName, idInfo.appId)
+    }
+
+    @Test
+    fun testSwitch() = runTest {
+        val ctrl = Controller(cfg.controller, cfg.sslContext())
+        val session = ctrl.login()
+        val controllers = ctrl.listControllers()
+        println(controllers)
+        assertThrows<ConnectException> {
+            ctrl.switchEndpoint("https://localhost:6666")
+        }
+        assertEquals(cfg.controller, ctrl.endpoint)
     }
 }

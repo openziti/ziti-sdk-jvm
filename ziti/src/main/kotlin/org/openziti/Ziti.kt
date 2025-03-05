@@ -46,6 +46,14 @@ object Ziti {
     data class IdentityEvent(val type: IdentityEventType, val ztx: ZitiContext)
 
     /**
+     * Load Ziti identity from the configuration.
+     * @param cfg identity configuration
+     * @param enabled whether the identity should be enabled
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun newContext(cfg: IdentityConfig, enabled: Boolean = true): ZitiContext = ZitiImpl.loadContext(cfg, enabled)
+    /**
      * Load Ziti identity from the file.
      * The following formats of ziti identity files are supported:
      * * JSON file produced by `ziti-enroller`

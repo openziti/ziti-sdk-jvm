@@ -23,7 +23,7 @@ import com.goterl.lazysodium.utils.SessionPair
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
-import org.openziti.Errors
+import org.openziti.ZitiException.Errors
 import org.openziti.ZitiAddress
 import org.openziti.ZitiConnection
 import org.openziti.ZitiException

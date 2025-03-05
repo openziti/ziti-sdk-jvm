@@ -16,6 +16,7 @@
 
 package org.openziti.identity
 
+import org.openziti.Identity
 import org.openziti.util.AliasKeyManager
 import java.net.URI
 import java.net.URLDecoder
@@ -26,13 +27,6 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
-
-interface Identity {
-    fun controller(): String
-    fun name(): String
-    fun sslContext(): SSLContext
-    fun trustManager(): X509TrustManager
-}
 
 internal class KeyStoreIdentity(private val ks: KeyStore, alias: String, pw: CharArray = charArrayOf()) : Identity {
 
@@ -67,11 +61,9 @@ internal class KeyStoreIdentity(private val ks: KeyStore, alias: String, pw: Cha
         }
     }
 
-    override fun controller() = controller
+    override fun controllers() = listOf(controller)
 
-    override fun name() = name
+    fun name() = name
 
     override fun sslContext(): SSLContext = ssl
-
-    override fun trustManager(): X509TrustManager = tm
 }

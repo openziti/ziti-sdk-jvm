@@ -31,7 +31,10 @@ import java.security.PrivateKey
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 
-@Serializable data class IdentityConfig(
+/**
+ * Identity loaded from identity configuration JSON.
+ */
+@Serializable data class IdentityConfig (
     /**
      * Ziti controller address.
      */
@@ -40,12 +43,12 @@ import javax.net.ssl.SSLContext
     /**
      * List of ziti controller addresses.
      */
-    @SerialName("ztAPIs") val controllers: Collection<String> = emptyList(),
+    @SerialName("ztAPIs") val controllers: Collection<String> = listOf(controller),
 
     /**
      * Identity credentials.
      */
-    val id: Id) {
+    val id: Id): Identity {
 
     @Serializable data class Id(
         /** Identity private key in PEM format */
@@ -56,9 +59,22 @@ import javax.net.ssl.SSLContext
         val ca: String
     )
 
+    /**
+     * Store identity configuration to the output stream.
+     */
     fun store(output: OutputStream) {
         output.write(json.encodeToString(this).encodeToByteArray())
     }
+
+    /**
+     * @inheritDoc
+     */
+    override fun controllers(): Collection<String> = controllers
+
+    /**
+     * @inheritDoc
+     */
+    override fun sslContext(): SSLContext = makeSSLContext(key, cert, caCerts)
 
     internal val key: PrivateKey? by lazy {
         id.key?.let {
@@ -76,19 +92,31 @@ import javax.net.ssl.SSLContext
         readCerts(id.ca)
     }
 
-    internal fun sslContext(): SSLContext = makeSSLContext(key, cert, caCerts)
 
     companion object {
+
+        /**
+         * Load identity configuration from the input stream.
+         */
         @OptIn(ExperimentalSerializationApi::class)
         @JvmStatic
         fun load(input: InputStream): IdentityConfig = Json.decodeFromStream(serializer(), input)
 
+        /**
+         * Load identity configuration from the byte array.
+         */
         @JvmStatic
         fun load(cfg: ByteArray): IdentityConfig = load(cfg.inputStream())
 
+        /**
+         * Load identity configuration from the file.
+         */
         @JvmStatic
         fun load(f: File): IdentityConfig = load(f.inputStream())
 
+        /**
+         * Load identity configuration from the file path or JSON string.
+         */
         @JvmStatic
         fun load(cfg: String): IdentityConfig {
             val file = File(cfg)

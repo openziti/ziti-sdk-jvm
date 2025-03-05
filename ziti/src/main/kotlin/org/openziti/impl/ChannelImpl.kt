@@ -24,7 +24,6 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.openziti.api.ApiSession
-import org.openziti.identity.Identity
 import org.openziti.net.*
 import org.openziti.net.Channel
 import org.openziti.net.Transport
@@ -35,11 +34,12 @@ import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import javax.net.ssl.SSLContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.min
 import kotlin.random.Random
 
-internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: () -> ApiSession?) : Channel,
+internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val apiSession: () -> ApiSession?) : Channel,
     CoroutineScope, Logged by ZitiLog("Channel[$addr]") {
 
     private val supervisor = SupervisorJob()
@@ -94,7 +94,7 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
         return async { chState.filter { it is Channel.State.Connected }.first() }
     }
 
-    @ExperimentalCoroutinesApi
+//    @ExperimentalCoroutinesApi
     internal fun start() {
         launch {
             var retryCount = 0
@@ -116,7 +116,7 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
                     continue
                 }
 
-                val helloMsg = Message.newHello(id.name()).apply {
+                val helloMsg = Message.newHello(session.identityId).apply {
                     setHeader(ZitiProtocol.Header.SessionToken, session.token)
                 }
 
@@ -124,7 +124,7 @@ internal class ChannelImpl(val addr: String, val id: Identity, val apiSession: (
                 chState.value = Channel.State.Connecting
                 val jobs = mutableListOf<Deferred<Unit>>()
                 try {
-                    peer = Transport.dial(addr, id.sslContext(), CONNECT_TIMEOUT, EDGE_APP_PROTOCOL)
+                    peer = Transport.dial(addr, sslContext, CONNECT_TIMEOUT, EDGE_APP_PROTOCOL)
                     d{ "connected with ${peer.applicationProtocol()}"}
                     jobs += async { txer(peer) }
                     jobs += async { rxer(peer) }
