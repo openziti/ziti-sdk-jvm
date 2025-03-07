@@ -18,15 +18,19 @@ package org.openziti.integ
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
+import okhttp3.internal.notifyAll
+import org.openziti.api.InterceptConfig
+import org.openziti.api.InterceptV1Cfg
 import org.openziti.management.ApiClient
+import org.openziti.management.JSON
 import org.openziti.management.api.AuthenticationApi
+import org.openziti.management.api.ConfigApi
 import org.openziti.management.api.EnrollmentApi
 import org.openziti.management.api.IdentityApi
 import org.openziti.management.api.InformationalApi
-import org.openziti.management.model.Authenticate
-import org.openziti.management.model.EnrollmentCreate
-import org.openziti.management.model.IdentityCreate
-import org.openziti.management.model.IdentityType
+import org.openziti.management.api.ServiceApi
+import org.openziti.management.api.ServicePolicyApi
+import org.openziti.management.model.*
 import org.openziti.util.fingerprint
 import org.openziti.util.parsePKCS7
 import java.net.InetAddress
@@ -69,8 +73,10 @@ internal object ManagementHelper {
         parsePKCS7(pkcs7).makeSSL()
     }
 
-    internal val identityApi by lazy { IdentityApi(api) }
-    internal val enrollmentApi by lazy { EnrollmentApi(api) }
+    private val identityApi by lazy { IdentityApi(api) }
+    private val enrollmentApi by lazy { EnrollmentApi(api) }
+    private val serviceApi by lazy { ServiceApi(api) }
+    private val spApi by lazy { ServicePolicyApi(api) }
 
     private object TrustAll : X509TrustManager {
         override fun checkClientTrusted(p0: Array<out X509Certificate>?, p1: String?) {}
@@ -143,4 +149,48 @@ internal object ManagementHelper {
     internal fun <T> CompletableFuture<T>.waitFor(timeout: Duration = Duration.of(5, ChronoUnit.SECONDS)): T =
         this.get(timeout.toMillis(), TimeUnit.MILLISECONDS)
 
+    internal fun createService(
+        srvName: String = "service-${System.nanoTime()}",
+        dialRoles: List<String> = listOf("#all"),
+        bindRoles: List<String> = listOf("#all"),
+        configs: Map<String, Any>,
+    ): String {
+
+        val cfgIds = mutableListOf<String>()
+        configs.forEach { (type, v) ->
+            val typeId = ConfigApi(api).listConfigTypes(1,0, """name = "$type" """).waitFor().data.first().id
+            val data = JSON.getDefault().mapper.convertValue(v, Map::class.java) as Map<String, *>
+            val id = ConfigApi(api).createConfig(ConfigCreate().apply {
+                name("$srvName-$type")
+                configTypeId(typeId)
+                data(data)
+            }).waitFor().data!!.id!!
+            cfgIds.add(id)
+        }
+
+        val srvId = serviceApi.createService(ServiceCreate().apply {
+            name = srvName
+            encryptionRequired = true
+            configs(cfgIds)
+        }).waitFor().data!!.id
+
+        // dial policy
+        spApi.createServicePolicy(ServicePolicyCreate().apply{
+            name("$srvName-dial")
+            type(DialBind.DIAL)
+            serviceRoles(listOf("@$srvId"))
+            identityRoles(dialRoles)
+            semantic(Semantic.ANY_OF)
+        }).waitFor()
+
+        // dial policy
+        spApi.createServicePolicy(ServicePolicyCreate().apply{
+            name("$srvName-bind")
+            type(DialBind.BIND)
+            serviceRoles(listOf("@$srvId"))
+            identityRoles(bindRoles)
+            semantic(Semantic.ANY_OF)
+        }).waitFor()
+        return srvName
+    }
 }

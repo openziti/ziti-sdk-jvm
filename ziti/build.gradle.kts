@@ -135,6 +135,7 @@ testing {
         val integrationTest by registering(JvmTestSuite::class) {
             dependencies {
                 implementation(libs.kotlin.test)
+                implementation(libs.kotlin.coroutines.lib)
                 implementation(libs.kotlin.coroutines.test)
                 implementation(libs.slf4j.simple)
                 implementation(project(":management-api"))
@@ -172,7 +173,7 @@ tasks.register("start-quickstart") {
         val pb = ProcessBuilder().apply {
             command(
                 zitiCLI.toString(),
-                "edge", "quickstart", "--home", quickstartHome.asFile.absolutePath)
+                "edge", "quickstart", "--verbose", "--home", quickstartHome.asFile.absolutePath)
             redirectOutput(qsLog)
             redirectError(errLog)
         }

@@ -201,6 +201,9 @@ internal class Enroller(
             ControllersApi(api).listControllers(10, 0, null)
         }.get(3, TimeUnit.SECONDS)
 
+        if (resp.data.isEmpty())
+            return listOf(ctrl)
+
         return resp.data.mapNotNull { it.apiAddresses?.get("edge-client") }.flatten()
             .filter {it.version == "v1" }.mapNotNull { it.url }
     }
