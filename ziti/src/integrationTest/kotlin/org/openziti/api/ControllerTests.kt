@@ -42,6 +42,7 @@ class ControllerTests: BaseTest() {
         appVersion = System.nanoTime().toString()
         Ziti.setApplicationInfo(info.displayName, appVersion)
 
+        idName = "id-${info.displayName}-${System.nanoTime()}"
         cfg = createIdentity(idName)
     }
 
