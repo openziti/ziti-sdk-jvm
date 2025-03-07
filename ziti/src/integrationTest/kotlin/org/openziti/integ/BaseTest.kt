@@ -16,8 +16,12 @@
 
 package org.openziti.integ
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInfo
+import org.openziti.Enrollment
+import org.openziti.IdentityConfig
+import org.openziti.Ziti
 
 abstract class BaseTest {
     protected lateinit var info: TestInfo
@@ -27,4 +31,12 @@ abstract class BaseTest {
         info = testInfo
     }
 
+    fun createIdentity(name: String = "id-${info.displayName}-${System.nanoTime()}"): IdentityConfig {
+        val token = ManagementHelper.createIdentity(name)
+
+        val enrollment = Ziti.createEnrollment(token)
+        Assertions.assertEquals(enrollment.getMethod(), Enrollment.Method.ott)
+
+        return enrollment.enroll()
+    }
 }

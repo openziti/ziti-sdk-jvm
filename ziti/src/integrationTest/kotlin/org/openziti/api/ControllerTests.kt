@@ -42,13 +42,7 @@ class ControllerTests: BaseTest() {
         appVersion = System.nanoTime().toString()
         Ziti.setApplicationInfo(info.displayName, appVersion)
 
-        idName = "id-${info.displayName}-${System.nanoTime()}"
-        val token = createIdentity(idName)
-
-        val enrollment = Ziti.createEnrollment(token)
-        assertEquals(enrollment.getMethod(), Enrollment.Method.ott)
-
-        cfg = enrollment.enroll()
+        cfg = createIdentity(idName)
     }
 
     @Test
