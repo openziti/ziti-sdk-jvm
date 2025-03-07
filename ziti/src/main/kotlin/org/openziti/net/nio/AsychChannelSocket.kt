@@ -54,4 +54,14 @@ class AsychChannelSocket(internal val impl: AsyncSocketImpl = AsyncSocketImpl())
         connect(InetSocketAddress(address, port))
     }
 
+    override fun isConnected(): Boolean {
+        return impl.channel.remoteAddress != null
+    }
+
+    override fun isClosed(): Boolean = !impl.channel.isOpen
+
+    override fun close() {
+        impl.channel.close()
+    }
+
 }
