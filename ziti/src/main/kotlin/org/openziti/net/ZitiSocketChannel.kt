@@ -479,6 +479,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
                 }
 
                 local = ZitiAddress.Session(ns.id, serviceName, null, null)
+                this.remote = ZitiAddress.Session(ns.id, serviceName, remote.identity, null)
                 d("network connection established ${ns.id}/$connId")
                 state.set(State.connected)
             }
