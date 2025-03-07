@@ -142,7 +142,7 @@ internal class Controller(endpoint: String, sslContext: SSLContext):
 
         return pagingApiRequest {
                 limit, offset -> serviceApi.listServices(limit,  offset,
-            null, null, null, null)
+            null, listOf("all"), null, null)
         }
     }
 
@@ -277,7 +277,7 @@ internal class Controller(endpoint: String, sslContext: SSLContext):
             .os(info.os)
             .osRelease(info.osRelease)
             .osVersion(info.osVersion)
-        configTypes = listOf(InterceptV1Cfg, ClientV1Cfg)
+        configTypes = listOf("#all")
     }
 
     internal inner class ReqInterceptor(val session: ApiSession? = null): Consumer<HttpRequest.Builder> {
