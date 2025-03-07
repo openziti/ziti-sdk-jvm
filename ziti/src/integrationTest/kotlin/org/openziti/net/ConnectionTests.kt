@@ -113,7 +113,7 @@ class ConnectionTests: BaseTest() {
     }
 
     @Test
-    fun `test bind-connect-read-timeout`() = runTest(timeout = 100.seconds) {
+    fun `test bind-connect-read-timeout`() = runTest(timeout = 10.seconds) {
         val greeting = "Hello from Ziti".toByteArray()
         val s = assertDoesNotThrow {
             ztx.serviceUpdates().filter { it.service.name == service }.first().service
@@ -167,7 +167,7 @@ class ConnectionTests: BaseTest() {
     }
 
     @Test
-    fun `test socket-connect-read-timeout`() = runTest(timeout = 1000.seconds) {
+    fun `test socket-connect-read-timeout`() = runTest(timeout = 10.seconds) {
         val greeting = "Hello from Ziti".toByteArray()
         val s = assertDoesNotThrow {
             ztx.serviceUpdates().filter { it.service.name == service }.first().service
