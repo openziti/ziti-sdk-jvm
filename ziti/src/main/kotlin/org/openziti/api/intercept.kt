@@ -17,6 +17,10 @@
 package org.openziti.api
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.openziti.util.IPUtil
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -52,6 +56,7 @@ sealed class InterceptAddress {
     }
 }
 
+@JsonSerialize(using = CIDRBlock.Serializer::class)
 data class CIDRBlock(val ip: InetAddress, val bits: Int): InterceptAddress() {
     val cidrAddress = IPUtil.toCanonicalCIDR(ip, bits)
     val mask = IPUtil.maskForPrefix(ip.address.size, bits)
@@ -75,13 +80,39 @@ data class CIDRBlock(val ip: InetAddress, val bits: Int): InterceptAddress() {
 
     fun includes(other: CIDRBlock): Boolean =
         bits <= other.bits && matches(other.ip)
+
+    class Serializer : JsonSerializer<CIDRBlock>() {
+        override fun serialize(value: CIDRBlock?, gen: JsonGenerator?, serializers: SerializerProvider?) {
+            value?.let {
+                gen?.writeString("${it.ip.hostAddress}/${it.bits}")
+            }
+        }
+    }
+
 }
 
+@JsonSerialize(using = DNSName.Serializer::class)
 data class DNSName(val name: String): InterceptAddress() {
+    class Serializer : JsonSerializer<DNSName>() {
+        override fun serialize(value: DNSName?, gen: JsonGenerator?, serializers: SerializerProvider?) {
+            value?.let {
+                gen?.writeString(value.name)
+            }
+        }
+    }
     override fun matches(addr: Any): Boolean =  (addr is String) && addr.equals(name, ignoreCase = true)
 }
 
+@JsonSerialize(using = DomainName.Serializer::class)
 data class DomainName(val name: String): InterceptAddress() {
     private val domainSuffix = name.substring(1).lowercase()
     override fun matches(addr: Any): Boolean =  (addr is String) && addr.endsWith(domainSuffix, ignoreCase = true)
+
+    class Serializer : JsonSerializer<DomainName>() {
+        override fun serialize(value: DomainName?, gen: JsonGenerator?, serializers: SerializerProvider?) {
+            value?.let {
+                gen?.writeString(value.name)
+            }
+        }
+    }
 }

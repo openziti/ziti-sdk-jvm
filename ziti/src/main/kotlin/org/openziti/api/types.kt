@@ -16,6 +16,7 @@
 
 package org.openziti.api
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import org.openziti.edge.model.CurrentApiSessionDetail
@@ -27,12 +28,6 @@ import java.util.*
 internal const val ClientV1Cfg = "ziti-tunneler-client.v1"
 internal const val InterceptV1Cfg = "intercept.v1"
 typealias SessionType = org.openziti.edge.model.DialBind
-
-enum class InterceptProtocol {
-    tcp,
-    udp,
-    sctp
-}
 
 internal class Login(val username: String, val password: String)
 typealias ApiSession = CurrentApiSessionDetail
@@ -57,10 +52,16 @@ data class InterceptConfig(
     val addresses: Set<InterceptAddress>,
     val portRanges: SortedSet<PortRange>,
     val dialOptions: Map<String,Any> = emptyMap(),
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     val sourceIp: String? = null
 ) {
     override fun toString(): String {
         return """${protocols.display()}:${addresses.display()}:${portRanges.display()}"""
+    }
+
+    fun matches(host: String, port: Int): Boolean {
+        return addresses.any { it.matches(host) } &&
+                portRanges.any { r -> port in r.low..r.high }
     }
 }
 
