@@ -16,11 +16,12 @@
 
 package org.openziti.net.nio
 
+import java.io.*
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.SocketException
 import java.nio.channels.AsynchronousSocketChannel
-import javax.net.SocketFactory
 
 /**
  * Socket wrapper over AsynchronousSocketChannel.
@@ -31,20 +32,6 @@ import javax.net.SocketFactory
  */
 internal
 class AsychChannelSocket(internal val impl: AsyncSocketImpl = AsyncSocketImpl()): Socket(impl) {
-
-    class Factory: SocketFactory() {
-        override fun createSocket(): Socket  = AsychChannelSocket()
-        override fun createSocket(host: String?, port: Int): Socket  = AsychChannelSocket(host, port)
-        override fun createSocket(host: InetAddress?, port: Int): Socket  = AsychChannelSocket(host, port)
-
-        override fun createSocket(host: String?, port: Int, localHost: InetAddress?, localPort: Int): Socket  {
-            TODO("Not yet implemented")
-        }
-
-        override fun createSocket(address: InetAddress?, port: Int, localAddress: InetAddress?, localPort: Int): Socket {
-            TODO("Not yet implemented")
-        }
-    }
 
     constructor(ch: AsynchronousSocketChannel): this(AsyncSocketImpl(ch))
 
@@ -64,4 +51,29 @@ class AsychChannelSocket(internal val impl: AsyncSocketImpl = AsyncSocketImpl())
         impl.channel.close()
     }
 
+    override fun getInputStream(): InputStream {
+        if (isClosed())
+            throw SocketException("Socket is closed")
+        if (!isConnected)
+            throw SocketException("Socket is not connected")
+
+        return object : FilterInputStream(impl.inputStream) {
+            override fun close() {
+                this@AsychChannelSocket.close()
+            }
+        }
+    }
+
+    override fun getOutputStream(): OutputStream {
+        if (isClosed())
+            throw SocketException("Socket is closed")
+        if (!isConnected)
+            throw SocketException("Socket is not connected")
+
+        return object : FilterOutputStream(impl.outputStream) {
+            override fun close() {
+                this@AsychChannelSocket.close()
+            }
+        }
+    }
 }

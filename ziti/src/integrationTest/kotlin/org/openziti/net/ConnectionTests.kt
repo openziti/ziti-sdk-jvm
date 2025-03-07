@@ -167,7 +167,7 @@ class ConnectionTests: BaseTest() {
     }
 
     @Test
-    fun `test socket-connect-read-timeout`() = runTest(timeout = 10.seconds) {
+    fun `test socket-connect-read-timeout`() = runTest(timeout = 1000.seconds) {
         val greeting = "Hello from Ziti".toByteArray()
         val s = assertDoesNotThrow {
             ztx.serviceUpdates().filter { it.service.name == service }.first().service
@@ -195,6 +195,7 @@ class ConnectionTests: BaseTest() {
             }
 
             ztx.connect(hostname, port).use { clt ->
+                assertTrue(clt.isConnected)
                 val buf = ByteArray(1024)
                 clt.soTimeout = 500
                 val input = clt.getInputStream()

@@ -214,16 +214,17 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun connect(host: String, port: Int): Socket {
         checkEnabled()
-        val ch = open()
-        runCatching {
+        return runCatching {
+            val ch = open()
             ch.connect(InetSocketAddress.createUnresolved(host, port)).get(10, TimeUnit.SECONDS)
-        }.onFailure {
+            d { "connected: ${ch.remoteAddress}" }
+            AsychChannelSocket(ch)
+        }.getOrElse {
             when (it) {
                 is ExecutionException -> throw it.cause ?: it
                 else -> throw it
             }
         }
-        return AsychChannelSocket(ch)
     }
 
     fun start(): Job = launch {
