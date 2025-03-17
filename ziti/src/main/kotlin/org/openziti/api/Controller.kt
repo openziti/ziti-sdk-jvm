@@ -46,6 +46,10 @@ import kotlin.reflect.full.memberFunctions
 internal class Controller(endpoint: String, sslContext: SSLContext):
     Logged by ZitiLog() {
 
+    companion object {
+        val ALL_CONFIGS = listOf("all")
+    }
+
     private val pageSize = 100
 
     private val http = HttpClient.newBuilder()
@@ -142,7 +146,7 @@ internal class Controller(endpoint: String, sslContext: SSLContext):
 
         return pagingApiRequest {
                 limit, offset -> serviceApi.listServices(limit,  offset,
-            null, listOf("all"), null, null)
+            null, ALL_CONFIGS, null, null)
         }
     }
 
@@ -277,7 +281,7 @@ internal class Controller(endpoint: String, sslContext: SSLContext):
             .os(info.os)
             .osRelease(info.osRelease)
             .osVersion(info.osVersion)
-        configTypes = listOf("#all")
+        configTypes = ALL_CONFIGS
     }
 
     internal inner class ReqInterceptor(val session: ApiSession? = null): Consumer<HttpRequest.Builder> {
