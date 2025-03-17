@@ -59,6 +59,7 @@ docs/EnvInfo.md
 docs/ErOttEnrollmentRequest.md
 docs/ExtendEnrollmentApi.md
 docs/ExternalJwtSignerApi.md
+docs/GenericEnroll.md
 docs/IdentityAuthenticators.md
 docs/IdentityAuthenticatorsCert.md
 docs/IdentityAuthenticatorsUpdb.md
@@ -213,6 +214,7 @@ src/main/java/org/openziti/edge/model/EnrollmentCertsEnvelope.java
 src/main/java/org/openziti/edge/model/EntityRef.java
 src/main/java/org/openziti/edge/model/EnvInfo.java
 src/main/java/org/openziti/edge/model/ErOttEnrollmentRequest.java
+src/main/java/org/openziti/edge/model/GenericEnroll.java
 src/main/java/org/openziti/edge/model/IdentityAuthenticators.java
 src/main/java/org/openziti/edge/model/IdentityAuthenticatorsCert.java
 src/main/java/org/openziti/edge/model/IdentityAuthenticatorsUpdb.java

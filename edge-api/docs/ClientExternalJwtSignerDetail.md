@@ -17,6 +17,7 @@ A External JWT Signer resource
 |**clientId** | **String** |  |  [optional] |
 |**externalAuthUrl** | **String** |  |  |
 |**name** | **String** |  |  |
+|**openIdConfigurationUrl** | **String** |  |  [optional] |
 |**scopes** | **List&lt;String&gt;** |  |  [optional] |
 |**targetToken** | **TargetToken** |  |  [optional] |
 

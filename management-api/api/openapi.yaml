@@ -9,7 +9,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Management
-  version: 0.26.39
+  version: 0.26.42
 servers:
 - url: https://demo.ziti.dev/edge/management/v1
 paths:
@@ -4617,6 +4617,743 @@ paths:
       summary: List services referenced by a config
       tags:
       - Config
+      x-accepts:
+      - application/json
+  /controller-settings:
+    get:
+      description: |
+        Retrieves a list controller settings including the base `global` settings object and any overriding controller specific settings.
+      operationId: listControllerSettings
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: query
+        name: offset
+        schema:
+          type: integer
+      - in: query
+        name: filter
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listControllerSettingEnvelope"
+          description: A list of controller setting objects
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: List controller settings
+      tags:
+      - Settings
+      x-accepts:
+      - application/json
+    post:
+      description: Create a new controller specific settings object. Requires admin
+        access.
+      operationId: createControllerSetting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/controllerSettingCreate"
+        description: A controller settings object to create
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/createEnvelope"
+          description: The create request was successful and the resource has been
+            added at the following location
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Create a controller specific setting
+      tags:
+      - Settings
+      x-codegen-request-body-name: controllerSetting
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /controller-settings/{id}:
+    get:
+      description: Retrieves a single controller setting object by id. Requires admin
+        access.
+      operationId: detailControllerSetting
+      parameters:
+      - description: The id of the requested resource
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/detailControllerSettingEnvelope"
+          description: A singular controller setting object
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Retrieves a single controller setting object.
+      tags:
+      - Settings
+      x-accepts:
+      - application/json
+  /controller-settings/{id}/effective:
+    delete:
+      description: Delete a controller setting object by id. Requires admin access.
+      operationId: deleteControllerSetting
+      parameters:
+      - description: The id of the requested resource
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/empty"
+          description: The delete request was successful and the resource has been
+            removed
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "409":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: referenced by /some-resource/05f4f710-c155-4a74-86d5-77558eb9cb42
+                  code: CONFLICT_CANNOT_MODIFY_REFERENCED
+                  message: The resource cannot be deleted/modified. Remove all referencing
+                    resources first.
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested to be removed/altered cannot be as it
+            is referenced by another object.
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Delete a controller setting object
+      tags:
+      - Settings
+      x-accepts:
+      - application/json
+    get:
+      description: Retrieves a single controller's effective setting object by id.
+        Requires admin access.
+      operationId: detailControllerSettingEffective
+      parameters:
+      - description: The id of the requested resource
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/detailControllerSettingEffectiveEnvelope"
+          description: A singular controller's effective setting object
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Retrieves a single controller's effective calculated settings from
+        the instance and global configuration.
+      tags:
+      - Settings
+      x-accepts:
+      - application/json
+    patch:
+      description: Update the supplied fields on a controller setting object. Requires
+        admin access.
+      operationId: patchControllerSetting
+      parameters:
+      - description: The id of the requested resource
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/controllerSettingPatch"
+        description: A controller setting object patch object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/empty"
+          description: The patch request was successful and the resource has been
+            altered
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Update the supplied fields on a controller setting object
+      tags:
+      - Settings
+      x-codegen-request-body-name: controllerSetting
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+    put:
+      description: Update all fields on a controller setting object by id. Requires
+        admin access.
+      operationId: updateControllerSetting
+      parameters:
+      - description: The id of the requested resource
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/controllerSettingUpdate"
+        description: A controller setting update object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/empty"
+          description: The update request was successful and the resource has been
+            altered
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Update all fields on a controller setting object
+      tags:
+      - Settings
+      x-codegen-request-body-name: controllerSetting
+      x-content-type: application/json
       x-accepts:
       - application/json
   /controllers:
@@ -20608,6 +21345,105 @@ components:
         lastJoinedAt: 2000-01-23T04:56:07.000+00:00
         tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
+    controllerSettingCreate:
+      allOf:
+      - $ref: "#/components/schemas/controllerSettings"
+      - properties:
+          controllerId:
+            type: string
+          tags:
+            $ref: "#/components/schemas/tags"
+        required:
+        - controllerId
+        type: object
+    controllerSettingDetail:
+      allOf:
+      - $ref: "#/components/schemas/baseEntity"
+      - $ref: "#/components/schemas/controllerSettings"
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        _links:
+          key:
+            method: method
+            comment: comment
+            href: https://openapi-generator.tech
+        id: id
+        oidc:
+          redirectUris:
+          - redirectUris
+          - redirectUris
+          postLogoutUris:
+          - postLogoutUris
+          - postLogoutUris
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+    controllerSettingEffective:
+      allOf:
+      - $ref: "#/components/schemas/baseEntity"
+      - properties:
+          effective:
+            $ref: "#/components/schemas/controllerSettings"
+          instance:
+            $ref: "#/components/schemas/controllerSettings"
+        type: object
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        effective:
+          oidc:
+            redirectUris:
+            - redirectUris
+            - redirectUris
+            postLogoutUris:
+            - postLogoutUris
+            - postLogoutUris
+        instance:
+          oidc:
+            redirectUris:
+            - redirectUris
+            - redirectUris
+            postLogoutUris:
+            - postLogoutUris
+            - postLogoutUris
+        _links:
+          key:
+            method: method
+            comment: comment
+            href: https://openapi-generator.tech
+        id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+    controllerSettingPatch:
+      allOf:
+      - $ref: "#/components/schemas/controllerSettings"
+      - properties:
+          tags:
+            $ref: "#/components/schemas/tags"
+        type: object
+    controllerSettingUpdate:
+      allOf:
+      - $ref: "#/components/schemas/controllerSettings"
+      - properties:
+          tags:
+            $ref: "#/components/schemas/tags"
+        type: object
+    controllerSettings:
+      example:
+        oidc:
+          redirectUris:
+          - redirectUris
+          - redirectUris
+          postLogoutUris:
+          - postLogoutUris
+          - postLogoutUris
+      properties:
+        oidc:
+          $ref: "#/components/schemas/controllerSettings_oidc"
+      type: object
+    controllerSettingsList:
+      items:
+        description: TODO default missing array inner type to string
+        type: string
+      type: array
     controllersList:
       description: An array of controller resources
       items:
@@ -21311,6 +22147,91 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/configTypeDetail"
+        meta:
+          $ref: "#/components/schemas/meta"
+      required:
+      - data
+      - meta
+      type: object
+    detailControllerSettingEffectiveEnvelope:
+      example:
+        data:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          effective:
+            oidc:
+              redirectUris:
+              - redirectUris
+              - redirectUris
+              postLogoutUris:
+              - postLogoutUris
+              - postLogoutUris
+          instance:
+            oidc:
+              redirectUris:
+              - redirectUris
+              - redirectUris
+              postLogoutUris:
+              - postLogoutUris
+              - postLogoutUris
+          _links:
+            key:
+              method: method
+              comment: comment
+              href: https://openapi-generator.tech
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          pagination:
+            offset: 6.027456183070403
+            limit: 0.8008281904610115
+            totalCount: 1.4658129805029452
+          filterableFields:
+          - filterableFields
+          - filterableFields
+      properties:
+        data:
+          $ref: "#/components/schemas/controllerSettingEffective"
+        meta:
+          $ref: "#/components/schemas/meta"
+      required:
+      - data
+      - meta
+      type: object
+    detailControllerSettingEnvelope:
+      example:
+        data:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          _links:
+            key:
+              method: method
+              comment: comment
+              href: https://openapi-generator.tech
+          id: id
+          oidc:
+            redirectUris:
+            - redirectUris
+            - redirectUris
+            postLogoutUris:
+            - postLogoutUris
+            - postLogoutUris
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          pagination:
+            offset: 6.027456183070403
+            limit: 0.8008281904610115
+            totalCount: 1.4658129805029452
+          filterableFields:
+          - filterableFields
+          - filterableFields
+      properties:
+        data:
+          $ref: "#/components/schemas/controllerSettingDetail"
         meta:
           $ref: "#/components/schemas/meta"
       required:
@@ -24387,6 +25308,33 @@ components:
           description: An array of config resources
           items:
             $ref: "#/components/schemas/configDetail"
+          type: array
+        meta:
+          $ref: "#/components/schemas/meta"
+      required:
+      - data
+      - meta
+      type: object
+    listControllerSettingEnvelope:
+      example:
+        data:
+        - data
+        - data
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          pagination:
+            offset: 6.027456183070403
+            limit: 0.8008281904610115
+            totalCount: 1.4658129805029452
+          filterableFields:
+          - filterableFields
+          - filterableFields
+      properties:
+        data:
+          items:
+            description: TODO default missing array inner type to string
+            type: string
           type: array
         meta:
           $ref: "#/components/schemas/meta"
@@ -28746,6 +29694,24 @@ components:
       description: The data section of a config is based on the schema of its type
       example: {}
       properties: {}
+      type: object
+    controllerSettings_oidc:
+      example:
+        redirectUris:
+        - redirectUris
+        - redirectUris
+        postLogoutUris:
+        - postLogoutUris
+        - postLogoutUris
+      properties:
+        postLogoutUris:
+          items:
+            type: string
+          type: array
+        redirectUris:
+          items:
+            type: string
+          type: array
       type: object
     identityAuthenticators_cert:
       example:

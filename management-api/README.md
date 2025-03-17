@@ -2,9 +2,9 @@
 
 Ziti Edge Management
 
-- API version: 0.26.39
+- API version: 0.26.42
 
-- Build date: 2025-01-30T10:50:07.620098843-05:00[America/New_York]
+- Build date: 2025-03-17T12:51:49.931993799-04:00[America/New_York]
 
 - Generator version: 7.11.0
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>management-api</artifactId>
-  <version>0.27.7-mgmt-api-8.e97b817-dirty-SNAPSHOT</version>
+  <version>0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:management-api:0.27.7-mgmt-api-8.e97b817-dirty-SNAPSHOT"
+compile "org.openziti:management-api:0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/management-api-0.27.7-mgmt-api-8.e97b817-dirty-SNAPSHOT.jar`
+- `target/management-api-0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -497,6 +497,20 @@ Class | Method | HTTP request | Description
 *SessionApi* | [**detailSessionRoutePathWithHttpInfo**](docs/SessionApi.md#detailSessionRoutePathWithHttpInfo) | **GET** /sessions/{id}/route-path | Retrieves a single session&#39;s router path
 *SessionApi* | [**listSessions**](docs/SessionApi.md#listSessions) | **GET** /sessions | List sessions
 *SessionApi* | [**listSessionsWithHttpInfo**](docs/SessionApi.md#listSessionsWithHttpInfo) | **GET** /sessions | List sessions
+*SettingsApi* | [**createControllerSetting**](docs/SettingsApi.md#createControllerSetting) | **POST** /controller-settings | Create a controller specific setting
+*SettingsApi* | [**createControllerSettingWithHttpInfo**](docs/SettingsApi.md#createControllerSettingWithHttpInfo) | **POST** /controller-settings | Create a controller specific setting
+*SettingsApi* | [**deleteControllerSetting**](docs/SettingsApi.md#deleteControllerSetting) | **DELETE** /controller-settings/{id}/effective | Delete a controller setting object
+*SettingsApi* | [**deleteControllerSettingWithHttpInfo**](docs/SettingsApi.md#deleteControllerSettingWithHttpInfo) | **DELETE** /controller-settings/{id}/effective | Delete a controller setting object
+*SettingsApi* | [**detailControllerSetting**](docs/SettingsApi.md#detailControllerSetting) | **GET** /controller-settings/{id} | Retrieves a single controller setting object.
+*SettingsApi* | [**detailControllerSettingWithHttpInfo**](docs/SettingsApi.md#detailControllerSettingWithHttpInfo) | **GET** /controller-settings/{id} | Retrieves a single controller setting object.
+*SettingsApi* | [**detailControllerSettingEffective**](docs/SettingsApi.md#detailControllerSettingEffective) | **GET** /controller-settings/{id}/effective | Retrieves a single controller&#39;s effective calculated settings from the instance and global configuration.
+*SettingsApi* | [**detailControllerSettingEffectiveWithHttpInfo**](docs/SettingsApi.md#detailControllerSettingEffectiveWithHttpInfo) | **GET** /controller-settings/{id}/effective | Retrieves a single controller&#39;s effective calculated settings from the instance and global configuration.
+*SettingsApi* | [**listControllerSettings**](docs/SettingsApi.md#listControllerSettings) | **GET** /controller-settings | List controller settings
+*SettingsApi* | [**listControllerSettingsWithHttpInfo**](docs/SettingsApi.md#listControllerSettingsWithHttpInfo) | **GET** /controller-settings | List controller settings
+*SettingsApi* | [**patchControllerSetting**](docs/SettingsApi.md#patchControllerSetting) | **PATCH** /controller-settings/{id}/effective | Update the supplied fields on a controller setting object
+*SettingsApi* | [**patchControllerSettingWithHttpInfo**](docs/SettingsApi.md#patchControllerSettingWithHttpInfo) | **PATCH** /controller-settings/{id}/effective | Update the supplied fields on a controller setting object
+*SettingsApi* | [**updateControllerSetting**](docs/SettingsApi.md#updateControllerSetting) | **PUT** /controller-settings/{id}/effective | Update all fields on a controller setting object
+*SettingsApi* | [**updateControllerSettingWithHttpInfo**](docs/SettingsApi.md#updateControllerSettingWithHttpInfo) | **PUT** /controller-settings/{id}/effective | Update all fields on a controller setting object
 *TerminatorApi* | [**createTerminator**](docs/TerminatorApi.md#createTerminator) | **POST** /terminators | Create a terminator resource
 *TerminatorApi* | [**createTerminatorWithHttpInfo**](docs/TerminatorApi.md#createTerminatorWithHttpInfo) | **POST** /terminators | Create a terminator resource
 *TerminatorApi* | [**deleteTerminator**](docs/TerminatorApi.md#deleteTerminator) | **DELETE** /terminators/{id} | Delete a terminator
@@ -564,6 +578,13 @@ Class | Method | HTTP request | Description
  - [ConfigTypeUpdate](docs/ConfigTypeUpdate.md)
  - [ConfigUpdate](docs/ConfigUpdate.md)
  - [ControllerDetail](docs/ControllerDetail.md)
+ - [ControllerSettingCreate](docs/ControllerSettingCreate.md)
+ - [ControllerSettingDetail](docs/ControllerSettingDetail.md)
+ - [ControllerSettingEffective](docs/ControllerSettingEffective.md)
+ - [ControllerSettingPatch](docs/ControllerSettingPatch.md)
+ - [ControllerSettingUpdate](docs/ControllerSettingUpdate.md)
+ - [ControllerSettings](docs/ControllerSettings.md)
+ - [ControllerSettingsOidc](docs/ControllerSettingsOidc.md)
  - [CreateEnvelope](docs/CreateEnvelope.md)
  - [CreateLocation](docs/CreateLocation.md)
  - [CurrentApiSessionDetail](docs/CurrentApiSessionDetail.md)
@@ -578,6 +599,8 @@ Class | Method | HTTP request | Description
  - [DetailCaEnvelope](docs/DetailCaEnvelope.md)
  - [DetailConfigEnvelope](docs/DetailConfigEnvelope.md)
  - [DetailConfigTypeEnvelope](docs/DetailConfigTypeEnvelope.md)
+ - [DetailControllerSettingEffectiveEnvelope](docs/DetailControllerSettingEffectiveEnvelope.md)
+ - [DetailControllerSettingEnvelope](docs/DetailControllerSettingEnvelope.md)
  - [DetailEdgeRouterPolicyEnvelope](docs/DetailEdgeRouterPolicyEnvelope.md)
  - [DetailEnrollmentEnvelope](docs/DetailEnrollmentEnvelope.md)
  - [DetailExternalJwtSignerEnvelope](docs/DetailExternalJwtSignerEnvelope.md)
@@ -648,6 +671,7 @@ Class | Method | HTTP request | Description
  - [ListCasEnvelope](docs/ListCasEnvelope.md)
  - [ListConfigTypesEnvelope](docs/ListConfigTypesEnvelope.md)
  - [ListConfigsEnvelope](docs/ListConfigsEnvelope.md)
+ - [ListControllerSettingEnvelope](docs/ListControllerSettingEnvelope.md)
  - [ListControllersEnvelope](docs/ListControllersEnvelope.md)
  - [ListEdgeRouterPoliciesEnvelope](docs/ListEdgeRouterPoliciesEnvelope.md)
  - [ListEdgeRoutersEnvelope](docs/ListEdgeRoutersEnvelope.md)

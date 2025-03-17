@@ -31,7 +31,7 @@ All URIs are relative to *https://demo.ziti.dev/edge/client/v1*
 
 ## enroll
 
-> CompletableFuture<String> enroll(token, method)
+> CompletableFuture<EnrollmentCertsEnvelope> enroll(token, method, body)
 
 Enroll an identity via one-time-token
 
@@ -56,8 +56,9 @@ public class Example {
         EnrollApi apiInstance = new EnrollApi(defaultClient);
         UUID token = UUID.randomUUID(); // UUID | 
         String method = "method_example"; // String | 
+        GenericEnroll body = new GenericEnroll(); // GenericEnroll | 
         try {
-            CompletableFuture<String> result = apiInstance.enroll(token, method);
+            CompletableFuture<EnrollmentCertsEnvelope> result = apiInstance.enroll(token, method, body);
             System.out.println(result.get());
         } catch (ApiException e) {
             System.err.println("Exception when calling EnrollApi#enroll");
@@ -77,10 +78,11 @@ public class Example {
 |------------- | ------------- | ------------- | -------------|
 | **token** | **UUID**|  | [optional] |
 | **method** | **String**|  | [optional] |
+| **body** | [**GenericEnroll**](GenericEnroll.md)|  | [optional] |
 
 ### Return type
 
-CompletableFuture<**String**>
+CompletableFuture<[**EnrollmentCertsEnvelope**](EnrollmentCertsEnvelope.md)>
 
 
 ### Authorization
@@ -89,20 +91,21 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
-- **Accept**: application/x-pem-file, application/json
+- **Content-Type**: application/pkcs7, application/json, application/x-pem-file, text/plain
+- **Accept**: application/json
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | A response for multi-format legacy enrollment. |  -  |
+| **200** | A response containing and identities client certificate chains |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
 ## enrollWithHttpInfo
 
-> CompletableFuture<ApiResponse<String>> enroll enrollWithHttpInfo(token, method)
+> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enroll enrollWithHttpInfo(token, method, body)
 
 Enroll an identity via one-time-token
 
@@ -128,8 +131,9 @@ public class Example {
         EnrollApi apiInstance = new EnrollApi(defaultClient);
         UUID token = UUID.randomUUID(); // UUID | 
         String method = "method_example"; // String | 
+        GenericEnroll body = new GenericEnroll(); // GenericEnroll | 
         try {
-            CompletableFuture<ApiResponse<String>> response = apiInstance.enrollWithHttpInfo(token, method);
+            CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> response = apiInstance.enrollWithHttpInfo(token, method, body);
             System.out.println("Status code: " + response.get().getStatusCode());
             System.out.println("Response headers: " + response.get().getHeaders());
             System.out.println("Response body: " + response.get().getData());
@@ -158,10 +162,11 @@ public class Example {
 |------------- | ------------- | ------------- | -------------|
 | **token** | **UUID**|  | [optional] |
 | **method** | **String**|  | [optional] |
+| **body** | [**GenericEnroll**](GenericEnroll.md)|  | [optional] |
 
 ### Return type
 
-CompletableFuture<ApiResponse<**String**>>
+CompletableFuture<ApiResponse<[**EnrollmentCertsEnvelope**](EnrollmentCertsEnvelope.md)>>
 
 
 ### Authorization
@@ -170,13 +175,14 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: Not defined
-- **Accept**: application/x-pem-file, application/json
+- **Content-Type**: application/pkcs7, application/json, application/x-pem-file, text/plain
+- **Accept**: application/json
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | A response for multi-format legacy enrollment. |  -  |
+| **200** | A response containing and identities client certificate chains |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
@@ -243,6 +249,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
@@ -318,6 +325,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
@@ -388,6 +396,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A response containing the edge routers signed certificates (server chain, server cert, CAs). |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
@@ -466,6 +475,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A response containing the edge routers signed certificates (server chain, server cert, CAs). |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
@@ -535,6 +545,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A response containing and identities client certificate chains |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
@@ -614,6 +625,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A response containing and identities client certificate chains |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
@@ -684,6 +696,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
@@ -762,6 +775,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
@@ -833,6 +847,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
@@ -914,6 +929,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **404** | The requested resource does not exist |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
@@ -1302,6 +1318,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A response containing the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
@@ -1380,6 +1397,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A response containing the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
