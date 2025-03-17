@@ -53,6 +53,13 @@ docs/ConfigTypePatch.md
 docs/ConfigTypeUpdate.md
 docs/ConfigUpdate.md
 docs/ControllerDetail.md
+docs/ControllerSettingCreate.md
+docs/ControllerSettingDetail.md
+docs/ControllerSettingEffective.md
+docs/ControllerSettingPatch.md
+docs/ControllerSettingUpdate.md
+docs/ControllerSettings.md
+docs/ControllerSettingsOidc.md
 docs/ControllersApi.md
 docs/CreateEnvelope.md
 docs/CreateLocation.md
@@ -71,6 +78,8 @@ docs/DetailAuthenticatorEnvelope.md
 docs/DetailCaEnvelope.md
 docs/DetailConfigEnvelope.md
 docs/DetailConfigTypeEnvelope.md
+docs/DetailControllerSettingEffectiveEnvelope.md
+docs/DetailControllerSettingEnvelope.md
 docs/DetailEdgeRouterPolicyEnvelope.md
 docs/DetailEnrollmentEnvelope.md
 docs/DetailExternalJwtSignerEnvelope.md
@@ -149,6 +158,7 @@ docs/ListAuthenticatorsEnvelope.md
 docs/ListCasEnvelope.md
 docs/ListConfigTypesEnvelope.md
 docs/ListConfigsEnvelope.md
+docs/ListControllerSettingEnvelope.md
 docs/ListControllersEnvelope.md
 docs/ListEdgeRouterPoliciesEnvelope.md
 docs/ListEdgeRoutersEnvelope.md
@@ -273,6 +283,7 @@ docs/SessionDetail.md
 docs/SessionEdgeRouter.md
 docs/SessionManagementDetail.md
 docs/SessionRoutePathDetail.md
+docs/SettingsApi.md
 docs/SpecDetail.md
 docs/Tags.md
 docs/TargetToken.md
@@ -325,6 +336,7 @@ src/main/java/org/openziti/management/api/ServiceApi.java
 src/main/java/org/openziti/management/api/ServiceEdgeRouterPolicyApi.java
 src/main/java/org/openziti/management/api/ServicePolicyApi.java
 src/main/java/org/openziti/management/api/SessionApi.java
+src/main/java/org/openziti/management/api/SettingsApi.java
 src/main/java/org/openziti/management/api/TerminatorApi.java
 src/main/java/org/openziti/management/api/TracingApi.java
 src/main/java/org/openziti/management/api/WellKnownApi.java
@@ -376,6 +388,13 @@ src/main/java/org/openziti/management/model/ConfigTypePatch.java
 src/main/java/org/openziti/management/model/ConfigTypeUpdate.java
 src/main/java/org/openziti/management/model/ConfigUpdate.java
 src/main/java/org/openziti/management/model/ControllerDetail.java
+src/main/java/org/openziti/management/model/ControllerSettingCreate.java
+src/main/java/org/openziti/management/model/ControllerSettingDetail.java
+src/main/java/org/openziti/management/model/ControllerSettingEffective.java
+src/main/java/org/openziti/management/model/ControllerSettingPatch.java
+src/main/java/org/openziti/management/model/ControllerSettingUpdate.java
+src/main/java/org/openziti/management/model/ControllerSettings.java
+src/main/java/org/openziti/management/model/ControllerSettingsOidc.java
 src/main/java/org/openziti/management/model/CreateEnvelope.java
 src/main/java/org/openziti/management/model/CreateLocation.java
 src/main/java/org/openziti/management/model/CurrentApiSessionDetail.java
@@ -390,6 +409,8 @@ src/main/java/org/openziti/management/model/DetailAuthenticatorEnvelope.java
 src/main/java/org/openziti/management/model/DetailCaEnvelope.java
 src/main/java/org/openziti/management/model/DetailConfigEnvelope.java
 src/main/java/org/openziti/management/model/DetailConfigTypeEnvelope.java
+src/main/java/org/openziti/management/model/DetailControllerSettingEffectiveEnvelope.java
+src/main/java/org/openziti/management/model/DetailControllerSettingEnvelope.java
 src/main/java/org/openziti/management/model/DetailEdgeRouterPolicyEnvelope.java
 src/main/java/org/openziti/management/model/DetailEnrollmentEnvelope.java
 src/main/java/org/openziti/management/model/DetailExternalJwtSignerEnvelope.java
@@ -460,6 +481,7 @@ src/main/java/org/openziti/management/model/ListAuthenticatorsEnvelope.java
 src/main/java/org/openziti/management/model/ListCasEnvelope.java
 src/main/java/org/openziti/management/model/ListConfigTypesEnvelope.java
 src/main/java/org/openziti/management/model/ListConfigsEnvelope.java
+src/main/java/org/openziti/management/model/ListControllerSettingEnvelope.java
 src/main/java/org/openziti/management/model/ListControllersEnvelope.java
 src/main/java/org/openziti/management/model/ListEdgeRouterPoliciesEnvelope.java
 src/main/java/org/openziti/management/model/ListEdgeRoutersEnvelope.java

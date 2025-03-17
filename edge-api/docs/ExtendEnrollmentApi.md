@@ -249,6 +249,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A response containing the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 
@@ -327,6 +328,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A response containing the edge routers new signed certificates (server chain, server cert, CAs). |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 

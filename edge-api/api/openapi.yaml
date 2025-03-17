@@ -9,7 +9,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Client
-  version: 0.26.39
+  version: 0.26.42
 servers:
 - url: https://demo.ziti.dev/edge/client/v1
 paths:
@@ -2041,21 +2041,60 @@ paths:
         name: method
         schema:
           type: string
+      requestBody:
+        content:
+          application/pkcs7:
+            schema:
+              $ref: "#/components/schemas/genericEnroll"
+          application/json:
+            schema:
+              $ref: "#/components/schemas/genericEnroll"
+          application/x-pem-file:
+            schema:
+              $ref: "#/components/schemas/genericEnroll"
+          text/plain:
+            schema:
+              $ref: "#/components/schemas/genericEnroll"
+        required: false
       responses:
         "200":
           content:
-            application/x-pem-file:
-              schema:
-                type: string
             application/json:
               schema:
-                type: string
-          description: A response for multi-format legacy enrollment.
-        "404":
+                $ref: "#/components/schemas/enrollmentCertsEnvelope"
+          description: A response containing and identities client certificate chains
+        "400":
           content:
-            application/x-pem-file:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
               schema:
                 $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+        "404":
+          content:
             application/json:
               example:
                 error:
@@ -2074,9 +2113,6 @@ paths:
           description: The requested resource does not exist
         "429":
           content:
-            application/x-pem-file:
-              schema:
-                $ref: "#/components/schemas/apiErrorEnvelope"
             application/json:
               example:
                 error:
@@ -2096,9 +2132,6 @@ paths:
             been exceeded
         "503":
           content:
-            application/x-pem-file:
-              schema:
-                $ref: "#/components/schemas/apiErrorEnvelope"
             application/json:
               schema:
                 $ref: "#/components/schemas/apiErrorEnvelope"
@@ -2107,9 +2140,10 @@ paths:
       summary: Enroll an identity via one-time-token
       tags:
       - Enroll
+      x-codegen-request-body-name: body
+      x-content-type: application/pkcs7
       x-accepts:
       - application/json
-      - application/x-pem-file
   /enroll/ca:
     post:
       description: |
@@ -2126,6 +2160,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/empty"
           description: Base empty response
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
         "404":
           content:
             application/json:
@@ -2273,6 +2337,36 @@ paths:
                 $ref: "#/components/schemas/enrollmentCertsEnvelope"
           description: "A response containing the edge routers signed certificates\
             \ (server chain, server cert, CAs)."
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
         "429":
           content:
             application/json:
@@ -2333,6 +2427,36 @@ paths:
                 $ref: "#/components/schemas/enrollmentCertsEnvelope"
           description: "A response containing the edge routers new signed certificates\
             \ (server chain, server cert, CAs)."
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
         "401":
           content:
             application/json:
@@ -2420,6 +2544,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/enrollmentCertsEnvelope"
           description: A response containing and identities client certificate chains
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
         "404":
           content:
             application/json:
@@ -2495,6 +2649,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/empty"
           description: Base empty response
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
         "429":
           content:
             application/json:
@@ -2553,6 +2737,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/empty"
           description: Base empty response
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
         "404":
           content:
             application/json:
@@ -4871,6 +5085,8 @@ components:
           name:
             example: MyApps Signer
             type: string
+          openIdConfigurationUrl:
+            type: string
           scopes:
             items:
               type: string
@@ -4892,6 +5108,7 @@ components:
             method: method
             comment: comment
             href: https://openapi-generator.tech
+        openIdConfigurationUrl: openIdConfigurationUrl
         name: MyApps Signer
         targetToken: ACCESS
         id: id
@@ -6073,6 +6290,25 @@ components:
         token:
           type: string
       type: object
+    genericEnroll:
+      properties:
+        certCsr:
+          type: string
+        clientCsr:
+          type: string
+        name:
+          type: string
+        password:
+          maxLength: 100
+          minLength: 5
+          type: string
+        serverCertCsr:
+          type: string
+        username:
+          maxLength: 100
+          minLength: 4
+          type: string
+      type: object
     identityAuthenticators:
       example:
         cert:
@@ -6636,6 +6872,7 @@ components:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          openIdConfigurationUrl: openIdConfigurationUrl
           name: MyApps Signer
           targetToken: ACCESS
           id: id
@@ -6653,6 +6890,7 @@ components:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          openIdConfigurationUrl: openIdConfigurationUrl
           name: MyApps Signer
           targetToken: ACCESS
           id: id

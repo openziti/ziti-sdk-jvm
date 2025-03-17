@@ -2,9 +2,9 @@
 
 Ziti Edge Client
 
-- API version: 0.26.39
+- API version: 0.26.42
 
-- Build date: 2025-01-27T11:11:53.726065456-05:00[America/New_York]
+- Build date: 2025-03-17T12:51:45.850758361-04:00[America/New_York]
 
 - Generator version: 7.11.0
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>edge-api</artifactId>
-  <version>0.26.39</version>
+  <version>0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:edge-api:0.26.39"
+compile "org.openziti:edge-api:0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/edge-api-0.26.39.jar`
+- `target/edge-api-0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -310,6 +310,7 @@ Class | Method | HTTP request | Description
  - [EntityRef](docs/EntityRef.md)
  - [EnvInfo](docs/EnvInfo.md)
  - [ErOttEnrollmentRequest](docs/ErOttEnrollmentRequest.md)
+ - [GenericEnroll](docs/GenericEnroll.md)
  - [IdentityAuthenticators](docs/IdentityAuthenticators.md)
  - [IdentityAuthenticatorsCert](docs/IdentityAuthenticatorsCert.md)
  - [IdentityAuthenticatorsUpdb](docs/IdentityAuthenticatorsUpdb.md)
