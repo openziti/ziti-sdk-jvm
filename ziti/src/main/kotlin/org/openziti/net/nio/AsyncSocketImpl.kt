@@ -16,6 +16,7 @@
 
 package org.openziti.net.nio
 
+import kotlinx.coroutines.runBlocking
 import org.openziti.net.internal.Sockets
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
@@ -26,8 +27,11 @@ import java.net.*
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
-import java.nio.channels.CompletionHandler
-import java.util.concurrent.*
+import java.nio.channels.InterruptedByTimeoutException
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 
@@ -156,40 +160,14 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
                     }
 
                     input.compact()
-                    val rf = CompletableFuture<Int>()
                     val to = (getOption(SocketOptions.SO_TIMEOUT) as Number).toLong()
-                    channel.read(input, 0, TimeUnit.MILLISECONDS, rf,
-                        object : CompletionHandler<Int, CompletableFuture<Int>> {
-
-                            override fun completed(result: Int, f: CompletableFuture<Int>) {
-                                if (!f.isDone) {
-                                    f.complete(result)
-                                }
-                                input.flip()
-                                inputLock.release()
-                            }
-
-                            override fun failed(exc: Throwable, f: CompletableFuture<Int>) {
-                                if (!f.isDone) {
-                                    f.completeExceptionally(exc)
-                                }
-                                inputLock.release()
-                            }
-                        })
-
-                    val result = runCatching {
-                        val read = if (to > 0) rf.get(to, TimeUnit.MILLISECONDS) else rf.get()
-                        if (read == -1) {
-                            return@runCatching -1
-                        }
-                        inputLock.acquire()
-                        val count1 = min(len, input.remaining())
-                        input.get(b, off, count1)
-                        inputLock.release()
-                        count1
+                    val readCount = channel.runCatching {
+                        runBlocking { readSuspend(input, to, TimeUnit.MILLISECONDS) }
                     }
-
-                    return result.getOrElse { ex -> throwIOException(ex) }
+                    input.flip()
+                    readCount.onSuccess { input.get(b, off, it) }
+                    inputLock.release()
+                    return readCount.getOrElse { throwIOException(it) }
                 }
             }
 
@@ -256,6 +234,8 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
     }
 
     private fun throwIOException(ex: Throwable): Nothing {
+        if (ex is InterruptedByTimeoutException) throw SocketTimeoutException(ex.message)
+
         if (ex is IOException) throw ex
 
         if (ex is TimeoutException) throw SocketTimeoutException(ex.message)

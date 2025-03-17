@@ -19,36 +19,34 @@ package org.openziti.impl
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.selects.select
 import org.openziti.*
+import org.openziti.Identity
 import org.openziti.ZitiException.Errors
 import org.openziti.api.*
 import org.openziti.edge.model.*
-import org.openziti.Identity
 import org.openziti.net.*
 import org.openziti.net.Protocol
 import org.openziti.net.dns.ZitiDNSManager
+import org.openziti.net.nio.AsychChannelSocket
 import org.openziti.net.nio.connectSuspend
 import org.openziti.net.routing.RouteManager
 import org.openziti.posture.PostureService
 import org.openziti.util.IPUtil
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
-import java.io.Closeable
 import java.io.Writer
 import java.net.*
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.time.OffsetDateTime
-import java.util.concurrent.CompletionStage
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.properties.Delegates
 import kotlin.random.Random
 import kotlin.time.DurationUnit
@@ -216,10 +214,17 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun connect(host: String, port: Int): Socket {
         checkEnabled()
-        getService(host, port, 10000L) // throws timeout exception if no service loaded
-        val sock = ZitiSocketFactory(this).createSocket()
-        sock.connect(InetSocketAddress.createUnresolved(host, port))
-        return sock
+        return runCatching {
+            val ch = open()
+            ch.connect(InetSocketAddress.createUnresolved(host, port)).get(10, TimeUnit.SECONDS)
+            d { "connected: ${ch.remoteAddress}" }
+            AsychChannelSocket(ch)
+        }.getOrElse {
+            when (it) {
+                is ExecutionException -> throw it.cause ?: it
+                else -> throw it
+            }
+        }
     }
 
     fun start(): Job = launch {
@@ -515,11 +520,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 withTimeout(timeout) {
                     serviceUpdates().filter {
                         it.type == ZitiContext.ServiceUpdate.Available &&
-                            servicesByName.get(it.service.name)?.let { svc ->
-                                svc.interceptConfig()?.let {
-                                    it.addresses.any { it.matches(host) } && it.portRanges.any { r -> port in r.low..r.high }
-                                } ?: false
-                            } ?: false
+                                (it.service.interceptConfig()?.matches(host, port) ?: false)
                     }.first().service
                 }
             }

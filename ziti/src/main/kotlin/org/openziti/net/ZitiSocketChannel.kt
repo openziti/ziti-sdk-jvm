@@ -337,14 +337,14 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
                 var data = ByteArray(b.remaining())
                 b.get(data)
 
-                crypto.getCompleted()?.let {
+                sent += data.size
+                crypto.await()?.let {
                     data = it.encrypt(data)
                 }
 
                 val dataMessage = Message(ZitiProtocol.ContentType.Data, data)
                 dataMessage.setHeader(Header.ConnId, connId)
                 dataMessage.setHeader(Header.SeqHeader, seq.getAndIncrement())
-                sent += data.size
                 v("sending $dataMessage")
                 channel.await().Send(dataMessage)
             }
@@ -479,6 +479,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
                 }
 
                 local = ZitiAddress.Session(ns.id, serviceName, null, null)
+                this.remote = ZitiAddress.Session(ns.id, serviceName, remote.identity, null)
                 d("network connection established ${ns.id}/$connId")
                 state.set(State.connected)
             }
