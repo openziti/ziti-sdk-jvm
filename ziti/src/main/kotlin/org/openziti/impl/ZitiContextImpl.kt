@@ -102,7 +102,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     private val connCounter = AtomicInteger(0)
 
-    private val connections = sortedMapOf<Int, ZitiConnection>()
+    private val connections = sortedMapOf<UInt, ZitiConnection>()
 
     init {
         this._enabled = enabled
@@ -527,7 +527,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }.getOrElse { throw TimeoutException("failed to get service[$host:$port] in ${timeout}ms") }
     }
 
-    internal fun nextConnId() = connCounter.incrementAndGet()
+    internal fun nextConnId() = connCounter.incrementAndGet().toUInt()
 
     internal val channels = ConcurrentHashMap<String, Channel>()
 

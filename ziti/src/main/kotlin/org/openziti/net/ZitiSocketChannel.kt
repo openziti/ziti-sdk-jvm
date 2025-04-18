@@ -57,7 +57,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.text.Charsets.UTF_8
 import kotlinx.coroutines.channels.Channel as Chan
 
-internal class ZitiSocketChannel private constructor(internal val ctx: ZitiContextImpl, val connId: Int):
+internal class ZitiSocketChannel private constructor(internal val ctx: ZitiContextImpl, val connId: UInt):
     AsynchronousSocketChannel(Provider),
     Channel.MessageReceiver,
     ZitiConnection,
@@ -103,6 +103,9 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
     val receiveQueue = Chan<ByteArray>(16)
     override val inputSupport = InputChannel.InputSupport(receiveQueue)
     val crypto = CompletableDeferred<Crypto.SecretStream?>()
+
+    /** router provided connection id */
+    internal var rtConnId: UInt = connId
 
     override fun getLocalAddress(): SocketAddress? = local
 
@@ -220,7 +223,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
     private fun deregister() {
         ctx.launch {
             channel.runCatching {
-                await().deregisterReceiver(connId)
+                await().deregisterReceiver(rtConnId)
             }
         }
     }
@@ -239,7 +242,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
     override fun shutdownOutput(): AsynchronousSocketChannel {
         if (state.get() == State.connected && sentFin.compareAndSet(false, true)) {
             val finMsg = Message(ZitiProtocol.ContentType.Data).apply {
-                setHeader(Header.ConnId, connId)
+                setHeader(Header.ConnId, rtConnId)
                 setHeader(Header.FlagsHeader, ZitiProtocol.EdgeFlags.FIN)
                 setHeader(Header.SeqHeader, seq.getAndIncrement())
             }
@@ -264,7 +267,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
                     state.set(State.closed)
                 State.connecting, State.connected -> {
                     val closeMsg = Message(ZitiProtocol.ContentType.StateClosed).apply {
-                        setHeader(Header.ConnId, connId)
+                        setHeader(Header.ConnId, rtConnId)
                     }
                     d("closing conn = ${this.connId}")
                     ctx.async {
@@ -343,7 +346,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
                 }
 
                 val dataMessage = Message(ZitiProtocol.ContentType.Data, data)
-                dataMessage.setHeader(Header.ConnId, connId)
+                dataMessage.setHeader(Header.ConnId, rtConnId)
                 dataMessage.setHeader(Header.SeqHeader, seq.getAndIncrement())
                 v("sending $dataMessage")
                 channel.await().Send(dataMessage)
@@ -434,7 +437,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
 
     internal suspend fun doZitiHandshake(ch: Channel, remote: ZitiAddress.Dial, ns: Session, kp: KeyPair?) {
         val connectMsg = Message(ZitiProtocol.ContentType.Connect, ns.token.toByteArray(UTF_8)).apply {
-            setHeader(Header.ConnId, connId)
+            setHeader(Header.ConnId, rtConnId)
             setHeader(Header.SeqHeader, 0)
             kp?.let {
                 setHeader(Header.PublicKeyHeader, it.publicKey.asBytes)
@@ -502,7 +505,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
         crypto.await()?.let {
             val header = it.header()
             val headerMessage = Message(ZitiProtocol.ContentType.Data, header)
-                .setHeader(Header.ConnId, connId)
+                .setHeader(Header.ConnId, rtConnId)
                 .setHeader(Header.SeqHeader, seq.getAndIncrement())
             ch.Send(headerMessage)
         }

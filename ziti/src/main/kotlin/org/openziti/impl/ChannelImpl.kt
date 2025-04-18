@@ -52,7 +52,7 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
     private val synchers = ConcurrentHashMap<Int, CompletableDeferred<Unit>>()
 
     private val recMutex = Mutex()
-    private val receivers = mutableMapOf<Int, Channel.MessageReceiver>()
+    private val receivers = mutableMapOf<UInt, Channel.MessageReceiver>()
     private val chState = MutableStateFlow<Channel.State>(Channel.State.Initial)
     private val reconnectSignal = kotlinx.coroutines.channels.Channel<Unit>()
 
@@ -73,13 +73,14 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
         get() = chState.value
 
 
-    override fun registerReceiver(id: Int, rec: Channel.MessageReceiver) = runBlocking{
+    override fun registerReceiver(id: UInt, rec: Channel.MessageReceiver) = runBlocking{
         recMutex.withLock {
             receivers[id] = rec
         }
     }
 
-    override fun deregisterReceiver(id: Int): Unit = runBlocking {
+
+    override fun deregisterReceiver(id: UInt): Unit = runBlocking {
         recMutex.withLock { receivers.remove(id) }
     }
 
@@ -243,7 +244,7 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
                 if (waiter != null) {
                     waiter.complete(m)
                 } else {
-                    val recId = m.getIntHeader(ZitiProtocol.Header.ConnId)
+                    val recId = m.getIntHeader(ZitiProtocol.Header.ConnId)?.toUInt()
                     recId?.let {
                         val receiver = recMutex.withLock { receivers[it] }
 
