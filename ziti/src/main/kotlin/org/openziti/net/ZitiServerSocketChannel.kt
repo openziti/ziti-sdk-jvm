@@ -58,7 +58,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl):
     private val listenerId = ByteArray(32).apply {
         SecureRandom().nextBytes(this)
     }
-    val connId: Int = ctx.nextConnId()
+    val connId: UInt = ctx.nextConnId()
     var state: State = State.initial
     lateinit var incoming: Chan<Message>
     lateinit var token: String
@@ -135,6 +135,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl):
                 setHeader(Header.ConnId, connId)
                 setHeader(Header.SeqHeader, 0)
                 setHeader(Header.ListenerId, listenerId)
+                setHeader(Header.RouterProvidedConnId, true)
 
                 val bindId = localAddr.identity ?: (if (localAddr.useEdgeId) ctx.getId()?.name else null)
 
@@ -192,8 +193,13 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl):
 
                 val child = ZitiSocketChannel(ctx)
                 d{"accepting child conn[${child.connId}] on parent[$connId]"}
+                req.getIntHeader(Header.RouterProvidedConnId)?.toUInt()?.let {
+                    d{"setting child[${child.connId}].rtConnId = $it (router provided)"}
+                    child.rtConnId = it
+                }
+
                 val connIdBuf = ByteArray(4)
-                ByteBuffer.wrap(connIdBuf).order(ByteOrder.LITTLE_ENDIAN).putInt(child.connId)
+                ByteBuffer.wrap(connIdBuf).order(ByteOrder.LITTLE_ENDIAN).putInt(child.connId.toInt())
                 val dialSuccess = Message(ZitiProtocol.ContentType.DialSuccess, connIdBuf)
                 dialSuccess.setHeader(Header.SeqHeader, 0)
                 dialSuccess.setHeader(Header.ConnId, connId)
@@ -206,11 +212,11 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl):
                     child.setupCrypto(sessKeys)
                 } ?: child.setupCrypto(null)
 
-                val startMsg = ch.SendAndWait(dialSuccess)
-
-                if (startMsg.content == ZitiProtocol.ContentType.StateConnected) {
+                runCatching {
+                    ch.SendSynch(dialSuccess)
+                }.onSuccess {
                     child.state.set(ZitiSocketChannel.State.connected)
-                    ch.registerReceiver(child.connId, child)
+                    ch.registerReceiver(child.rtConnId, child)
                     child.channel.complete(ch)
                     child.startCrypto(ch)
                     child.local = localAddr
@@ -218,9 +224,9 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl):
                         req.getStringHeader(Header.CallerIdHeader), req.getHeader(Header.AppDataHeader))
 
                     handler.completed(child, att)
-                } else {
-                    val err = Charsets.UTF_8.decode(ByteBuffer.wrap(startMsg.body)).toString()
-                    handler.failed(IOException(err), att)
+                }.onFailure { t ->
+                    val err = t.message
+                    handler.failed(IOException(err, t), att)
                 }
             } catch (ex: Throwable) {
                 when (ex) {

@@ -45,8 +45,8 @@ internal interface Channel: Closeable {
     val name: String
     val state: State
 
-    fun deregisterReceiver(id: Int)
-    fun registerReceiver(id: Int, rec: MessageReceiver)
+    fun deregisterReceiver(id: UInt)
+    fun registerReceiver(id: UInt, rec: MessageReceiver)
 
     suspend fun Send(msg: Message)
     suspend fun SendSynch(msg: Message)
