@@ -19,30 +19,37 @@ package org.openziti.springboot.client.web.config;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.util.TimeValue;
 import org.openziti.Ziti;
 import org.openziti.ZitiContext;
-import org.openziti.springboot.client.web.httpclient.ZitiConnectionSocketFactory;
-import org.openziti.springboot.client.web.httpclient.ZitiSSLConnectionSocketFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -69,9 +76,6 @@ public class ZitiHttpClientConfiguration {
 
   // The default time to keep a connection alive.
   private static final long DEFAULT_KEEP_ALIVE_TIME_MILLIS = 20 * 1000;
-
-  private ZitiConnectionSocketFactory zitiConnectionSocketFactory;
-  private ZitiSSLConnectionSocketFactory zitiSSLConnectionSocketFactory;
 
   @ConditionalOnProperty(value = "spring.ziti.client.rest-template.enabled", havingValue = "true", matchIfMissing = true)
   @Bean
@@ -107,45 +111,46 @@ public class ZitiHttpClientConfiguration {
     return Ziti.newContext(identityFile.getInputStream(), password.toCharArray());
   }
 
-  @ConditionalOnProperty(value = "spring.ziti.client.connection-factory.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean("zitiConnectionSocketFactory")
-  public ZitiConnectionSocketFactory connectionSocketFactory(ZitiContext zitiContext) {
-    if (zitiConnectionSocketFactory == null) {
-      zitiConnectionSocketFactory = new ZitiConnectionSocketFactory(zitiContext);
-    }
-    return zitiConnectionSocketFactory;
-  }
-
-  @ConditionalOnProperty(value = "spring.ziti.client.ssl-connection-factory.enabled", havingValue = "true", matchIfMissing = true)
-  @Bean("zitiSSLConnectionSocketFactory")
-  public ZitiSSLConnectionSocketFactory sslConnectionSocketFactory(ZitiContext zitiContext) {
-    if (zitiSSLConnectionSocketFactory == null) {
-      zitiSSLConnectionSocketFactory = new ZitiSSLConnectionSocketFactory(zitiContext);
-    }
-    return zitiSSLConnectionSocketFactory;
+  @ConditionalOnProperty(value = "spring.ziti.client.tls-socket-strategy.enabled", havingValue = "true", matchIfMissing = true)
+  @Bean("zitiTlsSocketStrategy")
+  public TlsSocketStrategy zitiTlsSocketStrategy() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    return new DefaultClientTlsStrategy(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build());
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.connection-manager.enabled", havingValue = "true", matchIfMissing = true)
   @Bean("zitiPoolingConnectionManager")
   public PoolingHttpClientConnectionManager poolingConnectionManager(
-      @Qualifier("zitiConnectionSocketFactory") ZitiConnectionSocketFactory zitiConnectionSocketFactory,
-      @Qualifier("zitiSSLConnectionSocketFactory") ZitiSSLConnectionSocketFactory zitiSSLConnectionSocketFactory,
       @Qualifier("zitiDnsResolver") DnsResolver zitiDnsResolver,
+      @Qualifier("zitiTlsSocketStrategy") TlsSocketStrategy zitiTlsSocketStrategy,
       @Value("${spring.ziti.client.httpclient.max-total:}") Integer maxTotal,
       @Value("${spring.ziti.client.httpclient.max-per-route:}") Integer maxPerRoute) {
 
-    final Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-        .register(URIScheme.HTTPS.getId(), zitiSSLConnectionSocketFactory)
-        .register(URIScheme.HTTP.getId(), zitiConnectionSocketFactory)
+    final PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = new PoolingHttpClientConnectionManagerBuilder() {
+      @Override
+      protected HttpClientConnectionOperator createConnectionOperator(
+          SchemePortResolver schemePortResolver, DnsResolver dnsResolver, TlsSocketStrategy tlsSocketStrategy) {
+        return new DefaultHttpClientConnectionOperator(
+            proxy -> Ziti.getSocketFactory().createSocket(),
+            schemePortResolver,
+            dnsResolver,
+            RegistryBuilder.<TlsSocketStrategy>create()
+                .register(URIScheme.HTTPS.id, tlsSocketStrategy)
+                .build());
+      }
+    };
+    final PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = connectionManagerBuilder
+        .setDnsResolver(zitiDnsResolver)
+        .setTlsSocketStrategy(zitiTlsSocketStrategy)
+        .setConnPoolPolicy(PoolReusePolicy.LIFO)
+        .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
         .build();
-
-    final PoolingHttpClientConnectionManager poolingConnectionManager =
-        new PoolingHttpClientConnectionManager(socketFactoryRegistry, PoolConcurrencyPolicy.STRICT, PoolReusePolicy.LIFO,
-            TimeValue.NEG_ONE_MILLISECOND, null, zitiDnsResolver, null);
-
-    Optional.ofNullable(maxTotal).ifPresent(poolingConnectionManager::setMaxTotal);
-    Optional.ofNullable(maxPerRoute).ifPresent(poolingConnectionManager::setDefaultMaxPerRoute);
-    return poolingConnectionManager;
+    if (maxTotal != null) {
+      poolingHttpClientConnectionManager.setMaxTotal(maxTotal);
+    }
+    if (maxPerRoute != null) {
+      poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxPerRoute);
+    }
+    return poolingHttpClientConnectionManager;
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.connection-keep-alive-strategy.enabled", havingValue = "true", matchIfMissing = true)
@@ -183,12 +188,6 @@ public class ZitiHttpClientConfiguration {
         .setConnectionManager(poolingHttpClientConnectionManager)
         .setKeepAliveStrategy(connectionKeepAliveStrategy)
         .build();
-  }
-
-  @PreDestroy
-  public void destroy() {
-    Optional.ofNullable(zitiConnectionSocketFactory).ifPresent(ZitiConnectionSocketFactory::shutdown);
-    Optional.ofNullable(zitiSSLConnectionSocketFactory).ifPresent(ZitiSSLConnectionSocketFactory::shutdown);
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.dns-resolver.enabled", havingValue = "true", matchIfMissing = true)
