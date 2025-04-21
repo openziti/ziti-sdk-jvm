@@ -138,19 +138,15 @@ public class ZitiHttpClientConfiguration {
                 .build());
       }
     };
-    final PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = connectionManagerBuilder
+    final PoolingHttpClientConnectionManager poolingConnectionManager = connectionManagerBuilder
         .setDnsResolver(zitiDnsResolver)
         .setTlsSocketStrategy(zitiTlsSocketStrategy)
         .setConnPoolPolicy(PoolReusePolicy.LIFO)
         .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
         .build();
-    if (maxTotal != null) {
-      poolingHttpClientConnectionManager.setMaxTotal(maxTotal);
-    }
-    if (maxPerRoute != null) {
-      poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxPerRoute);
-    }
-    return poolingHttpClientConnectionManager;
+    Optional.ofNullable(maxTotal).ifPresent(poolingConnectionManager::setMaxTotal);
+    Optional.ofNullable(maxPerRoute).ifPresent(poolingConnectionManager::setDefaultMaxPerRoute);
+    return poolingConnectionManager;
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.connection-keep-alive-strategy.enabled", havingValue = "true", matchIfMissing = true)
