@@ -38,5 +38,4 @@ jobs:
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
-        run: ./gradlew -i -S publishToSonatype
-
+        run: ./gradlew -i -S publishToSonatype closeAndReleaseSonatypeStagingRepository
