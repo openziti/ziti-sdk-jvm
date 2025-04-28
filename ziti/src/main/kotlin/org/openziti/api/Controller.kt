@@ -19,22 +19,16 @@ package org.openziti.api
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.future.await
-import org.openziti.ZitiException.Errors
 import org.openziti.ZitiException
+import org.openziti.ZitiException.Errors
 import org.openziti.edge.ApiClient
 import org.openziti.edge.ApiException
 import org.openziti.edge.api.*
 import org.openziti.edge.model.*
 import org.openziti.impl.ZitiImpl
-import org.openziti.util.Logged
-import org.openziti.util.SystemInfoProvider
-import org.openziti.util.Version
-import org.openziti.util.ZitiLog
+import org.openziti.util.*
 import java.io.IOException
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -43,12 +37,11 @@ import java.util.function.Consumer
 import javax.net.ssl.SSLContext
 import kotlin.reflect.full.memberFunctions
 
-internal class Controller(endpoint: String, sslContext: SSLContext):
+internal class Controller internal constructor(
+    ep: String,
+    sslContext: SSLContext,
+    val capabilities: Set<Capabilities> = emptySet()) :
     Logged by ZitiLog() {
-
-    companion object {
-        val ALL_CONFIGS = listOf("all")
-    }
 
     private val pageSize = 100
 
@@ -58,7 +51,7 @@ internal class Controller(endpoint: String, sslContext: SSLContext):
 
     private val edgeApi: ApiClient = ApiClient().apply {
         setHttpClientBuilder(http)
-        updateBaseUri(endpoint)
+        updateBaseUri(ep)
         setBasePath("")
         setRequestInterceptor(ReqInterceptor())
     }
@@ -68,18 +61,6 @@ internal class Controller(endpoint: String, sslContext: SSLContext):
 
     internal val endpoint: String
         get() = edgeApi.baseUri
-
-    internal suspend fun switchEndpoint(endpoint: String) {
-        val orig = edgeApi.baseUri
-        runCatching {
-            edgeApi.updateBaseUri(endpoint)
-            edgeApi.setBasePath("")
-            version()
-        }.onFailure {
-            edgeApi.updateBaseUri(orig)
-            throw it
-        }
-    }
 
     internal suspend fun listControllers(): List<ControllerDetail> {
         return runCatching {
@@ -208,7 +189,7 @@ internal class Controller(endpoint: String, sslContext: SSLContext):
         return CurrentIdentityApi(edgeApi).detailMfa().await().data.recoveryCodes?.toTypedArray() ?: emptyArray()
     }
 
-    private inline fun <reified Env, T> pagingApiRequest(
+    private inline fun <reified Env, reified T> pagingApiRequest(
         crossinline req: (limit: Int, offset: Int) -> CompletableFuture<Env>
     ): Flow<T> {
 
@@ -231,7 +212,7 @@ internal class Controller(endpoint: String, sslContext: SSLContext):
 
             pages.forEach {
                 val r = it.await()
-                val d = dataFunc.call(r) as Collection<T>
+                val d = (dataFunc.call(r) as Collection<*>).filterIsInstance<T>()
                 emitAll(d.asFlow())
             }
         }
@@ -289,6 +270,44 @@ internal class Controller(endpoint: String, sslContext: SSLContext):
             session?.let { req.header("zt-session", session.token) }
             val r = req.build()
             d {"${r.method()} ${r.uri()} session=${session?.id}"}
+        }
+    }
+
+    class NotAvailableException(msg: String = "Controller is not available") : Exception(msg)
+
+    companion object: Logged by ZitiLog(Controller.TAG) {
+        private const val TAG = "Controller"
+        val ALL_CONFIGS = listOf("all")
+
+        suspend fun getActiveController(endpoints: Collection<String>, sslContext: SSLContext): Controller {
+
+            val edgeApiClient = ApiClient().apply {
+                setHttpClientBuilder(
+                    HttpClient.newBuilder()
+                        .sslContext(sslContext)
+                        .executor(Dispatchers.IO.asExecutor()))
+            }
+
+            val eps = endpoints.shuffled()
+            for (ep in eps) {
+                edgeApiClient.apply {
+                    updateBaseUri(ep)
+                    setBasePath("/")
+                }
+
+                InformationalApi(edgeApiClient).runCatching {
+                    val capabilities = listEnumeratedCapabilities().await().data
+                    val version = listVersion().await().data
+                    val url = version.apiVersions!!["edge"]!!["v1"]!!.apiBaseUrls!![0]
+                    Controller(url, sslContext, capabilities.toSet())
+                }.onFailure {
+                    e(it) { "failed to connect to controller $ep" }
+                }.onSuccess {
+                    return it
+                }
+            }
+
+            throw NotAvailableException()
         }
     }
 }

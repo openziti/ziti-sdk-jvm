@@ -199,7 +199,7 @@ tasks.register("start-quickstart") {
             }
         }
     }
-    dependsOn("buildZiti")
+    dependsOn("integrationTestClasses")
 }
 
 tasks.register("stop-quickstart") {

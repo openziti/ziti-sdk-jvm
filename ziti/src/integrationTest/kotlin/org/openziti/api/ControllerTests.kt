@@ -20,15 +20,11 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.openziti.Enrollment
 import org.openziti.IdentityConfig
 import org.openziti.Ziti
 import org.openziti.integ.BaseTest
-import org.openziti.integ.ManagementHelper.createIdentity
 import org.openziti.integ.ManagementHelper.getIdentity
 import org.openziti.util.Version
-import java.net.ConnectException
 
 
 class ControllerTests: BaseTest() {
@@ -61,15 +57,4 @@ class ControllerTests: BaseTest() {
         assertEquals(info.displayName, idInfo.appId)
     }
 
-    @Test
-    fun testSwitch() = runTest {
-        val ctrl = Controller(cfg.controller, cfg.sslContext())
-        val session = ctrl.login()
-        val controllers = ctrl.listControllers()
-        println(controllers)
-        assertThrows<ConnectException> {
-            ctrl.switchEndpoint("https://localhost:6666")
-        }
-        assertEquals(cfg.controller, ctrl.endpoint)
-    }
 }

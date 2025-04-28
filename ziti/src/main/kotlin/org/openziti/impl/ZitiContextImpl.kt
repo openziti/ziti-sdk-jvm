@@ -36,6 +36,7 @@ import org.openziti.net.routing.RouteManager
 import org.openziti.posture.PostureService
 import org.openziti.util.IPUtil
 import org.openziti.util.Logged
+import org.openziti.util.Retry
 import org.openziti.util.ZitiLog
 import java.io.Writer
 import java.net.*
@@ -81,7 +82,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val currentEdgeRouters =
         MutableStateFlow<Collection<CurrentIdentityEdgeRouterDetail>>(emptyList())
 
-    private val controller: Controller = Controller(id.controllers().random(), id.sslContext())
+    // active controller
+    private val ctrl = MutableStateFlow<Controller?>(null)
+    private val controller: Controller
+        get() = ctrl.value ?: throw ZitiException(Errors.ControllerUnavailable)
+
+
     private val postureService = PostureService()
 
     private val statusCh: MutableStateFlow<ZitiContext.Status>
@@ -173,7 +179,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun isEnabled() = _enabled
     override fun setEnabled(v: Boolean) { _enabled = v }
     private fun checkEnabled() {
-        _enabled || throw ZitiException(ZitiException.Errors.ServiceNotAvailable)
+        _enabled || throw ZitiException(Errors.ServiceNotAvailable)
     }
 
     override fun dial(serviceName: String): ZitiConnection {
@@ -203,7 +209,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     internal fun dial(host: InetAddress, port: Int): ZitiConnection {
-        val ports = servicesByAddr.get(host) ?: throw ZitiException(Errors.ServiceNotAvailable)
+        val ports = servicesByAddr[host] ?: throw ZitiException(Errors.ServiceNotAvailable)
 
         for ((range, s) in ports) {
             if (range.contains(port)) return dial(s.name)
@@ -233,7 +239,13 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     private suspend fun runner() {
+        val ctrlEndpoints = id.controllers().toMutableSet()
         while(true) {
+            val c = Retry.withExponentialBackoff {
+                Controller.getActiveController(ctrlEndpoints, id.sslContext())
+            }
+
+            ctrl.value = c
             val session = runCatching { login() }.getOrElse {
                 e("failed to login, cannot continue")
                 updateStatus(ZitiContext.Status.NotAuthorized(it))
@@ -257,6 +269,14 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 }
 
                 if (!success) continue
+            }
+            val ctrls = controller.listControllers().mapNotNull {
+                it.apiAddresses?.get("edge-client")?.first { addr -> addr.version == "v1" }?.url
+            }.toSet()
+
+            if (ctrls != ctrlEndpoints) {
+                ctrlEndpoints.clear()
+                ctrlEndpoints.addAll(ctrls)
             }
 
             updateStatus(ZitiContext.Status.Active)
@@ -338,7 +358,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 val refreshDelay = it.expiresAt.toEpochSecond() - it.updatedAt.toEpochSecond() - 10
 
                 if (refreshDelay > 0) {
-                    d { "waiting for refresh ${refreshDelay} seconds" }
+                    d { "waiting for refresh $refreshDelay seconds" }
                     delay(refreshDelay.toDuration(DurationUnit.SECONDS))
                 }
 
@@ -536,7 +556,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         if (ers.isEmpty()) throw ZitiException(Errors.EdgeRouterUnavailable)
 
-        val addrList = ers.map { it.supportedProtocols["tls"] }.filterNotNull()
+        val addrList = ers.mapNotNull { it.supportedProtocols["tls"] }
 
         val chMap = sortedMapOf<Long,Channel>()
         val unconnected = mutableListOf<Channel>()
@@ -684,7 +704,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     override fun toString(): String {
         val detail = getId()
-        return "${detail?.name ?: name()}[${detail?.id}]@${controller.endpoint}"
+        val ep = ctrl.value?.endpoint ?: id.controllers().firstOrNull() ?: "unknown"
+        return "${detail?.name ?: name()}[${detail?.id}]@$ep"
     }
 
     internal suspend fun waitForActive() {
@@ -731,7 +752,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun dump(writer: Writer) {
         writer.appendLine("""
             name:       ${name()}
-            controller: ${id.controllers()}
+            active:     ${ctrl.value?.endpoint ?: "<none>"}
+            controllers:${id.controllers()}
             status:     ${getStatus()}
             """.trimIndent())
 
