@@ -69,8 +69,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    private var _name: String = ""
-    override fun name(): String = _name
+    private var _name = MutableStateFlow("")
+    override fun name(): String = _name.value
 
     private var refreshDelay = TimeUnit.MINUTES.toMillis(1)
 
@@ -87,6 +87,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private val controller: Controller
         get() = ctrl.value ?: throw ZitiException(Errors.ControllerUnavailable)
 
+    private val accessToken = MutableStateFlow<ZitiAuthenticator.ZitiAccessToken?>(null)
 
     private val postureService = PostureService()
 
@@ -240,18 +241,33 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
     private suspend fun runner() {
         val ctrlEndpoints = id.controllers().toMutableSet()
+        lateinit var authenticator: ZitiAuthenticator
         while(true) {
             val c = Retry.withExponentialBackoff {
                 Controller.getActiveController(ctrlEndpoints, id.sslContext())
             }
-
             ctrl.value = c
-            val session = runCatching { login() }.getOrElse {
-                e("failed to login, cannot continue")
-                updateStatus(ZitiContext.Status.NotAuthorized(it))
-                throw it
+
+            val oidc = controller.capabilities.contains(Capabilities.OIDC_AUTH)
+            authenticator = authenticator(controller.endpoint, id.sslContext(), oidc)
+
+            val currentSession = runCatching {
+                accessToken.value?.let { controller.setAccessToken(it) }
+            }.onFailure {
+                accessToken.value = null
+                null
+            }.getOrNull()
+
+
+            val session = if (currentSession != null)
+                currentSession
+            else {
+                val token = authenticator.login()
+                accessToken?.value = token
+                controller.setAccessToken(token)
             }
-            _name = session.identity.name ?: ""
+
+            _name.value = session.identity.name ?: ""
 
             apiSession.value = session
             val mfa = session.authQueries.find {
@@ -281,7 +297,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
             updateStatus(ZitiContext.Status.Active)
 
-            val apiSessionUpdate = maintainApiSession()
+            val apiSessionUpdate = maintainApiSession(authenticator)
             val serviceUpdate = runServiceUpdates()
 
             val finisher = select<Job> {
@@ -350,26 +366,23 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    private fun maintainApiSession() = async {
-        apiSession.collect {
-            if (it == null) {
-                cancel()
-            } else {
-                val refreshDelay = it.expiresAt.toEpochSecond() - it.updatedAt.toEpochSecond() - 10
+    private fun maintainApiSession(authenticator: ZitiAuthenticator) = async {
+        while(true) {
+            val token = accessToken.value
 
-                if (refreshDelay > 0) {
-                    d { "waiting for refresh $refreshDelay seconds" }
-                    delay(refreshDelay.toDuration(DurationUnit.SECONDS))
-                }
+            if (token == null) break
 
-                controller.runCatching { currentApiSession() }.onFailure { ex ->
-                    w { "failed to get current session: $ex" }
-                    apiSession.value = null
-                    if (ex is ZitiException && ex.code == Errors.NotAuthorized) throw ex
-                }.onSuccess {
-                    apiSession.value = it
-                }
+            val now = OffsetDateTime.now()
+            var delay =  token.expiration.toEpochSecond() - now.toEpochSecond() - 10
+            if (delay < 0) {
+                delay = 0
             }
+
+            d("[${name()}] sleeping for $delay seconds")
+            delay(delay.toDuration(DurationUnit.SECONDS))
+            d("[${name()}] refreshing access token")
+            val newToken = authenticator.refresh()
+            accessToken.value = newToken
         }
     }
 
@@ -390,9 +403,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             }
 
             controller.runCatching { getEdgeRouters() }
-                .onSuccess {
-                    d{"current edge routers = $it"}
-                    currentEdgeRouters.value = it }
+                .onSuccess { currentEdgeRouters.value = it }
                 .onFailure { w("failed to get current edge routers: $it") }
 
             oneUpdate.join()

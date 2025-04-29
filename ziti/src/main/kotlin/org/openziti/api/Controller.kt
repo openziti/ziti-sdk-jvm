@@ -53,7 +53,6 @@ internal class Controller internal constructor(
         setHttpClientBuilder(http)
         updateBaseUri(ep)
         setBasePath("")
-        setRequestInterceptor(ReqInterceptor())
     }
     private val infoClient: InformationalApi
         get() = InformationalApi(edgeApi)
@@ -87,6 +86,11 @@ internal class Controller internal constructor(
         convertError(it)
     }
 
+    internal suspend fun setAccessToken(token: ZitiAuthenticator.ZitiAccessToken): ApiSession {
+        edgeApi.requestInterceptor = ReqInterceptor(token)
+        return currentApiSession()
+    }
+
     internal suspend fun login(login: Login? = null): ApiSession {
         runCatching { version() }.getOrElse { convertError(it) }
 
@@ -102,7 +106,6 @@ internal class Controller internal constructor(
         }.getOrElse {
             convertError(it)
         }
-        edgeApi.requestInterceptor = ReqInterceptor(apiSession)
 
         return apiSession
     }
@@ -265,11 +268,12 @@ internal class Controller internal constructor(
         configTypes = ALL_CONFIGS
     }
 
-    internal inner class ReqInterceptor(val session: ApiSession? = null): Consumer<HttpRequest.Builder> {
+    internal inner class ReqInterceptor(val accessToken: ZitiAuthenticator.ZitiAccessToken): Consumer<HttpRequest.Builder> {
         override fun accept(req: HttpRequest.Builder) {
-            session?.let { req.header("zt-session", session.token) }
-            val r = req.build()
-            d {"${r.method()} ${r.uri()} session=${session?.id}"}
+            when (accessToken.type) {
+                ZitiAuthenticator.TokenType.BEARER -> req.header("Authorization", "Bearer ${accessToken.token}")
+                ZitiAuthenticator.TokenType.API_SESSION -> req.header("zt-session", accessToken.token)
+            }
         }
     }
 
@@ -290,18 +294,21 @@ internal class Controller internal constructor(
 
             val eps = endpoints.shuffled()
             for (ep in eps) {
+                d { "attempting to connect to controller $ep" }
+
                 edgeApiClient.apply {
                     updateBaseUri(ep)
                     setBasePath("/")
                 }
 
                 InformationalApi(edgeApiClient).runCatching {
-                    val capabilities = listEnumeratedCapabilities().await().data
                     val version = listVersion().await().data
+                    val capabilities = version.capabilities?.map { Capabilities.valueOf(it) } ?: emptyList()
+
                     val url = version.apiVersions!!["edge"]!!["v1"]!!.apiBaseUrls!![0]
                     Controller(url, sslContext, capabilities.toSet())
                 }.onFailure {
-                    e(it) { "failed to connect to controller $ep" }
+                    w { "failed to connect to controller $ep: ${it.message}" }
                 }.onSuccess {
                     return it
                 }
