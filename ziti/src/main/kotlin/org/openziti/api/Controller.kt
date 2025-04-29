@@ -80,6 +80,12 @@ internal class Controller internal constructor(
         return version
     }
 
+    internal suspend fun currentIdentity(): IdentityDetail = runCatching {
+        CurrentIdentityApi(edgeApi).currentIdentity.await().data
+    }.getOrElse {
+        convertError(it)
+    }
+
     internal suspend fun currentApiSession(): ApiSession = runCatching {
         CurrentApiSessionApi(edgeApi).currentAPISession.await().data
     }.getOrElse {

@@ -69,18 +69,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    private var _name = MutableStateFlow("")
-    override fun name(): String = _name.value
-
     private var refreshDelay = TimeUnit.MINUTES.toMillis(1)
 
     private val supervisor = SupervisorJob()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + supervisor
 
-    private val apiSession = MutableStateFlow<ApiSession?>(null)
-    private val currentEdgeRouters =
-        MutableStateFlow<Collection<CurrentIdentityEdgeRouterDetail>>(emptyList())
 
     // active controller
     private val ctrl = MutableStateFlow<Controller?>(null)
@@ -88,6 +82,12 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         get() = ctrl.value ?: throw ZitiException(Errors.ControllerUnavailable)
 
     private val accessToken = MutableStateFlow<ZitiAuthenticator.ZitiAccessToken?>(null)
+    private val identity = MutableStateFlow<IdentityDetail?>(null)
+    private val apiSession = MutableStateFlow<ApiSession?>(null)
+    private val currentEdgeRouters =
+        MutableStateFlow<Collection<CurrentIdentityEdgeRouterDetail>>(emptyList())
+
+    override fun name(): String = identity.value?.name ?: ""
 
     private val postureService = PostureService()
 
@@ -126,16 +126,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         start()
     }
 
-    override fun getIdentity() = apiSession.mapNotNull{
-        getId()
-    }
+    override fun getIdentity() = identity.filterNotNull()
 
-    override fun getId(): IdentityDetail? = apiSession.value?.identity?.let { ref ->
-        IdentityDetail().apply {
-            ref.id?.let { id(it) }
-            ref.name?.let { name(it) }
-        }
-    }
+    override fun getId(): IdentityDetail? = identity.value
 
     override fun onStatus(consumer: Consumer<ZitiContext.Status>): Future<Unit> {
         val job = launch(Dispatchers.Default) {
@@ -263,13 +256,13 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 currentSession
             else {
                 val token = authenticator.login()
-                accessToken?.value = token
+                accessToken.value = token
                 controller.setAccessToken(token)
             }
 
-            _name.value = session.identity.name ?: ""
-
+            identity.value = controller.currentIdentity()
             apiSession.value = session
+
             val mfa = session.authQueries.find {
                 it.typeId == AuthQueryType.MFA && it.provider.value == "ziti"
             }
@@ -322,10 +315,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         channels.clear()
 
         runBlocking {
-            copy.forEach { ch ->
-                runCatching {
-                    d{"closing ${ch.name}"}
-                    ch.close()
+            copy.forEach {
+                it.runCatching {
+                    d { "closing $name" }
+                    close()
                 }
             }
         }
