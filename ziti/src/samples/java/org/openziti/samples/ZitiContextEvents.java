@@ -21,6 +21,8 @@ import org.openziti.Ziti;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
+
 /**
  * demonstrates subscribing to Ziti context and service events.
  */
@@ -50,6 +52,7 @@ public class ZitiContextEvents {
             });
 
             Thread.sleep(5000);
+            ziti.dump(new PrintWriter(System.out));
             ziti.destroy();
 
         } catch (Exception e) {
