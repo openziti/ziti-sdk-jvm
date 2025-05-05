@@ -144,7 +144,7 @@ internal class Enroller(
 
         return IdentityConfig(
             controller = api.baseUri,
-            controllers = controllers,
+            apiEndpoints = controllers,
             id = IdentityConfig.Id(
                 key = kp.private.toPEM(),
                 cert = cert,
@@ -182,7 +182,7 @@ internal class Enroller(
 
         return IdentityConfig(
             controller = api.baseUri,
-            controllers = controllers,
+            apiEndpoints = controllers,
             id = IdentityConfig.Id(
                 key = key,
                 cert = cert,

@@ -43,7 +43,7 @@ import javax.net.ssl.SSLContext
     /**
      * List of ziti controller addresses.
      */
-    @SerialName("ztAPIs") val controllers: Collection<String> = listOf(controller),
+    @SerialName("ztAPIs") val apiEndpoints: Collection<String>? = listOf(controller),
 
     /**
      * Identity credentials.
@@ -69,7 +69,7 @@ import javax.net.ssl.SSLContext
     /**
      * @inheritDoc
      */
-    override fun controllers(): Collection<String> = controllers
+    override fun controllers(): Collection<String> = apiEndpoints ?: listOf(controller)
 
     /**
      * @inheritDoc
