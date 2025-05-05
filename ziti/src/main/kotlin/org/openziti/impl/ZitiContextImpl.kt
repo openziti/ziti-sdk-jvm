@@ -191,12 +191,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         return conn
     }
 
-    internal fun dialById(serviceId: String): ZitiConnection =
-        servicesById[serviceId]?.let {
-            dial(it.name)
-        } ?: throw ZitiException(ZitiException.Errors.ServiceNotAvailable)
-
-
     internal fun dial(host: String, port: Int): ZitiConnection {
         val service = getServiceForAddress(host, port) ?: throw ZitiException(Errors.ServiceNotAvailable)
         return dial(service.name)
@@ -325,6 +319,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     }
 
     override fun destroy() {
+        Ziti.removeContext(this)
+        if (supervisor.isCompleted) return
+
         d{"stopping networking"}
         stop()
         d{"stopping controller"}

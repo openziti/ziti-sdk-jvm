@@ -16,7 +16,12 @@
 
 package org.openziti
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.openziti.api.Service
 import org.openziti.identity.Enroller
 import org.openziti.impl.ZitiImpl
@@ -29,6 +34,8 @@ import java.io.InputStream
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.security.KeyStore
+import java.util.function.Consumer
+import java.util.stream.Stream
 import javax.net.SocketFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
@@ -122,7 +129,7 @@ object Ziti {
     fun connect(addr: SocketAddress): ZitiConnection = ZitiImpl.connect(addr)
 
     @JvmStatic
-    fun getContexts(): Collection<ZitiContext> = ZitiImpl.contexts
+    fun getContexts(): Collection<ZitiContext> = ZitiImpl.contexts.value
 
     @JvmStatic
     fun setApplicationInfo(id: String, version: String) = ZitiImpl.setApplicationInfo(id, version)
@@ -130,8 +137,10 @@ object Ziti {
     @JvmStatic
     fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = ZitiImpl.getServiceFor(host, port)
 
+    @JvmStatic
     fun getServiceFor(addr: InetSocketAddress): Pair<ZitiContext, Service>? = ZitiImpl.getServiceFor(addr)
 
+    @JvmStatic
     fun findDialInfo(addr: InetSocketAddress): Pair<ZitiContext, SocketAddress>? = ZitiImpl.findDialInfo(addr)
 
     fun serviceUpdates(): Flow<Pair<ZitiContext, ZitiContext.ServiceEvent>> = ZitiImpl.serviceUpdates()

@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.openziti.*
 import org.openziti.api.Service
-import org.openziti.identity.Enroller
 import org.openziti.identity.KeyStoreIdentity
 import org.openziti.identity.findIdentityAlias
 import org.openziti.identity.loadKeystore
@@ -38,7 +37,7 @@ import java.net.URI
 import java.security.KeyStore
 
 internal object ZitiImpl : Logged by ZitiLog() {
-    internal val contexts = mutableListOf<ZitiContextImpl>()
+    internal val contexts = MutableStateFlow<Collection<ZitiContextImpl>>(emptyList())
     internal var appId = ""
     internal var appVersion = ""
 
@@ -48,7 +47,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
         try {
             Class.forName("android.util.Log")
             true
-        } catch (cnf: ClassNotFoundException) {
+        } catch (_: ClassNotFoundException) {
             false
         }
     }
@@ -59,7 +58,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
 
     fun loadContext(cfg: IdentityConfig, enabled: Boolean) =
         ZitiContextImpl(cfg, enabled).also { ztx ->
-            contexts.add(ztx)
+            contexts.value += ztx
             ztx.launch {
                 ztxEvents.emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Loaded, ztx))
                 ztx.serviceUpdates().collect {
@@ -73,7 +72,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
         val idName = alias ?: findIdentityAlias(ks)
         val id = KeyStoreIdentity(ks, idName)
         return ZitiContextImpl(id, true).also { ctx ->
-            contexts.add(ctx)
+            contexts.value += ctx
             ctx.launch {
                 ztxEvents.emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Loaded, ctx))
                 ctx.serviceUpdates().collect {
@@ -95,10 +94,11 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return loadContext(ks, alias)
     }
 
-    internal fun loadContext(id: ByteArray): ZitiContextImpl {
-        val ks = loadKeystore(id)
-        return loadContext(ks, null)
-    }
+    internal fun loadContext(id: ByteArray): ZitiContextImpl =
+        id.inputStream().use {
+            val ks = loadKeystore(it, charArrayOf())
+            loadContext(ks, null)
+        }
 
     fun init(c: ByteArray, seamless: Boolean) {
         initInternalNetworking(seamless)
@@ -115,14 +115,16 @@ internal object ZitiImpl : Logged by ZitiLog() {
     }
 
     fun removeContext(ctx: ZitiContext) {
-        contexts.remove(ctx)
-        if(ctx is ZitiContextImpl) {
+
+        if(ctx is ZitiContextImpl && contexts.value.contains(ctx)) {
+            val ctxs = contexts.value - ctx
+            contexts.value = ctxs
             runBlocking { ztxEvents.emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Removed, ctx)) }
             ctx.destroy()
         }
     }
 
-    fun init(ks: KeyStore, seamless: Boolean): List<ZitiContext> {
+    fun init(ks: KeyStore, seamless: Boolean): Collection<ZitiContext> {
         initInternalNetworking(seamless)
 
         for (a in ks.aliases()) {
@@ -131,7 +133,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
             }
         }
 
-        return contexts
+        return contexts.value
     }
 
     private fun isZitiIdentity(ks: KeyStore, alias: String): Boolean =
@@ -155,9 +157,9 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return ZitiDNSManager.lookup(addr.address)?.let { getServiceFor(it, addr.port) }
     }
 
-    fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = contexts.map { c ->
-            c.getServiceForAddress(host, port)?.let { Pair(c, it) }
-        }.filterNotNull().firstOrNull()
+    fun getServiceFor(host: String, port: Int): Pair<ZitiContext, Service>? = contexts.value.firstNotNullOfOrNull { c ->
+        c.getServiceForAddress(host, port)?.let { Pair(c, it) }
+    }
 
     fun connect(addr: SocketAddress): ZitiConnection {
         when (addr) {
@@ -166,7 +168,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
                 return ztx.dial(svc.name)
             }
             is ZitiAddress.Dial -> {
-                for (c in contexts) {
+                for (c in contexts.value) {
                     c.getService(addr.service)?.let {
                         return c.dial(addr)
                     }
@@ -189,14 +191,14 @@ internal object ZitiImpl : Logged by ZitiLog() {
 
     private val ztxEvents = MutableSharedFlow<Ziti.IdentityEvent>()
     internal fun getEvents(): Flow<Ziti.IdentityEvent> = flow {
-        contexts.forEach {
+        contexts.value.forEach {
             emit(Ziti.IdentityEvent(Ziti.IdentityEventType.Loaded, it))
         }
         emitAll(ztxEvents)
     }
 
     fun findDialInfo(addr: InetSocketAddress): Pair<ZitiContext, SocketAddress>? {
-        for (c in contexts) {
+        for (c in contexts.value) {
             val dial = c.getDialAddress(addr)
             if (dial != null) {
                 return c to dial
