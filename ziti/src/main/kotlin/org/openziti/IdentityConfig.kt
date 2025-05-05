@@ -20,6 +20,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 import kotlinx.serialization.json.decodeFromStream
 import org.openziti.identity.makeSSLContext
 import org.openziti.util.readCerts
@@ -34,6 +35,7 @@ import javax.net.ssl.SSLContext
 /**
  * Identity loaded from identity configuration JSON.
  */
+@JsonIgnoreUnknownKeys
 @Serializable data class IdentityConfig (
     /**
      * Ziti controller address.
@@ -94,13 +96,15 @@ import javax.net.ssl.SSLContext
 
 
     companion object {
-
+        private val jsonBuilder = Json {
+            ignoreUnknownKeys = true
+        }
         /**
          * Load identity configuration from the input stream.
          */
         @OptIn(ExperimentalSerializationApi::class)
         @JvmStatic
-        fun load(input: InputStream): IdentityConfig = Json.decodeFromStream(serializer(), input)
+        fun load(input: InputStream): IdentityConfig = jsonBuilder.decodeFromStream(serializer(), input)
 
         /**
          * Load identity configuration from the byte array.
