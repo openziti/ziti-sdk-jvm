@@ -145,9 +145,6 @@ testing {
 }
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xjvm-default=all-compatibility")
-    }
     target {
         // make sure we can test internal components
         compilations.getByName("integrationTest").associateWith(compilations.getByName("main"))

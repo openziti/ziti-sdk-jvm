@@ -76,24 +76,15 @@ data class IdentityConfig (
     /**
      * @inheritDoc
      */
-    override fun sslContext(): SSLContext = makeSSLContext(key, cert, caCerts)
+    override fun sslContext(): SSLContext = makeSSLContext(key(), cert(), caCerts())
 
-    internal val key: PrivateKey? by lazy {
-        id.key?.let {
-            readKey(it)
-        }
-    }
+    internal fun key(): PrivateKey? = id.key?.let { readKey(it) }
 
-    internal val cert: List<X509Certificate> by lazy {
-        id.cert?.let {
-            readCerts(it)
-        } ?: emptyList()
-    }
+    internal fun cert(): List<X509Certificate> = id.cert?.let {
+        readCerts(it)
+    } ?: emptyList()
 
-    internal val caCerts by lazy {
-        readCerts(id.ca)
-    }
-
+    internal fun caCerts() = readCerts(id.ca)
 
     companion object {
         val jsonMapper: ObjectMapper =
