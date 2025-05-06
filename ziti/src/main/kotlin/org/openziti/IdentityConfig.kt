@@ -16,12 +16,10 @@
 
 package org.openziti
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonIgnoreUnknownKeys
-import kotlinx.serialization.json.decodeFromStream
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.kotlinModule
 import org.openziti.identity.makeSSLContext
 import org.openziti.util.readCerts
 import org.openziti.util.readKey
@@ -35,24 +33,26 @@ import javax.net.ssl.SSLContext
 /**
  * Identity loaded from identity configuration JSON.
  */
-@JsonIgnoreUnknownKeys
-@Serializable data class IdentityConfig (
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class IdentityConfig (
     /**
      * Ziti controller address.
      */
-    @SerialName("ztAPI") val controller: String,
+    @JsonProperty("ztAPI")
+    val controller: String,
 
     /**
      * List of ziti controller addresses.
      */
-    @SerialName("ztAPIs") val apiEndpoints: Collection<String>? = listOf(controller),
+    @JsonProperty("ztAPIs")
+    val apiEndpoints: Collection<String>? = listOf(controller),
 
     /**
      * Identity credentials.
      */
     val id: Id): Identity {
 
-    @Serializable data class Id(
+    data class Id(
         /** Identity private key in PEM format */
         val key: String? = null,
         /** Identity X.509 certificate in PEM format */
@@ -65,7 +65,7 @@ import javax.net.ssl.SSLContext
      * Store identity configuration to the output stream.
      */
     fun store(output: OutputStream) {
-        output.write(json.encodeToString(this).encodeToByteArray())
+        jsonMapper.writeValue(output, this)
     }
 
     /**
@@ -96,15 +96,14 @@ import javax.net.ssl.SSLContext
 
 
     companion object {
-        private val jsonBuilder = Json {
-            ignoreUnknownKeys = true
-        }
+        val jsonMapper: ObjectMapper =
+            ObjectMapper().registerModule(kotlinModule())
         /**
          * Load identity configuration from the input stream.
          */
-        @OptIn(ExperimentalSerializationApi::class)
         @JvmStatic
-        fun load(input: InputStream): IdentityConfig = jsonBuilder.decodeFromStream(serializer(), input)
+        fun load(input: InputStream): IdentityConfig =
+            jsonMapper.readValue(input, IdentityConfig::class.java)
 
         /**
          * Load identity configuration from the byte array.
@@ -129,10 +128,6 @@ import javax.net.ssl.SSLContext
             }
 
             return load(cfg.toByteArray())
-        }
-
-        private val json = Json {
-            prettyPrint = true
         }
     }
 }

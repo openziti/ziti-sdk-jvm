@@ -16,7 +16,6 @@
 
 package org.openziti.impl
 
-import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -43,7 +42,11 @@ class LoadTests: BaseTest() {
 
     @Test
     fun testLoadConfigByteArray() {
-        val cfgBytes = Json.encodeToString(cfg).toByteArray(Charsets.UTF_8)
+
+        val cfgBytes = ByteArrayOutputStream().use {
+            cfg.store(it)
+            it.toByteArray()
+        }
 
         Ziti.init(cfgBytes, false)
 
