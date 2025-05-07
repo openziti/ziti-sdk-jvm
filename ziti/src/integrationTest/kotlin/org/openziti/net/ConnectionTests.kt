@@ -216,4 +216,10 @@ class ConnectionTests: BaseTest() {
         }
     }
 
+    @Test
+    fun closeUnconnectedSocket() = runTest(timeout = 1.seconds) {
+        val sock = Ziti.getSocketFactory().createSocket()
+        sock.close()
+        assertTrue(sock.isClosed)
+    }
 }

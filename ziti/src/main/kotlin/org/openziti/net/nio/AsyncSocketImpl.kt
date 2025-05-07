@@ -177,9 +177,14 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
         }
     }
 
-    override fun close() {
-        if (::channel.isInitialized)
-            channel.close()
+    internal fun isConnected(): Boolean = ::channel.isInitialized && channel.remoteAddress != null
+    fun isClosed(): Boolean = ::channel.isInitialized && !channel.isOpen
+
+    override fun close() = closeInternal()
+    internal fun closeInternal() {
+        if (!::channel.isInitialized)
+            channel = AsynchronousSocketChannel.open()
+        channel.close()
     }
 
     override fun getOption(optID: Int): Any? {
