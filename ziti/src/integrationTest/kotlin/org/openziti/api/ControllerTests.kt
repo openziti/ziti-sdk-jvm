@@ -44,7 +44,7 @@ class ControllerTests: BaseTest() {
 
     @Test
     fun testOttEnrollment() = runTest {
-        val ctrl = Controller(cfg.controller, cfg.sslContext())
+        val ctrl = Controller.getActiveController(cfg.controllers(), cfg.sslContext())
         val session = ctrl.login()
         assertEquals(idName, session.identity.name)
         ctrl.logout()

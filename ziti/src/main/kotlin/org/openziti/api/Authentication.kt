@@ -16,13 +16,12 @@
 
 package org.openziti.api
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.kotlinModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.future.await
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import org.openziti.edge.ApiClient
 import org.openziti.edge.api.AuthenticationApi
 import org.openziti.edge.api.CurrentApiSessionApi
@@ -128,6 +127,7 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
         val Encoder: Base64.Encoder = Base64.getUrlEncoder().withoutPadding()
         const val DISCOVERY = "/oidc/.well-known/openid-configuration"
         const val TOKEN_EXCHANGE_GRANT = "urn:ietf:params:oauth:grant-type:token-exchange"
+        val json: ObjectMapper = ObjectMapper().registerModule(kotlinModule())
     }
 
 
@@ -136,7 +136,7 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
         .followRedirects(HttpClient.Redirect.NEVER)
         .executor(Dispatchers.IO.asExecutor())
         .build()
-    lateinit var tokens: JsonObject
+    lateinit var tokens: JsonNode
 
     private val config by lazy {
         loadConfig()
@@ -166,7 +166,7 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
 
-        i{"sending auth request $req"}
+        d{"sending auth request $req"}
         val resp = http.sendAsync(req, HttpResponse.BodyHandlers.ofString()).await()
 
         if (resp.statusCode() / 100 != 3 && resp.headers().firstValue("Location").isEmpty) {
@@ -203,7 +203,7 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
         return query["code"]!! to query["state"]!!
     }
 
-    private suspend fun getTokens(ep: URI, code: String, codeVerifier: String): JsonObject {
+    private suspend fun getTokens(ep: URI, code: String, codeVerifier: String): JsonNode {
         val body = formatForm(
             mapOf(
                 "grant_type" to "authorization_code",
@@ -219,7 +219,7 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
             .POST(HttpRequest.BodyPublishers.ofString(body)).build()
 
         val tokenResp = http.sendAsync(req, HttpResponse.BodyHandlers.ofString()).await()
-        return Json.parseToJsonElement(tokenResp.body()).jsonObject
+        return json.readTree(tokenResp.body())
     }
 
     override suspend fun login(): ZitiAuthenticator.ZitiAccessToken {
@@ -230,9 +230,9 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
         val state = Encoder.encodeToString(Random.Default.nextBytes(30))
 
 
-        val authEndpoint = config["authorization_endpoint"]?.jsonPrimitive?.content
+        val authEndpoint = config["authorization_endpoint"]?.textValue()
             ?: throw Exception("Missing authorization endpoint in OIDC config")
-        val tokenEndpoint = config["token_endpoint"]?.jsonPrimitive?.content
+        val tokenEndpoint = config["token_endpoint"]?.textValue()
             ?: throw Exception("Missing token endpoint in OIDC config")
 
         val loginURI = startAuth(authEndpoint, challenge, state)
@@ -244,14 +244,14 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
         tokens = getTokens(URI.create(tokenEndpoint), code, codeVerifier)
         d{ "OIDC tokens: $tokens" }
 
-        val accessToken = tokens["access_token"]?.jsonPrimitive?.content
+        val accessToken = tokens["access_token"]?.textValue()
             ?: throw Exception("Missing access token in OIDC response")
-        val exp = OffsetDateTime.now().plusSeconds(tokens["expires_in"]?.jsonPrimitive?.content?.toLong() ?: 600)
+        val exp = OffsetDateTime.now().plusSeconds(tokens["expires_in"]?.longValue() ?: 600)
         return ZitiAuthenticator.ZitiAccessToken(ZitiAuthenticator.TokenType.BEARER, accessToken, exp)
     }
 
     override suspend fun refresh(): ZitiAuthenticator.ZitiAccessToken {
-        val refreshToken = tokens.get("refresh_token")?.jsonPrimitive?.content
+        val refreshToken = tokens.get("refresh_token")?.textValue()
 
         if (refreshToken == null) return login()
 
@@ -263,7 +263,7 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
         )
 
         val req = HttpRequest.newBuilder()
-            .uri(config["token_endpoint"]?.jsonPrimitive?.content?.let { URI.create(it) })
+            .uri(config["token_endpoint"]?.textValue()?.let { URI.create(it) })
             .header("Accept", "application/x-www-form-urlencoded")
             .POST(HttpRequest.BodyPublishers.ofString(formatForm(form)))
             .build()
@@ -274,14 +274,14 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
             return login()
         }
 
-        tokens = Json.parseToJsonElement(resp.body()).jsonObject
-        val accessToken = tokens["access_token"]?.jsonPrimitive?.content
+        tokens = json.readTree(resp.body())
+        val accessToken = tokens["access_token"]?.textValue()
             ?: throw Exception("Missing access token in OIDC response")
-        val exp = OffsetDateTime.now().plusSeconds(tokens["expires_in"]?.jsonPrimitive?.content?.toLong() ?: 600)
+        val exp = OffsetDateTime.now().plusSeconds(tokens["expires_in"]?.longValue() ?: 600)
         return ZitiAuthenticator.ZitiAccessToken(ZitiAuthenticator.TokenType.BEARER, accessToken, exp)
     }
 
-    private fun loadConfig(): JsonObject {
+    private fun loadConfig(): JsonNode {
         val url = URI.create(ep).resolve(DISCOVERY)
 
         val request = HttpRequest.newBuilder(url)
@@ -293,7 +293,7 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
             throw Exception("Failed to get OIDC config: ${response.statusCode()}")
         }
 
-        i("OIDC config response: ${response.body()}")
-        return Json.parseToJsonElement(response.body()).jsonObject
+        v {"OIDC config response: ${response.body()}"}
+        return ObjectMapper().readTree(response.body())
     }
 }
