@@ -37,26 +37,28 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ZitiTlsSocketStrategy extends DefaultClientTlsStrategy {
-  private final SSLSocketFactory zitiSslSocketFactory;
+  private SSLSocketFactory zitiSslSocketFactory;
+
+  private final SSLContext sslContext;
   private final HostnameVerificationPolicy hostnameVerificationPolicy;
 
   public ZitiTlsSocketStrategy(final SSLContext sslContext,
       final HostnameVerificationPolicy hostnameVerificationPolicy,
       final HostnameVerifier hostnameVerifier) {
     super(sslContext, hostnameVerificationPolicy, hostnameVerifier);
-    this.zitiSslSocketFactory = Ziti.getSSLSocketFactory(sslContext);
+    this.sslContext = sslContext;
     this.hostnameVerificationPolicy = hostnameVerificationPolicy;
   }
 
   public ZitiTlsSocketStrategy(final SSLContext sslContext) {
     super(sslContext);
-    this.zitiSslSocketFactory = Ziti.getSSLSocketFactory(sslContext);
+    this.sslContext = sslContext;
     this.hostnameVerificationPolicy = HostnameVerificationPolicy.BOTH;
   }
 
   @Override
   public SSLSocket upgrade(Socket socket, String target, int port, Object attachment, HttpContext context) throws IOException {
-    final SSLSocket upgradedSocket = (SSLSocket) zitiSslSocketFactory.createSocket(socket, target, port, true);
+    final SSLSocket upgradedSocket = (SSLSocket) getZitiSslSocketFactory().createSocket(socket, target, port, true);
     try {
       executeHandshake(upgradedSocket, target, attachment);
       return upgradedSocket;
@@ -95,6 +97,17 @@ public class ZitiTlsSocketStrategy extends DefaultClientTlsStrategy {
     }
     upgradedSocket.startHandshake();
     verifySession(target, upgradedSocket.getSession());
+  }
+
+  protected SSLSocketFactory getZitiSslSocketFactory() {
+    if (zitiSslSocketFactory == null) {
+      synchronized(this) {
+        if (zitiSslSocketFactory == null) {
+          zitiSslSocketFactory = Ziti.getSSLSocketFactory(sslContext);
+        }
+      }
+    }
+    return zitiSslSocketFactory;
   }
 
 }
