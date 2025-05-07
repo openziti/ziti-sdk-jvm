@@ -21,7 +21,6 @@ import kotlinx.coroutines.runBlocking
 plugins {
     id("java-library")
     alias(libs.plugins.kotlin)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
     id("maven-publish")
     alias(libs.plugins.shadow)
@@ -38,7 +37,6 @@ dependencies {
     implementation(libs.kotlin.lib)
     implementation(libs.kotlin.coroutines.lib)
     implementation(libs.kotlin.reflect)
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.slf4j.api)
     implementation(libs.gson)
     implementation(libs.jackson.bind)
@@ -160,7 +158,9 @@ tasks.register<Exec>("buildZiti") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Builds the Ziti CLI"
     environment("GOBIN", binDir.asFile.absolutePath)
-    commandLine("go", "install", "github.com/openziti/ziti/ziti@v${zitiVersion}")
+    commandLine("env",
+        "go", "install", "github.com/openziti/ziti/ziti@v${zitiVersion}"
+    )
     outputs.file(zitiCLI)
 }
 
