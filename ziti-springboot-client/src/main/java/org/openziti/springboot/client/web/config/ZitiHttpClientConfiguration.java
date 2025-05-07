@@ -36,7 +36,6 @@ import org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.http.HeaderElement;
@@ -61,7 +60,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -69,13 +67,13 @@ import lombok.extern.slf4j.Slf4j;
 public class ZitiHttpClientConfiguration {
 
   // The default timeout when requesting a connection from the connection manager.
-  private static final long DEFAULT_CONNECTION_REQUEST_TIMEOUT = 30 * 1000;
+  private static final long DEFAULT_CONNECTION_REQUEST_TIMEOUT = 30 * 1000L;
 
   // The default time to wait for data, the maximum time between two consecutive packets of data.
   private static final int DEFAULT_RESPONSE_TIMEOUT = 60 * 1000;
 
   // The default time to keep a connection alive.
-  private static final long DEFAULT_KEEP_ALIVE_TIME_MILLIS = 20 * 1000;
+  private static final long DEFAULT_KEEP_ALIVE_TIME_MILLIS = 20 * 1000L;
 
   @ConditionalOnProperty(value = "spring.ziti.client.rest-template.enabled", havingValue = "true", matchIfMissing = true)
   @Bean
@@ -114,7 +112,7 @@ public class ZitiHttpClientConfiguration {
   @ConditionalOnProperty(value = "spring.ziti.client.tls-socket-strategy.enabled", havingValue = "true", matchIfMissing = true)
   @Bean("zitiTlsSocketStrategy")
   public TlsSocketStrategy zitiTlsSocketStrategy() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-    return new DefaultClientTlsStrategy(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build());
+    return new ZitiTlsSocketStrategy(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build());
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.connection-manager.enabled", havingValue = "true", matchIfMissing = true)
