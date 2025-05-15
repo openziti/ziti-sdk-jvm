@@ -165,7 +165,11 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
                         runBlocking { readSuspend(input, to, TimeUnit.MILLISECONDS) }
                     }
                     input.flip()
-                    readCount.onSuccess { input.get(b, off, it) }
+                    readCount.onSuccess { c ->
+                        if (c > 0) {
+                            input.get(b, off, c)
+                        }
+                    }
                     inputLock.release()
                     return readCount.getOrElse { throwIOException(it) }
                 }
