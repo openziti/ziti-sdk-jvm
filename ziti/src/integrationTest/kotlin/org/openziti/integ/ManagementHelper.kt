@@ -18,9 +18,6 @@ package org.openziti.integ
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
-import okhttp3.internal.notifyAll
-import org.openziti.api.InterceptConfig
-import org.openziti.api.InterceptV1Cfg
 import org.openziti.management.ApiClient
 import org.openziti.management.JSON
 import org.openziti.management.api.AuthenticationApi

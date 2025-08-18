@@ -17,6 +17,7 @@
 package org.openziti.vertx
 
 import io.netty.channel.*
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.DatagramChannel
 import io.netty.channel.socket.InternetProtocolFamily
 import io.vertx.core.spi.transport.Transport
@@ -58,4 +59,6 @@ class ZitiTransport(val ztx: ZitiContext, val binding: Map<Int, ZitiAddress.Bind
             super.convert(address)
         }
     }
+
+    override fun ioHandlerFactory(): IoHandlerFactory = NioIoHandler.newFactory()
 }
