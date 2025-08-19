@@ -29,11 +29,9 @@ java {
 }
 
 sourceSets {
-    create("samples") {
-        kotlin {
-            compileClasspath += main.get().output + main.get().compileClasspath
-            runtimeClasspath += output + compileClasspath
-        }
+    val samples by creating {
+        compileClasspath += sourceSets.main.get().runtimeClasspath
+        runtimeClasspath += sourceSets.main.get().runtimeClasspath
     }
 }
 
@@ -42,7 +40,7 @@ dependencies {
     implementation(project(":ziti-netty"))
 
     implementation(libs.kotlin.lib)
-    implementation("io.vertx:vertx-core:4.5.14")
+    implementation(libs.vertx.core)
 
     testApi(libs.jupiter.api)
     testImplementation(libs.jupiter.engine)

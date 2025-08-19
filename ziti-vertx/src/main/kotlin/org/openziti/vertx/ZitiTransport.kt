@@ -27,7 +27,7 @@ import org.openziti.netty.ZitiServerChannelFactory
 import java.net.SocketAddress
 import java.util.concurrent.ThreadFactory
 
-class ZitiTransport(val ztx: ZitiContext, val binding: Map<Int, ZitiAddress.Bind>): Transport {
+class ZitiTransport(val ztx: ZitiContext, val binding: Map<Int, ZitiAddress.Bind> = emptyMap()): Transport {
 
     constructor(ztx: ZitiContext): this(ztx, emptyMap())
 
@@ -48,7 +48,10 @@ class ZitiTransport(val ztx: ZitiContext, val binding: Map<Int, ZitiAddress.Bind
     }
 
     override fun convert(address: io.vertx.core.net.SocketAddress?) = address?.let {
-        binding[it.port()]
+        when (it) {
+            is ZitiSocketAddress -> it.toBind()
+            else -> error("Unsupported address type: ${it.javaClass.name}")
+        }
     }
 
     override fun convert(address: SocketAddress?): io.vertx.core.net.SocketAddress? {
