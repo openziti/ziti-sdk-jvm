@@ -16,7 +16,7 @@
 
 package org.openziti.vertx.sample
 
-import io.vertx.core.impl.VertxBuilder
+import io.vertx.core.Vertx
 import org.openziti.Ziti
 import org.openziti.vertx.ZitiSocketAddress
 import org.openziti.vertx.ZitiTransport
@@ -34,10 +34,9 @@ object EchoServer {
         val ztx = Ziti.newContext(args[0], charArrayOf())
         val addr = ZitiSocketAddress(service = args[1])
 
-        val vertx = VertxBuilder()
-            .findTransport(ZitiTransport(ztx))
-            .init()
-            .vertx()
+        val vertx = Vertx.builder()
+            .withTransport(ZitiTransport(ztx))
+            .build()
 
         val server = vertx.createNetServer().connectHandler { clt ->
             println("clt[${clt.remoteAddress()}] connected")

@@ -17,12 +17,11 @@
 package org.openziti.vertx
 
 import io.vertx.core.net.SocketAddress
-import org.openziti.Identity
 import org.openziti.ZitiAddress
 
-class ZitiSocketAddress(val service: String,
-                        val identity: String? = null,
-                        val useEdgeId: Boolean = false): SocketAddress {
+class ZitiSocketAddress @JvmOverloads constructor(val service: String,
+                                                  val identity: String? = null,
+                                                  val useEdgeId: Boolean = false): SocketAddress {
     override fun host() = null
     override fun hostName() = null
     override fun hostAddress() = null
