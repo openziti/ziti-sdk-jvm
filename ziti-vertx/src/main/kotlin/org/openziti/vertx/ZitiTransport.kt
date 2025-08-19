@@ -19,7 +19,7 @@ package org.openziti.vertx
 import io.netty.channel.*
 import io.netty.channel.socket.DatagramChannel
 import io.netty.channel.socket.InternetProtocolFamily
-import io.vertx.core.spi.transport.Transport
+import io.vertx.core.transport.Transport
 import org.openziti.ZitiAddress
 import org.openziti.ZitiContext
 import org.openziti.netty.ZitiChannelFactory
@@ -27,35 +27,57 @@ import org.openziti.netty.ZitiServerChannelFactory
 import java.net.SocketAddress
 import java.util.concurrent.ThreadFactory
 
-class ZitiTransport(val ztx: ZitiContext, val binding: Map<Int, ZitiAddress.Bind>): Transport {
+class ZitiTransport @JvmOverloads constructor(
+    val ztx: ZitiContext,
+    val binding: Map<Int, ZitiAddress.Bind> = emptyMap()): Transport {
 
-    constructor(ztx: ZitiContext): this(ztx, emptyMap())
+    private class Impl(private val ztx: ZitiContext, private val binding: Map<Int, ZitiAddress.Bind>): io.vertx.core.spi.transport.Transport {
 
-    override fun channelFactory(domainSocket: Boolean): ChannelFactory<out Channel> = ZitiChannelFactory(ztx)
+        override fun channelFactory(domainSocket: Boolean): ChannelFactory<out Channel> = ZitiChannelFactory(ztx)
 
-    override fun serverChannelFactory(domainSocket: Boolean): ChannelFactory<out ServerChannel> =
-        ZitiServerChannelFactory(ztx, binding)
+        override fun serverChannelFactory(domainSocket: Boolean): ChannelFactory<out ServerChannel> =
+            ZitiServerChannelFactory(ztx, binding)
 
-    override fun eventLoopGroup(type: Int, nThreads: Int, threadFactory: ThreadFactory?, ioRatio: Int): EventLoopGroup =
-        DefaultEventLoopGroup(nThreads, threadFactory)
+        override fun eventLoopGroup(
+            type: Int,
+            nThreads: Int,
+            threadFactory: ThreadFactory?,
+            ioRatio: Int
+        ): EventLoopGroup =
+            DefaultEventLoopGroup(nThreads, threadFactory)
 
-    override fun datagramChannel(): DatagramChannel {
-        error("Not supported")
-    }
-
-    override fun datagramChannel(family: InternetProtocolFamily?): DatagramChannel {
-        error("Not supported")
-    }
-
-    override fun convert(address: io.vertx.core.net.SocketAddress?) = address?.let {
-        binding[it.port()]
-    }
-
-    override fun convert(address: SocketAddress?): io.vertx.core.net.SocketAddress? {
-        return if (address is ZitiAddress.Session) {
-            io.vertx.core.net.SocketAddress.domainSocketAddress("${address.service}/${address.callerId}")
-        } else {
-            super.convert(address)
+        override fun datagramChannel(): DatagramChannel {
+            error("Not supported")
         }
+
+        override fun datagramChannel(family: InternetProtocolFamily?): DatagramChannel {
+            error("Not supported")
+        }
+
+        override fun convert(address: io.vertx.core.net.SocketAddress?) = address?.let {
+            when (it) {
+                is ZitiSocketAddress -> it.toBind()
+                else -> error("Unsupported address type: ${it.javaClass.name}")
+            }
+        }
+
+        override fun convert(address: SocketAddress?): io.vertx.core.net.SocketAddress? {
+            return if (address is ZitiAddress.Session) {
+                io.vertx.core.net.SocketAddress.domainSocketAddress("${address.service}/${address.callerId}")
+            } else {
+                super.convert(address)
+            }
+        }
+
+        // this does not appear to be needed at this time
+        override fun ioHandlerFactory(): IoHandlerFactory = error("Not yet implemented")
     }
+
+    override fun name(): String = "ZitiTransport[${ztx.name()}]"
+
+    override fun available(): Boolean = true
+
+    override fun unavailabilityCause() = null
+
+    override fun implementation(): io.vertx.core.spi.transport.Transport  = Impl(ztx, binding)
 }

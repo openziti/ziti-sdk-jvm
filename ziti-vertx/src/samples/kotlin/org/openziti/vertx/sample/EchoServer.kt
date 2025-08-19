@@ -16,9 +16,9 @@
 
 package org.openziti.vertx.sample
 
-import io.vertx.core.impl.VertxBuilder
+import io.vertx.core.Vertx
 import org.openziti.Ziti
-import org.openziti.ZitiAddress
+import org.openziti.vertx.ZitiSocketAddress
 import org.openziti.vertx.ZitiTransport
 
 object EchoServer {
@@ -32,24 +32,22 @@ object EchoServer {
         }
 
         val ztx = Ziti.newContext(args[0], charArrayOf())
-        val binding = mapOf(8080 to ZitiAddress.Bind(service = args[1]))
+        val addr = ZitiSocketAddress(service = args[1])
 
-        val vertx = VertxBuilder()
-            .findTransport(ZitiTransport(ztx, binding))
-            .init()
-            .vertx()
+        val vertx = Vertx.builder()
+            .withTransport(ZitiTransport(ztx))
+            .build()
 
-        vertx.createNetServer().apply {
-            connectHandler { clt ->
-                println("clt[${clt.remoteAddress()}] connected")
-                clt.handler {
-                    clt.write(it)
-                }
-                clt.endHandler {
-                    println("clt[${clt.remoteAddress()}] disconnected")
-                }
+        val server = vertx.createNetServer().connectHandler { clt ->
+            println("clt[${clt.remoteAddress()}] connected")
+            clt.handler {
+                clt.write(it)
             }
-            listen(8080)
+            clt.endHandler {
+                println("clt[${clt.remoteAddress()}] disconnected")
+            }
         }
+
+        server.listen(addr)
     }
 }

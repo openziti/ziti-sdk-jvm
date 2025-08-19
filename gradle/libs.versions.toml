@@ -22,6 +22,7 @@ gson = "2.13.1"
 tls-channel = "0.9.1"
 jjwt = "0.12.6"
 netty = "4.2.1.Final"
+vertx = "5.0.1"
 lombok = "1.18.36"
 springboot = "3.2.5"
 jackson = "2.19.0"
@@ -57,6 +58,7 @@ jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", v
 
 netty-transport = { group = "io.netty", name = "netty-transport", version.ref = "netty" }
 netty-http = { group = "io.netty", name = "netty-codec-http", version.ref = "netty" }
+vertx-core = { group = "io.vertx", name = "vertx-core", version.ref = "vertx" }
 
 jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson" }
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
