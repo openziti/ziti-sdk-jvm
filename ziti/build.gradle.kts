@@ -115,7 +115,6 @@ java {
 }
 
 tasks.named<ShadowJar>("shadowJar") {
-    manifest.inheritFrom(tasks.jar.get().manifest)
     archiveClassifier.set("full")
     mergeServiceFiles()
     configurations = listOf(project.configurations.runtimeClasspath.get())

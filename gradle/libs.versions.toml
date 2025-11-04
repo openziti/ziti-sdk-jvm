@@ -6,7 +6,7 @@ nexus = "2.0.0"
 semver-git = "2.3.7"
 openapi-gen = "7.17.0"
 spotless = "8.0.0"
-shadow-jar = "9.0.2"
+shadow-jar = "9.2.2"
 download = "5.6.0"
 
 # OpenZiti Edge API
