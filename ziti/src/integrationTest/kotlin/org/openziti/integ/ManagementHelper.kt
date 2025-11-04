@@ -134,13 +134,14 @@ internal object ManagementHelper {
 
 
         val exp = OffsetDateTime.now().plusDays(1)
+        val id = identity.id!!
         val enrollReq = EnrollmentCreate()
-            .identityId(identity.id!!)
+            .identityId(id)
             .method(EnrollmentCreate.MethodEnum.OTT)
             .expiresAt(exp)
         enrollmentApi.createEnrollment(enrollReq).waitFor()
 
-        return identityApi.getIdentityEnrollments(identity.id).waitFor().data.first().jwt!!
+        return identityApi.getIdentityEnrollments(id).waitFor().data.first().jwt!!
     }
 
     internal fun <T> CompletableFuture<T>.waitFor(timeout: Duration = Duration.of(5, ChronoUnit.SECONDS)): T =
