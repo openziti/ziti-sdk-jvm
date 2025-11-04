@@ -40,7 +40,6 @@ tasks.register<Jar>("packageJavadoc") {
 }
 
 tasks.named<ShadowJar>("shadowJar") {
-    manifest.from(tasks.jar.get().manifest)
     archiveClassifier.set("full")
     configurations = listOf(project.configurations.runtimeClasspath.get())
     mergeServiceFiles()
