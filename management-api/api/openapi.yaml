@@ -9,12 +9,14 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Management
-  version: 0.26.42
+  version: 0.26.51
 servers:
 - url: https://demo.ziti.dev/edge/management/v1
 paths:
   /:
     get:
+      x-accepts:
+      - application/json
       operationId: listRoot
       responses:
         "200":
@@ -27,14 +29,14 @@ paths:
       summary: Returns version information
       tags:
       - Informational
-      x-accepts:
-      - application/json
   /.well-known/est/cacerts:
     get:
       description: |
         This endpoint is used during enrollments to bootstrap trust between enrolling clients and the Ziti Edge API.
         This endpoint returns a base64 encoded PKCS7 store. The content can be base64 decoded and parsed by any library
         that supports parsing PKCS7 stores.
+      x-accepts:
+      - application/pkcs7-mime
       operationId: listWellKnownCas
       responses:
         "200":
@@ -114,13 +116,14 @@ paths:
       summary: Get CA Cert Store
       tags:
       - Well Known
-      x-accepts:
-      - application/pkcs7-mime
   /api-sessions:
     get:
       description: |
         Returns a list of active API sessions. The resources can be sorted, filtered, and paginated. This endpoint
         requires admin access.
+      x-accepts:
+      - application/json
+      - application/json; charset=utf-8
       operationId: listAPISessions
       parameters:
       - in: query
@@ -228,12 +231,11 @@ paths:
       summary: List active API sessions
       tags:
       - API Session
-      x-accepts:
-      - application/json
-      - application/json; charset=utf-8
   /api-sessions/{id}:
     delete:
       description: Deletes and API sesion by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteAPISessions
       parameters:
       - description: The id of the requested resource
@@ -339,10 +341,10 @@ paths:
       summary: Deletes an API Sessions
       tags:
       - API Session
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single API Session by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailAPISessions
       parameters:
       - description: The id of the requested resource
@@ -429,11 +431,11 @@ paths:
       summary: Retrieves a single API Session
       tags:
       - API Session
-      x-accepts:
-      - application/json
   /auth-policies:
     get:
       description: Retrieves a list of Auth Policies
+      x-accepts:
+      - application/json
       operationId: listAuthPolicies
       parameters:
       - in: query
@@ -538,10 +540,12 @@ paths:
       summary: List Auth Policies
       tags:
       - Auth Policy
-      x-accepts:
-      - application/json
     post:
       description: Creates an Auth Policy. Requires admin access.
+      x-codegen-request-body-name: authPolicy
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createAuthPolicy
       requestBody:
         content:
@@ -641,14 +645,12 @@ paths:
       summary: Creates an Auth Policy
       tags:
       - Auth Policy
-      x-codegen-request-body-name: authPolicy
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /auth-policies/{id}:
     delete:
       description: |
         Delete an Auth Policy by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteAuthPolicy
       parameters:
       - description: The id of the requested resource
@@ -766,10 +768,10 @@ paths:
       summary: Delete an Auth Policy
       tags:
       - Auth Policy
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single Auth Policy by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailAuthPolicy
       parameters:
       - description: The id of the requested resource
@@ -856,11 +858,13 @@ paths:
       summary: Retrieves a single Auth Policy
       tags:
       - Auth Policy
-      x-accepts:
-      - application/json
     patch:
       description: Update only the supplied fields on an Auth Policy by id. Requires
         admin access.
+      x-codegen-request-body-name: authPolicy
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchAuthPolicy
       parameters:
       - description: The id of the requested resource
@@ -985,12 +989,12 @@ paths:
       summary: Update the supplied fields on an Auth Policy
       tags:
       - Auth Policy
+    put:
+      description: Update all fields on an Auth Policy by id. Requires admin access.
       x-codegen-request-body-name: authPolicy
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on an Auth Policy by id. Requires admin access.
       operationId: updateAuthPolicy
       parameters:
       - description: The id of the requested resource
@@ -1115,14 +1119,15 @@ paths:
       summary: Update all fields on an Auth Policy
       tags:
       - Auth Policy
-      x-codegen-request-body-name: authPolicy
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /authenticate:
     post:
       description: |
         Allowed authentication methods include "password", "cert", and "ext-jwt"
+      x-codegen-request-body-name: auth
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+      - default
       operationId: authenticate
       parameters:
       - in: query
@@ -1243,15 +1248,14 @@ paths:
       summary: Authenticate via a method supplied via a query string parameter
       tags:
       - Authentication
-      x-codegen-request-body-name: auth
-      x-content-type: application/json
-      x-accepts:
-      - application/json
-      - default
   /authenticate/mfa:
     post:
       description: Completes MFA authentication by submitting a MFA time based one
         time token or backup code.
+      x-codegen-request-body-name: mfaAuth
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: authenticateMfa
       requestBody:
         content:
@@ -1300,15 +1304,13 @@ paths:
       tags:
       - Authentication
       - MFA
-      x-codegen-request-body-name: mfaAuth
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /authenticators:
     get:
       description: |
         Returns a list of authenticators associated to identities. The resources can be sorted, filtered, and paginated.
         This endpoint requires admin access.
+      x-accepts:
+      - application/json
       operationId: listAuthenticators
       parameters:
       - in: query
@@ -1413,11 +1415,13 @@ paths:
       summary: List authenticators
       tags:
       - Authenticator
-      x-accepts:
-      - application/json
     post:
       description: |
         Creates an authenticator for a specific identity. Requires admin access.
+      x-codegen-request-body-name: authenticator
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createAuthenticator
       requestBody:
         content:
@@ -1517,15 +1521,13 @@ paths:
       summary: Creates an authenticator
       tags:
       - Authenticator
-      x-codegen-request-body-name: authenticator
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /authenticators/{id}:
     delete:
       description: |
         Delete an authenticator by id. Deleting all authenticators for an identity will make it impossible to log in.
         Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -1643,10 +1645,10 @@ paths:
       summary: Delete an Authenticator
       tags:
       - Authenticator
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single authenticator by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -1733,11 +1735,13 @@ paths:
       summary: Retrieves a single authenticator
       tags:
       - Authenticator
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on an authenticator by id. Requires
         admin access.
+      x-codegen-request-body-name: authenticator
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -1862,12 +1866,12 @@ paths:
       summary: Update the supplied fields on an authenticator
       tags:
       - Authenticator
+    put:
+      description: Update all fields on an authenticator by id. Requires admin access.
       x-codegen-request-body-name: authenticator
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on an authenticator by id. Requires admin access.
       operationId: updateAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -1992,10 +1996,6 @@ paths:
       summary: Update all fields on an authenticator
       tags:
       - Authenticator
-      x-codegen-request-body-name: authenticator
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /authenticators/{id}/re-enroll:
     post:
       description: "Allows an authenticator to be reverted to an enrollment and allows\
@@ -2004,6 +2004,10 @@ paths:
         enrollment created depends on the authenticator. UPDB authenticators result\
         \ in UPDB enrollments, CERT\nauthenticators result in OTT enrollments, CERT\
         \ + CA authenticators result in OTTCA enrollments.\n"
+      x-codegen-request-body-name: reEnroll
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: reEnrollAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -2098,14 +2102,127 @@ paths:
       summary: Reverts an authenticator to an enrollment
       tags:
       - Authenticator
-      x-codegen-request-body-name: reEnroll
+  /authenticators/{id}/request-extend:
+    post:
+      description: "Allows a certificate authenticator to be flagged for early extension\
+        \ and optionally private key rolling. \nConnecting clients will receive flags\
+        \ in their API Session indicating that an early extension is request and\n\
+        a hint on whether private keys should be rolled. Clients that do not support\
+        \ extension or cannot roll keys\nmay ignore one or both flags.\n\nIf this\
+        \ request is made against a non-certificate based authenticator, it will return\
+        \ a 403-forbidden error.\n"
+      x-codegen-request-body-name: requestExtendAuthenticator
       x-content-type: application/json
       x-accepts:
       - application/json
+      operationId: requestExtendAuthenticator
+      parameters:
+      - description: The id of the requested resource
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/requestExtendAuthenticator"
+        description: A request to flag a certificate authenticator for early extension/key
+          rolling.
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/empty"
+          description: Base empty response
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed and will never complete
+            due to unchangeable state or conflicts.
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Indicate a certificate authenticator should be extended and optionally
+        key rolled on next authentication.
+      tags:
+      - Authenticator
   /cas:
     get:
       description: "Retrieves a list of CA resources; supports filtering, sorting,\
         \ and pagination. Requires admin access."
+      x-accepts:
+      - application/json
       operationId: listCas
       parameters:
       - in: query
@@ -2210,10 +2327,12 @@ paths:
       summary: List CAs
       tags:
       - Certificate Authority
-      x-accepts:
-      - application/json
     post:
       description: Creates a CA in an unverified state. Requires admin access.
+      x-codegen-request-body-name: ca
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createCa
       requestBody:
         content:
@@ -2313,15 +2432,13 @@ paths:
       summary: Creates a CA
       tags:
       - Certificate Authority
-      x-codegen-request-body-name: ca
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /cas/{id}:
     delete:
       description: |
         Delete a CA by id. Deleting a CA will delete its associated certificate authenticators. This can make it
         impossible for identities to authenticate if they no longer have any valid authenticators. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteCa
       parameters:
       - description: The id of the requested resource
@@ -2439,10 +2556,10 @@ paths:
       summary: Delete a CA
       tags:
       - Certificate Authority
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single CA by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailCa
       parameters:
       - description: The id of the requested resource
@@ -2529,10 +2646,12 @@ paths:
       summary: Retrieves a single CA
       tags:
       - Certificate Authority
-      x-accepts:
-      - application/json
     patch:
       description: Update only the supplied fields on a CA by id. Requires admin access.
+      x-codegen-request-body-name: ca
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchCa
       parameters:
       - description: The id of the requested resource
@@ -2657,12 +2776,12 @@ paths:
       summary: Update the supplied fields on a CA
       tags:
       - Certificate Authority
+    put:
+      description: Update all fields on a CA by id. Requires admin access.
       x-codegen-request-body-name: ca
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a CA by id. Requires admin access.
       operationId: updateCa
       parameters:
       - description: The id of the requested resource
@@ -2787,15 +2906,14 @@ paths:
       summary: Update all fields on a CA
       tags:
       - Certificate Authority
-      x-codegen-request-body-name: ca
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /cas/{id}/jwt:
     get:
       description: |
         For CA auto enrollment, the enrollment JWT is static and provided on each CA resource. This endpoint provides
         the jwt as a text response.
+      x-accepts:
+      - application/json
+      - application/jwt
       operationId: getCaJwt
       parameters:
       - description: The id of the requested resource
@@ -2890,15 +3008,16 @@ paths:
       summary: Retrieve the enrollment JWT for a CA
       tags:
       - Certificate Authority
-      x-accepts:
-      - application/json
-      - application/jwt
   /cas/{id}/verify:
     post:
       description: |
         Allows a CA to become verified by submitting a certificate in PEM format that has been signed by the target CA.
         The common name on the certificate must match the verificationToken property of the CA. Unverfieid CAs can not
         be used for enrollment/authentication. Requires admin access.
+      x-codegen-request-body-name: certificate
+      x-content-type: text/plain
+      x-accepts:
+      - application/json
       operationId: verifyCa
       parameters:
       - description: The id of the requested resource
@@ -3023,14 +3142,12 @@ paths:
       summary: Verify a CA
       tags:
       - Certificate Authority
-      x-codegen-request-body-name: certificate
-      x-content-type: text/plain
-      x-accepts:
-      - application/json
   /config-types:
     get:
       description: |
         Retrieves a list of config-type resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listConfigTypes
       parameters:
       - in: query
@@ -3135,9 +3252,11 @@ paths:
       summary: List config-types
       tags:
       - Config
+    post:
+      x-codegen-request-body-name: configType
+      x-content-type: application/json
       x-accepts:
       - application/json
-    post:
       operationId: createConfigType
       requestBody:
         content:
@@ -3237,15 +3356,13 @@ paths:
       summary: Create a config-type. Requires admin access.
       tags:
       - Config
-      x-codegen-request-body-name: configType
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /config-types/{id}:
     delete:
       description: Delete a config-type by id. Removing a configuration type that
         are in use will result in a 409 conflict HTTP status code and error. All configurations
         of a type must be removed first.
+      x-accepts:
+      - application/json
       operationId: deleteConfigType
       parameters:
       - description: The id of the requested resource
@@ -3383,10 +3500,10 @@ paths:
       summary: Delete a config-type
       tags:
       - Config
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single config-type by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailConfigType
       parameters:
       - description: The id of the requested resource
@@ -3473,10 +3590,12 @@ paths:
       summary: Retrieves a single config-type
       tags:
       - Config
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on a config-type. Requires admin access.
+      x-codegen-request-body-name: configType
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchConfigType
       parameters:
       - description: The id of the requested resource
@@ -3601,12 +3720,12 @@ paths:
       summary: Update the supplied fields on a config-type
       tags:
       - Config
+    put:
+      description: Update all fields on a config-type by id. Requires admin access.
       x-codegen-request-body-name: configType
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a config-type by id. Requires admin access.
       operationId: updateConfigType
       parameters:
       - description: The id of the requested resource
@@ -3731,13 +3850,11 @@ paths:
       summary: Update all fields on a config-type
       tags:
       - Config
-      x-codegen-request-body-name: configType
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /config-types/{id}/configs:
     get:
       description: Lists the configs associated to a config-type. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listConfigsForConfigType
       parameters:
       - description: The id of the requested resource
@@ -3806,12 +3923,12 @@ paths:
       summary: Lists the configs of a specific config-type
       tags:
       - Config
-      x-accepts:
-      - application/json
   /configs:
     get:
       description: |
         Retrieves a list of config resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listConfigs
       parameters:
       - in: query
@@ -3916,10 +4033,12 @@ paths:
       summary: List configs
       tags:
       - Config
-      x-accepts:
-      - application/json
     post:
       description: Create a config resource. Requires admin access.
+      x-codegen-request-body-name: config
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createConfig
       requestBody:
         content:
@@ -4019,13 +4138,11 @@ paths:
       summary: Create a config resource
       tags:
       - Config
-      x-codegen-request-body-name: config
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /configs/{id}:
     delete:
       description: Delete a config by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteConfig
       parameters:
       - description: The id of the requested resource
@@ -4163,10 +4280,10 @@ paths:
       summary: Delete a config
       tags:
       - Config
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single config by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailConfig
       parameters:
       - description: The id of the requested resource
@@ -4253,10 +4370,12 @@ paths:
       summary: Retrieves a single config
       tags:
       - Config
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on a config. Requires admin access.
+      x-codegen-request-body-name: config
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchConfig
       parameters:
       - description: The id of the requested resource
@@ -4381,12 +4500,12 @@ paths:
       summary: Update the supplied fields on a config
       tags:
       - Config
+    put:
+      description: Update all fields on a config by id. Requires admin access.
       x-codegen-request-body-name: config
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a config by id. Requires admin access.
       operationId: updateConfig
       parameters:
       - description: The id of the requested resource
@@ -4511,14 +4630,12 @@ paths:
       summary: Update all fields on a config
       tags:
       - Config
-      x-codegen-request-body-name: config
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /configs/{id}/services:
     get:
       description: |
         Retrieves a list of service resources that reference a given config; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listConfigServices
       parameters:
       - description: The id of the requested resource
@@ -4617,12 +4734,12 @@ paths:
       summary: List services referenced by a config
       tags:
       - Config
-      x-accepts:
-      - application/json
   /controller-settings:
     get:
       description: |
         Retrieves a list controller settings including the base `global` settings object and any overriding controller specific settings.
+      x-accepts:
+      - application/json
       operationId: listControllerSettings
       parameters:
       - in: query
@@ -4720,11 +4837,13 @@ paths:
       summary: List controller settings
       tags:
       - Settings
-      x-accepts:
-      - application/json
     post:
       description: Create a new controller specific settings object. Requires admin
         access.
+      x-codegen-request-body-name: controllerSetting
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createControllerSetting
       requestBody:
         content:
@@ -4817,14 +4936,12 @@ paths:
       summary: Create a controller specific setting
       tags:
       - Settings
-      x-codegen-request-body-name: controllerSetting
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /controller-settings/{id}:
     get:
       description: Retrieves a single controller setting object by id. Requires admin
         access.
+      x-accepts:
+      - application/json
       operationId: detailControllerSetting
       parameters:
       - description: The id of the requested resource
@@ -4904,11 +5021,11 @@ paths:
       summary: Retrieves a single controller setting object.
       tags:
       - Settings
-      x-accepts:
-      - application/json
   /controller-settings/{id}/effective:
     delete:
       description: Delete a controller setting object by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteControllerSetting
       parameters:
       - description: The id of the requested resource
@@ -5021,11 +5138,11 @@ paths:
       summary: Delete a controller setting object
       tags:
       - Settings
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single controller's effective setting object by id.
         Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailControllerSettingEffective
       parameters:
       - description: The id of the requested resource
@@ -5106,11 +5223,13 @@ paths:
         the instance and global configuration.
       tags:
       - Settings
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on a controller setting object. Requires
         admin access.
+      x-codegen-request-body-name: controllerSetting
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchControllerSetting
       parameters:
       - description: The id of the requested resource
@@ -5228,13 +5347,13 @@ paths:
       summary: Update the supplied fields on a controller setting object
       tags:
       - Settings
+    put:
+      description: Update all fields on a controller setting object by id. Requires
+        admin access.
       x-codegen-request-body-name: controllerSetting
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a controller setting object by id. Requires
-        admin access.
       operationId: updateControllerSetting
       parameters:
       - description: The id of the requested resource
@@ -5352,13 +5471,11 @@ paths:
       summary: Update all fields on a controller setting object
       tags:
       - Settings
-      x-codegen-request-body-name: controllerSetting
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /controllers:
     get:
       description: Retrieves a list of controllers
+      x-accepts:
+      - application/json
       operationId: listControllers
       parameters:
       - in: query
@@ -5456,11 +5573,11 @@ paths:
       summary: List controllers
       tags:
       - Controllers
-      x-accepts:
-      - application/json
   /current-api-session:
     delete:
       description: Terminates the current API session
+      x-accepts:
+      - application/json
       responses:
         "200":
           content:
@@ -5495,10 +5612,11 @@ paths:
       summary: Logout
       tags:
       - Current API Session
-      x-accepts:
-      - application/json
     get:
       description: Retrieves the API session that was used to issue the current request
+      x-accepts:
+      - application/json
+      - default
       operationId: getCurrentAPISession
       responses:
         "200":
@@ -5558,13 +5676,84 @@ paths:
       summary: Return the current API session
       tags:
       - Current API Session
+  /current-api-session/totp-token:
+    post:
+      description: |
+        Creates a TOTP token that proves TOTP validation occurred at a specific time. Used in posture response for posture checks.
+      x-codegen-request-body-name: mfaValidation
+      x-content-type: application/json
       x-accepts:
       - application/json
-      - default
+      operationId: createTotpToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/mfaCode"
+        description: An MFA TOTP validation request
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/totpTokenEnvelope"
+          description: "A TOTP token create response, contains a token used to satisfy\
+            \ posture checks"
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Create an MFA TOTP token that proves TOTP code checking has passed
+        as a specific time for posture checks.
+      tags:
+      - Current API Session
+      - MFA
   /current-identity:
     get:
       description: Returns the identity associated with the API sessions used to issue
         the current request
+      x-accepts:
+      - application/json
+      - default
       operationId: getCurrentIdentity
       responses:
         "200":
@@ -5631,13 +5820,12 @@ paths:
       summary: Return the current identity
       tags:
       - Current Identity
-      x-accepts:
-      - application/json
-      - default
   /current-identity/authenticators:
     get:
       description: "Retrieves a list of authenticators assigned to the current API\
         \ session's identity; supports filtering, sorting, and pagination."
+      x-accepts:
+      - application/json
       operationId: listCurrentIdentityAuthenticators
       parameters:
       - in: query
@@ -5716,12 +5904,12 @@ paths:
       summary: List authenticators for the current identity
       tags:
       - Current API Session
-      x-accepts:
-      - application/json
   /current-identity/authenticators/{id}:
     get:
       description: Retrieves a single authenticator by id. Will only show authenticators
         assigned to the API session's identity.
+      x-accepts:
+      - application/json
       operationId: detailCurrentIdentityAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -5782,12 +5970,14 @@ paths:
       summary: Retrieve an authenticator for the current identity
       tags:
       - Current API Session
-      x-accepts:
-      - application/json
     patch:
       description: |
         Update the supplied fields on an authenticator by id. Will only update authenticators assigned to the API
         session's identity.
+      x-codegen-request-body-name: authenticator
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchCurrentIdentityAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -5886,14 +6076,14 @@ paths:
       summary: Update the supplied fields on an authenticator of this identity
       tags:
       - Current API Session
-      x-codegen-request-body-name: authenticator
-      x-content-type: application/json
-      x-accepts:
-      - application/json
     put:
       description: |
         Update all fields on an authenticator by id.  Will only update authenticators assigned to the API session's
         identity.
+      x-codegen-request-body-name: authenticator
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: updateCurrentIdentityAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -5992,10 +6182,6 @@ paths:
       summary: Update all fields on an authenticator of this identity
       tags:
       - Current API Session
-      x-codegen-request-body-name: authenticator
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /current-identity/authenticators/{id}/extend:
     post:
       description: |-
@@ -6003,6 +6189,10 @@ paths:
         Allows an identity to extend its certificate's expiration date by using its current and valid client certificate to submit a CSR. This CSR may be passed in using a new private key, thus allowing private key rotation.
         The response from this endpoint is a new client certificate which the client must  be verified via the /authenticators/{id}/extend-verify endpoint.
         After verification is completion any new connections must be made with new certificate. Prior to verification the old client certificate remains active.
+      x-codegen-request-body-name: extend
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: extendCurrentIdentityAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -6054,15 +6244,15 @@ paths:
       - Current API Session
       - Enroll
       - Extend Enrollment
-      x-codegen-request-body-name: extend
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /current-identity/authenticators/{id}/extend-verify:
     post:
       description: |-
         After submitting a CSR for a new client certificate the resulting public certificate must be re-submitted to this endpoint to verify receipt.
         After receipt, the new client certificate must be used for new authentication requests.
+      x-codegen-request-body-name: extend
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: extendVerifyCurrentIdentityAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -6113,14 +6303,12 @@ paths:
       - Current API Session
       - Enroll
       - Extend Enrollment
-      x-codegen-request-body-name: extend
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /current-identity/mfa:
     delete:
       description: |
         Disable MFA for the current identity. Requires a current valid time based one time password if MFA enrollment has been completed. If not, code should be an empty string. If one time passwords are not available and admin account can be used to remove MFA from the identity via `DELETE /identities/<id>/mfa`.
+      x-accepts:
+      - application/json
       operationId: deleteMfa
       parameters:
       - in: header
@@ -6180,11 +6368,11 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-accepts:
-      - application/json
     get:
       description: |
         Returns details about the current MFA enrollment. If enrollment has not been completed it will return the current MFA configuration details necessary to complete a `POST /current-identity/mfa/verify`.
+      x-accepts:
+      - application/json
       operationId: detailMfa
       responses:
         "200":
@@ -6239,11 +6427,11 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-accepts:
-      - application/json
     post:
       description: |
         Allows authenticator based MFA enrollment. If enrollment has already been completed, it must be disabled before attempting to re-enroll. Subsequent enrollment request is completed via `POST /current-identity/mfa/verify`
+      x-accepts:
+      - application/json
       operationId: enrollMfa
       responses:
         "201":
@@ -6296,12 +6484,12 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-accepts:
-      - application/json
   /current-identity/mfa/qr-code:
     get:
       description: |
         Shows an QR code image for unverified MFA enrollments. 404s if the MFA enrollment has been completed or not started.
+      x-accepts:
+      - application/json
       operationId: detailMfaQrCode
       responses:
         "200":
@@ -6318,12 +6506,14 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-accepts:
-      - application/json
   /current-identity/mfa/recovery-codes:
     get:
       description: |
         Allows the viewing of recovery codes of an MFA enrollment. Requires a current valid time based one time password to interact with. Available after a completed MFA enrollment.
+      x-codegen-request-body-name: mfaValidation
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: detailMfaRecoveryCodes
       parameters:
       - in: header
@@ -6390,13 +6580,13 @@ paths:
       tags:
       - Current Identity
       - MFA
+    post:
+      description: |
+        Allows regeneration of recovery codes of an MFA enrollment. Requires a current valid time based one time password to interact with. Available after a completed MFA enrollment. This replaces all existing recovery codes.
       x-codegen-request-body-name: mfaValidation
       x-content-type: application/json
       x-accepts:
       - application/json
-    post:
-      description: |
-        Allows regeneration of recovery codes of an MFA enrollment. Requires a current valid time based one time password to interact with. Available after a completed MFA enrollment. This replaces all existing recovery codes.
       operationId: createMfaRecoveryCodes
       requestBody:
         content:
@@ -6458,14 +6648,14 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-codegen-request-body-name: mfaValidation
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /current-identity/mfa/verify:
     post:
       description: |
         Completes MFA enrollment by accepting a time based one time password as verification. Called after MFA enrollment has been initiated via `POST /current-identity/mfa`.
+      x-codegen-request-body-name: mfaValidation
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: verifyMfa
       requestBody:
         content:
@@ -6527,14 +6717,12 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-codegen-request-body-name: mfaValidation
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /database/check-data-integrity:
     post:
       description: "Starts a data integrity scan on the datastore. Requires admin\
         \ access. Only once instance may run at a time, including runs of fixDataIntegrity."
+      x-accepts:
+      - application/json
       operationId: checkDataIntegrity
       responses:
         "202":
@@ -6589,12 +6777,12 @@ paths:
       summary: Starts a data integrity scan on the datastore
       tags:
       - Database
-      x-accepts:
-      - application/json
   /database/data-integrity-results:
     get:
       description: Returns any results found from in-progress integrity checks. Requires
         admin access.
+      x-accepts:
+      - application/json
       operationId: dataIntegrityResults
       responses:
         "200":
@@ -6656,13 +6844,13 @@ paths:
       summary: Returns any results found from in-progress integrity checks
       tags:
       - Database
-      x-accepts:
-      - application/json
   /database/fix-data-integrity:
     post:
       description: "Runs a data integrity scan on the datastore, attempts to fix any\
         \ issues it can, and returns any found issues. Requires admin access. Only\
         \ once instance may run at a time, including runs of checkDataIntegrity."
+      x-accepts:
+      - application/json
       operationId: fixDataIntegrity
       responses:
         "202":
@@ -6718,11 +6906,11 @@ paths:
         \ it can and returns any found issues"
       tags:
       - Database
-      x-accepts:
-      - application/json
   /database/snapshot:
     post:
       description: Create a new database snapshot. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: createDatabaseSnapshot
       responses:
         "200":
@@ -6777,12 +6965,12 @@ paths:
       summary: Create a new database snapshot
       tags:
       - Database
-      x-accepts:
-      - application/json
   /edge-router-policies:
     get:
       description: |
         Retrieves a list of edge router policy resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listEdgeRouterPolicies
       parameters:
       - in: query
@@ -6887,10 +7075,12 @@ paths:
       summary: List edge router policies
       tags:
       - Edge Router Policy
-      x-accepts:
-      - application/json
     post:
       description: Create an edge router policy resource. Requires admin access.
+      x-codegen-request-body-name: policy
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createEdgeRouterPolicy
       requestBody:
         content:
@@ -6990,13 +7180,11 @@ paths:
       summary: Create an edge router policy resource
       tags:
       - Edge Router Policy
-      x-codegen-request-body-name: policy
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /edge-router-policies/{id}:
     delete:
       description: Delete an edge router policy by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteEdgeRouterPolicy
       parameters:
       - description: The id of the requested resource
@@ -7134,10 +7322,10 @@ paths:
       summary: Delete an edge router policy
       tags:
       - Edge Router Policy
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single edge router policy by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailEdgeRouterPolicy
       parameters:
       - description: The id of the requested resource
@@ -7224,11 +7412,13 @@ paths:
       summary: Retrieves a single edge router policy
       tags:
       - Edge Router Policy
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on an edge router policy. Requires admin
         access.
+      x-codegen-request-body-name: policy
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchEdgeRouterPolicy
       parameters:
       - description: The id of the requested resource
@@ -7353,13 +7543,13 @@ paths:
       summary: Update the supplied fields on an edge router policy
       tags:
       - Edge Router Policy
+    put:
+      description: Update all fields on an edge router policy by id. Requires admin
+        access.
       x-codegen-request-body-name: policy
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on an edge router policy by id. Requires admin
-        access.
       operationId: updateEdgeRouterPolicy
       parameters:
       - description: The id of the requested resource
@@ -7484,14 +7674,12 @@ paths:
       summary: Update all fields on an edge router policy
       tags:
       - Edge Router Policy
-      x-codegen-request-body-name: policy
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /edge-router-policies/{id}/edge-routers:
     get:
       description: |
         Retrieves a list of edge routers an edge router policy resources affects; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listEdgeRouterPolicyEdgeRouters
       parameters:
       - description: The id of the requested resource
@@ -7578,12 +7766,12 @@ paths:
       summary: List edge routers a policy affects
       tags:
       - Edge Router Policy
-      x-accepts:
-      - application/json
   /edge-router-policies/{id}/identities:
     get:
       description: |
         Retrieves a list of identities an edge router policy resources affects; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listEdgeRouterPolicyIdentities
       parameters:
       - description: The id of the requested resource
@@ -7670,12 +7858,12 @@ paths:
       summary: List identities an edge router policy affects
       tags:
       - Edge Router Policy
-      x-accepts:
-      - application/json
   /edge-router-role-attributes:
     get:
       description: |
         Retrieves a list of role attributes in use by edge routers; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listEdgeRouterRoleAttributes
       parameters:
       - in: query
@@ -7780,12 +7968,12 @@ paths:
       summary: List role attributes in use by edge routers
       tags:
       - Role Attributes
-      x-accepts:
-      - application/json
   /edge-routers:
     get:
       description: |
         Retrieves a list of edge router resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listEdgeRouters
       parameters:
       - in: query
@@ -7902,10 +8090,12 @@ paths:
       summary: List edge routers
       tags:
       - Edge Router
-      x-accepts:
-      - application/json
     post:
       description: Create a edge router resource. Requires admin access.
+      x-codegen-request-body-name: edgeRouter
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createEdgeRouter
       requestBody:
         content:
@@ -8005,13 +8195,11 @@ paths:
       summary: Create an edge router
       tags:
       - Edge Router
-      x-codegen-request-body-name: edgeRouter
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /edge-routers/{id}:
     delete:
       description: Delete an edge router by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteEdgeRouter
       parameters:
       - description: The id of the requested resource
@@ -8149,10 +8337,10 @@ paths:
       summary: Delete an edge router
       tags:
       - Edge Router
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single edge router by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailEdgeRouter
       parameters:
       - description: The id of the requested resource
@@ -8239,10 +8427,12 @@ paths:
       summary: Retrieves a single edge router
       tags:
       - Edge Router
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on an edge router. Requires admin access.
+      x-codegen-request-body-name: edgeRouter
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchEdgeRouter
       parameters:
       - description: The id of the requested resource
@@ -8367,12 +8557,12 @@ paths:
       summary: Update the supplied fields on an edge router
       tags:
       - Edge Router
+    put:
+      description: Update all fields on an edge router by id. Requires admin access.
       x-codegen-request-body-name: edgeRouter
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on an edge router by id. Requires admin access.
       operationId: updateEdgeRouter
       parameters:
       - description: The id of the requested resource
@@ -8497,14 +8687,12 @@ paths:
       summary: Update all fields on an edge router
       tags:
       - Edge Router
-      x-codegen-request-body-name: edgeRouter
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /edge-routers/{id}/edge-router-policies:
     get:
       description: Retrieves a list of edge router policies that apply to the specified
         edge router.
+      x-accepts:
+      - application/json
       operationId: listEdgeRouterEdgeRouterPolicies
       parameters:
       - description: The id of the requested resource
@@ -8591,12 +8779,12 @@ paths:
       summary: List the edge router policies that affect an edge router
       tags:
       - Edge Router
-      x-accepts:
-      - application/json
   /edge-routers/{id}/identities:
     get:
       description: |
         Retrieves a list of identities that may access services via the given edge router. Supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listEdgeRouterIdentities
       parameters:
       - description: The id of the requested resource
@@ -8683,8 +8871,6 @@ paths:
       summary: List associated identities
       tags:
       - Edge Router
-      x-accepts:
-      - application/json
   /edge-routers/{id}/re-enroll:
     post:
       description: |
@@ -8694,6 +8880,8 @@ paths:
 
         If the edge router has an existing outstanding enrollment JWT it will be replaced. The previous JWT will no longer be usable to
         complete the enrollment process.
+      x-accepts:
+      - application/json
       operationId: reEnrollEdgeRouter
       parameters:
       - description: The id of the requested resource
@@ -8780,12 +8968,12 @@ paths:
       summary: Re-enroll an edge router
       tags:
       - Edge Router
-      x-accepts:
-      - application/json
   /edge-routers/{id}/service-edge-router-policies:
     get:
       description: Retrieves a list of service policies policies that apply to the
         specified edge router.
+      x-accepts:
+      - application/json
       operationId: listEdgeRouterServiceEdgeRouterPolicies
       parameters:
       - description: The id of the requested resource
@@ -8872,12 +9060,12 @@ paths:
       summary: List the service policies that affect an edge router
       tags:
       - Edge Router
-      x-accepts:
-      - application/json
   /edge-routers/{id}/services:
     get:
       description: |
         Retrieves a list of services that may be accessed via the given edge router. Supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listEdgeRouterServices
       parameters:
       - description: The id of the requested resource
@@ -8964,12 +9152,12 @@ paths:
       summary: List associated services
       tags:
       - Edge Router
-      x-accepts:
-      - application/json
   /enrollments:
     get:
       description: |
         Retrieves a list of outstanding enrollments; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listEnrollments
       parameters:
       - in: query
@@ -9074,13 +9262,15 @@ paths:
       summary: List outstanding enrollments
       tags:
       - Enrollment
-      x-accepts:
-      - application/json
     post:
       description: "Creates a new OTT, OTTCA, or UPDB enrollment for a specific identity.\
         \ If an enrollment of the same type is already outstanding the request will\
         \ fail with a 409 conflict. If desired, an existing enrollment can be refreshed\
         \ by `enrollments/:id/refresh` or deleted."
+      x-codegen-request-body-name: enrollment
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createEnrollment
       requestBody:
         content:
@@ -9187,13 +9377,11 @@ paths:
       summary: Create an outstanding enrollment for an identity
       tags:
       - Enrollment
-      x-codegen-request-body-name: enrollment
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /enrollments/{id}:
     delete:
       description: Delete an outstanding enrollment by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteEnrollment
       parameters:
       - description: The id of the requested resource
@@ -9311,11 +9499,11 @@ paths:
       summary: Delete an outstanding enrollment
       tags:
       - Enrollment
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single outstanding enrollment by id. Requires admin
         access.
+      x-accepts:
+      - application/json
       operationId: detailEnrollment
       parameters:
       - description: The id of the requested resource
@@ -9402,12 +9590,14 @@ paths:
       summary: Retrieves an outstanding enrollment
       tags:
       - Enrollment
-      x-accepts:
-      - application/json
   /enrollments/{id}/refresh:
     post:
       description: "For expired or unexpired enrollments, reset the expiration window.\
         \ A new JWT will be generated and must be used for the enrollment."
+      x-codegen-request-body-name: refresh
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: refreshEnrollment
       parameters:
       - description: The id of the requested resource
@@ -9514,12 +9704,10 @@ paths:
       summary: Refreshes an enrollment record's expiration window
       tags:
       - Enrollment
-      x-codegen-request-body-name: refresh
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /enumerated-capabilities:
     get:
+      x-accepts:
+      - application/json
       operationId: listEnumeratedCapabilities
       responses:
         "200":
@@ -9533,11 +9721,11 @@ paths:
         \ enabled or not."
       tags:
       - Informational
-      x-accepts:
-      - application/json
   /external-jwt-signers:
     get:
       description: Retrieves a list of external JWT signers for authentication
+      x-accepts:
+      - application/json
       operationId: listExternalJwtSigners
       parameters:
       - in: query
@@ -9642,10 +9830,12 @@ paths:
       summary: List External JWT Signers
       tags:
       - External JWT Signer
-      x-accepts:
-      - application/json
     post:
       description: Creates an External JWT Signer. Requires admin access.
+      x-codegen-request-body-name: externalJwtSigner
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createExternalJwtSigner
       requestBody:
         content:
@@ -9745,14 +9935,12 @@ paths:
       summary: Creates an External JWT Signer
       tags:
       - External JWT Signer
-      x-codegen-request-body-name: externalJwtSigner
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /external-jwt-signers/{id}:
     delete:
       description: |
         Delete an External JWT Signer by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteExternalJwtSigner
       parameters:
       - description: The id of the requested resource
@@ -9870,10 +10058,10 @@ paths:
       summary: Delete an External JWT Signer
       tags:
       - External JWT Signer
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single External JWT Signer by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailExternalJwtSigner
       parameters:
       - description: The id of the requested resource
@@ -9960,11 +10148,13 @@ paths:
       summary: Retrieves a single External JWT Signer
       tags:
       - External JWT Signer
-      x-accepts:
-      - application/json
     patch:
       description: Update only the supplied fields on an External JWT Signer by id.
         Requires admin access.
+      x-codegen-request-body-name: externalJwtSigner
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchExternalJwtSigner
       parameters:
       - description: The id of the requested resource
@@ -10089,13 +10279,13 @@ paths:
       summary: Update the supplied fields on an External JWT Signer
       tags:
       - External JWT Signer
+    put:
+      description: Update all fields on an External JWT Signer by id. Requires admin
+        access.
       x-codegen-request-body-name: externalJwtSigner
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on an External JWT Signer by id. Requires admin
-        access.
       operationId: updateExternalJwtSigner
       parameters:
       - description: The id of the requested resource
@@ -10220,14 +10410,12 @@ paths:
       summary: Update all fields on an External JWT Signer
       tags:
       - External JWT Signer
-      x-codegen-request-body-name: externalJwtSigner
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /identities:
     get:
       description: |
         Retrieves a list of identity resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listIdentities
       parameters:
       - in: query
@@ -10344,10 +10532,12 @@ paths:
       summary: List identities
       tags:
       - Identity
-      x-accepts:
-      - application/json
     post:
       description: Create an identity resource. Requires admin access.
+      x-codegen-request-body-name: identity
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createIdentity
       requestBody:
         content:
@@ -10447,13 +10637,11 @@ paths:
       summary: Create an identity resource
       tags:
       - Identity
-      x-codegen-request-body-name: identity
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /identities/{id}:
     delete:
       description: Delete an identity by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteIdentity
       parameters:
       - description: The id of the requested resource
@@ -10591,10 +10779,10 @@ paths:
       summary: Delete an identity
       tags:
       - Identity
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single identity by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailIdentity
       parameters:
       - description: The id of the requested resource
@@ -10681,10 +10869,12 @@ paths:
       summary: Retrieves a single identity
       tags:
       - Identity
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on an identity. Requires admin access.
+      x-codegen-request-body-name: identity
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchIdentity
       parameters:
       - description: The id of the requested resource
@@ -10809,12 +10999,12 @@ paths:
       summary: Update the supplied fields on an identity
       tags:
       - Identity
+    put:
+      description: Update all fields on an identity by id. Requires admin access.
       x-codegen-request-body-name: identity
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on an identity by id. Requires admin access.
       operationId: updateIdentity
       parameters:
       - description: The id of the requested resource
@@ -10939,14 +11129,12 @@ paths:
       summary: Update all fields on an identity
       tags:
       - Identity
-      x-codegen-request-body-name: identity
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /identities/{id}/authenticators:
     get:
       description: |
         Returns a list of authenticators associated to the identity specified
+      x-accepts:
+      - application/json
       operationId: getIdentityAuthenticators
       parameters:
       - description: The id of the requested resource
@@ -11033,12 +11221,14 @@ paths:
       summary: Retrieve the current authenticators of a specific identity
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /identities/{id}/disable:
     post:
       description: |
         Reject an identity's API session requests for N minutes or indefinitely if 0.
+      x-codegen-request-body-name: disable
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: disableIdentity
       parameters:
       - description: The id of the requested resource
@@ -11132,14 +11322,12 @@ paths:
       summary: Set an identity as disabled
       tags:
       - Identity
-      x-codegen-request-body-name: disable
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /identities/{id}/edge-router-policies:
     get:
       description: Retrieves a list of edge router policies that apply to the specified
         identity.
+      x-accepts:
+      - application/json
       operationId: listIdentitysEdgeRouterPolicies
       parameters:
       - description: The id of the requested resource
@@ -11226,12 +11414,12 @@ paths:
       summary: List the edge router policies that affect an identity
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /identities/{id}/edge-routers:
     get:
       description: |
         Retrieves a list of edge-routers that the given identity may use to access services. Supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listIdentityEdgeRouters
       parameters:
       - description: The id of the requested resource
@@ -11318,12 +11506,12 @@ paths:
       summary: List accessible edge-routers
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /identities/{id}/enable:
     post:
       description: |
         Allows an admin to remove disabled statuses from an identity.
+      x-accepts:
+      - application/json
       operationId: enableIdentity
       parameters:
       - description: The id of the requested resource
@@ -11410,12 +11598,12 @@ paths:
       summary: Clears all disabled state from an identity
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /identities/{id}/enrollments:
     get:
       description: |
         Returns a list of enrollments associated to the identity specified
+      x-accepts:
+      - application/json
       operationId: getIdentityEnrollments
       parameters:
       - description: The id of the requested resource
@@ -11502,14 +11690,14 @@ paths:
       summary: Retrieve the current enrollments of a specific identity
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /identities/{id}/failed-service-requests:
     get:
       description: |
         Returns a list of service session requests that failed due to posture checks. The entries will contain
         every policy that was verified against and every failed check in each policy. Each check will include
         the historical posture data and posture check configuration.
+      x-accepts:
+      - application/json
       operationId: getIdentityFailedServiceRequests
       parameters:
       - description: The id of the requested resource
@@ -11597,12 +11785,12 @@ paths:
         posture checks
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /identities/{id}/mfa:
     delete:
       description: |
         Allows an admin to remove MFA enrollment from a specific identity. Requires admin.
+      x-accepts:
+      - application/json
       operationId: removeIdentityMfa
       parameters:
       - description: The id of the requested resource
@@ -11690,8 +11878,6 @@ paths:
       tags:
       - Identity
       - MFA
-      x-accepts:
-      - application/json
   /identities/{id}/policy-advice/{serviceId}:
     get:
       description: |
@@ -11699,6 +11885,8 @@ paths:
         Will check services policies to see if the identity can access the service. Will check edge router policies |
         to check if the identity and service have access to common edge routers so that a connnection can be made. |
         Will also check if at least one edge router is on-line. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: getIdentityPolicyAdvice
       parameters:
       - description: The id of the requested resource
@@ -11791,13 +11979,13 @@ paths:
       summary: Analyze policies relating the given identity and service
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /identities/{id}/posture-data:
     get:
       description: |
         Returns a nested map data represeting the posture data of the identity.
         This data should be considered volatile.
+      x-accepts:
+      - application/json
       operationId: getIdentityPostureData
       parameters:
       - description: The id of the requested resource
@@ -11884,11 +12072,128 @@ paths:
       summary: Retrieve the curent posture data for a specific identity.
       tags:
       - Identity
+  /identities/{id}/request-extend:
+    post:
+      description: "Allows all certificate authenticators on an identity to be flagged\
+        \ for early extension and optionally private \nkey rolling. Connecting clients\
+        \ will receive flags in their API Session indicating that an early extension\
+        \ is \nrequest and a hint on whether private keys should be rolled. Clients\
+        \ that do not support extension or cannot \nroll keys may ignore one or both\
+        \ flags.\n\nIf this request is made against an identity with zero certificate\
+        \ authenticators, a 403 will be returned.\n"
+      x-codegen-request-body-name: requestExtendAuthenticator
+      x-content-type: application/json
       x-accepts:
       - application/json
+      operationId: requestExtendAllCertAuthenticators
+      parameters:
+      - description: The id of the requested resource
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/requestExtendAuthenticator"
+        description: A request to flag a certificate authenticator for early extension/key
+          rolling.
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/empty"
+          description: Base empty response
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed and will never complete
+            due to unchangeable state or conflicts.
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Indicate all certificate authenticators for the identity should be
+        extended and optionally key rolled on next authentication.
+      tags:
+      - Authenticator
   /identities/{id}/service-configs:
     delete:
       description: Remove service configs from a specific identity
+      x-codegen-request-body-name: serviceConfigIdPairs
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: disassociateIdentitysServiceConfigs
       parameters:
       - description: The id of the requested resource
@@ -12012,12 +12317,10 @@ paths:
       summary: Remove associated service configs from a specific identity
       tags:
       - Identity
-      x-codegen-request-body-name: serviceConfigIdPairs
-      x-content-type: application/json
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a list of service configs associated to a specific identity
+      x-accepts:
+      - application/json
       operationId: listIdentitysServiceConfigs
       parameters:
       - description: The id of the requested resource
@@ -12104,10 +12407,12 @@ paths:
       summary: List the service configs associated a specific identity
       tags:
       - Identity
-      x-accepts:
-      - application/json
     post:
       description: Associate service configs to a specific identity
+      x-codegen-request-body-name: serviceConfigs
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: associateIdentitysServiceConfigs
       parameters:
       - description: The id of the requested resource
@@ -12231,14 +12536,12 @@ paths:
       summary: Associate service configs for a specific identity
       tags:
       - Identity
-      x-codegen-request-body-name: serviceConfigs
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /identities/{id}/service-policies:
     get:
       description: Retrieves a list of service policies that apply to the specified
         identity.
+      x-accepts:
+      - application/json
       operationId: listIdentityServicePolicies
       parameters:
       - description: The id of the requested resource
@@ -12325,12 +12628,12 @@ paths:
       summary: List the service policies that affect an identity
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /identities/{id}/services:
     get:
       description: |
         Retrieves a list of services that the given identity has access to. Supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listIdentityServices
       parameters:
       - description: The id of the requested resource
@@ -12428,12 +12731,14 @@ paths:
       summary: List accessible services
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /identities/{id}/trace:
     put:
       description: |
         Allows an admin to enable/disable data flow tracing for an identity
+      x-codegen-request-body-name: traceSpec
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: updateIdentityTracing
       parameters:
       - description: The id of the requested resource
@@ -12558,14 +12863,12 @@ paths:
       tags:
       - Identity
       - Tracing
-      x-codegen-request-body-name: traceSpec
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /identity-role-attributes:
     get:
       description: |
         Retrieves a list of role attributes in use by identities; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listIdentityRoleAttributes
       parameters:
       - in: query
@@ -12670,12 +12973,12 @@ paths:
       summary: List role attributes in use by identities
       tags:
       - Role Attributes
-      x-accepts:
-      - application/json
   /identity-types:
     get:
       description: |
         Retrieves a list of identity types; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listIdentityTypes
       parameters:
       - in: query
@@ -12780,11 +13083,11 @@ paths:
       summary: List available identity types
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /identity-types/{id}:
     get:
       description: Retrieves a single identity type by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailIdentityType
       parameters:
       - description: The id of the requested resource
@@ -12871,11 +13174,11 @@ paths:
       summary: Retrieves a identity type
       tags:
       - Identity
-      x-accepts:
-      - application/json
   /network-jwts:
     get:
       description: Returns a list of JWTs for trusting a network
+      x-accepts:
+      - application/json
       operationId: listNetworkJWTs
       responses:
         "200":
@@ -12936,12 +13239,12 @@ paths:
       summary: Returns a list of JWTs suitable for bootstrapping network trust.
       tags:
       - Enrollment
-      x-accepts:
-      - application/json
   /posture-check-role-attributes:
     get:
       description: |
         Retrieves a list of role attributes in use by posture checks; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listPostureCheckRoleAttributes
       parameters:
       - in: query
@@ -13046,12 +13349,13 @@ paths:
       summary: List role attributes in use by posture checks
       tags:
       - Role Attributes
-      x-accepts:
-      - application/json
   /posture-check-types:
     get:
       description: |
         Retrieves a list of posture check types
+      x-accepts:
+      - application/json
+      - application/json; charset=utf-8
       operationId: listPostureCheckTypes
       parameters:
       - in: query
@@ -13159,12 +13463,11 @@ paths:
       summary: List a subset of posture check types
       tags:
       - Posture Checks
-      x-accepts:
-      - application/json
-      - application/json; charset=utf-8
   /posture-check-types/{id}:
     get:
       description: Retrieves a single posture check type by id
+      x-accepts:
+      - application/json
       operationId: detailPostureCheckType
       parameters:
       - description: The id of the requested resource
@@ -13251,12 +13554,13 @@ paths:
       summary: Retrieves a single posture check type
       tags:
       - Posture Checks
-      x-accepts:
-      - application/json
   /posture-checks:
     get:
       description: |
         Retrieves a list of posture checks
+      x-accepts:
+      - application/json
+      - application/json; charset=utf-8
       operationId: listPostureChecks
       parameters:
       - in: query
@@ -13376,11 +13680,12 @@ paths:
       summary: List a subset of posture checks
       tags:
       - Posture Checks
-      x-accepts:
-      - application/json
-      - application/json; charset=utf-8
     post:
       description: Creates a Posture Checks
+      x-codegen-request-body-name: postureCheck
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createPostureCheck
       requestBody:
         content:
@@ -13480,13 +13785,11 @@ paths:
       summary: Creates a Posture Checks
       tags:
       - Posture Checks
-      x-codegen-request-body-name: postureCheck
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /posture-checks/{id}:
     delete:
       description: Deletes and Posture Checks by id
+      x-accepts:
+      - application/json
       operationId: deletePostureCheck
       parameters:
       - description: The id of the requested resource
@@ -13574,10 +13877,10 @@ paths:
       summary: Deletes an Posture Checks
       tags:
       - Posture Checks
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single Posture Checks by id
+      x-accepts:
+      - application/json
       operationId: detailPostureCheck
       parameters:
       - description: The id of the requested resource
@@ -13664,10 +13967,12 @@ paths:
       summary: Retrieves a single Posture Checks
       tags:
       - Posture Checks
-      x-accepts:
-      - application/json
     patch:
       description: Update only the supplied fields on a Posture Checks by id
+      x-codegen-request-body-name: postureCheck
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchPostureCheck
       parameters:
       - description: The id of the requested resource
@@ -13792,12 +14097,12 @@ paths:
       summary: Update the supplied fields on a Posture Checks
       tags:
       - Posture Checks
+    put:
+      description: Update all fields on a Posture Checks by id
       x-codegen-request-body-name: postureCheck
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a Posture Checks by id
       operationId: updatePostureCheck
       parameters:
       - description: The id of the requested resource
@@ -13922,14 +14227,12 @@ paths:
       summary: Update all fields on a Posture Checks
       tags:
       - Posture Checks
-      x-codegen-request-body-name: postureCheck
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /routers:
     get:
       description: |
         Retrieves a list of router resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listRouters
       parameters:
       - in: query
@@ -14034,10 +14337,12 @@ paths:
       summary: List routers
       tags:
       - Router
-      x-accepts:
-      - application/json
     post:
       description: Create a router resource. Requires admin access.
+      x-codegen-request-body-name: router
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createRouter
       requestBody:
         content:
@@ -14137,13 +14442,11 @@ paths:
       summary: Create a router resource
       tags:
       - Router
-      x-codegen-request-body-name: router
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /routers/{id}:
     delete:
       description: Delete a router by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteRouter
       parameters:
       - description: The id of the requested resource
@@ -14263,10 +14566,10 @@ paths:
       summary: Delete a router
       tags:
       - Router
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single router by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailRouter
       parameters:
       - description: The id of the requested resource
@@ -14353,10 +14656,12 @@ paths:
       summary: Retrieves a single router
       tags:
       - Router
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on a router. Requires admin access.
+      x-codegen-request-body-name: router
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchRouter
       parameters:
       - description: The id of the requested resource
@@ -14481,12 +14786,12 @@ paths:
       summary: Update the supplied fields on a router
       tags:
       - Router
+    put:
+      description: Update all fields on a router by id. Requires admin access.
       x-codegen-request-body-name: router
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a router by id. Requires admin access.
       operationId: updateRouter
       parameters:
       - description: The id of the requested resource
@@ -14611,14 +14916,12 @@ paths:
       summary: Update all fields on a router
       tags:
       - Router
-      x-codegen-request-body-name: router
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /service-edge-router-policies:
     get:
       description: |
         Retrieves a list of service edge router policy resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServiceEdgeRouterPolicies
       parameters:
       - in: query
@@ -14723,10 +15026,12 @@ paths:
       summary: List service edge router policies
       tags:
       - Service Edge Router Policy
-      x-accepts:
-      - application/json
     post:
       description: Create a service edge router policy resource. Requires admin access.
+      x-codegen-request-body-name: policy
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createServiceEdgeRouterPolicy
       requestBody:
         content:
@@ -14826,13 +15131,11 @@ paths:
       summary: Create a service edge router policy resource
       tags:
       - Service Edge Router Policy
-      x-codegen-request-body-name: policy
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /service-edge-router-policies/{id}:
     delete:
       description: Delete a service edge policy by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteServiceEdgeRouterPolicy
       parameters:
       - description: The id of the requested resource
@@ -14970,10 +15273,10 @@ paths:
       summary: Delete a service edge policy
       tags:
       - Service Edge Router Policy
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single service edge policy by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailServiceEdgeRouterPolicy
       parameters:
       - description: The id of the requested resource
@@ -15060,11 +15363,13 @@ paths:
       summary: Retrieves a single service edge policy
       tags:
       - Service Edge Router Policy
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on a service edge policy. Requires admin
         access.
+      x-codegen-request-body-name: policy
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchServiceEdgeRouterPolicy
       parameters:
       - description: The id of the requested resource
@@ -15189,13 +15494,13 @@ paths:
       summary: Update the supplied fields on a service edge policy
       tags:
       - Service Edge Router Policy
+    put:
+      description: Update all fields on a service edge policy by id. Requires admin
+        access.
       x-codegen-request-body-name: policy
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a service edge policy by id. Requires admin
-        access.
       operationId: updateServiceEdgeRouterPolicy
       parameters:
       - description: The id of the requested resource
@@ -15320,14 +15625,12 @@ paths:
       summary: Update all fields on a service edge policy
       tags:
       - Service Edge Router Policy
-      x-codegen-request-body-name: policy
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /service-edge-router-policies/{id}/edge-routers:
     get:
       description: List the edge routers that a service edge router policy applies
         to
+      x-accepts:
+      - application/json
       operationId: listServiceEdgeRouterPolicyEdgeRouters
       parameters:
       - description: The id of the requested resource
@@ -15414,11 +15717,11 @@ paths:
       summary: List the edge routers that a service edge router policy applies to
       tags:
       - Service Edge Router Policy
-      x-accepts:
-      - application/json
   /service-edge-router-policies/{id}/services:
     get:
       description: List the services that a service edge router policy applies to
+      x-accepts:
+      - application/json
       operationId: listServiceEdgeRouterPolicyServices
       parameters:
       - description: The id of the requested resource
@@ -15505,12 +15808,12 @@ paths:
       summary: List the services that a service edge router policy applies to
       tags:
       - Service Edge Router Policy
-      x-accepts:
-      - application/json
   /service-policies:
     get:
       description: |
         Retrieves a list of service policy resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServicePolicies
       parameters:
       - in: query
@@ -15615,10 +15918,12 @@ paths:
       summary: List service policies
       tags:
       - Service Policy
-      x-accepts:
-      - application/json
     post:
       description: Create a service policy resource. Requires admin access.
+      x-codegen-request-body-name: policy
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createServicePolicy
       requestBody:
         content:
@@ -15718,13 +16023,11 @@ paths:
       summary: Create a service policy resource
       tags:
       - Service Policy
-      x-codegen-request-body-name: policy
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /service-policies/{id}:
     delete:
       description: Delete a service policy by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteServicePolicy
       parameters:
       - description: The id of the requested resource
@@ -15862,10 +16165,10 @@ paths:
       summary: Delete a service policy
       tags:
       - Service Policy
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single service policy by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailServicePolicy
       parameters:
       - description: The id of the requested resource
@@ -15952,11 +16255,13 @@ paths:
       summary: Retrieves a single service policy
       tags:
       - Service Policy
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on a service policy. Requires admin
         access.
+      x-codegen-request-body-name: policy
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchServicePolicy
       parameters:
       - description: The id of the requested resource
@@ -16081,12 +16386,12 @@ paths:
       summary: Update the supplied fields on a service policy
       tags:
       - Service Policy
+    put:
+      description: Update all fields on a service policy by id. Requires admin access.
       x-codegen-request-body-name: policy
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a service policy by id. Requires admin access.
       operationId: updateServicePolicy
       parameters:
       - description: The id of the requested resource
@@ -16211,14 +16516,12 @@ paths:
       summary: Update all fields on a service policy
       tags:
       - Service Policy
-      x-codegen-request-body-name: policy
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /service-policies/{id}/identities:
     get:
       description: |
         Retrieves a list of identity resources that are affected by a service policy; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServicePolicyIdentities
       parameters:
       - description: The id of the requested resource
@@ -16317,12 +16620,12 @@ paths:
       summary: List identities a service policy affects
       tags:
       - Service Policy
-      x-accepts:
-      - application/json
   /service-policies/{id}/posture-checks:
     get:
       description: |
         Retrieves a list of posture check resources that are affected by a service policy; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServicePolicyPostureChecks
       parameters:
       - description: The id of the requested resource
@@ -16421,12 +16724,12 @@ paths:
       summary: List posture check a service policy includes
       tags:
       - Service Policy
-      x-accepts:
-      - application/json
   /service-policies/{id}/services:
     get:
       description: |
         Retrieves a list of service resources that are affected by a service policy; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServicePolicyServices
       parameters:
       - description: The id of the requested resource
@@ -16525,12 +16828,12 @@ paths:
       summary: List services a service policy affects
       tags:
       - Service Policy
-      x-accepts:
-      - application/json
   /service-role-attributes:
     get:
       description: |
         Retrieves a list of role attributes in use by services; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServiceRoleAttributes
       parameters:
       - in: query
@@ -16635,12 +16938,12 @@ paths:
       summary: List role attributes in use by services
       tags:
       - Role Attributes
-      x-accepts:
-      - application/json
   /services:
     get:
       description: |
         Retrieves a list of config resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServices
       parameters:
       - in: query
@@ -16765,10 +17068,12 @@ paths:
       summary: List services
       tags:
       - Service
-      x-accepts:
-      - application/json
     post:
       description: Create a services resource. Requires admin access.
+      x-codegen-request-body-name: service
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createService
       requestBody:
         content:
@@ -16868,13 +17173,11 @@ paths:
       summary: Create a services resource
       tags:
       - Service
-      x-codegen-request-body-name: service
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /services/{id}:
     delete:
       description: Delete a service by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteService
       parameters:
       - description: The id of the requested resource
@@ -17012,10 +17315,10 @@ paths:
       summary: Delete a service
       tags:
       - Service
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single service by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailService
       parameters:
       - description: The id of the requested resource
@@ -17102,10 +17405,12 @@ paths:
       summary: Retrieves a single service
       tags:
       - Service
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on a service. Requires admin access.
+      x-codegen-request-body-name: service
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchService
       parameters:
       - description: The id of the requested resource
@@ -17230,12 +17535,12 @@ paths:
       summary: Update the supplied fields on a service
       tags:
       - Service
+    put:
+      description: Update all fields on a service by id. Requires admin access.
       x-codegen-request-body-name: service
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a service by id. Requires admin access.
       operationId: updateService
       parameters:
       - description: The id of the requested resource
@@ -17360,14 +17665,12 @@ paths:
       summary: Update all fields on a service
       tags:
       - Service
-      x-codegen-request-body-name: service
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /services/{id}/configs:
     get:
       description: |
         Retrieves a list of config resources associated to a specific service; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServiceConfig
       parameters:
       - description: The id of the requested resource
@@ -17478,12 +17781,12 @@ paths:
       summary: List configs associated to a specific service
       tags:
       - Service
-      x-accepts:
-      - application/json
   /services/{id}/edge-routers:
     get:
       description: |
         Retrieves a list of edge-routers that may be used to access the given service. Supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServiceEdgeRouters
       parameters:
       - description: The id of the requested resource
@@ -17594,12 +17897,12 @@ paths:
       summary: List accessible edge-routers
       tags:
       - Service
-      x-accepts:
-      - application/json
   /services/{id}/identities:
     get:
       description: |
         Retrieves a list of identities that have access to this service. Supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServiceIdentities
       parameters:
       - description: The id of the requested resource
@@ -17717,12 +18020,12 @@ paths:
       summary: List identities with access
       tags:
       - Service
-      x-accepts:
-      - application/json
   /services/{id}/service-edge-router-policies:
     get:
       description: |
         Retrieves a list of service edge router policy resources that affect a specific service; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServiceServiceEdgeRouterPolicies
       parameters:
       - description: The id of the requested resource
@@ -17833,12 +18136,12 @@ paths:
       summary: List service edge router policies that affect a specific service
       tags:
       - Service
-      x-accepts:
-      - application/json
   /services/{id}/service-policies:
     get:
       description: |
         Retrieves a list of service policy resources that affect specific service; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServiceServicePolicies
       parameters:
       - description: The id of the requested resource
@@ -17949,12 +18252,12 @@ paths:
       summary: List service policies that affect a specific service
       tags:
       - Service
-      x-accepts:
-      - application/json
   /services/{id}/terminators:
     get:
       description: |
         Retrieves a list of terminator resources that are assigned specific service; supports filtering, sorting, and pagination.
+      x-accepts:
+      - application/json
       operationId: listServiceTerminators
       parameters:
       - description: The id of the requested resource
@@ -18065,8 +18368,6 @@ paths:
       summary: List of terminators assigned to a service
       tags:
       - Service
-      x-accepts:
-      - application/json
   /sessions:
     get:
       description: |
@@ -18074,6 +18375,8 @@ paths:
 
         Sessions are tied to an API session and are moved when an API session times out or logs out. Active sessions
         (i.e. Ziti SDK connected to an edge router) will keep the session and API session marked as active.
+      x-accepts:
+      - application/json
       operationId: listSessions
       parameters:
       - in: query
@@ -18178,11 +18481,11 @@ paths:
       summary: List sessions
       tags:
       - Session
-      x-accepts:
-      - application/json
   /sessions/{id}:
     delete:
       description: Delete a session by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteSession
       parameters:
       - description: The id of the requested resource
@@ -18320,10 +18623,10 @@ paths:
       summary: Delete a session
       tags:
       - Session
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single session by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailSession
       parameters:
       - description: The id of the requested resource
@@ -18410,11 +18713,11 @@ paths:
       summary: Retrieves a single session
       tags:
       - Session
-      x-accepts:
-      - application/json
   /sessions/{id}/route-path:
     get:
       description: Retrieves a single session's route path by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailSessionRoutePath
       parameters:
       - description: The id of the requested resource
@@ -18501,12 +18804,12 @@ paths:
       summary: Retrieves a single session's router path
       tags:
       - Session
-      x-accepts:
-      - application/json
   /specs:
     get:
       description: Returns a list of spec files embedded within the controller for
         consumption/documentation/code geneartion
+      x-accepts:
+      - application/json
       operationId: listSpecs
       responses:
         "200":
@@ -18519,12 +18822,12 @@ paths:
       summary: Returns a list of API specs
       tags:
       - Informational
-      x-accepts:
-      - application/json
   /specs/{id}:
     get:
       description: Returns single spec resource embedded within the controller for
         consumption/documentation/code geneartion
+      x-accepts:
+      - application/json
       operationId: detailSpec
       parameters:
       - description: The id of the requested resource
@@ -18544,12 +18847,13 @@ paths:
       summary: Return a single spec resource
       tags:
       - Informational
-      x-accepts:
-      - application/json
   /specs/{id}/spec:
     get:
       description: "Return the body of the specification (i.e. Swagger, OpenAPI 2.0,\
         \ 3.0, etc)."
+      x-accepts:
+      - application/json
+      - text/yaml
       operationId: detailSpecBody
       parameters:
       - description: The id of the requested resource
@@ -18572,13 +18876,12 @@ paths:
       summary: Returns the spec's file
       tags:
       - Informational
-      x-accepts:
-      - application/json
-      - text/yaml
   /summary:
     get:
       description: This endpoint is usefull for UIs that wish to display UI elements
         with counts.
+      x-accepts:
+      - application/json
       operationId: listSummary
       responses:
         "200":
@@ -18640,12 +18943,12 @@ paths:
       summary: Returns a list of accessible resource counts
       tags:
       - Informational
-      x-accepts:
-      - application/json
   /terminators:
     get:
       description: |
         Retrieves a list of terminator resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listTerminators
       parameters:
       - in: query
@@ -18750,10 +19053,12 @@ paths:
       summary: List terminators
       tags:
       - Terminator
-      x-accepts:
-      - application/json
     post:
       description: Create a terminator resource. Requires admin access.
+      x-codegen-request-body-name: terminator
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createTerminator
       requestBody:
         content:
@@ -18853,13 +19158,11 @@ paths:
       summary: Create a terminator resource
       tags:
       - Terminator
-      x-codegen-request-body-name: terminator
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /terminators/{id}:
     delete:
       description: Delete a terminator by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteTerminator
       parameters:
       - description: The id of the requested resource
@@ -18997,10 +19300,10 @@ paths:
       summary: Delete a terminator
       tags:
       - Terminator
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single terminator by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailTerminator
       parameters:
       - description: The id of the requested resource
@@ -19087,10 +19390,12 @@ paths:
       summary: Retrieves a single terminator
       tags:
       - Terminator
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on a terminator. Requires admin access.
+      x-codegen-request-body-name: terminator
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchTerminator
       parameters:
       - description: The id of the requested resource
@@ -19215,12 +19520,12 @@ paths:
       summary: Update the supplied fields on a terminator
       tags:
       - Terminator
+    put:
+      description: Update all fields on a terminator by id. Requires admin access.
       x-codegen-request-body-name: terminator
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a terminator by id. Requires admin access.
       operationId: updateTerminator
       parameters:
       - description: The id of the requested resource
@@ -19345,14 +19650,12 @@ paths:
       summary: Update all fields on a terminator
       tags:
       - Terminator
-      x-codegen-request-body-name: terminator
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /transit-routers:
     get:
       description: |
         Retrieves a list of router resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listTransitRouters
       parameters:
       - in: query
@@ -19457,10 +19760,12 @@ paths:
       summary: List routers
       tags:
       - Router
-      x-accepts:
-      - application/json
     post:
       description: Create a router resource. Requires admin access.
+      x-codegen-request-body-name: router
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createTransitRouter
       requestBody:
         content:
@@ -19560,13 +19865,11 @@ paths:
       summary: Create a router resource
       tags:
       - Router
-      x-codegen-request-body-name: router
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /transit-routers/{id}:
     delete:
       description: Delete a router by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteTransitRouter
       parameters:
       - description: The id of the requested resource
@@ -19704,10 +20007,10 @@ paths:
       summary: Delete a router
       tags:
       - Router
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single router by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailTransitRouter
       parameters:
       - description: The id of the requested resource
@@ -19794,10 +20097,12 @@ paths:
       summary: Retrieves a single router
       tags:
       - Router
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on a router. Requires admin access.
+      x-codegen-request-body-name: router
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchTransitRouter
       parameters:
       - description: The id of the requested resource
@@ -19922,12 +20227,12 @@ paths:
       summary: Update the supplied fields on a router
       tags:
       - Router
+    put:
+      description: Update all fields on a router by id. Requires admin access.
       x-codegen-request-body-name: router
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a router by id. Requires admin access.
       operationId: updateTransitRouter
       parameters:
       - description: The id of the requested resource
@@ -20052,12 +20357,10 @@ paths:
       summary: Update all fields on a router
       tags:
       - Router
-      x-codegen-request-body-name: router
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /version:
     get:
+      x-accepts:
+      - application/json
       operationId: listVersion
       responses:
         "200":
@@ -20070,8 +20373,6 @@ paths:
       summary: Returns version information
       tags:
       - Informational
-      x-accepts:
-      - application/json
 components:
   schemas:
     apiAddress:
@@ -20233,9 +20534,15 @@ components:
             $ref: "#/components/schemas/entityRef"
           identityId:
             type: string
+          improperClientCertChain:
+            type: boolean
           ipAddress:
             type: string
+          isCertExtendRequested:
+            type: boolean
           isCertExtendable:
+            type: boolean
+          isCertKeyRollRequested:
             type: boolean
           isMfaComplete:
             type: boolean
@@ -20260,6 +20567,7 @@ components:
         type: object
       description: An API Session object
       example:
+        isCertExtendRequested: true
         _links:
           key:
             method: method
@@ -20270,6 +20578,7 @@ components:
         - configTypes
         authQueries:
         - clientId: clientId
+          isTotpEnrolled: true
           provider: ziti
           httpUrl: httpUrl
           minLength: 6
@@ -20282,6 +20591,7 @@ components:
           httpMethod: httpMethod
           maxLength: 0
         - clientId: clientId
+          isTotpEnrolled: true
           provider: ziti
           httpUrl: httpUrl
           minLength: 6
@@ -20311,6 +20621,8 @@ components:
           id: id
           entity: entity
         identityId: identityId
+        improperClientCertChain: true
+        isCertKeyRollRequested: true
         authenticatorId: authenticatorId
         id: id
         isCertExtendable: true
@@ -20368,12 +20680,12 @@ components:
       type: object
     attributes:
       description: A set of strings used to loosly couple this resource to policies
+      x-nullable: true
+      x-omitempty: true
       items:
         type: string
       nullable: true
       type: array
-      x-nullable: true
-      x-omitempty: true
     authPolicyCreate:
       description: A Auth Policy resource
       properties:
@@ -20499,6 +20811,7 @@ components:
       - allowed
       type: object
     authPolicyPrimaryCertPatch:
+      x-nullable: true
       nullable: true
       properties:
         allowExpiredCerts:
@@ -20508,7 +20821,6 @@ components:
           nullable: true
           type: boolean
       type: object
-      x-nullable: true
     authPolicyPrimaryExtJwt:
       example:
         allowedSigners:
@@ -20527,6 +20839,7 @@ components:
       - allowedSigners
       type: object
     authPolicyPrimaryExtJwtPatch:
+      x-nullable: true
       nullable: true
       properties:
         allowed:
@@ -20538,7 +20851,6 @@ components:
           nullable: true
           type: array
       type: object
-      x-nullable: true
     authPolicyPrimaryPatch:
       properties:
         cert:
@@ -20582,6 +20894,7 @@ components:
       - requireSpecialChar
       type: object
     authPolicyPrimaryUpdbPatch:
+      x-nullable: true
       nullable: true
       properties:
         allowed:
@@ -20606,22 +20919,22 @@ components:
           nullable: true
           type: boolean
       type: object
-      x-nullable: true
     authPolicySecondary:
       example:
         requireExtJwtSigner: requireExtJwtSigner
         requireTotp: true
       properties:
         requireExtJwtSigner:
+          x-omit-empty: false
           nullable: true
           type: string
-          x-omit-empty: false
         requireTotp:
           type: boolean
       required:
       - requireTotp
       type: object
     authPolicySecondaryPatch:
+      x-nullable: true
       nullable: true
       properties:
         requireExtJwtSigner:
@@ -20631,12 +20944,12 @@ components:
           nullable: true
           type: boolean
       type: object
-      x-nullable: true
     authPolicyUpdate:
       $ref: "#/components/schemas/authPolicyCreate"
     authQueryDetail:
       example:
         clientId: clientId
+        isTotpEnrolled: true
         provider: ziti
         httpUrl: httpUrl
         minLength: 6
@@ -20659,6 +20972,8 @@ components:
           type: string
         id:
           type: string
+        isTotpEnrolled:
+          type: boolean
         maxLength:
           type: integer
         minLength:
@@ -20740,13 +21055,25 @@ components:
       - properties:
           certPem:
             type: string
+          extendRequestedAt:
+            format: date-time
+            nullable: true
+            type: string
           fingerprint:
             type: string
           identity:
             $ref: "#/components/schemas/entityRef"
           identityId:
             type: string
+          isExtendRequested:
+            type: boolean
           isIssuedByNetwork:
+            type: boolean
+          isKeyRollRequested:
+            type: boolean
+          lastAuthResolvedToRoot:
+            type: boolean
+          lastExtendRolledKeys:
             type: boolean
           method:
             type: string
@@ -20759,13 +21086,19 @@ components:
         type: object
       description: A singular authenticator resource
       example:
-        createdAt: 2000-01-23T04:56:07.000+00:00
         method: method
         _links:
           key:
             method: method
             comment: comment
             href: https://openapi-generator.tech
+        extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+        certPem: certPem
+        isIssuedByNetwork: true
+        lastExtendRolledKeys: true
+        tags: {}
+        isExtendRequested: true
+        createdAt: 2000-01-23T04:56:07.000+00:00
         identity:
           _links:
             key:
@@ -20776,11 +21109,10 @@ components:
           id: id
           entity: entity
         identityId: identityId
+        isKeyRollRequested: true
         fingerprint: fingerprint
-        certPem: certPem
+        lastAuthResolvedToRoot: true
         id: id
-        isIssuedByNetwork: true
-        tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
         username: username
     authenticatorList:
@@ -20792,19 +21124,19 @@ components:
       description: All of the fields on an authenticator that may be updated
       properties:
         password:
+          x-nullable: true
           maxLength: 100
           minLength: 5
           nullable: true
           type: string
-          x-nullable: true
         tags:
           $ref: "#/components/schemas/tags"
         username:
+          x-nullable: true
           maxLength: 100
           minLength: 4
           nullable: true
           type: string
-          x-nullable: true
       type: object
     authenticatorPatchWithCurrent:
       allOf:
@@ -20850,8 +21182,8 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/link"
           description: A map of named links
-          type: object
           x-omitempty: false
+          type: object
         createdAt:
           format: date-time
           type: string
@@ -20894,10 +21226,10 @@ components:
         identityNameFormat:
           type: string
         identityRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         isAuthEnabled:
           example: true
           type: boolean
@@ -21005,10 +21337,10 @@ components:
           nullable: true
           type: string
         identityRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         isAuthEnabled:
           example: true
           nullable: true
@@ -21035,10 +21367,10 @@ components:
         identityNameFormat:
           type: string
         identityRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         isAuthEnabled:
           example: true
           type: boolean
@@ -21487,8 +21819,8 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/link"
           description: A map of named links
-          type: object
           x-omitempty: false
+          type: object
         id:
           type: string
       type: object
@@ -21507,6 +21839,7 @@ components:
         type: object
       description: An API Session object for the current API session
       example:
+        isCertExtendRequested: true
         _links:
           key:
             method: method
@@ -21517,6 +21850,7 @@ components:
         - configTypes
         authQueries:
         - clientId: clientId
+          isTotpEnrolled: true
           provider: ziti
           httpUrl: httpUrl
           minLength: 6
@@ -21529,6 +21863,7 @@ components:
           httpMethod: httpMethod
           maxLength: 0
         - clientId: clientId
+          isTotpEnrolled: true
           provider: ziti
           httpUrl: httpUrl
           minLength: 6
@@ -21560,6 +21895,8 @@ components:
           id: id
           entity: entity
         identityId: identityId
+        improperClientCertChain: true
+        isCertKeyRollRequested: true
         authenticatorId: authenticatorId
         id: id
         isCertExtendable: true
@@ -21567,6 +21904,7 @@ components:
     currentApiSessionDetailEnvelope:
       example:
         data:
+          isCertExtendRequested: true
           _links:
             key:
               method: method
@@ -21577,6 +21915,7 @@ components:
           - configTypes
           authQueries:
           - clientId: clientId
+            isTotpEnrolled: true
             provider: ziti
             httpUrl: httpUrl
             minLength: 6
@@ -21589,6 +21928,7 @@ components:
             httpMethod: httpMethod
             maxLength: 0
           - clientId: clientId
+            isTotpEnrolled: true
             provider: ziti
             httpUrl: httpUrl
             minLength: 6
@@ -21620,6 +21960,8 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          improperClientCertChain: true
+          isCertKeyRollRequested: true
           authenticatorId: authenticatorId
           id: id
           isCertExtendable: true
@@ -21706,6 +22048,31 @@ components:
             version: version
             revision: revision
           defaultHostingCost: null
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           authPolicyId: authPolicyId
           externalId: externalId
           disabledUntil: 2000-01-23T04:56:07.000+00:00
@@ -21854,6 +22221,7 @@ components:
     detailApiSessionEnvelope:
       example:
         data:
+          isCertExtendRequested: true
           _links:
             key:
               method: method
@@ -21864,6 +22232,7 @@ components:
           - configTypes
           authQueries:
           - clientId: clientId
+            isTotpEnrolled: true
             provider: ziti
             httpUrl: httpUrl
             minLength: 6
@@ -21876,6 +22245,7 @@ components:
             httpMethod: httpMethod
             maxLength: 0
           - clientId: clientId
+            isTotpEnrolled: true
             provider: ziti
             httpUrl: httpUrl
             minLength: 6
@@ -21905,6 +22275,8 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          improperClientCertChain: true
+          isCertKeyRollRequested: true
           authenticatorId: authenticatorId
           id: id
           isCertExtendable: true
@@ -21983,13 +22355,19 @@ components:
     detailAuthenticatorEnvelope:
       example:
         data:
-          createdAt: 2000-01-23T04:56:07.000+00:00
           method: method
           _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+          certPem: certPem
+          isIssuedByNetwork: true
+          lastExtendRolledKeys: true
+          tags: {}
+          isExtendRequested: true
+          createdAt: 2000-01-23T04:56:07.000+00:00
           identity:
             _links:
               key:
@@ -22000,11 +22378,10 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          isKeyRollRequested: true
           fingerprint: fingerprint
-          certPem: certPem
+          lastAuthResolvedToRoot: true
           id: id
-          isIssuedByNetwork: true
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
           username: username
         meta:
@@ -22353,10 +22730,7 @@ components:
       example:
         data:
           commonName: commonName
-          audience: audience
           notAfter: 2000-01-23T04:56:07.000+00:00
-          clientId: clientId
-          externalAuthUrl: http://example.com/aeiou
           _links:
             key:
               method: method
@@ -22370,15 +22744,23 @@ components:
           enabled: true
           issuer: issuer
           notBefore: 2000-01-23T04:56:07.000+00:00
-          tags: {}
           createdAt: 2000-01-23T04:56:07.000+00:00
+          enrollAuthPolicyId: enrollAuthPolicyId
           fingerprint: fingerprint
-          name: MyApps Signer
           id: id
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          audience: audience
+          clientId: clientId
+          externalAuthUrl: http://example.com/aeiou
+          enrollNameClaimsSelector: enrollNameClaimsSelector
+          enrollToTokenEnabled: true
+          enrollToCertEnabled: true
+          tags: {}
+          enrollAttributeClaimsSelector: enrollAttributeClaimsSelector
+          name: MyApps Signer
           scopes:
           - scopes
           - scopes
-          updatedAt: 2000-01-23T04:56:07.000+00:00
           claimsProperty: claimsProperty
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
@@ -22462,6 +22844,31 @@ components:
             version: version
             revision: revision
           defaultHostingCost: null
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           authPolicyId: authPolicyId
           externalId: externalId
           disabledUntil: 2000-01-23T04:56:07.000+00:00
@@ -22758,6 +23165,31 @@ components:
         data:
           unverifiedFingerprint: unverifiedFingerprint
           enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           cost: 5248
           _links:
             key:
@@ -22862,8 +23294,8 @@ components:
           postureQueries:
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -22877,14 +23309,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -22898,18 +23334,22 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -22923,14 +23363,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -22944,12 +23388,16 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           permissions:
@@ -23286,6 +23734,31 @@ components:
           updatedAt: 2000-01-23T04:56:07.000+00:00
           unverifiedFingerprint: unverifiedFingerprint
           enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           cost: 5248
           versionInfo:
             os: os
@@ -23357,12 +23830,12 @@ components:
           type: boolean
         roleAttributes:
           description: A set of strings used to loosly couple this resource to policies
+          x-nullable: true
+          x-omitempty: true
           items:
             type: string
           nullable: true
           type: array
-          x-nullable: true
-          x-omitempty: true
         tags:
           $ref: "#/components/schemas/tags"
       required:
@@ -23374,9 +23847,9 @@ components:
       - $ref: "#/components/schemas/commonEdgeRouterProperties"
       - properties:
           certPem:
+            x-omitempty: false
             nullable: true
             type: string
-            x-omitempty: false
           enrollmentCreatedAt:
             format: date-time
             nullable: true
@@ -23393,6 +23866,10 @@ components:
             type: string
           fingerprint:
             type: string
+          interfaces:
+            items:
+              $ref: "#/components/schemas/interface"
+            type: array
           isTunnelerEnabled:
             type: boolean
           isVerified:
@@ -23400,13 +23877,13 @@ components:
           roleAttributes:
             $ref: "#/components/schemas/attributes"
           unverifiedCertPem:
+            x-omitempty: false
             nullable: true
             type: string
-            x-omitempty: false
           unverifiedFingerprint:
+            x-omitempty: false
             nullable: true
             type: string
-            x-omitempty: false
           versionInfo:
             $ref: "#/components/schemas/versionInfo"
         required:
@@ -23441,6 +23918,31 @@ components:
         updatedAt: 2000-01-23T04:56:07.000+00:00
         unverifiedFingerprint: unverifiedFingerprint
         enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
+        interfaces:
+        - hardwareAddress: hardwareAddress
+          addresses:
+          - addresses
+          - addresses
+          isUp: true
+          isRunning: true
+          isBroadcast: true
+          name: name
+          index: 0
+          isLoopback: true
+          isMulticast: true
+          mtu: 0
+        - hardwareAddress: hardwareAddress
+          addresses:
+          - addresses
+          - addresses
+          isUp: true
+          isRunning: true
+          isBroadcast: true
+          name: name
+          index: 0
+          isLoopback: true
+          isMulticast: true
+          mtu: 0
         cost: 5248
         versionInfo:
           os: os
@@ -23482,27 +23984,27 @@ components:
           type: boolean
         roleAttributes:
           description: A set of strings used to loosly couple this resource to policies
+          x-nullable: true
+          x-omitempty: true
           items:
             type: string
           nullable: true
           type: array
-          x-nullable: true
-          x-omitempty: true
         tags:
           $ref: "#/components/schemas/tags"
       type: object
     edgeRouterPolicyCreate:
       properties:
         edgeRouterRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         identityRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         name:
           type: string
         semantic:
@@ -23570,15 +24072,15 @@ components:
     edgeRouterPolicyPatch:
       properties:
         edgeRouterRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         identityRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         name:
           type: string
         semantic:
@@ -23589,15 +24091,15 @@ components:
     edgeRouterPolicyUpdate:
       properties:
         edgeRouterRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         identityRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         name:
           type: string
         semantic:
@@ -23630,12 +24132,12 @@ components:
           type: boolean
         roleAttributes:
           description: A set of strings used to loosly couple this resource to policies
+          x-nullable: true
+          x-omitempty: true
           items:
             type: string
           nullable: true
           type: array
-          x-nullable: true
-          x-omitempty: true
         tags:
           $ref: "#/components/schemas/tags"
       required:
@@ -23803,8 +24305,8 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/link"
           description: A map of named links
-          type: object
           x-omitempty: false
+          type: object
         entity:
           type: string
         id:
@@ -23938,6 +24440,16 @@ components:
           type: string
         enabled:
           type: boolean
+        enrollAttributeClaimsSelector:
+          type: string
+        enrollAuthPolicyId:
+          type: string
+        enrollNameClaimsSelector:
+          type: string
+        enrollToCertEnabled:
+          type: boolean
+        enrollToTokenEnabled:
+          type: boolean
         externalAuthUrl:
           format: url
           nullable: true
@@ -23988,6 +24500,16 @@ components:
           commonName:
             type: string
           enabled:
+            type: boolean
+          enrollAttributeClaimsSelector:
+            type: string
+          enrollAuthPolicyId:
+            type: string
+          enrollNameClaimsSelector:
+            type: string
+          enrollToCertEnabled:
+            type: boolean
+          enrollToTokenEnabled:
             type: boolean
           externalAuthUrl:
             format: url
@@ -24041,10 +24563,7 @@ components:
       description: A External JWT Signer resource
       example:
         commonName: commonName
-        audience: audience
         notAfter: 2000-01-23T04:56:07.000+00:00
-        clientId: clientId
-        externalAuthUrl: http://example.com/aeiou
         _links:
           key:
             method: method
@@ -24058,15 +24577,23 @@ components:
         enabled: true
         issuer: issuer
         notBefore: 2000-01-23T04:56:07.000+00:00
-        tags: {}
         createdAt: 2000-01-23T04:56:07.000+00:00
+        enrollAuthPolicyId: enrollAuthPolicyId
         fingerprint: fingerprint
-        name: MyApps Signer
         id: id
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+        audience: audience
+        clientId: clientId
+        externalAuthUrl: http://example.com/aeiou
+        enrollNameClaimsSelector: enrollNameClaimsSelector
+        enrollToTokenEnabled: true
+        enrollToCertEnabled: true
+        tags: {}
+        enrollAttributeClaimsSelector: enrollAttributeClaimsSelector
+        name: MyApps Signer
         scopes:
         - scopes
         - scopes
-        updatedAt: 2000-01-23T04:56:07.000+00:00
         claimsProperty: claimsProperty
     externalJwtSignerList:
       description: An array of External JWT Signers resources
@@ -24088,6 +24615,21 @@ components:
           nullable: true
           type: string
         enabled:
+          nullable: true
+          type: boolean
+        enrollAttributeClaimsSelector:
+          nullable: true
+          type: string
+        enrollAuthPolicyId:
+          nullable: true
+          type: string
+        enrollNameClaimsSelector:
+          nullable: true
+          type: string
+        enrollToCertEnabled:
+          nullable: true
+          type: boolean
+        enrollToTokenEnabled:
           nullable: true
           type: boolean
         externalAuthUrl:
@@ -24135,6 +24677,21 @@ components:
           nullable: true
           type: string
         enabled:
+          type: boolean
+        enrollAttributeClaimsSelector:
+          nullable: true
+          type: string
+        enrollAuthPolicyId:
+          nullable: true
+          type: string
+        enrollNameClaimsSelector:
+          nullable: true
+          type: string
+        enrollToCertEnabled:
+          nullable: true
+          type: boolean
+        enrollToTokenEnabled:
+          nullable: true
           type: boolean
         externalAuthUrl:
           format: url
@@ -24393,12 +24950,12 @@ components:
           type: string
         roleAttributes:
           description: A set of strings used to loosly couple this resource to policies
+          x-nullable: true
+          x-omitempty: true
           items:
             type: string
           nullable: true
           type: array
-          x-nullable: true
-          x-omitempty: true
         serviceHostingCosts:
           additionalProperties:
             $ref: "#/components/schemas/terminatorCost"
@@ -24459,6 +25016,10 @@ components:
             type: boolean
           hasEdgeRouterConnection:
             type: boolean
+          interfaces:
+            items:
+              $ref: "#/components/schemas/interface"
+            type: array
           isAdmin:
             type: boolean
           isDefaultAdmin:
@@ -24564,6 +25125,31 @@ components:
           version: version
           revision: revision
         defaultHostingCost: null
+        interfaces:
+        - hardwareAddress: hardwareAddress
+          addresses:
+          - addresses
+          - addresses
+          isUp: true
+          isRunning: true
+          isBroadcast: true
+          name: name
+          index: 0
+          isLoopback: true
+          isMulticast: true
+          mtu: 0
+        - hardwareAddress: hardwareAddress
+          addresses:
+          - addresses
+          - addresses
+          isUp: true
+          isRunning: true
+          isBroadcast: true
+          name: name
+          index: 0
+          isLoopback: true
+          isMulticast: true
+          mtu: 0
         authPolicyId: authPolicyId
         externalId: externalId
         disabledUntil: 2000-01-23T04:56:07.000+00:00
@@ -24712,12 +25298,12 @@ components:
           type: string
         roleAttributes:
           description: A set of strings used to loosly couple this resource to policies
+          x-nullable: true
+          x-omitempty: true
           items:
             type: string
           nullable: true
           type: array
-          x-nullable: true
-          x-omitempty: true
         serviceHostingCosts:
           additionalProperties:
             $ref: "#/components/schemas/terminatorCost"
@@ -24783,12 +25369,12 @@ components:
           type: string
         roleAttributes:
           description: A set of strings used to loosly couple this resource to policies
+          x-nullable: true
+          x-omitempty: true
           items:
             type: string
           nullable: true
           type: array
-          x-nullable: true
-          x-omitempty: true
         serviceHostingCosts:
           additionalProperties:
             $ref: "#/components/schemas/terminatorCost"
@@ -24805,6 +25391,57 @@ components:
       - isAdmin
       - name
       - type
+      type: object
+    interface:
+      description: A resource describing a network interface
+      example:
+        hardwareAddress: hardwareAddress
+        addresses:
+        - addresses
+        - addresses
+        isUp: true
+        isRunning: true
+        isBroadcast: true
+        name: name
+        index: 0
+        isLoopback: true
+        isMulticast: true
+        mtu: 0
+      properties:
+        addresses:
+          items:
+            type: string
+          type: array
+        hardwareAddress:
+          type: string
+        index:
+          minimum: 0
+          type: integer
+        isBroadcast:
+          type: boolean
+        isLoopback:
+          type: boolean
+        isMulticast:
+          type: boolean
+        isRunning:
+          type: boolean
+        isUp:
+          type: boolean
+        mtu:
+          minimum: 0
+          type: integer
+        name:
+          type: string
+      required:
+      - hardwareAddress
+      - index
+      - isBroadcast
+      - isLoopback
+      - isMulticast
+      - isRunning
+      - isUp
+      - mtu
+      - name
       type: object
     link:
       description: A link to another resource
@@ -24827,12 +25464,13 @@ components:
       additionalProperties:
         $ref: "#/components/schemas/link"
       description: A map of named links
-      type: object
       x-omitempty: false
+      type: object
     listApiSessionsEnvelope:
       example:
         data:
-        - _links:
+        - isCertExtendRequested: true
+          _links:
             key:
               method: method
               comment: comment
@@ -24842,6 +25480,7 @@ components:
           - configTypes
           authQueries:
           - clientId: clientId
+            isTotpEnrolled: true
             provider: ziti
             httpUrl: httpUrl
             minLength: 6
@@ -24854,6 +25493,7 @@ components:
             httpMethod: httpMethod
             maxLength: 0
           - clientId: clientId
+            isTotpEnrolled: true
             provider: ziti
             httpUrl: httpUrl
             minLength: 6
@@ -24883,11 +25523,14 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          improperClientCertChain: true
+          isCertKeyRollRequested: true
           authenticatorId: authenticatorId
           id: id
           isCertExtendable: true
           updatedAt: 2000-01-23T04:56:07.000+00:00
-        - _links:
+        - isCertExtendRequested: true
+          _links:
             key:
               method: method
               comment: comment
@@ -24897,6 +25540,7 @@ components:
           - configTypes
           authQueries:
           - clientId: clientId
+            isTotpEnrolled: true
             provider: ziti
             httpUrl: httpUrl
             minLength: 6
@@ -24909,6 +25553,7 @@ components:
             httpMethod: httpMethod
             maxLength: 0
           - clientId: clientId
+            isTotpEnrolled: true
             provider: ziti
             httpUrl: httpUrl
             minLength: 6
@@ -24938,6 +25583,8 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          improperClientCertChain: true
+          isCertKeyRollRequested: true
           authenticatorId: authenticatorId
           id: id
           isCertExtendable: true
@@ -25051,13 +25698,19 @@ components:
     listAuthenticatorsEnvelope:
       example:
         data:
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          method: method
+        - method: method
           _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+          certPem: certPem
+          isIssuedByNetwork: true
+          lastExtendRolledKeys: true
+          tags: {}
+          isExtendRequested: true
+          createdAt: 2000-01-23T04:56:07.000+00:00
           identity:
             _links:
               key:
@@ -25068,20 +25721,25 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          isKeyRollRequested: true
           fingerprint: fingerprint
-          certPem: certPem
+          lastAuthResolvedToRoot: true
           id: id
-          isIssuedByNetwork: true
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
           username: username
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          method: method
+        - method: method
           _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+          certPem: certPem
+          isIssuedByNetwork: true
+          lastExtendRolledKeys: true
+          tags: {}
+          isExtendRequested: true
+          createdAt: 2000-01-23T04:56:07.000+00:00
           identity:
             _links:
               key:
@@ -25092,11 +25750,10 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          isKeyRollRequested: true
           fingerprint: fingerprint
-          certPem: certPem
+          lastAuthResolvedToRoot: true
           id: id
-          isIssuedByNetwork: true
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
           username: username
         meta:
@@ -25495,6 +26152,31 @@ components:
           updatedAt: 2000-01-23T04:56:07.000+00:00
           unverifiedFingerprint: unverifiedFingerprint
           enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           cost: 5248
           versionInfo:
             os: os
@@ -25533,6 +26215,31 @@ components:
           updatedAt: 2000-01-23T04:56:07.000+00:00
           unverifiedFingerprint: unverifiedFingerprint
           enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           cost: 5248
           versionInfo:
             os: os
@@ -25713,10 +26420,7 @@ components:
       example:
         data:
         - commonName: commonName
-          audience: audience
           notAfter: 2000-01-23T04:56:07.000+00:00
-          clientId: clientId
-          externalAuthUrl: http://example.com/aeiou
           _links:
             key:
               method: method
@@ -25730,21 +26434,26 @@ components:
           enabled: true
           issuer: issuer
           notBefore: 2000-01-23T04:56:07.000+00:00
-          tags: {}
           createdAt: 2000-01-23T04:56:07.000+00:00
+          enrollAuthPolicyId: enrollAuthPolicyId
           fingerprint: fingerprint
-          name: MyApps Signer
           id: id
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          audience: audience
+          clientId: clientId
+          externalAuthUrl: http://example.com/aeiou
+          enrollNameClaimsSelector: enrollNameClaimsSelector
+          enrollToTokenEnabled: true
+          enrollToCertEnabled: true
+          tags: {}
+          enrollAttributeClaimsSelector: enrollAttributeClaimsSelector
+          name: MyApps Signer
           scopes:
           - scopes
           - scopes
-          updatedAt: 2000-01-23T04:56:07.000+00:00
           claimsProperty: claimsProperty
         - commonName: commonName
-          audience: audience
           notAfter: 2000-01-23T04:56:07.000+00:00
-          clientId: clientId
-          externalAuthUrl: http://example.com/aeiou
           _links:
             key:
               method: method
@@ -25758,15 +26467,23 @@ components:
           enabled: true
           issuer: issuer
           notBefore: 2000-01-23T04:56:07.000+00:00
-          tags: {}
           createdAt: 2000-01-23T04:56:07.000+00:00
+          enrollAuthPolicyId: enrollAuthPolicyId
           fingerprint: fingerprint
-          name: MyApps Signer
           id: id
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          audience: audience
+          clientId: clientId
+          externalAuthUrl: http://example.com/aeiou
+          enrollNameClaimsSelector: enrollNameClaimsSelector
+          enrollToTokenEnabled: true
+          enrollToCertEnabled: true
+          tags: {}
+          enrollAttributeClaimsSelector: enrollAttributeClaimsSelector
+          name: MyApps Signer
           scopes:
           - scopes
           - scopes
-          updatedAt: 2000-01-23T04:56:07.000+00:00
           claimsProperty: claimsProperty
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
@@ -25853,6 +26570,31 @@ components:
             version: version
             revision: revision
           defaultHostingCost: null
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           authPolicyId: authPolicyId
           externalId: externalId
           disabledUntil: 2000-01-23T04:56:07.000+00:00
@@ -25948,6 +26690,31 @@ components:
             version: version
             revision: revision
           defaultHostingCost: null
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           authPolicyId: authPolicyId
           externalId: externalId
           disabledUntil: 2000-01-23T04:56:07.000+00:00
@@ -26228,6 +26995,31 @@ components:
         data:
         - unverifiedFingerprint: unverifiedFingerprint
           enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           cost: 5248
           _links:
             key:
@@ -26250,6 +27042,31 @@ components:
           updatedAt: 2000-01-23T04:56:07.000+00:00
         - unverifiedFingerprint: unverifiedFingerprint
           enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           cost: 5248
           _links:
             key:
@@ -26503,8 +27320,8 @@ components:
           postureQueries:
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -26518,14 +27335,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -26539,18 +27360,22 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -26564,14 +27389,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -26585,12 +27414,16 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           permissions:
@@ -26621,8 +27454,8 @@ components:
           postureQueries:
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -26636,14 +27469,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -26657,18 +27494,22 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -26682,14 +27523,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -26703,12 +27548,16 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           permissions:
@@ -27134,10 +27983,10 @@ components:
         apiVersion:
           type: string
         filterableFields:
+          x-omitempty: true
           items:
             type: string
           type: array
-          x-omitempty: true
         pagination:
           $ref: "#/components/schemas/pagination"
       type: object
@@ -27170,10 +28019,10 @@ components:
           type: string
       type: object
     namedRoles:
+      x-omitempty: false
       items:
         $ref: "#/components/schemas/namedRole"
       type: array
-      x-omitempty: false
     networkJWT:
       allOf:
       - properties:
@@ -27245,11 +28094,11 @@ components:
       minLength: 5
       type: string
     passwordNullable:
+      x-nullable: true
       maxLength: 100
       minLength: 5
       nullable: true
       type: string
-      x-nullable: true
     policyAdvice:
       example:
         isDialAllowed: true
@@ -27348,12 +28197,12 @@ components:
           type: string
         roleAttributes:
           description: A set of strings used to loosly couple this resource to policies
+          x-nullable: true
+          x-omitempty: true
           items:
             type: string
           nullable: true
           type: array
-          x-nullable: true
-          x-omitempty: true
         tags:
           $ref: "#/components/schemas/tags"
         typeId:
@@ -27386,8 +28235,8 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/link"
           description: A map of named links
-          type: object
           x-omitempty: false
+          type: object
         createdAt:
           format: date-time
           type: string
@@ -27397,12 +28246,12 @@ components:
           type: string
         roleAttributes:
           description: A set of strings used to loosly couple this resource to policies
+          x-nullable: true
+          x-omitempty: true
           items:
             type: string
           nullable: true
           type: array
-          x-nullable: true
-          x-omitempty: true
         tags:
           $ref: "#/components/schemas/tags"
         typeId:
@@ -27771,12 +28620,12 @@ components:
           type: string
         roleAttributes:
           description: A set of strings used to loosly couple this resource to policies
+          x-nullable: true
+          x-omitempty: true
           items:
             type: string
           nullable: true
           type: array
-          x-nullable: true
-          x-omitempty: true
         tags:
           $ref: "#/components/schemas/tags"
         typeId:
@@ -27942,12 +28791,12 @@ components:
           type: string
         roleAttributes:
           description: A set of strings used to loosly couple this resource to policies
+          x-nullable: true
+          x-omitempty: true
           items:
             type: string
           nullable: true
           type: array
-          x-nullable: true
-          x-omitempty: true
         tags:
           $ref: "#/components/schemas/tags"
         typeId:
@@ -27980,17 +28829,17 @@ components:
     postureChecksFailureMfaValues:
       properties:
         passedMfa:
-          type: boolean
           x-omitempty: false
+          type: boolean
         passedOnUnlock:
-          type: boolean
           x-omitempty: false
+          type: boolean
         passedOnWake:
-          type: boolean
           x-omitempty: false
+          type: boolean
         timedOut:
-          type: boolean
           x-omitempty: false
+          type: boolean
       type: object
     postureData:
       example:
@@ -28218,18 +29067,18 @@ components:
         apiSessionId:
           type: string
         passedAt:
+          x-omitempty: false
           format: date-time
           type: string
-          x-omitempty: false
         passedMfa:
-          type: boolean
           x-omitempty: false
+          type: boolean
         passedOnUnlock:
-          type: boolean
           x-omitempty: false
+          type: boolean
         passedOnWake:
-          type: boolean
           x-omitempty: false
+          type: boolean
       required:
       - apiSessionId
       - passedAt
@@ -28285,8 +29134,8 @@ components:
       example:
         policyId: policyId
         postureQueries:
-        - timeoutRemaining: 1
-          createdAt: 2000-01-23T04:56:07.000+00:00
+        - promptOnWake: true
+          timeoutRemaining: 5
           process:
             path: path
             osType: Windows
@@ -28300,14 +29149,18 @@ components:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          promptOnUnlock: true
+          timeoutAt: 2000-01-23T04:56:07.000+00:00
+          promptGracePeriodSeconds: 6
+          timeout: 1
+          tags: {}
+          queryType: OS
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
           isPassing: true
-          timeout: 6
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
-          queryType: OS
-        - timeoutRemaining: 1
-          createdAt: 2000-01-23T04:56:07.000+00:00
+        - promptOnWake: true
+          timeoutRemaining: 5
           process:
             path: path
             osType: Windows
@@ -28321,12 +29174,16 @@ components:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          promptOnUnlock: true
+          timeoutAt: 2000-01-23T04:56:07.000+00:00
+          promptGracePeriodSeconds: 6
+          timeout: 1
+          tags: {}
+          queryType: OS
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
           isPassing: true
-          timeout: 6
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
-          queryType: OS
         policyType: null
         isPassing: true
       properties:
@@ -28357,10 +29214,20 @@ components:
             items:
               $ref: "#/components/schemas/postureQueryProcess"
             type: array
+          promptGracePeriodSeconds:
+            type: integer
+          promptOnUnlock:
+            type: boolean
+          promptOnWake:
+            type: boolean
           queryType:
             $ref: "#/components/schemas/postureCheckType"
           timeout:
             type: integer
+          timeoutAt:
+            format: date-time
+            nullable: true
+            type: string
           timeoutRemaining:
             type: integer
         required:
@@ -28370,8 +29237,8 @@ components:
         - timeoutRemaining
         type: object
       example:
-        timeoutRemaining: 1
-        createdAt: 2000-01-23T04:56:07.000+00:00
+        promptOnWake: true
+        timeoutRemaining: 5
         process:
           path: path
           osType: Windows
@@ -28385,12 +29252,16 @@ components:
             method: method
             comment: comment
             href: https://openapi-generator.tech
+        promptOnUnlock: true
+        timeoutAt: 2000-01-23T04:56:07.000+00:00
+        promptGracePeriodSeconds: 6
+        timeout: 1
+        tags: {}
+        queryType: OS
+        createdAt: 2000-01-23T04:56:07.000+00:00
         id: id
         isPassing: true
-        timeout: 6
-        tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
-        queryType: OS
     postureQueryProcess:
       example:
         path: path
@@ -28443,16 +29314,21 @@ components:
       required:
       - expiresAt
       type: object
+    requestExtendAuthenticator:
+      properties:
+        rollKeys:
+          type: boolean
+      type: object
     roleAttributesList:
       description: An array of role attributes
       items:
         type: string
       type: array
     roles:
+      x-omitempty: false
       items:
         type: string
       type: array
-      x-omitempty: false
     routerCreate:
       properties:
         cost:
@@ -28499,6 +29375,10 @@ components:
             type: string
           fingerprint:
             type: string
+          interfaces:
+            items:
+              $ref: "#/components/schemas/interface"
+            type: array
           isOnline:
             type: boolean
           isVerified:
@@ -28508,13 +29388,13 @@ components:
           noTraversal:
             type: boolean
           unverifiedCertPem:
+            x-omitempty: false
             nullable: true
             type: string
-            x-omitempty: false
           unverifiedFingerprint:
+            x-omitempty: false
             nullable: true
             type: string
-            x-omitempty: false
         required:
         - cost
         - disabled
@@ -28527,6 +29407,31 @@ components:
       example:
         unverifiedFingerprint: unverifiedFingerprint
         enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
+        interfaces:
+        - hardwareAddress: hardwareAddress
+          addresses:
+          - addresses
+          - addresses
+          isUp: true
+          isRunning: true
+          isBroadcast: true
+          name: name
+          index: 0
+          isLoopback: true
+          isMulticast: true
+          mtu: 0
+        - hardwareAddress: hardwareAddress
+          addresses:
+          - addresses
+          - addresses
+          isUp: true
+          isRunning: true
+          isBroadcast: true
+          name: name
+          index: 0
+          isLoopback: true
+          isMulticast: true
+          mtu: 0
         cost: 5248
         _links:
           key:
@@ -28783,8 +29688,8 @@ components:
         postureQueries:
         - policyId: policyId
           postureQueries:
-          - timeoutRemaining: 1
-            createdAt: 2000-01-23T04:56:07.000+00:00
+          - promptOnWake: true
+            timeoutRemaining: 5
             process:
               path: path
               osType: Windows
@@ -28798,14 +29703,18 @@ components:
                 method: method
                 comment: comment
                 href: https://openapi-generator.tech
+            promptOnUnlock: true
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            promptGracePeriodSeconds: 6
+            timeout: 1
+            tags: {}
+            queryType: OS
+            createdAt: 2000-01-23T04:56:07.000+00:00
             id: id
             isPassing: true
-            timeout: 6
-            tags: {}
             updatedAt: 2000-01-23T04:56:07.000+00:00
-            queryType: OS
-          - timeoutRemaining: 1
-            createdAt: 2000-01-23T04:56:07.000+00:00
+          - promptOnWake: true
+            timeoutRemaining: 5
             process:
               path: path
               osType: Windows
@@ -28819,18 +29728,22 @@ components:
                 method: method
                 comment: comment
                 href: https://openapi-generator.tech
+            promptOnUnlock: true
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            promptGracePeriodSeconds: 6
+            timeout: 1
+            tags: {}
+            queryType: OS
+            createdAt: 2000-01-23T04:56:07.000+00:00
             id: id
             isPassing: true
-            timeout: 6
-            tags: {}
             updatedAt: 2000-01-23T04:56:07.000+00:00
-            queryType: OS
           policyType: null
           isPassing: true
         - policyId: policyId
           postureQueries:
-          - timeoutRemaining: 1
-            createdAt: 2000-01-23T04:56:07.000+00:00
+          - promptOnWake: true
+            timeoutRemaining: 5
             process:
               path: path
               osType: Windows
@@ -28844,14 +29757,18 @@ components:
                 method: method
                 comment: comment
                 href: https://openapi-generator.tech
+            promptOnUnlock: true
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            promptGracePeriodSeconds: 6
+            timeout: 1
+            tags: {}
+            queryType: OS
+            createdAt: 2000-01-23T04:56:07.000+00:00
             id: id
             isPassing: true
-            timeout: 6
-            tags: {}
             updatedAt: 2000-01-23T04:56:07.000+00:00
-            queryType: OS
-          - timeoutRemaining: 1
-            createdAt: 2000-01-23T04:56:07.000+00:00
+          - promptOnWake: true
+            timeoutRemaining: 5
             process:
               path: path
               osType: Windows
@@ -28865,12 +29782,16 @@ components:
                 method: method
                 comment: comment
                 href: https://openapi-generator.tech
+            promptOnUnlock: true
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            promptGracePeriodSeconds: 6
+            timeout: 1
+            tags: {}
+            queryType: OS
+            createdAt: 2000-01-23T04:56:07.000+00:00
             id: id
             isPassing: true
-            timeout: 6
-            tags: {}
             updatedAt: 2000-01-23T04:56:07.000+00:00
-            queryType: OS
           policyType: null
           isPassing: true
         permissions:
@@ -28885,19 +29806,19 @@ components:
     serviceEdgeRouterPolicyCreate:
       properties:
         edgeRouterRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         name:
           type: string
         semantic:
           $ref: "#/components/schemas/semantic"
         serviceRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         tags:
           $ref: "#/components/schemas/tags"
       required:
@@ -28957,38 +29878,38 @@ components:
     serviceEdgeRouterPolicyPatch:
       properties:
         edgeRouterRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         name:
           type: string
         semantic:
           $ref: "#/components/schemas/semantic"
         serviceRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         tags:
           $ref: "#/components/schemas/tags"
       type: object
     serviceEdgeRouterPolicyUpdate:
       properties:
         edgeRouterRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         name:
           type: string
         semantic:
           $ref: "#/components/schemas/semantic"
         serviceRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         tags:
           $ref: "#/components/schemas/tags"
       required:
@@ -29025,24 +29946,24 @@ components:
     servicePolicyCreate:
       properties:
         identityRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         name:
           type: string
         postureCheckRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         semantic:
           $ref: "#/components/schemas/semantic"
         serviceRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         tags:
           $ref: "#/components/schemas/tags"
         type:
@@ -29117,24 +30038,24 @@ components:
     servicePolicyPatch:
       properties:
         identityRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         name:
           type: string
         postureCheckRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         semantic:
           $ref: "#/components/schemas/semantic"
         serviceRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         tags:
           $ref: "#/components/schemas/tags"
         type:
@@ -29143,24 +30064,24 @@ components:
     servicePolicyUpdate:
       properties:
         identityRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         name:
           type: string
         postureCheckRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         semantic:
           $ref: "#/components/schemas/semantic"
         serviceRoles:
+          x-omitempty: false
           items:
             type: string
           type: array
-          x-omitempty: false
         tags:
           $ref: "#/components/schemas/tags"
         type:
@@ -29392,9 +30313,9 @@ components:
       enum:
       - ACCESS
       - ID
+      x-nullable: true
       nullable: true
       type: string
-      x-nullable: true
     terminatorCost:
       maximum: 65535
       minimum: 0
@@ -29562,6 +30483,44 @@ components:
       - router
       - service
       type: object
+    totpToken:
+      example:
+        issuedAt: 2000-01-23T04:56:07.000+00:00
+        token: token
+      properties:
+        issuedAt:
+          format: date-time
+          type: string
+        token:
+          type: string
+      required:
+      - issuedAt
+      - token
+      type: object
+    totpTokenEnvelope:
+      example:
+        data:
+          issuedAt: 2000-01-23T04:56:07.000+00:00
+          token: token
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          pagination:
+            offset: 6.027456183070403
+            limit: 0.8008281904610115
+            totalCount: 1.4658129805029452
+          filterableFields:
+          - filterableFields
+          - filterableFields
+      properties:
+        data:
+          $ref: "#/components/schemas/totpToken"
+        meta:
+          $ref: "#/components/schemas/meta"
+      required:
+      - data
+      - meta
+      type: object
     traceDetail:
       example:
         traceId: traceId
@@ -29619,11 +30578,11 @@ components:
       minLength: 4
       type: string
     usernameNullable:
+      x-nullable: true
       maxLength: 100
       minLength: 4
       nullable: true
       type: string
-      x-nullable: true
     version:
       example:
         runtimeVersion: go1.13.5

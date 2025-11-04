@@ -19,6 +19,7 @@
 |**enrollmentJwt** | **String** |  |  [optional] |
 |**enrollmentToken** | **String** |  |  [optional] |
 |**fingerprint** | **String** |  |  |
+|**interfaces** | [**List&lt;ModelInterface&gt;**](ModelInterface.md) |  |  [optional] |
 |**isOnline** | **Boolean** |  |  |
 |**isVerified** | **Boolean** |  |  |
 |**name** | **String** |  |  |

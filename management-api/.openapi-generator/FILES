@@ -186,6 +186,7 @@ docs/MfaApi.md
 docs/MfaCode.md
 docs/MfaFormats.md
 docs/MfaProviders.md
+docs/ModelInterface.md
 docs/NamedRole.md
 docs/NetworkJWT.md
 docs/OperatingSystem.md
@@ -252,6 +253,7 @@ docs/PostureQueryProcess.md
 docs/Process.md
 docs/ProcessMulti.md
 docs/ReEnroll.md
+docs/RequestExtendAuthenticator.md
 docs/RoleAttributesApi.md
 docs/RouterApi.md
 docs/RouterCreate.md
@@ -293,6 +295,8 @@ docs/TerminatorDetail.md
 docs/TerminatorPatch.md
 docs/TerminatorPrecedence.md
 docs/TerminatorUpdate.md
+docs/TotpToken.md
+docs/TotpTokenEnvelope.md
 docs/TraceDetail.md
 docs/TraceDetailEnvelope.md
 docs/TraceSpec.md
@@ -308,6 +312,8 @@ src/main/java/org/openziti/management/Configuration.java
 src/main/java/org/openziti/management/JSON.java
 src/main/java/org/openziti/management/Pair.java
 src/main/java/org/openziti/management/RFC3339DateFormat.java
+src/main/java/org/openziti/management/RFC3339InstantDeserializer.java
+src/main/java/org/openziti/management/RFC3339JavaTimeModule.java
 src/main/java/org/openziti/management/ServerConfiguration.java
 src/main/java/org/openziti/management/ServerVariable.java
 src/main/java/org/openziti/management/api/ApiSessionApi.java
@@ -508,6 +514,7 @@ src/main/java/org/openziti/management/model/Meta.java
 src/main/java/org/openziti/management/model/MfaCode.java
 src/main/java/org/openziti/management/model/MfaFormats.java
 src/main/java/org/openziti/management/model/MfaProviders.java
+src/main/java/org/openziti/management/model/ModelInterface.java
 src/main/java/org/openziti/management/model/NamedRole.java
 src/main/java/org/openziti/management/model/NetworkJWT.java
 src/main/java/org/openziti/management/model/OperatingSystem.java
@@ -573,6 +580,7 @@ src/main/java/org/openziti/management/model/PostureQueryProcess.java
 src/main/java/org/openziti/management/model/Process.java
 src/main/java/org/openziti/management/model/ProcessMulti.java
 src/main/java/org/openziti/management/model/ReEnroll.java
+src/main/java/org/openziti/management/model/RequestExtendAuthenticator.java
 src/main/java/org/openziti/management/model/RouterCreate.java
 src/main/java/org/openziti/management/model/RouterDetail.java
 src/main/java/org/openziti/management/model/RouterEntityRef.java
@@ -606,6 +614,8 @@ src/main/java/org/openziti/management/model/TerminatorDetail.java
 src/main/java/org/openziti/management/model/TerminatorPatch.java
 src/main/java/org/openziti/management/model/TerminatorPrecedence.java
 src/main/java/org/openziti/management/model/TerminatorUpdate.java
+src/main/java/org/openziti/management/model/TotpToken.java
+src/main/java/org/openziti/management/model/TotpTokenEnvelope.java
 src/main/java/org/openziti/management/model/TraceDetail.java
 src/main/java/org/openziti/management/model/TraceDetailEnvelope.java
 src/main/java/org/openziti/management/model/TraceSpec.java
