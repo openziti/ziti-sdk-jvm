@@ -1,11 +1,11 @@
 [versions]
 # plugings
 kotlin = "2.2.21"
-dokka = "2.0.0"
+dokka = "2.1.0"
 nexus = "2.0.0"
 semver-git = "2.3.7"
-openapi-gen = "7.14.0"
-spotless = "7.2.1"
+openapi-gen = "7.17.0"
+spotless = "8.0.0"
 shadow-jar = "9.0.2"
 download = "5.6.0"
 
