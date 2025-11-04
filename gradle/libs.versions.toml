@@ -11,7 +11,7 @@ download = "5.6.0"
 
 # OpenZiti Edge API
 ziti-api = "0.26.51"
-ziti-cli = "1.5.4"
+ziti-cli = "1.6.9"
 
 # third party
 lazysodium-java = "5.2.0"
