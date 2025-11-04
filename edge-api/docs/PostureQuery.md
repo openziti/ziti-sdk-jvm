@@ -15,8 +15,12 @@
 |**isPassing** | **Boolean** |  |  |
 |**process** | [**PostureQueryProcess**](PostureQueryProcess.md) |  |  [optional] |
 |**processes** | [**List&lt;PostureQueryProcess&gt;**](PostureQueryProcess.md) |  |  [optional] |
+|**promptGracePeriodSeconds** | **Integer** |  |  [optional] |
+|**promptOnUnlock** | **Boolean** |  |  [optional] |
+|**promptOnWake** | **Boolean** |  |  [optional] |
 |**queryType** | **PostureCheckType** |  |  |
 |**timeout** | **Integer** |  |  |
+|**timeoutAt** | **OffsetDateTime** |  |  [optional] |
 |**timeoutRemaining** | **Integer** |  |  |
 
 

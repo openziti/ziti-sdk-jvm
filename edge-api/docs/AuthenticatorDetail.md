@@ -14,10 +14,15 @@ A singular authenticator resource
 |**tags** | [**Tags**](Tags.md) |  |  [optional] |
 |**updatedAt** | **OffsetDateTime** |  |  |
 |**certPem** | **String** |  |  [optional] |
+|**extendRequestedAt** | **OffsetDateTime** |  |  [optional] |
 |**fingerprint** | **String** |  |  [optional] |
 |**identity** | [**EntityRef**](EntityRef.md) |  |  |
 |**identityId** | **String** |  |  |
+|**isExtendRequested** | **Boolean** |  |  [optional] |
 |**isIssuedByNetwork** | **Boolean** |  |  [optional] |
+|**isKeyRollRequested** | **Boolean** |  |  [optional] |
+|**lastAuthResolvedToRoot** | **Boolean** |  |  [optional] |
+|**lastExtendRolledKeys** | **Boolean** |  |  [optional] |
 |**method** | **String** |  |  |
 |**username** | **String** |  |  [optional] |
 

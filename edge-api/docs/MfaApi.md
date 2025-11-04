@@ -8,6 +8,8 @@ All URIs are relative to *https://demo.ziti.dev/edge/client/v1*
 | [**authenticateMfaWithHttpInfo**](MfaApi.md#authenticateMfaWithHttpInfo) | **POST** /authenticate/mfa | Complete MFA authentication |
 | [**createMfaRecoveryCodes**](MfaApi.md#createMfaRecoveryCodes) | **POST** /current-identity/mfa/recovery-codes | For a completed MFA enrollment regenerate the recovery codes |
 | [**createMfaRecoveryCodesWithHttpInfo**](MfaApi.md#createMfaRecoveryCodesWithHttpInfo) | **POST** /current-identity/mfa/recovery-codes | For a completed MFA enrollment regenerate the recovery codes |
+| [**createTotpToken**](MfaApi.md#createTotpToken) | **POST** /current-api-session/totp-token | Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks. |
+| [**createTotpTokenWithHttpInfo**](MfaApi.md#createTotpTokenWithHttpInfo) | **POST** /current-api-session/totp-token | Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks. |
 | [**deleteMfa**](MfaApi.md#deleteMfa) | **DELETE** /current-identity/mfa | Disable MFA for the current identity |
 | [**deleteMfaWithHttpInfo**](MfaApi.md#deleteMfaWithHttpInfo) | **DELETE** /current-identity/mfa | Disable MFA for the current identity |
 | [**detailMfa**](MfaApi.md#detailMfa) | **GET** /current-identity/mfa | Returns the current status of MFA enrollment |
@@ -357,6 +359,175 @@ CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
+| **401** | The supplied session does not have the correct access rights to request this resource |  -  |
+| **404** | The requested resource does not exist |  -  |
+
+
+## createTotpToken
+
+> CompletableFuture<TotpTokenEnvelope> createTotpToken(mfaValidation)
+
+Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
+
+Creates a TOTP token that proves TOTP validation occurred at a specific time. Used in posture response for posture checks. 
+
+### Example
+
+```java
+// Import classes:
+import org.openziti.edge.ApiClient;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.Configuration;
+import org.openziti.edge.auth.*;
+import org.openziti.edge.models.*;
+import org.openziti.edge.api.MfaApi;
+import java.util.concurrent.CompletableFuture;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
+        
+        // Configure API key authorization: ztSession
+        ApiKeyAuth ztSession = (ApiKeyAuth) defaultClient.getAuthentication("ztSession");
+        ztSession.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ztSession.setApiKeyPrefix("Token");
+
+        // Configure OAuth2 access token for authorization: oauth2
+        OAuth oauth2 = (OAuth) defaultClient.getAuthentication("oauth2");
+        oauth2.setAccessToken("YOUR ACCESS TOKEN");
+
+        MfaApi apiInstance = new MfaApi(defaultClient);
+        MfaCode mfaValidation = new MfaCode(); // MfaCode | An MFA TOTP validation request
+        try {
+            CompletableFuture<TotpTokenEnvelope> result = apiInstance.createTotpToken(mfaValidation);
+            System.out.println(result.get());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling MfaApi#createTotpToken");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **mfaValidation** | [**MfaCode**](MfaCode.md)| An MFA TOTP validation request | |
+
+### Return type
+
+CompletableFuture<[**TotpTokenEnvelope**](TotpTokenEnvelope.md)>
+
+
+### Authorization
+
+[ztSession](../README.md#ztSession), [oauth2](../README.md#oauth2)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | A TOTP token create response, contains a token used to satisfy posture checks |  -  |
+| **401** | The supplied session does not have the correct access rights to request this resource |  -  |
+| **404** | The requested resource does not exist |  -  |
+
+## createTotpTokenWithHttpInfo
+
+> CompletableFuture<ApiResponse<TotpTokenEnvelope>> createTotpToken createTotpTokenWithHttpInfo(mfaValidation)
+
+Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
+
+Creates a TOTP token that proves TOTP validation occurred at a specific time. Used in posture response for posture checks. 
+
+### Example
+
+```java
+// Import classes:
+import org.openziti.edge.ApiClient;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.ApiResponse;
+import org.openziti.edge.Configuration;
+import org.openziti.edge.auth.*;
+import org.openziti.edge.models.*;
+import org.openziti.edge.api.MfaApi;
+import java.util.concurrent.CompletableFuture;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
+        
+        // Configure API key authorization: ztSession
+        ApiKeyAuth ztSession = (ApiKeyAuth) defaultClient.getAuthentication("ztSession");
+        ztSession.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ztSession.setApiKeyPrefix("Token");
+
+        // Configure OAuth2 access token for authorization: oauth2
+        OAuth oauth2 = (OAuth) defaultClient.getAuthentication("oauth2");
+        oauth2.setAccessToken("YOUR ACCESS TOKEN");
+
+        MfaApi apiInstance = new MfaApi(defaultClient);
+        MfaCode mfaValidation = new MfaCode(); // MfaCode | An MFA TOTP validation request
+        try {
+            CompletableFuture<ApiResponse<TotpTokenEnvelope>> response = apiInstance.createTotpTokenWithHttpInfo(mfaValidation);
+            System.out.println("Status code: " + response.get().getStatusCode());
+            System.out.println("Response headers: " + response.get().getHeaders());
+            System.out.println("Response body: " + response.get().getData());
+        } catch (InterruptedException | ExecutionException e) {
+            ApiException apiException = (ApiException)e.getCause();
+            System.err.println("Exception when calling MfaApi#createTotpToken");
+            System.err.println("Status code: " + apiException.getCode());
+            System.err.println("Response headers: " + apiException.getResponseHeaders());
+            System.err.println("Reason: " + apiException.getResponseBody());
+            e.printStackTrace();
+        } catch (ApiException e) {
+            System.err.println("Exception when calling MfaApi#createTotpToken");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **mfaValidation** | [**MfaCode**](MfaCode.md)| An MFA TOTP validation request | |
+
+### Return type
+
+CompletableFuture<ApiResponse<[**TotpTokenEnvelope**](TotpTokenEnvelope.md)>>
+
+
+### Authorization
+
+[ztSession](../README.md#ztSession), [oauth2](../README.md#oauth2)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | A TOTP token create response, contains a token used to satisfy posture checks |  -  |
 | **401** | The supplied session does not have the correct access rights to request this resource |  -  |
 | **404** | The requested resource does not exist |  -  |
 
