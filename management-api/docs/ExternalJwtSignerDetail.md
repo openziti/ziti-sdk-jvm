@@ -19,6 +19,11 @@ A External JWT Signer resource
 |**clientId** | **String** |  |  |
 |**commonName** | **String** |  |  |
 |**enabled** | **Boolean** |  |  |
+|**enrollAttributeClaimsSelector** | **String** |  |  [optional] |
+|**enrollAuthPolicyId** | **String** |  |  [optional] |
+|**enrollNameClaimsSelector** | **String** |  |  [optional] |
+|**enrollToCertEnabled** | **Boolean** |  |  [optional] |
+|**enrollToTokenEnabled** | **Boolean** |  |  [optional] |
 |**externalAuthUrl** | **String** |  |  |
 |**fingerprint** | **String** |  |  |
 |**issuer** | **String** |  |  |

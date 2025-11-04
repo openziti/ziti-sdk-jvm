@@ -2,11 +2,11 @@
 
 Ziti Edge Management
 
-- API version: 0.26.42
+- API version: 0.26.51
 
-- Build date: 2025-03-17T12:51:49.931993799-04:00[America/New_York]
+- Build date: 2025-11-03T20:11:50.447141027-05:00[America/New_York]
 
-- Generator version: 7.11.0
+- Generator version: 7.14.0
 
 OpenZiti Edge Management API
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>management-api</artifactId>
-  <version>0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT</version>
+  <version>0.30.3-SNAPSHOT</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:management-api:0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT"
+compile "org.openziti:management-api:0.30.3-SNAPSHOT"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/management-api-0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT.jar`
+- `target/management-api-0.30.3-SNAPSHOT.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -145,6 +145,10 @@ Class | Method | HTTP request | Description
 *AuthenticatorApi* | [**patchAuthenticatorWithHttpInfo**](docs/AuthenticatorApi.md#patchAuthenticatorWithHttpInfo) | **PATCH** /authenticators/{id} | Update the supplied fields on an authenticator
 *AuthenticatorApi* | [**reEnrollAuthenticator**](docs/AuthenticatorApi.md#reEnrollAuthenticator) | **POST** /authenticators/{id}/re-enroll | Reverts an authenticator to an enrollment
 *AuthenticatorApi* | [**reEnrollAuthenticatorWithHttpInfo**](docs/AuthenticatorApi.md#reEnrollAuthenticatorWithHttpInfo) | **POST** /authenticators/{id}/re-enroll | Reverts an authenticator to an enrollment
+*AuthenticatorApi* | [**requestExtendAllCertAuthenticators**](docs/AuthenticatorApi.md#requestExtendAllCertAuthenticators) | **POST** /identities/{id}/request-extend | Indicate all certificate authenticators for the identity should be extended and optionally key rolled on next authentication.
+*AuthenticatorApi* | [**requestExtendAllCertAuthenticatorsWithHttpInfo**](docs/AuthenticatorApi.md#requestExtendAllCertAuthenticatorsWithHttpInfo) | **POST** /identities/{id}/request-extend | Indicate all certificate authenticators for the identity should be extended and optionally key rolled on next authentication.
+*AuthenticatorApi* | [**requestExtendAuthenticator**](docs/AuthenticatorApi.md#requestExtendAuthenticator) | **POST** /authenticators/{id}/request-extend | Indicate a certificate authenticator should be extended and optionally key rolled on next authentication.
+*AuthenticatorApi* | [**requestExtendAuthenticatorWithHttpInfo**](docs/AuthenticatorApi.md#requestExtendAuthenticatorWithHttpInfo) | **POST** /authenticators/{id}/request-extend | Indicate a certificate authenticator should be extended and optionally key rolled on next authentication.
 *AuthenticatorApi* | [**updateAuthenticator**](docs/AuthenticatorApi.md#updateAuthenticator) | **PUT** /authenticators/{id} | Update all fields on an authenticator
 *AuthenticatorApi* | [**updateAuthenticatorWithHttpInfo**](docs/AuthenticatorApi.md#updateAuthenticatorWithHttpInfo) | **PUT** /authenticators/{id} | Update all fields on an authenticator
 *CertificateAuthorityApi* | [**createCa**](docs/CertificateAuthorityApi.md#createCa) | **POST** /cas | Creates a CA
@@ -193,6 +197,8 @@ Class | Method | HTTP request | Description
 *ConfigApi* | [**updateConfigTypeWithHttpInfo**](docs/ConfigApi.md#updateConfigTypeWithHttpInfo) | **PUT** /config-types/{id} | Update all fields on a config-type
 *ControllersApi* | [**listControllers**](docs/ControllersApi.md#listControllers) | **GET** /controllers | List controllers
 *ControllersApi* | [**listControllersWithHttpInfo**](docs/ControllersApi.md#listControllersWithHttpInfo) | **GET** /controllers | List controllers
+*CurrentApiSessionApi* | [**createTotpToken**](docs/CurrentApiSessionApi.md#createTotpToken) | **POST** /current-api-session/totp-token | Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
+*CurrentApiSessionApi* | [**createTotpTokenWithHttpInfo**](docs/CurrentApiSessionApi.md#createTotpTokenWithHttpInfo) | **POST** /current-api-session/totp-token | Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
 *CurrentApiSessionApi* | [**currentApiSessionDelete**](docs/CurrentApiSessionApi.md#currentApiSessionDelete) | **DELETE** /current-api-session | Logout
 *CurrentApiSessionApi* | [**currentApiSessionDeleteWithHttpInfo**](docs/CurrentApiSessionApi.md#currentApiSessionDeleteWithHttpInfo) | **DELETE** /current-api-session | Logout
 *CurrentApiSessionApi* | [**detailCurrentIdentityAuthenticator**](docs/CurrentApiSessionApi.md#detailCurrentIdentityAuthenticator) | **GET** /current-identity/authenticators/{id} | Retrieve an authenticator for the current identity
@@ -369,6 +375,8 @@ Class | Method | HTTP request | Description
 *MfaApi* | [**authenticateMfaWithHttpInfo**](docs/MfaApi.md#authenticateMfaWithHttpInfo) | **POST** /authenticate/mfa | Complete MFA authentication
 *MfaApi* | [**createMfaRecoveryCodes**](docs/MfaApi.md#createMfaRecoveryCodes) | **POST** /current-identity/mfa/recovery-codes | For a completed MFA enrollment regenerate the recovery codes
 *MfaApi* | [**createMfaRecoveryCodesWithHttpInfo**](docs/MfaApi.md#createMfaRecoveryCodesWithHttpInfo) | **POST** /current-identity/mfa/recovery-codes | For a completed MFA enrollment regenerate the recovery codes
+*MfaApi* | [**createTotpToken**](docs/MfaApi.md#createTotpToken) | **POST** /current-api-session/totp-token | Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
+*MfaApi* | [**createTotpTokenWithHttpInfo**](docs/MfaApi.md#createTotpTokenWithHttpInfo) | **POST** /current-api-session/totp-token | Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
 *MfaApi* | [**deleteMfa**](docs/MfaApi.md#deleteMfa) | **DELETE** /current-identity/mfa | Disable MFA for the current identity
 *MfaApi* | [**deleteMfaWithHttpInfo**](docs/MfaApi.md#deleteMfaWithHttpInfo) | **DELETE** /current-identity/mfa | Disable MFA for the current identity
 *MfaApi* | [**detailMfa**](docs/MfaApi.md#detailMfa) | **GET** /current-identity/mfa | Returns the current status of MFA enrollment
@@ -698,6 +706,7 @@ Class | Method | HTTP request | Description
  - [MfaCode](docs/MfaCode.md)
  - [MfaFormats](docs/MfaFormats.md)
  - [MfaProviders](docs/MfaProviders.md)
+ - [ModelInterface](docs/ModelInterface.md)
  - [NamedRole](docs/NamedRole.md)
  - [NetworkJWT](docs/NetworkJWT.md)
  - [OperatingSystem](docs/OperatingSystem.md)
@@ -763,6 +772,7 @@ Class | Method | HTTP request | Description
  - [Process](docs/Process.md)
  - [ProcessMulti](docs/ProcessMulti.md)
  - [ReEnroll](docs/ReEnroll.md)
+ - [RequestExtendAuthenticator](docs/RequestExtendAuthenticator.md)
  - [RouterCreate](docs/RouterCreate.md)
  - [RouterDetail](docs/RouterDetail.md)
  - [RouterEntityRef](docs/RouterEntityRef.md)
@@ -796,6 +806,8 @@ Class | Method | HTTP request | Description
  - [TerminatorPatch](docs/TerminatorPatch.md)
  - [TerminatorPrecedence](docs/TerminatorPrecedence.md)
  - [TerminatorUpdate](docs/TerminatorUpdate.md)
+ - [TotpToken](docs/TotpToken.md)
+ - [TotpTokenEnvelope](docs/TotpTokenEnvelope.md)
  - [TraceDetail](docs/TraceDetail.md)
  - [TraceDetailEnvelope](docs/TraceDetailEnvelope.md)
  - [TraceSpec](docs/TraceSpec.md)

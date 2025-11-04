@@ -12,6 +12,11 @@
 |**claimsProperty** | **String** |  |  [optional] |
 |**clientId** | **String** |  |  [optional] |
 |**enabled** | **Boolean** |  |  [optional] |
+|**enrollAttributeClaimsSelector** | **String** |  |  [optional] |
+|**enrollAuthPolicyId** | **String** |  |  [optional] |
+|**enrollNameClaimsSelector** | **String** |  |  [optional] |
+|**enrollToCertEnabled** | **Boolean** |  |  [optional] |
+|**enrollToTokenEnabled** | **Boolean** |  |  [optional] |
 |**externalAuthUrl** | **String** |  |  [optional] |
 |**issuer** | **String** |  |  [optional] |
 |**jwksEndpoint** | **URI** |  |  [optional] |
