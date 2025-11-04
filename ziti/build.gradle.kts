@@ -150,16 +150,27 @@ kotlin {
 
 val zitiVersion = libs.versions.ziti.cli.get()
 val binDir = layout.buildDirectory.dir("bin").get()
+val srcDir = layout.buildDirectory.dir("ziti-src").get()
 val zitiCLI = binDir.file("ziti")
 val quickstartHome = layout.buildDirectory.dir("quickstart").get()
+
+tasks.register<Exec>("zitiCheckout") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "checkout ziti cli source"
+    commandLine("env", "git", "clone",
+        "--depth", "1", "--branch", "v${zitiVersion}",
+        "https://github.com/openziti/ziti", "${srcDir.asFile.absolutePath}"
+    )
+}
 
 tasks.register<Exec>("buildZiti") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Builds the Ziti CLI"
+    workingDir(srcDir)
+
     environment("GOBIN", binDir.asFile.absolutePath)
-    commandLine("env",
-        "go", "install", "github.com/openziti/ziti/ziti@v${zitiVersion}"
-    )
+    environment("GOWORK", "off")
+    commandLine("env", "go", "install", "./ziti")
     outputs.file(zitiCLI)
 }
 
