@@ -19,8 +19,11 @@ An API Session object for the current API session
 |**configTypes** | **List&lt;String&gt;** |  |  |
 |**identity** | [**EntityRef**](EntityRef.md) |  |  |
 |**identityId** | **String** |  |  |
+|**improperClientCertChain** | **Boolean** |  |  [optional] |
 |**ipAddress** | **String** |  |  |
+|**isCertExtendRequested** | **Boolean** |  |  [optional] |
 |**isCertExtendable** | **Boolean** |  |  |
+|**isCertKeyRollRequested** | **Boolean** |  |  [optional] |
 |**isMfaComplete** | **Boolean** |  |  |
 |**isMfaRequired** | **Boolean** |  |  |
 |**lastActivityAt** | **OffsetDateTime** |  |  [optional] |
