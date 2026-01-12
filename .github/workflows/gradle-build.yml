@@ -26,10 +26,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.23.x'
-          cache-dependency-path: "**/*.sum"
+      - uses: openziti/ziti/setup-cli@main
 
       - name: Check
         run: |
