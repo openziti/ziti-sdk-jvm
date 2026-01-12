@@ -148,37 +148,7 @@ kotlin {
     }
 }
 
-val zitiVersion = libs.versions.ziti.cli.get()
-val binDir = layout.buildDirectory.dir("bin").get()
-val srcDir = layout.buildDirectory.dir("ziti-src").get()
-val zitiCLI = binDir.file("ziti")
 val quickstartHome = layout.buildDirectory.dir("quickstart").get()
-
-tasks.register<Exec>("zitiCheckout") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "checkout ziti cli source"
-
-    if (srcDir.asFile.exists()) {
-        srcDir.asFile.deleteRecursively()
-    }
-
-    commandLine("env", "git", "clone",
-        "--depth", "1", "--branch", "v${zitiVersion}",
-        "https://github.com/openziti/ziti", "${srcDir.asFile.absolutePath}"
-    )
-}
-
-tasks.register<Exec>("buildZiti") {
-    dependsOn("zitiCheckout")
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Builds the Ziti CLI"
-    workingDir(srcDir)
-
-    environment("GOBIN", binDir.asFile.absolutePath)
-    environment("GOWORK", "off")
-    commandLine("env", "go", "install", "./ziti")
-    outputs.file(zitiCLI)
-}
 
 tasks.register("start-quickstart") {
     description = "Starts Ziti quickstart"
@@ -187,9 +157,8 @@ tasks.register("start-quickstart") {
 
     doLast {
         val pb = ProcessBuilder().apply {
-            command(
-                zitiCLI.toString(),
-                "edge", "quickstart", "--verbose", "--home", quickstartHome.asFile.absolutePath)
+            command("ziti", "edge", "quickstart", "--verbose",
+                "--home", quickstartHome.asFile.absolutePath)
             redirectOutput(qsLog)
             redirectError(errLog)
         }
@@ -215,7 +184,7 @@ tasks.register("start-quickstart") {
             }
         }
     }
-    dependsOn("integrationTestClasses", "buildZiti")
+    dependsOn("integrationTestClasses")
 }
 
 tasks.register("stop-quickstart") {
