@@ -71,6 +71,10 @@ class AsychChannelSocket(internal val impl: AsyncSocketImpl = AsyncSocketImpl())
             override fun close() {
                 this@AsychChannelSocket.close()
             }
+
+            override fun write(b: ByteArray?, off: Int, len: Int) {
+                out.write(b, off, len)
+            }
         }
     }
 }

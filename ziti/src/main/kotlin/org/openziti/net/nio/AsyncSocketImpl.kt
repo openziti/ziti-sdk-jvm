@@ -17,6 +17,8 @@
 package org.openziti.net.nio
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.openziti.net.internal.Sockets
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
@@ -29,7 +31,6 @@ import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.InterruptedByTimeoutException
 import java.util.concurrent.ExecutionException
-import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
@@ -76,7 +77,7 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
 
     internal lateinit var channel: AsynchronousSocketChannel
 
-    internal val inputLock = Semaphore(1)
+    internal val inputLock = Mutex()
     internal val input = ByteBuffer.allocate(32 * 1024).apply {
         (this as Buffer).flip()
     }
@@ -149,29 +150,24 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
                 return oneByte[0].toInt()
             }
 
-            override fun read(b: ByteArray, off: Int, len: Int): Int {
-                synchronized(input) {
-                    inputLock.acquire() // protects async read operation
-                    val count = min(len, input.remaining())
-                    if (count > 0) {
+            override fun read(b: ByteArray, off: Int, len: Int): Int = runBlocking {
+                val timeout = (getOption(SO_TIMEOUT) as Number).toLong()
+                inputLock.withLock {
+                    if (input.remaining() > 0) {
+                        val count = min(len, input.remaining())
                         input.get(b, off, count)
-                        inputLock.release()
-                        return count
-                    }
-
-                    input.compact()
-                    val to = (getOption(SocketOptions.SO_TIMEOUT) as Number).toLong()
-                    val readCount = channel.runCatching {
-                        runBlocking { readSuspend(input, to, TimeUnit.MILLISECONDS) }
-                    }
-                    input.flip()
-                    readCount.onSuccess { c ->
-                        if (c > 0) {
-                            input.get(b, off, c)
+                        count
+                    } else {
+                        input.compact()
+                        val readCount = channel.runCatching {
+                            readSuspend(input, timeout, TimeUnit.MILLISECONDS)
                         }
+                        input.flip()
+
+                        val count = min(len, readCount.getOrElse { throwIOException(it) })
+                        input.get(b, off, count)
+                        count
                     }
-                    inputLock.release()
-                    return readCount.getOrElse { throwIOException(it) }
                 }
             }
 
@@ -192,12 +188,12 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
     }
 
     override fun getOption(optID: Int): Any? {
-        if (optID == SocketOptions.SO_TIMEOUT) {
+        if (optID == SO_TIMEOUT) {
             return timeout.get()
         }
 
         // Urgent data is not supported
-        if (optID == SocketOptions.SO_OOBINLINE) {
+        if (optID == SO_OOBINLINE) {
             return false
         }
 
@@ -205,12 +201,12 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
     }
 
     override fun setOption(optID: Int, value: Any?) {
-        if (optID == SocketOptions.SO_TIMEOUT) {
+        if (optID == SO_TIMEOUT) {
             timeout.set((value as Number).toInt())
         }
 
         // Urgent data is not supported
-        if (optID == SocketOptions.SO_OOBINLINE) {
+        if (optID == SO_OOBINLINE) {
             throw SocketException("SO_OOBINLINE is not supported")
         }
     }

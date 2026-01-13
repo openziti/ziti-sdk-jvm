@@ -153,7 +153,7 @@ class ZitiSSLSocket(val transport: Socket, val engine: SSLEngine) :
         engine.beginHandshake()
     }
 
-    private fun doHandshake() = synchronized(this) {
+    private fun doHandshake(): Unit = synchronized(this) {
 
         if (engine.handshakeStatus == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
             return

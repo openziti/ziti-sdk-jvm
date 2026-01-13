@@ -1,6 +1,0 @@
-
-dependencies {
-    implementation libs.ziti
-    implementation libs.slf4j.simple
-    implementation libs.okhttp3.okhttp
-}
