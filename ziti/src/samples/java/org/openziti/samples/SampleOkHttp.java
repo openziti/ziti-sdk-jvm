@@ -25,13 +25,10 @@ import org.openziti.ZitiContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 public class SampleOkHttp {
 
@@ -89,7 +86,7 @@ public class SampleOkHttp {
             Response resp = clt.newCall(req).execute();
             System.out.println(resp);
             System.out.println(resp.headers());
-            System.out.println(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(resp.body().bytes())));
+            System.out.println(resp.body().string());
         } catch(Exception ex) {
             ex.printStackTrace();
         } finally {
