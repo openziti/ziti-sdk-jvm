@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.openziti.sample;
+package org.openziti.samples;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -29,7 +29,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class SampleOkHttp {
 
@@ -41,8 +43,24 @@ public class SampleOkHttp {
         try {
             ctx = Ziti.newContext(path, new char[0]);
 
-            // sleep to let ZitiContext initialize
-            Thread.sleep(3000);
+            var active = new CountDownLatch(1);
+            ctx.onStatus(status -> {
+                System.out.println(status);
+                switch (status) {
+                    case ZitiContext.Status.Loading l:
+                        break;
+                    case ZitiContext.Status.Active a:
+                        active.countDown();
+                        break;
+                    default:
+                        System.out.println("Unexpected value: " + status);
+                }
+            });
+
+            if (!active.await(3, TimeUnit.SECONDS)) {
+                System.err.println("failed to load ziti identity");
+                System.exit(1);
+            }
 
             KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -75,7 +93,8 @@ public class SampleOkHttp {
         } catch(Exception ex) {
             ex.printStackTrace();
         } finally {
-            ctx.destroy();
+            if (ctx != null)
+                ctx.destroy();
         }
     }
 }
