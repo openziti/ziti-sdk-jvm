@@ -28,6 +28,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
         with:
           dependency-graph: generate-and-submit
+          
+      - uses: openziti/ziti/setup-cli@main
+
       - name: Build with Gradle
         run: ./gradlew build assemble
       - name: Show Info
