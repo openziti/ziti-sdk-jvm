@@ -282,6 +282,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 ctrlEndpoints.addAll(ctrls)
             }
 
+            val services = controller.getServices().toList()
+            processServiceUpdates(services)
+
             updateStatus(ZitiContext.Status.Active)
 
             val apiSessionUpdate = maintainApiSession(authenticator)
