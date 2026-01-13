@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.1.0"
-openziti = "0.30.3-dirty-SNAPSHOT"
+openziti = "0.30.3"
 springboot = "3.3.3"
 clikt = "2.8.0"
 slf4j = "2.0.5"
