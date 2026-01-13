@@ -22,17 +22,19 @@ plugins {
 }
 
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_21
 
 dependencies {
     implementation('org.springframework.boot:spring-boot-starter')
     implementation('org.springframework.boot:spring-boot-starter-web')
 
     implementation libs.ziti.springboot.client
-    compileOnly('org.projectlombok:lombok:1.18.34')
-    annotationProcessor('org.projectlombok:lombok:1.18.34')
+    compileOnly('org.projectlombok:lombok:1.18.42')
+    annotationProcessor('org.projectlombok:lombok:1.18.42')
 
     implementation libs.httpclient5
+    implementation libs.httpcomponentscore5
+    implementation libs.httpcomponentscore5h2
 }
 
 tasks.register("prepareKotlinBuildScriptModel"){}

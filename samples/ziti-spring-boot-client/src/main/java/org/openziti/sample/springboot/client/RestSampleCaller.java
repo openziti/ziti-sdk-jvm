@@ -21,17 +21,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class RestTemplateCaller {
+public class RestSampleCaller {
 
   private final RestTemplate restTemplate;
+  private final RestClient restClient;
 
   @Autowired
-  public RestTemplateCaller(@Qualifier("zitiRestTemplate") RestTemplate restTemplate) {
+  public RestSampleCaller(@Qualifier("zitiRestTemplate") RestTemplate restTemplate, @Qualifier("zitiRestClient") RestClient restClient) {
     this.restTemplate = restTemplate;
+    this.restClient = restClient;
+
   }
 
   @Scheduled(initialDelayString = "PT5S", fixedDelayString = "PT15S")
@@ -40,9 +44,16 @@ public class RestTemplateCaller {
 //    final String url = "https://whatismyip.ziti/";
 //    final String url = "https://eth0.me";
 //    final String url = "https://local.ziti";
-    log.info("Calling: {}", url);
-    final ResponseEntity<String> msg = restTemplate.getForEntity(url, String.class);
-    log.info("Got message: {}", msg);
+    log.info("Calling w RestClient: {}", url);
+    final String msg1 =restClient.get()
+        .uri(url)
+        .retrieve()
+        .body(String.class);
+    log.info("Got message: {}", msg1);
+
+    log.info("Calling w RestTemplate: {}", url);
+    final ResponseEntity<String> msg2 = restTemplate.getForEntity(url, String.class);
+    log.info("Got message: {}", msg2);
   }
 
 }

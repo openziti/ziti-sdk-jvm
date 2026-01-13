@@ -24,11 +24,11 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.plugin.spring)
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_21
 
 tasks.withType(KotlinJvmCompile).configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 
