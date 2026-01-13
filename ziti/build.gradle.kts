@@ -115,7 +115,6 @@ java {
 }
 
 tasks.named<ShadowJar>("shadowJar") {
-    manifest.inheritFrom(tasks.jar.get().manifest)
     archiveClassifier.set("full")
     mergeServiceFiles()
     configurations = listOf(project.configurations.runtimeClasspath.get())
@@ -149,20 +148,7 @@ kotlin {
     }
 }
 
-val zitiVersion = libs.versions.ziti.cli.get()
-val binDir = layout.buildDirectory.dir("bin").get()
-val zitiCLI = binDir.file("ziti")
 val quickstartHome = layout.buildDirectory.dir("quickstart").get()
-
-tasks.register<Exec>("buildZiti") {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Builds the Ziti CLI"
-    environment("GOBIN", binDir.asFile.absolutePath)
-    commandLine("env",
-        "go", "install", "github.com/openziti/ziti/ziti@v${zitiVersion}"
-    )
-    outputs.file(zitiCLI)
-}
 
 tasks.register("start-quickstart") {
     description = "Starts Ziti quickstart"
@@ -171,9 +157,8 @@ tasks.register("start-quickstart") {
 
     doLast {
         val pb = ProcessBuilder().apply {
-            command(
-                zitiCLI.toString(),
-                "edge", "quickstart", "--verbose", "--home", quickstartHome.asFile.absolutePath)
+            command("ziti", "edge", "quickstart", "--verbose",
+                "--home", quickstartHome.asFile.absolutePath)
             redirectOutput(qsLog)
             redirectError(errLog)
         }
@@ -199,7 +184,7 @@ tasks.register("start-quickstart") {
             }
         }
     }
-    dependsOn("integrationTestClasses", "buildZiti")
+    dependsOn("integrationTestClasses")
 }
 
 tasks.register("stop-quickstart") {

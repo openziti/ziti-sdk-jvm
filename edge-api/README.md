@@ -2,11 +2,11 @@
 
 Ziti Edge Client
 
-- API version: 0.26.42
+- API version: 0.26.51
 
-- Build date: 2025-03-17T12:51:45.850758361-04:00[America/New_York]
+- Build date: 2025-11-03T19:52:33.106068042-05:00[America/New_York]
 
-- Generator version: 7.11.0
+- Generator version: 7.14.0
 
 OpenZiti Edge Client API
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>edge-api</artifactId>
-  <version>0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT</version>
+  <version>0.30.3-misc-fixes-19.2c1dc70-dirty-SNAPSHOT</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:edge-api:0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT"
+compile "org.openziti:edge-api:0.30.3-misc-fixes-19.2c1dc70-dirty-SNAPSHOT"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/edge-api-0.28.2-update-edge-api-0.26.42-42.8441c84-dirty-SNAPSHOT.jar`
+- `target/edge-api-0.30.3-misc-fixes-19.2c1dc70-dirty-SNAPSHOT.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -120,6 +120,8 @@ Class | Method | HTTP request | Description
 *ControllersApi* | [**listControllersWithHttpInfo**](docs/ControllersApi.md#listControllersWithHttpInfo) | **GET** /controllers | List controllers
 *CurrentApiSessionApi* | [**createCurrentApiSessionCertificate**](docs/CurrentApiSessionApi.md#createCurrentApiSessionCertificate) | **POST** /current-api-session/certificates | Creates an ephemeral certificate for the current API Session
 *CurrentApiSessionApi* | [**createCurrentApiSessionCertificateWithHttpInfo**](docs/CurrentApiSessionApi.md#createCurrentApiSessionCertificateWithHttpInfo) | **POST** /current-api-session/certificates | Creates an ephemeral certificate for the current API Session
+*CurrentApiSessionApi* | [**createTotpToken**](docs/CurrentApiSessionApi.md#createTotpToken) | **POST** /current-api-session/totp-token | Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
+*CurrentApiSessionApi* | [**createTotpTokenWithHttpInfo**](docs/CurrentApiSessionApi.md#createTotpTokenWithHttpInfo) | **POST** /current-api-session/totp-token | Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
 *CurrentApiSessionApi* | [**currentApiSessionDelete**](docs/CurrentApiSessionApi.md#currentApiSessionDelete) | **DELETE** /current-api-session | Logout
 *CurrentApiSessionApi* | [**currentApiSessionDeleteWithHttpInfo**](docs/CurrentApiSessionApi.md#currentApiSessionDeleteWithHttpInfo) | **DELETE** /current-api-session | Logout
 *CurrentApiSessionApi* | [**deleteCurrentApiSessionCertificate**](docs/CurrentApiSessionApi.md#deleteCurrentApiSessionCertificate) | **DELETE** /current-api-session/certificates/{id} | Delete an ephemeral certificate
@@ -174,6 +176,8 @@ Class | Method | HTTP request | Description
 *EnrollApi* | [**enrollOttWithHttpInfo**](docs/EnrollApi.md#enrollOttWithHttpInfo) | **POST** /enroll/ott | Enroll an identity via one-time-token
 *EnrollApi* | [**enrollOttCa**](docs/EnrollApi.md#enrollOttCa) | **POST** /enroll/ottca | Enroll an identity via one-time-token with a pre-exchanged client certificate
 *EnrollApi* | [**enrollOttCaWithHttpInfo**](docs/EnrollApi.md#enrollOttCaWithHttpInfo) | **POST** /enroll/ottca | Enroll an identity via one-time-token with a pre-exchanged client certificate
+*EnrollApi* | [**enrollToken**](docs/EnrollApi.md#enrollToken) | **POST** /enroll/token | 
+*EnrollApi* | [**enrollTokenWithHttpInfo**](docs/EnrollApi.md#enrollTokenWithHttpInfo) | **POST** /enroll/token | 
 *EnrollApi* | [**enrollUpdb**](docs/EnrollApi.md#enrollUpdb) | **POST** /enroll/updb | Enroll an identity via one-time-token
 *EnrollApi* | [**enrollUpdbWithHttpInfo**](docs/EnrollApi.md#enrollUpdbWithHttpInfo) | **POST** /enroll/updb | Enroll an identity via one-time-token
 *EnrollApi* | [**enrollmentChallenge**](docs/EnrollApi.md#enrollmentChallenge) | **POST** /enroll/challenge | Allows verification of a controller or cluster of controllers as being the valid target for enrollment.
@@ -214,6 +218,8 @@ Class | Method | HTTP request | Description
 *MfaApi* | [**authenticateMfaWithHttpInfo**](docs/MfaApi.md#authenticateMfaWithHttpInfo) | **POST** /authenticate/mfa | Complete MFA authentication
 *MfaApi* | [**createMfaRecoveryCodes**](docs/MfaApi.md#createMfaRecoveryCodes) | **POST** /current-identity/mfa/recovery-codes | For a completed MFA enrollment regenerate the recovery codes
 *MfaApi* | [**createMfaRecoveryCodesWithHttpInfo**](docs/MfaApi.md#createMfaRecoveryCodesWithHttpInfo) | **POST** /current-identity/mfa/recovery-codes | For a completed MFA enrollment regenerate the recovery codes
+*MfaApi* | [**createTotpToken**](docs/MfaApi.md#createTotpToken) | **POST** /current-api-session/totp-token | Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
+*MfaApi* | [**createTotpTokenWithHttpInfo**](docs/MfaApi.md#createTotpTokenWithHttpInfo) | **POST** /current-api-session/totp-token | Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
 *MfaApi* | [**deleteMfa**](docs/MfaApi.md#deleteMfa) | **DELETE** /current-identity/mfa | Disable MFA for the current identity
 *MfaApi* | [**deleteMfaWithHttpInfo**](docs/MfaApi.md#deleteMfaWithHttpInfo) | **DELETE** /current-identity/mfa | Disable MFA for the current identity
 *MfaApi* | [**detailMfa**](docs/MfaApi.md#detailMfa) | **GET** /current-identity/mfa | Returns the current status of MFA enrollment
@@ -344,6 +350,7 @@ Class | Method | HTTP request | Description
  - [MfaCode](docs/MfaCode.md)
  - [MfaFormats](docs/MfaFormats.md)
  - [MfaProviders](docs/MfaProviders.md)
+ - [ModelInterface](docs/ModelInterface.md)
  - [NetworkJWT](docs/NetworkJWT.md)
  - [NonceChallenge](docs/NonceChallenge.md)
  - [NonceSignature](docs/NonceSignature.md)
@@ -380,6 +387,9 @@ Class | Method | HTTP request | Description
  - [TargetToken](docs/TargetToken.md)
  - [TerminatorClientDetail](docs/TerminatorClientDetail.md)
  - [TerminatorPrecedence](docs/TerminatorPrecedence.md)
+ - [TokenEnrollmentRequest](docs/TokenEnrollmentRequest.md)
+ - [TotpToken](docs/TotpToken.md)
+ - [TotpTokenEnvelope](docs/TotpTokenEnvelope.md)
  - [Version](docs/Version.md)
 
 

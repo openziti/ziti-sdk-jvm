@@ -9,12 +9,14 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Client
-  version: 0.26.42
+  version: 0.26.51
 servers:
 - url: https://demo.ziti.dev/edge/client/v1
 paths:
   /:
     get:
+      x-accepts:
+      - application/json
       operationId: listRoot
       responses:
         "200":
@@ -27,14 +29,14 @@ paths:
       summary: Returns version information
       tags:
       - Informational
-      x-accepts:
-      - application/json
   /.well-known/est/cacerts:
     get:
       description: |
         This endpoint is used during enrollments to bootstrap trust between enrolling clients and the Ziti Edge API.
         This endpoint returns a base64 encoded PKCS7 store. The content can be base64 decoded and parsed by any library
         that supports parsing PKCS7 stores.
+      x-accepts:
+      - application/pkcs7-mime
       operationId: listWellKnownCas
       responses:
         "200":
@@ -114,12 +116,15 @@ paths:
       summary: Get CA Cert Store
       tags:
       - Well Known
-      x-accepts:
-      - application/pkcs7-mime
   /authenticate:
     post:
       description: |
         Allowed authentication methods include "password", "cert", and "ext-jwt"
+      x-codegen-request-body-name: auth
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+      - default
       operationId: authenticate
       parameters:
       - in: query
@@ -240,15 +245,14 @@ paths:
       summary: Authenticate via a method supplied via a query string parameter
       tags:
       - Authentication
-      x-codegen-request-body-name: auth
-      x-content-type: application/json
-      x-accepts:
-      - application/json
-      - default
   /authenticate/mfa:
     post:
       description: Completes MFA authentication by submitting a MFA time based one
         time token or backup code.
+      x-codegen-request-body-name: mfaAuth
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: authenticateMfa
       requestBody:
         content:
@@ -297,13 +301,11 @@ paths:
       tags:
       - Authentication
       - MFA
-      x-codegen-request-body-name: mfaAuth
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /controllers:
     get:
       description: Retrieves a list of controllers
+      x-accepts:
+      - application/json
       operationId: listControllers
       parameters:
       - in: query
@@ -401,11 +403,11 @@ paths:
       summary: List controllers
       tags:
       - Controllers
-      x-accepts:
-      - application/json
   /current-api-session:
     delete:
       description: Terminates the current API session
+      x-accepts:
+      - application/json
       responses:
         "200":
           content:
@@ -440,10 +442,11 @@ paths:
       summary: Logout
       tags:
       - Current API Session
-      x-accepts:
-      - application/json
     get:
       description: Retrieves the API session that was used to issue the current request
+      x-accepts:
+      - application/json
+      - default
       operationId: getCurrentAPISession
       responses:
         "200":
@@ -503,13 +506,12 @@ paths:
       summary: Return the current API session
       tags:
       - Current API Session
-      x-accepts:
-      - application/json
-      - default
   /current-api-session/certificates:
     get:
       description: "Retrieves a list of certificate resources for the current API\
         \ session; supports filtering, sorting, and pagination"
+      x-accepts:
+      - application/json
       operationId: listCurrentApiSessionCertificates
       parameters:
       - in: query
@@ -614,13 +616,15 @@ paths:
       summary: List the ephemeral certificates available for the current API Session
       tags:
       - Current API Session
-      x-accepts:
-      - application/json
     post:
       description: Creates an ephemeral certificate for the current API Session. This
         endpoint expects a PEM encoded CSRs to be provided for fulfillment as a property
         of a JSON payload. It is up to the client to manage the private key backing
         the CSR request.
+      x-codegen-request-body-name: sessionCertificate
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createCurrentApiSessionCertificate
       requestBody:
         content:
@@ -719,14 +723,12 @@ paths:
       summary: Creates an ephemeral certificate for the current API Session
       tags:
       - Current API Session
-      x-codegen-request-body-name: sessionCertificate
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /current-api-session/certificates/{id}:
     delete:
       description: |
         Delete an ephemeral certificateby id
+      x-accepts:
+      - application/json
       operationId: deleteCurrentApiSessionCertificate
       parameters:
       - description: The id of the requested resource
@@ -826,10 +828,10 @@ paths:
       summary: Delete an ephemeral certificate
       tags:
       - Current API Session
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single ephemeral certificate by id
+      x-accepts:
+      - application/json
       operationId: detailCurrentApiSessionCertificate
       parameters:
       - description: The id of the requested resource
@@ -916,13 +918,13 @@ paths:
       summary: Retrieves an ephemeral certificate
       tags:
       - Current API Session
-      x-accepts:
-      - application/json
   /current-api-session/service-updates:
     get:
       description: |
         Retrieves data indicating the last time data relevant to this API Session was altered that would necessitate
         service refreshes.
+      x-accepts:
+      - application/json
       operationId: listServiceUpdates
       responses:
         "200":
@@ -986,12 +988,84 @@ paths:
       tags:
       - Current API Session
       - Services
+  /current-api-session/totp-token:
+    post:
+      description: |
+        Creates a TOTP token that proves TOTP validation occurred at a specific time. Used in posture response for posture checks.
+      x-codegen-request-body-name: mfaValidation
+      x-content-type: application/json
       x-accepts:
       - application/json
+      operationId: createTotpToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/mfaCode"
+        description: An MFA TOTP validation request
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/totpTokenEnvelope"
+          description: "A TOTP token create response, contains a token used to satisfy\
+            \ posture checks"
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Create an MFA TOTP token that proves TOTP code checking has passed
+        as a specific time for posture checks.
+      tags:
+      - Current API Session
+      - MFA
   /current-identity:
     get:
       description: Returns the identity associated with the API sessions used to issue
         the current request
+      x-accepts:
+      - application/json
+      - default
       operationId: getCurrentIdentity
       responses:
         "200":
@@ -1058,13 +1132,12 @@ paths:
       summary: Return the current identity
       tags:
       - Current Identity
-      x-accepts:
-      - application/json
-      - default
   /current-identity/authenticators:
     get:
       description: "Retrieves a list of authenticators assigned to the current API\
         \ session's identity; supports filtering, sorting, and pagination."
+      x-accepts:
+      - application/json
       operationId: listCurrentIdentityAuthenticators
       parameters:
       - in: query
@@ -1143,12 +1216,12 @@ paths:
       summary: List authenticators for the current identity
       tags:
       - Current API Session
-      x-accepts:
-      - application/json
   /current-identity/authenticators/{id}:
     get:
       description: Retrieves a single authenticator by id. Will only show authenticators
         assigned to the API session's identity.
+      x-accepts:
+      - application/json
       operationId: detailCurrentIdentityAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -1209,12 +1282,14 @@ paths:
       summary: Retrieve an authenticator for the current identity
       tags:
       - Current API Session
-      x-accepts:
-      - application/json
     patch:
       description: |
         Update the supplied fields on an authenticator by id. Will only update authenticators assigned to the API
         session's identity.
+      x-codegen-request-body-name: authenticator
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchCurrentIdentityAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -1313,14 +1388,14 @@ paths:
       summary: Update the supplied fields on an authenticator of this identity
       tags:
       - Current API Session
-      x-codegen-request-body-name: authenticator
-      x-content-type: application/json
-      x-accepts:
-      - application/json
     put:
       description: |
         Update all fields on an authenticator by id.  Will only update authenticators assigned to the API session's
         identity.
+      x-codegen-request-body-name: authenticator
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: updateCurrentIdentityAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -1419,10 +1494,6 @@ paths:
       summary: Update all fields on an authenticator of this identity
       tags:
       - Current API Session
-      x-codegen-request-body-name: authenticator
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /current-identity/authenticators/{id}/extend:
     post:
       description: |-
@@ -1430,6 +1501,10 @@ paths:
         Allows an identity to extend its certificate's expiration date by using its current and valid client certificate to submit a CSR. This CSR may be passed in using a new private key, thus allowing private key rotation.
         The response from this endpoint is a new client certificate which the client must  be verified via the /authenticators/{id}/extend-verify endpoint.
         After verification is completion any new connections must be made with new certificate. Prior to verification the old client certificate remains active.
+      x-codegen-request-body-name: extend
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: extendCurrentIdentityAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -1481,15 +1556,15 @@ paths:
       - Current API Session
       - Enroll
       - Extend Enrollment
-      x-codegen-request-body-name: extend
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /current-identity/authenticators/{id}/extend-verify:
     post:
       description: |-
         After submitting a CSR for a new client certificate the resulting public certificate must be re-submitted to this endpoint to verify receipt.
         After receipt, the new client certificate must be used for new authentication requests.
+      x-codegen-request-body-name: extend
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: extendVerifyCurrentIdentityAuthenticator
       parameters:
       - description: The id of the requested resource
@@ -1540,15 +1615,13 @@ paths:
       - Current API Session
       - Enroll
       - Extend Enrollment
-      x-codegen-request-body-name: extend
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /current-identity/edge-routers:
     get:
       description: |
         Lists the Edge Routers that the current identity has access to via policies. The data returned
         includes their address and online status
+      x-accepts:
+      - application/json
       operationId: getCurrentIdentityEdgeRouters
       responses:
         "200":
@@ -1611,12 +1684,12 @@ paths:
       tags:
       - Current Identity
       - Edge Router
-      x-accepts:
-      - application/json
   /current-identity/mfa:
     delete:
       description: |
         Disable MFA for the current identity. Requires a current valid time based one time password if MFA enrollment has been completed. If not, code should be an empty string. If one time passwords are not available and admin account can be used to remove MFA from the identity via `DELETE /identities/<id>/mfa`.
+      x-accepts:
+      - application/json
       operationId: deleteMfa
       parameters:
       - in: header
@@ -1676,11 +1749,11 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-accepts:
-      - application/json
     get:
       description: |
         Returns details about the current MFA enrollment. If enrollment has not been completed it will return the current MFA configuration details necessary to complete a `POST /current-identity/mfa/verify`.
+      x-accepts:
+      - application/json
       operationId: detailMfa
       responses:
         "200":
@@ -1735,11 +1808,11 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-accepts:
-      - application/json
     post:
       description: |
         Allows authenticator based MFA enrollment. If enrollment has already been completed, it must be disabled before attempting to re-enroll. Subsequent enrollment request is completed via `POST /current-identity/mfa/verify`
+      x-accepts:
+      - application/json
       operationId: enrollMfa
       responses:
         "201":
@@ -1792,12 +1865,12 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-accepts:
-      - application/json
   /current-identity/mfa/qr-code:
     get:
       description: |
         Shows an QR code image for unverified MFA enrollments. 404s if the MFA enrollment has been completed or not started.
+      x-accepts:
+      - application/json
       operationId: detailMfaQrCode
       responses:
         "200":
@@ -1814,12 +1887,14 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-accepts:
-      - application/json
   /current-identity/mfa/recovery-codes:
     get:
       description: |
         Allows the viewing of recovery codes of an MFA enrollment. Requires a current valid time based one time password to interact with. Available after a completed MFA enrollment.
+      x-codegen-request-body-name: mfaValidation
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: detailMfaRecoveryCodes
       parameters:
       - in: header
@@ -1886,13 +1961,13 @@ paths:
       tags:
       - Current Identity
       - MFA
+    post:
+      description: |
+        Allows regeneration of recovery codes of an MFA enrollment. Requires a current valid time based one time password to interact with. Available after a completed MFA enrollment. This replaces all existing recovery codes.
       x-codegen-request-body-name: mfaValidation
       x-content-type: application/json
       x-accepts:
       - application/json
-    post:
-      description: |
-        Allows regeneration of recovery codes of an MFA enrollment. Requires a current valid time based one time password to interact with. Available after a completed MFA enrollment. This replaces all existing recovery codes.
       operationId: createMfaRecoveryCodes
       requestBody:
         content:
@@ -1954,14 +2029,14 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-codegen-request-body-name: mfaValidation
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /current-identity/mfa/verify:
     post:
       description: |
         Completes MFA enrollment by accepting a time based one time password as verification. Called after MFA enrollment has been initiated via `POST /current-identity/mfa`.
+      x-codegen-request-body-name: mfaValidation
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: verifyMfa
       requestBody:
         content:
@@ -2023,13 +2098,13 @@ paths:
       tags:
       - Current Identity
       - MFA
-      x-codegen-request-body-name: mfaValidation
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /enroll:
     post:
       description: present a OTT and CSR to receive a long-lived client certificate
+      x-codegen-request-body-name: body
+      x-content-type: application/pkcs7
+      x-accepts:
+      - application/json
       operationId: enroll
       parameters:
       - in: query
@@ -2111,6 +2186,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/apiErrorEnvelope"
           description: The requested resource does not exist
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to a conflict of configuration
+            or state
+        "410":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed as the resource is no longer
+            available
         "429":
           content:
             application/json:
@@ -2140,10 +2229,6 @@ paths:
       summary: Enroll an identity via one-time-token
       tags:
       - Enroll
-      x-codegen-request-body-name: body
-      x-content-type: application/pkcs7
-      x-accepts:
-      - application/json
   /enroll/ca:
     post:
       description: |
@@ -2152,6 +2237,8 @@ paths:
         Certificate Authority that has been added and verified (See POST /cas and POST /cas/{id}/verify).
 
         During this process no CSRs are requires as the client should already be in possession of a valid certificate.
+      x-accepts:
+      - application/json
       operationId: enrollCa
       responses:
         "200":
@@ -2237,14 +2324,16 @@ paths:
       summary: Enroll an identity with a pre-exchanged certificate
       tags:
       - Enroll
-      x-accepts:
-      - application/json
   /enroll/challenge:
     post:
       description: |
         A caller may submit a nonce and a key id (kid) from the enrollment JWKS endpoint or enrollment JWT that will
         be used to sign the nonce. The resulting signature may be validated with the associated public key in order
         to verify a networks identity during enrollment. The nonce must be a valid formatted UUID.
+      x-codegen-request-body-name: nonce
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: enrollmentChallenge
       requestBody:
         content:
@@ -2313,14 +2402,14 @@ paths:
         the valid target for enrollment.
       tags:
       - Enroll
-      x-codegen-request-body-name: nonce
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /enroll/erott:
     post:
       description: |
         Enrolls an edge-router via a one-time-token to establish a certificate based identity.
+      x-codegen-request-body-name: erOttEnrollmentRequest
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: enrollErOtt
       requestBody:
         content:
@@ -2396,10 +2485,6 @@ paths:
       summary: Enroll an edge-router
       tags:
       - Enroll
-      x-codegen-request-body-name: erOttEnrollmentRequest
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /enroll/extend/router:
     post:
       description: |
@@ -2412,6 +2497,10 @@ paths:
         has not expired.
 
         This request must be made using the existing, valid, client certificate.
+      x-codegen-request-body-name: routerExtendEnrollmentRequest
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: extendRouterEnrollment
       requestBody:
         content:
@@ -2500,16 +2589,14 @@ paths:
       tags:
       - Enroll
       - Extend Enrollment
-      x-codegen-request-body-name: routerExtendEnrollmentRequest
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /enroll/jwks:
     get:
       description: |
         Returns a list of JSON Web Keys (JWKS) that are used for enrollment signing. The keys listed here are used
         to sign and co-sign enrollment JWTs. They can be verified through a challenge endpoint, using the public keys
         from this endpoint to verify the target machine has possession of the related private key.
+      x-accepts:
+      - application/json
       operationId: getEnrollmentJwks
       responses:
         "200":
@@ -2521,14 +2608,16 @@ paths:
       summary: List JSON Web Keys associated with enrollment
       tags:
       - Enroll
-      x-accepts:
-      - application/json
   /enroll/ott:
     post:
       description: |
         Enroll an identity via a one-time-token which is supplied via a query string parameter. This enrollment method
         expects a PEM encoded CSRs to be provided for fulfillment. It is up to the enrolling identity to manage the
         private key backing the CSR request.
+      x-codegen-request-body-name: ottEnrollmentRequest
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: enrollOtt
       requestBody:
         content:
@@ -2621,10 +2710,6 @@ paths:
       summary: Enroll an identity via one-time-token
       tags:
       - Enroll
-      x-codegen-request-body-name: ottEnrollmentRequest
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /enroll/ottca:
     post:
       description: |
@@ -2634,6 +2719,10 @@ paths:
         CA auto enrollment except that is required the identity to be pre-created.
 
         As the client certificate has been pre-exchanged there is no CSR input to this enrollment method.
+      x-codegen-request-body-name: ottEnrollmentRequest
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: enrollOttCa
       requestBody:
         content:
@@ -2708,14 +2797,141 @@ paths:
       summary: Enroll an identity via one-time-token with a pre-exchanged client certificate
       tags:
       - Enroll
-      x-codegen-request-body-name: ottEnrollmentRequest
+  /enroll/token:
+    post:
+      x-codegen-request-body-name: tokenEnrollmentRequest
       x-content-type: application/json
       x-accepts:
       - application/json
+      operationId: enrollToken
+      parameters:
+      - description: "The id of the token issuer to use for enrollment, optional as\
+          \ long the the token is not opaque"
+        in: header
+        name: ziti-token-issuer-id
+        schema:
+          type: string
+      - description: An identifying token to enroll with
+        in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/tokenEnrollmentRequest"
+        description: "A  enrollment request with or without a CSR. Including a CSR\
+          \ indicated an attempt to enroll with certificate \ncredentials. If no CSR\
+          \ is included, the request is assumed to be a token enrollment request that\
+          \ will\nauthenticate via tokens.\n"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/enrollmentCertsEnvelope"
+          description: A response containing and identities client certificate chains
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to a conflict of configuration
+            or state
+        "410":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed as the resource is no longer
+            available
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+      tags:
+      - Enroll
   /enroll/updb:
     post:
       description: |
         Enrolls an identity via a one-time-token to establish an initial username and password combination
+      x-codegen-request-body-name: updbCredentials
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: enrollUpdb
       parameters:
       - in: query
@@ -2814,12 +3030,10 @@ paths:
       summary: Enroll an identity via one-time-token
       tags:
       - Enroll
-      x-codegen-request-body-name: updbCredentials
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /enumerated-capabilities:
     get:
+      x-accepts:
+      - application/json
       operationId: listEnumeratedCapabilities
       responses:
         "200":
@@ -2833,11 +3047,11 @@ paths:
         \ enabled or not."
       tags:
       - Informational
-      x-accepts:
-      - application/json
   /external-jwt-signers:
     get:
       description: Retrieves a list of external JWT signers for authentication
+      x-accepts:
+      - application/json
       operationId: listExternalJwtSigners
       parameters:
       - in: query
@@ -2938,11 +3152,11 @@ paths:
       summary: List Client Authentication External JWT
       tags:
       - External JWT Signer
-      x-accepts:
-      - application/json
   /network-jwts:
     get:
       description: Returns a list of JWTs for trusting a network
+      x-accepts:
+      - application/json
       operationId: listNetworkJWTs
       responses:
         "200":
@@ -3003,11 +3217,13 @@ paths:
       summary: Returns a list of JWTs suitable for bootstrapping network trust.
       tags:
       - Enrollment
-      x-accepts:
-      - application/json
   /posture-response:
     post:
       description: Submits posture responses
+      x-codegen-request-body-name: postureResponse
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createPostureResponse
       requestBody:
         content:
@@ -3106,13 +3322,13 @@ paths:
       summary: Submit a posture response to a posture query
       tags:
       - Posture Checks
+  /posture-response-bulk:
+    post:
+      description: Submits posture responses
       x-codegen-request-body-name: postureResponse
       x-content-type: application/json
       x-accepts:
       - application/json
-  /posture-response-bulk:
-    post:
-      description: Submits posture responses
       operationId: createPostureResponseBulk
       requestBody:
         content:
@@ -3213,12 +3429,10 @@ paths:
       summary: Submit multiple posture responses
       tags:
       - Posture Checks
-      x-codegen-request-body-name: postureResponse
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /protocols:
     get:
+      x-accepts:
+      - application/json
       operationId: listProtocols
       responses:
         "200":
@@ -3257,12 +3471,12 @@ paths:
       summary: Return a list of the listening Edge protocols
       tags:
       - Informational
-      x-accepts:
-      - application/json
   /services:
     get:
       description: |
         Retrieves a list of config resources; supports filtering, sorting, and pagination. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: listServices
       parameters:
       - in: query
@@ -3387,11 +3601,11 @@ paths:
       summary: List services
       tags:
       - Service
-      x-accepts:
-      - application/json
   /services/{id}:
     delete:
       description: Delete a service by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: deleteService
       parameters:
       - description: The id of the requested resource
@@ -3529,10 +3743,10 @@ paths:
       summary: Delete a service
       tags:
       - Service
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single service by id. Requires admin access.
+      x-accepts:
+      - application/json
       operationId: detailService
       parameters:
       - description: The id of the requested resource
@@ -3619,10 +3833,12 @@ paths:
       summary: Retrieves a single service
       tags:
       - Service
-      x-accepts:
-      - application/json
     patch:
       description: Update the supplied fields on a service. Requires admin access.
+      x-codegen-request-body-name: service
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: patchService
       parameters:
       - description: The id of the requested resource
@@ -3747,12 +3963,12 @@ paths:
       summary: Update the supplied fields on a service
       tags:
       - Service
+    put:
+      description: Update all fields on a service by id. Requires admin access.
       x-codegen-request-body-name: service
       x-content-type: application/json
       x-accepts:
       - application/json
-    put:
-      description: Update all fields on a service by id. Requires admin access.
       operationId: updateService
       parameters:
       - description: The id of the requested resource
@@ -3877,14 +4093,12 @@ paths:
       summary: Update all fields on a service
       tags:
       - Service
-      x-codegen-request-body-name: service
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /services/{id}/edge-routers:
     get:
       description: |
         Retrieves the list of edge routers permitted to handle traffic for the specified service
+      x-accepts:
+      - application/json
       operationId: listServiceEdgeRouters
       parameters:
       - description: The id of the requested resource
@@ -4014,12 +4228,12 @@ paths:
         service
       tags:
       - Service
-      x-accepts:
-      - application/json
   /services/{id}/terminators:
     get:
       description: |
         Retrieves a list of terminator resources that are assigned specific service; supports filtering, sorting, and pagination.
+      x-accepts:
+      - application/json
       operationId: listServiceTerminators
       parameters:
       - description: The id of the requested resource
@@ -4130,8 +4344,6 @@ paths:
       summary: List of terminators assigned to a service
       tags:
       - Service
-      x-accepts:
-      - application/json
   /sessions:
     get:
       description: |
@@ -4139,6 +4351,8 @@ paths:
 
         Sessions are tied to an API session and are moved when an API session times out or logs out. Active sessions
         (i.e. Ziti SDK connected to an edge router) will keep the session and API session marked as active.
+      x-accepts:
+      - application/json
       operationId: listSessions
       parameters:
       - in: query
@@ -4243,10 +4457,12 @@ paths:
       summary: List sessions
       tags:
       - Session
-      x-accepts:
-      - application/json
     post:
       description: Create a session resource.
+      x-codegen-request-body-name: session
+      x-content-type: application/json
+      x-accepts:
+      - application/json
       operationId: createSession
       requestBody:
         content:
@@ -4364,13 +4580,11 @@ paths:
       summary: Create a session resource
       tags:
       - Session
-      x-codegen-request-body-name: session
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /sessions/{id}:
     delete:
       description: Delete a session by id.
+      x-accepts:
+      - application/json
       operationId: deleteSession
       parameters:
       - description: The id of the requested resource
@@ -4490,10 +4704,10 @@ paths:
       summary: Delete a session
       tags:
       - Session
-      x-accepts:
-      - application/json
     get:
       description: Retrieves a single session by id.
+      x-accepts:
+      - application/json
       operationId: detailSession
       parameters:
       - description: The id of the requested resource
@@ -4554,12 +4768,12 @@ paths:
       summary: Retrieves a single session
       tags:
       - Session
-      x-accepts:
-      - application/json
   /specs:
     get:
       description: Returns a list of spec files embedded within the controller for
         consumption/documentation/code geneartion
+      x-accepts:
+      - application/json
       operationId: listSpecs
       responses:
         "200":
@@ -4572,12 +4786,12 @@ paths:
       summary: Returns a list of API specs
       tags:
       - Informational
-      x-accepts:
-      - application/json
   /specs/{id}:
     get:
       description: Returns single spec resource embedded within the controller for
         consumption/documentation/code geneartion
+      x-accepts:
+      - application/json
       operationId: detailSpec
       parameters:
       - description: The id of the requested resource
@@ -4597,12 +4811,13 @@ paths:
       summary: Return a single spec resource
       tags:
       - Informational
-      x-accepts:
-      - application/json
   /specs/{id}/spec:
     get:
       description: "Return the body of the specification (i.e. Swagger, OpenAPI 2.0,\
         \ 3.0, etc)."
+      x-accepts:
+      - application/json
+      - text/yaml
       operationId: detailSpecBody
       parameters:
       - description: The id of the requested resource
@@ -4625,11 +4840,10 @@ paths:
       summary: Returns the spec's file
       tags:
       - Informational
-      x-accepts:
-      - application/json
-      - text/yaml
   /version:
     get:
+      x-accepts:
+      - application/json
       operationId: listVersion
       responses:
         "200":
@@ -4642,8 +4856,6 @@ paths:
       summary: Returns version information
       tags:
       - Informational
-      x-accepts:
-      - application/json
 components:
   schemas:
     apiAddress:
@@ -4805,9 +5017,15 @@ components:
             $ref: "#/components/schemas/entityRef"
           identityId:
             type: string
+          improperClientCertChain:
+            type: boolean
           ipAddress:
             type: string
+          isCertExtendRequested:
+            type: boolean
           isCertExtendable:
+            type: boolean
+          isCertKeyRollRequested:
             type: boolean
           isMfaComplete:
             type: boolean
@@ -4852,15 +5070,16 @@ components:
       type: object
     attributes:
       description: A set of strings used to loosly couple this resource to policies
+      x-nullable: true
+      x-omitempty: true
       items:
         type: string
       nullable: true
       type: array
-      x-nullable: true
-      x-omitempty: true
     authQueryDetail:
       example:
         clientId: clientId
+        isTotpEnrolled: true
         provider: ziti
         httpUrl: httpUrl
         minLength: 6
@@ -4883,6 +5102,8 @@ components:
           type: string
         id:
           type: string
+        isTotpEnrolled:
+          type: boolean
         maxLength:
           type: integer
         minLength:
@@ -4936,13 +5157,25 @@ components:
       - properties:
           certPem:
             type: string
+          extendRequestedAt:
+            format: date-time
+            nullable: true
+            type: string
           fingerprint:
             type: string
           identity:
             $ref: "#/components/schemas/entityRef"
           identityId:
             type: string
+          isExtendRequested:
+            type: boolean
           isIssuedByNetwork:
+            type: boolean
+          isKeyRollRequested:
+            type: boolean
+          lastAuthResolvedToRoot:
+            type: boolean
+          lastExtendRolledKeys:
             type: boolean
           method:
             type: string
@@ -4955,13 +5188,19 @@ components:
         type: object
       description: A singular authenticator resource
       example:
-        createdAt: 2000-01-23T04:56:07.000+00:00
         method: method
         _links:
           key:
             method: method
             comment: comment
             href: https://openapi-generator.tech
+        extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+        certPem: certPem
+        isIssuedByNetwork: true
+        lastExtendRolledKeys: true
+        tags: {}
+        isExtendRequested: true
+        createdAt: 2000-01-23T04:56:07.000+00:00
         identity:
           _links:
             key:
@@ -4972,11 +5211,10 @@ components:
           id: id
           entity: entity
         identityId: identityId
+        isKeyRollRequested: true
         fingerprint: fingerprint
-        certPem: certPem
+        lastAuthResolvedToRoot: true
         id: id
-        isIssuedByNetwork: true
-        tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
         username: username
     authenticatorList:
@@ -4988,19 +5226,19 @@ components:
       description: All of the fields on an authenticator that may be updated
       properties:
         password:
+          x-nullable: true
           maxLength: 100
           minLength: 5
           nullable: true
           type: string
-          x-nullable: true
         tags:
           $ref: "#/components/schemas/tags"
         username:
+          x-nullable: true
           maxLength: 100
           minLength: 4
           nullable: true
           type: string
-          x-nullable: true
       type: object
     authenticatorPatchWithCurrent:
       allOf:
@@ -5046,8 +5284,8 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/link"
           description: A map of named links
-          type: object
           x-omitempty: false
+          type: object
         createdAt:
           format: date-time
           type: string
@@ -5079,6 +5317,10 @@ components:
           clientId:
             nullable: true
             type: string
+          enrollToCertEnabled:
+            type: boolean
+          enrollToTokenEnabled:
+            type: boolean
           externalAuthUrl:
             format: url
             type: string
@@ -5099,23 +5341,25 @@ components:
         type: object
       description: A External JWT Signer resource
       example:
-        createdAt: 2000-01-23T04:56:07.000+00:00
         audience: audience
         clientId: clientId
         externalAuthUrl: http://example.com/aeiou
+        enrollToTokenEnabled: true
         _links:
           key:
             method: method
             comment: comment
             href: https://openapi-generator.tech
+        targetToken: ACCESS
+        enrollToCertEnabled: true
+        tags: {}
+        createdAt: 2000-01-23T04:56:07.000+00:00
         openIdConfigurationUrl: openIdConfigurationUrl
         name: MyApps Signer
-        targetToken: ACCESS
         id: id
         scopes:
         - scopes
         - scopes
-        tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
     clientExternalJwtSignerList:
       description: An array of External JWT Signers resources
@@ -5292,8 +5536,8 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/link"
           description: A map of named links
-          type: object
           x-omitempty: false
+          type: object
         id:
           type: string
       type: object
@@ -5381,6 +5625,7 @@ components:
         type: object
       description: An API Session object for the current API session
       example:
+        isCertExtendRequested: true
         _links:
           key:
             method: method
@@ -5391,6 +5636,7 @@ components:
         - configTypes
         authQueries:
         - clientId: clientId
+          isTotpEnrolled: true
           provider: ziti
           httpUrl: httpUrl
           minLength: 6
@@ -5403,6 +5649,7 @@ components:
           httpMethod: httpMethod
           maxLength: 0
         - clientId: clientId
+          isTotpEnrolled: true
           provider: ziti
           httpUrl: httpUrl
           minLength: 6
@@ -5434,6 +5681,8 @@ components:
           id: id
           entity: entity
         identityId: identityId
+        improperClientCertChain: true
+        isCertKeyRollRequested: true
         authenticatorId: authenticatorId
         id: id
         isCertExtendable: true
@@ -5441,6 +5690,7 @@ components:
     currentApiSessionDetailEnvelope:
       example:
         data:
+          isCertExtendRequested: true
           _links:
             key:
               method: method
@@ -5451,6 +5701,7 @@ components:
           - configTypes
           authQueries:
           - clientId: clientId
+            isTotpEnrolled: true
             provider: ziti
             httpUrl: httpUrl
             minLength: 6
@@ -5463,6 +5714,7 @@ components:
             httpMethod: httpMethod
             maxLength: 0
           - clientId: clientId
+            isTotpEnrolled: true
             provider: ziti
             httpUrl: httpUrl
             minLength: 6
@@ -5494,6 +5746,8 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          improperClientCertChain: true
+          isCertKeyRollRequested: true
           authenticatorId: authenticatorId
           id: id
           isCertExtendable: true
@@ -5590,6 +5844,31 @@ components:
             version: version
             revision: revision
           defaultHostingCost: null
+          interfaces:
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
+          - hardwareAddress: hardwareAddress
+            addresses:
+            - addresses
+            - addresses
+            isUp: true
+            isRunning: true
+            isBroadcast: true
+            name: name
+            index: 0
+            isLoopback: true
+            isMulticast: true
+            mtu: 0
           authPolicyId: authPolicyId
           externalId: externalId
           disabledUntil: 2000-01-23T04:56:07.000+00:00
@@ -5677,13 +5956,19 @@ components:
     detailAuthenticatorEnvelope:
       example:
         data:
-          createdAt: 2000-01-23T04:56:07.000+00:00
           method: method
           _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+          certPem: certPem
+          isIssuedByNetwork: true
+          lastExtendRolledKeys: true
+          tags: {}
+          isExtendRequested: true
+          createdAt: 2000-01-23T04:56:07.000+00:00
           identity:
             _links:
               key:
@@ -5694,11 +5979,10 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          isKeyRollRequested: true
           fingerprint: fingerprint
-          certPem: certPem
+          lastAuthResolvedToRoot: true
           id: id
-          isIssuedByNetwork: true
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
           username: username
         meta:
@@ -5904,8 +6188,8 @@ components:
           postureQueries:
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -5919,14 +6203,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -5940,18 +6228,22 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -5965,14 +6257,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -5986,12 +6282,16 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           permissions:
@@ -6243,8 +6543,8 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/link"
           description: A map of named links
-          type: object
           x-omitempty: false
+          type: object
         entity:
           type: string
         id:
@@ -6366,6 +6666,10 @@ components:
             type: boolean
           hasEdgeRouterConnection:
             type: boolean
+          interfaces:
+            items:
+              $ref: "#/components/schemas/interface"
+            type: array
           isAdmin:
             type: boolean
           isDefaultAdmin:
@@ -6471,6 +6775,31 @@ components:
           version: version
           revision: revision
         defaultHostingCost: null
+        interfaces:
+        - hardwareAddress: hardwareAddress
+          addresses:
+          - addresses
+          - addresses
+          isUp: true
+          isRunning: true
+          isBroadcast: true
+          name: name
+          index: 0
+          isLoopback: true
+          isMulticast: true
+          mtu: 0
+        - hardwareAddress: hardwareAddress
+          addresses:
+          - addresses
+          - addresses
+          isUp: true
+          isRunning: true
+          isBroadcast: true
+          name: name
+          index: 0
+          isLoopback: true
+          isMulticast: true
+          mtu: 0
         authPolicyId: authPolicyId
         externalId: externalId
         disabledUntil: 2000-01-23T04:56:07.000+00:00
@@ -6589,6 +6918,57 @@ components:
           type: string
       required:
       - clientCert
+      type: object
+    interface:
+      description: A resource describing a network interface
+      example:
+        hardwareAddress: hardwareAddress
+        addresses:
+        - addresses
+        - addresses
+        isUp: true
+        isRunning: true
+        isBroadcast: true
+        name: name
+        index: 0
+        isLoopback: true
+        isMulticast: true
+        mtu: 0
+      properties:
+        addresses:
+          items:
+            type: string
+          type: array
+        hardwareAddress:
+          type: string
+        index:
+          minimum: 0
+          type: integer
+        isBroadcast:
+          type: boolean
+        isLoopback:
+          type: boolean
+        isMulticast:
+          type: boolean
+        isRunning:
+          type: boolean
+        isUp:
+          type: boolean
+        mtu:
+          minimum: 0
+          type: integer
+        name:
+          type: string
+      required:
+      - hardwareAddress
+      - index
+      - isBroadcast
+      - isLoopback
+      - isMulticast
+      - isRunning
+      - isUp
+      - mtu
+      - name
       type: object
     jwk:
       example:
@@ -6788,18 +7168,24 @@ components:
       additionalProperties:
         $ref: "#/components/schemas/link"
       description: A map of named links
-      type: object
       x-omitempty: false
+      type: object
     listAuthenticatorsEnvelope:
       example:
         data:
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          method: method
+        - method: method
           _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+          certPem: certPem
+          isIssuedByNetwork: true
+          lastExtendRolledKeys: true
+          tags: {}
+          isExtendRequested: true
+          createdAt: 2000-01-23T04:56:07.000+00:00
           identity:
             _links:
               key:
@@ -6810,20 +7196,25 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          isKeyRollRequested: true
           fingerprint: fingerprint
-          certPem: certPem
+          lastAuthResolvedToRoot: true
           id: id
-          isIssuedByNetwork: true
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
           username: username
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          method: method
+        - method: method
           _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+          certPem: certPem
+          isIssuedByNetwork: true
+          lastExtendRolledKeys: true
+          tags: {}
+          isExtendRequested: true
+          createdAt: 2000-01-23T04:56:07.000+00:00
           identity:
             _links:
               key:
@@ -6834,11 +7225,10 @@ components:
             id: id
             entity: entity
           identityId: identityId
+          isKeyRollRequested: true
           fingerprint: fingerprint
-          certPem: certPem
+          lastAuthResolvedToRoot: true
           id: id
-          isIssuedByNetwork: true
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
           username: username
         meta:
@@ -6863,41 +7253,45 @@ components:
     listClientExternalJwtSignersEnvelope:
       example:
         data:
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          audience: audience
+        - audience: audience
           clientId: clientId
           externalAuthUrl: http://example.com/aeiou
+          enrollToTokenEnabled: true
           _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          targetToken: ACCESS
+          enrollToCertEnabled: true
+          tags: {}
+          createdAt: 2000-01-23T04:56:07.000+00:00
           openIdConfigurationUrl: openIdConfigurationUrl
           name: MyApps Signer
-          targetToken: ACCESS
           id: id
           scopes:
           - scopes
           - scopes
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          audience: audience
+        - audience: audience
           clientId: clientId
           externalAuthUrl: http://example.com/aeiou
+          enrollToTokenEnabled: true
           _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          targetToken: ACCESS
+          enrollToCertEnabled: true
+          tags: {}
+          createdAt: 2000-01-23T04:56:07.000+00:00
           openIdConfigurationUrl: openIdConfigurationUrl
           name: MyApps Signer
-          targetToken: ACCESS
           id: id
           scopes:
           - scopes
           - scopes
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
@@ -7332,8 +7726,8 @@ components:
           postureQueries:
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -7347,14 +7741,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -7368,18 +7766,22 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -7393,14 +7795,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -7414,12 +7820,16 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           permissions:
@@ -7450,8 +7860,8 @@ components:
           postureQueries:
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -7465,14 +7875,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -7486,18 +7900,22 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           - policyId: policyId
             postureQueries:
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -7511,14 +7929,18 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
-            - timeoutRemaining: 1
-              createdAt: 2000-01-23T04:56:07.000+00:00
+            - promptOnWake: true
+              timeoutRemaining: 5
               process:
                 path: path
                 osType: Windows
@@ -7532,12 +7954,16 @@ components:
                   method: method
                   comment: comment
                   href: https://openapi-generator.tech
+              promptOnUnlock: true
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              promptGracePeriodSeconds: 6
+              timeout: 1
+              tags: {}
+              queryType: OS
+              createdAt: 2000-01-23T04:56:07.000+00:00
               id: id
               isPassing: true
-              timeout: 6
-              tags: {}
               updatedAt: 2000-01-23T04:56:07.000+00:00
-              queryType: OS
             policyType: null
             isPassing: true
           permissions:
@@ -7806,10 +8232,10 @@ components:
         apiVersion:
           type: string
         filterableFields:
+          x-omitempty: true
           items:
             type: string
           type: array
-          x-omitempty: true
         pagination:
           $ref: "#/components/schemas/pagination"
       type: object
@@ -7940,11 +8366,11 @@ components:
       minLength: 5
       type: string
     passwordNullable:
+      x-nullable: true
       maxLength: 100
       minLength: 5
       nullable: true
       type: string
-      x-nullable: true
     postureCheckType:
       enum:
       - OS
@@ -7958,8 +8384,8 @@ components:
       example:
         policyId: policyId
         postureQueries:
-        - timeoutRemaining: 1
-          createdAt: 2000-01-23T04:56:07.000+00:00
+        - promptOnWake: true
+          timeoutRemaining: 5
           process:
             path: path
             osType: Windows
@@ -7973,14 +8399,18 @@ components:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          promptOnUnlock: true
+          timeoutAt: 2000-01-23T04:56:07.000+00:00
+          promptGracePeriodSeconds: 6
+          timeout: 1
+          tags: {}
+          queryType: OS
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
           isPassing: true
-          timeout: 6
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
-          queryType: OS
-        - timeoutRemaining: 1
-          createdAt: 2000-01-23T04:56:07.000+00:00
+        - promptOnWake: true
+          timeoutRemaining: 5
           process:
             path: path
             osType: Windows
@@ -7994,12 +8424,16 @@ components:
               method: method
               comment: comment
               href: https://openapi-generator.tech
+          promptOnUnlock: true
+          timeoutAt: 2000-01-23T04:56:07.000+00:00
+          promptGracePeriodSeconds: 6
+          timeout: 1
+          tags: {}
+          queryType: OS
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
           isPassing: true
-          timeout: 6
-          tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
-          queryType: OS
         policyType: null
         isPassing: true
       properties:
@@ -8030,10 +8464,20 @@ components:
             items:
               $ref: "#/components/schemas/postureQueryProcess"
             type: array
+          promptGracePeriodSeconds:
+            type: integer
+          promptOnUnlock:
+            type: boolean
+          promptOnWake:
+            type: boolean
           queryType:
             $ref: "#/components/schemas/postureCheckType"
           timeout:
             type: integer
+          timeoutAt:
+            format: date-time
+            nullable: true
+            type: string
           timeoutRemaining:
             type: integer
         required:
@@ -8043,8 +8487,8 @@ components:
         - timeoutRemaining
         type: object
       example:
-        timeoutRemaining: 1
-        createdAt: 2000-01-23T04:56:07.000+00:00
+        promptOnWake: true
+        timeoutRemaining: 5
         process:
           path: path
           osType: Windows
@@ -8058,12 +8502,16 @@ components:
             method: method
             comment: comment
             href: https://openapi-generator.tech
+        promptOnUnlock: true
+        timeoutAt: 2000-01-23T04:56:07.000+00:00
+        promptGracePeriodSeconds: 6
+        timeout: 1
+        tags: {}
+        queryType: OS
+        createdAt: 2000-01-23T04:56:07.000+00:00
         id: id
         isPassing: true
-        timeout: 6
-        tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
-        queryType: OS
     postureQueryProcess:
       example:
         path: path
@@ -8342,8 +8790,8 @@ components:
         postureQueries:
         - policyId: policyId
           postureQueries:
-          - timeoutRemaining: 1
-            createdAt: 2000-01-23T04:56:07.000+00:00
+          - promptOnWake: true
+            timeoutRemaining: 5
             process:
               path: path
               osType: Windows
@@ -8357,14 +8805,18 @@ components:
                 method: method
                 comment: comment
                 href: https://openapi-generator.tech
+            promptOnUnlock: true
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            promptGracePeriodSeconds: 6
+            timeout: 1
+            tags: {}
+            queryType: OS
+            createdAt: 2000-01-23T04:56:07.000+00:00
             id: id
             isPassing: true
-            timeout: 6
-            tags: {}
             updatedAt: 2000-01-23T04:56:07.000+00:00
-            queryType: OS
-          - timeoutRemaining: 1
-            createdAt: 2000-01-23T04:56:07.000+00:00
+          - promptOnWake: true
+            timeoutRemaining: 5
             process:
               path: path
               osType: Windows
@@ -8378,18 +8830,22 @@ components:
                 method: method
                 comment: comment
                 href: https://openapi-generator.tech
+            promptOnUnlock: true
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            promptGracePeriodSeconds: 6
+            timeout: 1
+            tags: {}
+            queryType: OS
+            createdAt: 2000-01-23T04:56:07.000+00:00
             id: id
             isPassing: true
-            timeout: 6
-            tags: {}
             updatedAt: 2000-01-23T04:56:07.000+00:00
-            queryType: OS
           policyType: null
           isPassing: true
         - policyId: policyId
           postureQueries:
-          - timeoutRemaining: 1
-            createdAt: 2000-01-23T04:56:07.000+00:00
+          - promptOnWake: true
+            timeoutRemaining: 5
             process:
               path: path
               osType: Windows
@@ -8403,14 +8859,18 @@ components:
                 method: method
                 comment: comment
                 href: https://openapi-generator.tech
+            promptOnUnlock: true
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            promptGracePeriodSeconds: 6
+            timeout: 1
+            tags: {}
+            queryType: OS
+            createdAt: 2000-01-23T04:56:07.000+00:00
             id: id
             isPassing: true
-            timeout: 6
-            tags: {}
             updatedAt: 2000-01-23T04:56:07.000+00:00
-            queryType: OS
-          - timeoutRemaining: 1
-            createdAt: 2000-01-23T04:56:07.000+00:00
+          - promptOnWake: true
+            timeoutRemaining: 5
             process:
               path: path
               osType: Windows
@@ -8424,12 +8884,16 @@ components:
                 method: method
                 comment: comment
                 href: https://openapi-generator.tech
+            promptOnUnlock: true
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            promptGracePeriodSeconds: 6
+            timeout: 1
+            tags: {}
+            queryType: OS
+            createdAt: 2000-01-23T04:56:07.000+00:00
             id: id
             isPassing: true
-            timeout: 6
-            tags: {}
             updatedAt: 2000-01-23T04:56:07.000+00:00
-            queryType: OS
           policyType: null
           isPassing: true
         permissions:
@@ -8767,9 +9231,9 @@ components:
       enum:
       - ACCESS
       - ID
+      x-nullable: true
       nullable: true
       type: string
-      x-nullable: true
     terminatorClientDetail:
       allOf:
       - $ref: "#/components/schemas/baseEntity"
@@ -8832,16 +9296,59 @@ components:
       additionalProperties:
         $ref: "#/components/schemas/terminatorPrecedence"
       type: object
+    tokenEnrollmentRequest:
+      properties:
+        clientCsr:
+          type: string
+      type: object
+    totpToken:
+      example:
+        issuedAt: 2000-01-23T04:56:07.000+00:00
+        token: token
+      properties:
+        issuedAt:
+          format: date-time
+          type: string
+        token:
+          type: string
+      required:
+      - issuedAt
+      - token
+      type: object
+    totpTokenEnvelope:
+      example:
+        data:
+          issuedAt: 2000-01-23T04:56:07.000+00:00
+          token: token
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          pagination:
+            offset: 6.027456183070403
+            limit: 0.8008281904610115
+            totalCount: 1.4658129805029452
+          filterableFields:
+          - filterableFields
+          - filterableFields
+      properties:
+        data:
+          $ref: "#/components/schemas/totpToken"
+        meta:
+          $ref: "#/components/schemas/meta"
+      required:
+      - data
+      - meta
+      type: object
     username:
       maxLength: 100
       minLength: 4
       type: string
     usernameNullable:
+      x-nullable: true
       maxLength: 100
       minLength: 4
       nullable: true
       type: string
-      x-nullable: true
     version:
       example:
         runtimeVersion: go1.13.5

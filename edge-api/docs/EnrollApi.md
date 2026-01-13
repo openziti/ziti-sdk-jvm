@@ -14,6 +14,8 @@ All URIs are relative to *https://demo.ziti.dev/edge/client/v1*
 | [**enrollOttWithHttpInfo**](EnrollApi.md#enrollOttWithHttpInfo) | **POST** /enroll/ott | Enroll an identity via one-time-token |
 | [**enrollOttCa**](EnrollApi.md#enrollOttCa) | **POST** /enroll/ottca | Enroll an identity via one-time-token with a pre-exchanged client certificate |
 | [**enrollOttCaWithHttpInfo**](EnrollApi.md#enrollOttCaWithHttpInfo) | **POST** /enroll/ottca | Enroll an identity via one-time-token with a pre-exchanged client certificate |
+| [**enrollToken**](EnrollApi.md#enrollToken) | **POST** /enroll/token |  |
+| [**enrollTokenWithHttpInfo**](EnrollApi.md#enrollTokenWithHttpInfo) | **POST** /enroll/token |  |
 | [**enrollUpdb**](EnrollApi.md#enrollUpdb) | **POST** /enroll/updb | Enroll an identity via one-time-token |
 | [**enrollUpdbWithHttpInfo**](EnrollApi.md#enrollUpdbWithHttpInfo) | **POST** /enroll/updb | Enroll an identity via one-time-token |
 | [**enrollmentChallenge**](EnrollApi.md#enrollmentChallenge) | **POST** /enroll/challenge | Allows verification of a controller or cluster of controllers as being the valid target for enrollment. |
@@ -100,6 +102,8 @@ No authorization required
 | **200** | A response containing and identities client certificate chains |  -  |
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **404** | The requested resource does not exist |  -  |
+| **409** | The request could not be completed due to a conflict of configuration or state |  -  |
+| **410** | The request could not be completed as the resource is no longer available |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
@@ -184,6 +188,8 @@ No authorization required
 | **200** | A response containing and identities client certificate chains |  -  |
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
 | **404** | The requested resource does not exist |  -  |
+| **409** | The request could not be completed due to a conflict of configuration or state |  -  |
+| **410** | The request could not be completed as the resource is no longer available |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 
@@ -776,6 +782,165 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Base empty response |  -  |
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
+| **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
+
+
+## enrollToken
+
+> CompletableFuture<EnrollmentCertsEnvelope> enrollToken(authorization, tokenEnrollmentRequest, zitiTokenIssuerId)
+
+
+
+### Example
+
+```java
+// Import classes:
+import org.openziti.edge.ApiClient;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.Configuration;
+import org.openziti.edge.models.*;
+import org.openziti.edge.api.EnrollApi;
+import java.util.concurrent.CompletableFuture;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
+
+        EnrollApi apiInstance = new EnrollApi(defaultClient);
+        String authorization = "authorization_example"; // String | An identifying token to enroll with
+        TokenEnrollmentRequest tokenEnrollmentRequest = new TokenEnrollmentRequest(); // TokenEnrollmentRequest | A  enrollment request with or without a CSR. Including a CSR indicated an attempt to enroll with certificate  credentials. If no CSR is included, the request is assumed to be a token enrollment request that will authenticate via tokens. 
+        String zitiTokenIssuerId = "zitiTokenIssuerId_example"; // String | The id of the token issuer to use for enrollment, optional as long the the token is not opaque
+        try {
+            CompletableFuture<EnrollmentCertsEnvelope> result = apiInstance.enrollToken(authorization, tokenEnrollmentRequest, zitiTokenIssuerId);
+            System.out.println(result.get());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling EnrollApi#enrollToken");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **authorization** | **String**| An identifying token to enroll with | |
+| **tokenEnrollmentRequest** | [**TokenEnrollmentRequest**](TokenEnrollmentRequest.md)| A  enrollment request with or without a CSR. Including a CSR indicated an attempt to enroll with certificate  credentials. If no CSR is included, the request is assumed to be a token enrollment request that will authenticate via tokens.  | |
+| **zitiTokenIssuerId** | **String**| The id of the token issuer to use for enrollment, optional as long the the token is not opaque | [optional] |
+
+### Return type
+
+CompletableFuture<[**EnrollmentCertsEnvelope**](EnrollmentCertsEnvelope.md)>
+
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | A response containing and identities client certificate chains |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
+| **404** | The requested resource does not exist |  -  |
+| **409** | The request could not be completed due to a conflict of configuration or state |  -  |
+| **410** | The request could not be completed as the resource is no longer available |  -  |
+| **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
+
+## enrollTokenWithHttpInfo
+
+> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollToken enrollTokenWithHttpInfo(authorization, tokenEnrollmentRequest, zitiTokenIssuerId)
+
+
+
+### Example
+
+```java
+// Import classes:
+import org.openziti.edge.ApiClient;
+import org.openziti.edge.ApiException;
+import org.openziti.edge.ApiResponse;
+import org.openziti.edge.Configuration;
+import org.openziti.edge.models.*;
+import org.openziti.edge.api.EnrollApi;
+import java.util.concurrent.CompletableFuture;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("https://demo.ziti.dev/edge/client/v1");
+
+        EnrollApi apiInstance = new EnrollApi(defaultClient);
+        String authorization = "authorization_example"; // String | An identifying token to enroll with
+        TokenEnrollmentRequest tokenEnrollmentRequest = new TokenEnrollmentRequest(); // TokenEnrollmentRequest | A  enrollment request with or without a CSR. Including a CSR indicated an attempt to enroll with certificate  credentials. If no CSR is included, the request is assumed to be a token enrollment request that will authenticate via tokens. 
+        String zitiTokenIssuerId = "zitiTokenIssuerId_example"; // String | The id of the token issuer to use for enrollment, optional as long the the token is not opaque
+        try {
+            CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> response = apiInstance.enrollTokenWithHttpInfo(authorization, tokenEnrollmentRequest, zitiTokenIssuerId);
+            System.out.println("Status code: " + response.get().getStatusCode());
+            System.out.println("Response headers: " + response.get().getHeaders());
+            System.out.println("Response body: " + response.get().getData());
+        } catch (InterruptedException | ExecutionException e) {
+            ApiException apiException = (ApiException)e.getCause();
+            System.err.println("Exception when calling EnrollApi#enrollToken");
+            System.err.println("Status code: " + apiException.getCode());
+            System.err.println("Response headers: " + apiException.getResponseHeaders());
+            System.err.println("Reason: " + apiException.getResponseBody());
+            e.printStackTrace();
+        } catch (ApiException e) {
+            System.err.println("Exception when calling EnrollApi#enrollToken");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **authorization** | **String**| An identifying token to enroll with | |
+| **tokenEnrollmentRequest** | [**TokenEnrollmentRequest**](TokenEnrollmentRequest.md)| A  enrollment request with or without a CSR. Including a CSR indicated an attempt to enroll with certificate  credentials. If no CSR is included, the request is assumed to be a token enrollment request that will authenticate via tokens.  | |
+| **zitiTokenIssuerId** | **String**| The id of the token issuer to use for enrollment, optional as long the the token is not opaque | [optional] |
+
+### Return type
+
+CompletableFuture<ApiResponse<[**EnrollmentCertsEnvelope**](EnrollmentCertsEnvelope.md)>>
+
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | A response containing and identities client certificate chains |  -  |
+| **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  -  |
+| **404** | The requested resource does not exist |  -  |
+| **409** | The request could not be completed due to a conflict of configuration or state |  -  |
+| **410** | The request could not be completed as the resource is no longer available |  -  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  -  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  -  |
 

@@ -12,6 +12,7 @@
 |**httpMethod** | **String** |  |  [optional] |
 |**httpUrl** | **String** |  |  [optional] |
 |**id** | **String** |  |  [optional] |
+|**isTotpEnrolled** | **Boolean** |  |  [optional] |
 |**maxLength** | **Integer** |  |  [optional] |
 |**minLength** | **Integer** |  |  [optional] |
 |**provider** | **MfaProviders** |  |  |

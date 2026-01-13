@@ -28,6 +28,7 @@ Detail of a specific identity
 |**externalId** | **String** |  |  |
 |**hasApiSession** | **Boolean** |  |  |
 |**hasEdgeRouterConnection** | **Boolean** |  |  |
+|**interfaces** | [**List&lt;ModelInterface&gt;**](ModelInterface.md) |  |  [optional] |
 |**isAdmin** | **Boolean** |  |  |
 |**isDefaultAdmin** | **Boolean** |  |  |
 |**isMfaEnabled** | **Boolean** |  |  |

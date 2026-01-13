@@ -28,6 +28,7 @@ A detail edge router resource
 |**enrollmentJwt** | **String** |  |  [optional] |
 |**enrollmentToken** | **String** |  |  [optional] |
 |**fingerprint** | **String** |  |  [optional] |
+|**interfaces** | [**List&lt;ModelInterface&gt;**](ModelInterface.md) |  |  [optional] |
 |**isTunnelerEnabled** | **Boolean** |  |  |
 |**isVerified** | **Boolean** |  |  |
 |**roleAttributes** | **List&lt;String&gt;** | A set of strings used to loosly couple this resource to policies |  |

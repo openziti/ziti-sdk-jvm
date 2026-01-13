@@ -95,6 +95,7 @@ docs/MfaApi.md
 docs/MfaCode.md
 docs/MfaFormats.md
 docs/MfaProviders.md
+docs/ModelInterface.md
 docs/NetworkJWT.md
 docs/NonceChallenge.md
 docs/NonceSignature.md
@@ -135,6 +136,9 @@ docs/Tags.md
 docs/TargetToken.md
 docs/TerminatorClientDetail.md
 docs/TerminatorPrecedence.md
+docs/TokenEnrollmentRequest.md
+docs/TotpToken.md
+docs/TotpTokenEnvelope.md
 docs/Version.md
 docs/WellKnownApi.md
 src/main/AndroidManifest.xml
@@ -145,6 +149,8 @@ src/main/java/org/openziti/edge/Configuration.java
 src/main/java/org/openziti/edge/JSON.java
 src/main/java/org/openziti/edge/Pair.java
 src/main/java/org/openziti/edge/RFC3339DateFormat.java
+src/main/java/org/openziti/edge/RFC3339InstantDeserializer.java
+src/main/java/org/openziti/edge/RFC3339JavaTimeModule.java
 src/main/java/org/openziti/edge/ServerConfiguration.java
 src/main/java/org/openziti/edge/ServerVariable.java
 src/main/java/org/openziti/edge/api/AuthenticationApi.java
@@ -248,6 +254,7 @@ src/main/java/org/openziti/edge/model/Meta.java
 src/main/java/org/openziti/edge/model/MfaCode.java
 src/main/java/org/openziti/edge/model/MfaFormats.java
 src/main/java/org/openziti/edge/model/MfaProviders.java
+src/main/java/org/openziti/edge/model/ModelInterface.java
 src/main/java/org/openziti/edge/model/NetworkJWT.java
 src/main/java/org/openziti/edge/model/NonceChallenge.java
 src/main/java/org/openziti/edge/model/NonceSignature.java
@@ -284,4 +291,7 @@ src/main/java/org/openziti/edge/model/Tags.java
 src/main/java/org/openziti/edge/model/TargetToken.java
 src/main/java/org/openziti/edge/model/TerminatorClientDetail.java
 src/main/java/org/openziti/edge/model/TerminatorPrecedence.java
+src/main/java/org/openziti/edge/model/TokenEnrollmentRequest.java
+src/main/java/org/openziti/edge/model/TotpToken.java
+src/main/java/org/openziti/edge/model/TotpTokenEnvelope.java
 src/main/java/org/openziti/edge/model/Version.java
