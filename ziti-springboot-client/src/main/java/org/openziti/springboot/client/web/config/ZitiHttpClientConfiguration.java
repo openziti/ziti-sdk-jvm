@@ -59,6 +59,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import lombok.extern.slf4j.Slf4j;
 
@@ -86,6 +87,19 @@ public class ZitiHttpClientConfiguration {
   public RestTemplateBuilder restTemplateBuilder(@Qualifier("zitiHttpClient") HttpClient httpClient) {
     return new RestTemplateBuilder()
         .requestFactory(() -> clientHttpRequestFactory(httpClient));
+  }
+
+  @ConditionalOnProperty(value = "spring.ziti.client.rest-client.enabled", havingValue = "true", matchIfMissing = true)
+  @Bean
+  public RestClient zitiRestClient(@Qualifier("zitiRestClientBuilder") RestClient.Builder RestClientBuilder) {
+    return RestClientBuilder.build();
+  }
+
+  @ConditionalOnProperty(value = "spring.ziti.client.rest-client-builder.enabled", havingValue = "true", matchIfMissing = true)
+  @Bean("zitiRestClientBuilder")
+  public RestClient.Builder RestClientBuilder(@Qualifier("zitiHttpClient") HttpClient httpClient) {
+    return RestClient.builder()
+        .requestFactory(clientHttpRequestFactory(httpClient));
   }
 
   @ConditionalOnProperty(value = "spring.ziti.client.request-factory.enabled", havingValue = "true", matchIfMissing = true)

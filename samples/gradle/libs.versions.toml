@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.1.0"
-openziti = "0.27.2"
+openziti = "0.30.3-dirty-SNAPSHOT"
 springboot = "3.3.3"
 clikt = "2.8.0"
 slf4j = "2.0.5"
@@ -9,7 +9,9 @@ slf4j = "2.0.5"
 clikt = { module = "com.github.ajalt:clikt", version.ref = "clikt" }
 okhttp3-okhttp = "com.squareup.okhttp3:okhttp:4.12.0"
 netty-all = "io.netty:netty-all:4.1.113.Final"
-httpclient5 = "org.apache.httpcomponents.client5:httpclient5:5.4-beta1"
+httpclient5 = "org.apache.httpcomponents.client5:httpclient5:5.5.2"
+httpcomponentscore5 = "org.apache.httpcomponents.core5:httpcore5:5.3.6"
+httpcomponentscore5h2 = "org.apache.httpcomponents.core5:httpcore5-h2:5.3.6"
 log4j = "org.apache.logging.log4j:log4j-core:2.17.1"
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlinx-coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"

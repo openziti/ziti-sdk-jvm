@@ -5,7 +5,8 @@ Project goals:
 
 
 ## Configuration
-To enable auto configuration of the Ziti beans add `@EnableZitiHttpClient` to either a @Configuration class or your main application
+To enable auto configuration of the Ziti beans add `@EnableZitiHttpClient` to either a @Configuration class or your main application.
+This configuration will add both a RestTemplate based bean and a RestClient based bean.
 ```java
 @SpringBootApplication
 @EnableZitiHttpClient
@@ -24,7 +25,7 @@ To connect using a ziti connection add a ziti section to your config:
 ```yaml
 spring:
   ziti:
-    httpclient:
+    client:
       identity:
         file: classpath:client.zid
 ```
@@ -33,7 +34,7 @@ Then to use the ziti rest template you autowire it as usual but with a qualifier
 ```java
 @Configuration
 public class RestTemplateCaller {
-
+  
   @Autowired
   public RestTemplateCaller(@Qualifier("zitiRestTemplate") RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
@@ -43,6 +44,18 @@ public class RestTemplateCaller {
 ```
 The ziti rest template is now ready to use just like any other rest template but it will resolve addresses and connect to services through your ziti controller.
 Highly recommended not to use it for other public/external services even if it works to do so.
+If you prefer the to use the RestClient use the following configuration.
+```java
+@Configuration
+public class RestClientCaller {
+  
+  @Autowired
+  public RestClientCaller(@Qualifier("zitiRestClient") RestClient restClient) {
+    this.restClient = restClient;
+  }
+
+}
+```
 To read more about ziti services please see [ziti service](https://openziti.github.io/ziti/services/overview.html).
 
 ### Ziti identity from other sources
@@ -73,8 +86,8 @@ public class SampleConfiguration {
 The placeholder above should be replaced with your own input stream for an identity.
 One such example would be to read from a secrets manager or a vault where the identity is stored securely.
 
-### Overriding RestTemplate or RestTemplateBuilder features
-The configuration can also include a RestTemplate or RestTemplateBuilder bean in order to customize it.
+### Overriding client or builder features
+The configuration can also include a RestTemplate, RestTemplateBuilder, RestClient, or RestClient.Builder bean(s) in order to customize them.
 ```java
 @Configuration
 public class SampleConfiguration {
@@ -101,6 +114,33 @@ public class SampleConfiguration {
 
 }
 ```
+or
+```java
+@Configuration
+public class SampleConfiguration {
+
+@Bean("zitiRestClient")
+public RestTemplate restTemplate(@Qualifier("zitiRestClientBuilder") RestTemplateBuilder restTemplateBuilder) {
+// customizations
+return restClientBuilder.build();
+}
+
+}
+```
+or
+```java
+@Configuration
+public class SampleConfiguration {
+
+  @Bean("zitiRestClientBuilder")
+  public RestClient.Builder restClientBuilder(@Qualifier("zitiHttpClient") HttpClient httpClient) {
+    return new RestClient.Builder()
+        // customizations
+        .requestFactory(() -> clientHttpRequestFactory(httpClient));
+  }
+
+}
+```
 
 ## Application code change
 Add `ziti-springboot-client` dependency
@@ -115,7 +155,7 @@ Try the [complete sample](../samples/ziti-spring-boot-client)
 * [ziti service](https://openziti.github.io/ziti/services/overview.html)
 
 For further reference, please consider the following sections:
-* [Using RestTemplate in Spring](https://springframework.guru/using-resttemplate-in-spring/)
+* [REST Clients](https://docs.spring.io/spring-framework/reference/integration/rest-clients.html)
 
 An example of running a service is in our samples
 * Ziti Spring Server [sample](../samples/ziti-spring-boot)
