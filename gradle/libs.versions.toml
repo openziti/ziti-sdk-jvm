@@ -78,7 +78,7 @@ clikt = { module = "com.github.ajalt:clikt", version.ref = "clikt" }
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+dokka = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus" }
 semver-git = { id = "io.wusa.semver-git-plugin", version.ref = "semver-git" }
 openapi = { id = "org.openapi.generator", version.ref = "openapi-gen" }
