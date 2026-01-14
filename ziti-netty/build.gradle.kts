@@ -46,9 +46,9 @@ java {
 }
 
 tasks.register<Jar>("dokkaJar") {
-    dependsOn(tasks.dokkaJavadoc)
+    dependsOn(tasks.dokkaGeneratePublicationJavadoc)
     archiveClassifier.set("javadoc")
-    from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
+    from(tasks.dokkaGeneratePublicationJavadoc.flatMap { it.outputDirectory })
 }
 
 publishing {

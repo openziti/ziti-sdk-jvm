@@ -52,7 +52,7 @@ data class InterceptConfig(
     val addresses: Set<InterceptAddress>,
     val portRanges: SortedSet<PortRange>,
     val dialOptions: Map<String,Any> = emptyMap(),
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @field:JsonInclude(JsonInclude.Include.NON_EMPTY)
     val sourceIp: String? = null
 ) {
     override fun toString(): String {
