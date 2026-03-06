@@ -21,12 +21,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.openziti.*
 import org.openziti.api.Service
+import org.openziti.edge.model.Authenticate
+import org.openziti.edge.model.EnvInfo
+import org.openziti.edge.model.SdkInfo
 import org.openziti.identity.KeyStoreIdentity
 import org.openziti.identity.findIdentityAlias
 import org.openziti.identity.loadKeystore
 import org.openziti.net.dns.ZitiDNSManager
 import org.openziti.net.internal.Sockets
 import org.openziti.util.Logged
+import org.openziti.util.SystemInfoProvider
 import org.openziti.util.Version
 import org.openziti.util.ZitiLog
 import java.io.File
@@ -42,6 +46,25 @@ internal object ZitiImpl : Logged by ZitiLog() {
     internal var appVersion = ""
 
     internal val serviceEvents = MutableSharedFlow<Pair<ZitiContext, ZitiContext.ServiceEvent>>()
+
+    internal val loginInfo by lazy {
+        Authenticate().apply {
+            val info = SystemInfoProvider().getSystemInfo()
+            sdkInfo = SdkInfo()
+                .type("ziti-sdk-java")
+                .version(Version.version)
+                .branch(Version.branch)
+                .revision(Version.revision)
+                .appId(appId)
+                .appVersion(appVersion)
+            envInfo = EnvInfo()
+                .arch(info.arch)
+                .os(info.os)
+                .osRelease(info.osRelease)
+                .osVersion(info.osVersion)
+            configTypes = listOf("all")
+        }
+    }
 
     internal val onAndroid: Boolean by lazy {
         try {
