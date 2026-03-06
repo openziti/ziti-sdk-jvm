@@ -16,10 +16,6 @@
 
 package org.openziti.util
 
-import org.openziti.edge.model.Authenticate
-import org.openziti.edge.model.EnvInfo
-import org.openziti.edge.model.SdkInfo
-import org.openziti.impl.ZitiImpl
 import java.util.*
 
 data class SystemInfo(val os: String, val osRelease: String, val osVersion: String, val arch: String)
