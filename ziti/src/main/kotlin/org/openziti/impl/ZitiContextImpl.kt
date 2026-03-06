@@ -18,9 +18,11 @@ package org.openziti.impl
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 import org.openziti.*
 import org.openziti.Identity
@@ -50,8 +52,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.properties.Delegates
 import kotlin.random.Random
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Object maintaining current Ziti session.
@@ -75,7 +76,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + supervisor
 
-
+    private val forceAuthRefresh = kotlinx.coroutines.channels.Channel<Any>(CONFLATED)
     // active controller
     private val ctrl = MutableStateFlow<Controller?>(null)
     private val controller: Controller
@@ -245,6 +246,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             ctrl.value = c
 
             val oidc = controller.capabilities.contains(Capabilities.OIDC_AUTH)
+            val ha = controller.capabilities.contains(Capabilities.HA_CONTROLLER)
             authenticator = authenticator(controller.endpoint, id.sslContext(), oidc)
 
             val currentSession = runCatching {
@@ -253,7 +255,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 accessToken.value = null
                 null
             }.getOrNull()
-
 
             val session = if (currentSession != null)
                 currentSession
@@ -282,13 +283,16 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
                 if (!success) continue
             }
-            val ctrls = controller.listControllers().mapNotNull {
-                it.apiAddresses?.get("edge-client")?.first { addr -> addr.version == "v1" }?.url
-            }.toSet()
 
-            if (ctrls != ctrlEndpoints) {
-                ctrlEndpoints.clear()
-                ctrlEndpoints.addAll(ctrls)
+            if (ha) {
+                val ctrls = controller.listControllers().mapNotNull {
+                    it.apiAddresses?.get("edge-client")?.first { addr -> addr.version == "v1" }?.url
+                }.toSet()
+
+                if (ctrls != ctrlEndpoints) {
+                    ctrlEndpoints.clear()
+                    ctrlEndpoints.addAll(ctrls)
+                }
             }
 
             val services = controller.getServices().toList()
@@ -368,7 +372,8 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    private fun maintainApiSession(authenticator: ZitiAuthenticator) = async {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun maintainApiSession(authenticator: ZitiAuthenticator) = async(CoroutineName("maintainApiSession")) {
         var retries = 5
         while(true) {
             val token = accessToken.value ?: break
@@ -380,18 +385,26 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 break
             }
 
-            val delay = (token.expiration.toEpochSecond() - now.toEpochSecond()) * 2 / 3
+            val delaySeconds = token.expiration.toEpochSecond() - now.toEpochSecond()
+            val delay = delaySeconds / 2 + Random.nextLong(delaySeconds / 6)
 
-            d("[${name()}] sleeping for $delay seconds")
-            delay(delay.toDuration(DurationUnit.SECONDS))
-            d("[${name()}] refreshing access token")
+            d {"[${name()}] ssleeping for $delay seconds" }
+            val reason = select {
+                onTimeout(delay.seconds) { "delay" }
+                forceAuthRefresh.onReceive { "forced refresh" }
+            }
+            d("[${name()}] refreshing access token [$reason]")
             runCatching {
                 val newToken = authenticator.refresh()
                 accessToken.value = newToken
                 retries = 5
             }.onFailure {
-                retries--
                 w{ "failed to refresh access token: ${it.message}" }
+                if (it is ZitiAuthenticator.AuthException) {
+                    accessToken.value = null
+                    continue
+                }
+                retries--
             }
         }
     }
