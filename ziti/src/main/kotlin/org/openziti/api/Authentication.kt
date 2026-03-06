@@ -23,16 +23,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.future.await
 import org.openziti.edge.ApiClient
+import org.openziti.edge.ApiException
 import org.openziti.edge.api.AuthenticationApi
 import org.openziti.edge.api.CurrentApiSessionApi
-import org.openziti.edge.model.Authenticate
-import org.openziti.edge.model.EnvInfo
-import org.openziti.edge.model.SdkInfo
+import org.openziti.edge.model.CurrentApiSessionDetail
 import org.openziti.impl.ZitiImpl
 import org.openziti.util.Logged
-import org.openziti.util.SystemInfoProvider
-import org.openziti.util.Version
 import org.openziti.util.ZitiLog
+import java.net.HttpURLConnection.HTTP_UNAUTHORIZED
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -41,8 +39,7 @@ import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.time.OffsetDateTime
-import java.util.Base64
-import java.util.function.Consumer
+import java.util.*
 import javax.net.ssl.SSLContext
 import kotlin.random.Random
 
@@ -51,6 +48,9 @@ interface ZitiAuthenticator {
     enum class TokenType {
         BEARER, API_SESSION
     }
+
+    class AuthException(cause: Throwable? = null, msg: String = "not authorized")
+        : RuntimeException(cause?.message ?: msg, cause)
 
     data class ZitiAccessToken(
         val type: TokenType,
@@ -67,25 +67,9 @@ internal fun authenticator(ep: String, ssl: SSLContext, oidc: Boolean): ZitiAuth
     else
         LegacyAuth(ep, ssl)
 
-class LegacyAuth(val ep: String, val ssl: SSLContext) : ZitiAuthenticator, Logged by ZitiLog() {
+class LegacyAuth(val ep: String, val ssl: SSLContext) : ZitiAuthenticator, Logged by ZitiLog("legacyAuth[$ep]") {
 
-    private val auth = Authenticate().apply {
-        val info = SystemInfoProvider().getSystemInfo()
-        sdkInfo = SdkInfo()
-            .type("ziti-sdk-java")
-            .version(Version.version)
-            .branch(Version.branch)
-            .revision(Version.revision)
-            .appId(ZitiImpl.appId)
-            .appVersion(ZitiImpl.appVersion)
-        envInfo = EnvInfo()
-            .arch(info.arch)
-            .os(info.os)
-            .osRelease(info.osRelease)
-            .osVersion(info.osVersion)
-        configTypes = listOf("all")
-    }
-
+    lateinit var apiSession: CurrentApiSessionDetail
     private val http = HttpClient.newBuilder()
         .sslContext(ssl)
         .executor(Dispatchers.IO.asExecutor())
@@ -95,31 +79,43 @@ class LegacyAuth(val ep: String, val ssl: SSLContext) : ZitiAuthenticator, Logge
         updateBaseUri(ep)
     }
 
-    override suspend fun login(): ZitiAuthenticator.ZitiAccessToken {
+    override suspend fun login(): ZitiAuthenticator.ZitiAccessToken = runCatching {
+        d { "starting authentication" }
         val authApi = AuthenticationApi(api)
-        val session = authApi.authenticate("cert", auth).await()
-        api.requestInterceptor = Consumer {
-            req -> req.header("zt-session", session.data.token)
-        }
-        return ZitiAuthenticator.ZitiAccessToken(
+        apiSession = authApi.authenticate("cert", ZitiImpl.loginInfo).await().data
+        d { "authenticated successfully session.expiresAt[${apiSession.expiresAt}]" }
+        ZitiAuthenticator.ZitiAccessToken(
             ZitiAuthenticator.TokenType.API_SESSION,
-            session.data.token,
-            session.data.expiresAt
+            apiSession.token,
+            apiSession.expiresAt
         )
+    }.getOrElse { ex ->
+        e(ex) { "failed to authenticate with error: ${ex.message}" }
+        if (ex is ApiException && ex.code == HTTP_UNAUTHORIZED) {
+            throw ZitiAuthenticator.AuthException(ex)
+        }
+        throw ex
     }
 
-    override suspend fun refresh(): ZitiAuthenticator.ZitiAccessToken {
+    override suspend fun refresh(): ZitiAuthenticator.ZitiAccessToken = runCatching {
+        d { "refreshing API session" }
         val currentApiSessionApi = CurrentApiSessionApi(api)
-        val session = currentApiSessionApi.currentAPISession.await()
-        return ZitiAuthenticator.ZitiAccessToken(
+        apiSession = currentApiSessionApi.getCurrentAPISession(mapOf("zt-session" to apiSession.token)).await().data
+        ZitiAuthenticator.ZitiAccessToken(
             ZitiAuthenticator.TokenType.API_SESSION,
-            session.data.token,
-            session.data.expiresAt
+            apiSession.token,
+            apiSession.expiresAt
         )
+    }.getOrElse { ex ->
+        e(ex) { "failed to authenticate with error: ${ex.message}" }
+        if (ex is ApiException && ex.code == HTTP_UNAUTHORIZED) {
+            throw ZitiAuthenticator.AuthException(ex)
+        }
+        throw ex
     }
 }
 
-class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged by ZitiLog() {
+class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged by ZitiLog("oidc[$ep]") {
 
     companion object {
         const val CLIENT_ID = "openziti"
@@ -128,6 +124,7 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
         const val DISCOVERY = "/oidc/.well-known/openid-configuration"
         const val TOKEN_EXCHANGE_GRANT = "urn:ietf:params:oauth:grant-type:token-exchange"
         val json: ObjectMapper = ObjectMapper().registerModule(kotlinModule())
+        val CLIENT_ID_BASIC_AUTH = "Basic ${Encoder.encodeToString("$CLIENT_ID:".toByteArray())}"
     }
 
 
@@ -147,6 +144,7 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
     }
 
     private suspend fun startAuth(authEndpoint: String, challenge: String, state: String): URI {
+        d { "starting auth" }
         val form = mapOf(
             "response_type" to "code",
             "client_id" to CLIENT_ID,
@@ -219,6 +217,7 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
             .POST(HttpRequest.BodyPublishers.ofString(body)).build()
 
         val tokenResp = http.sendAsync(req, HttpResponse.BodyHandlers.ofString()).await()
+        tokenResp.sslSession().get().peerCertificates[0].publicKey
         return json.readTree(tokenResp.body())
     }
 
@@ -242,36 +241,40 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
         require(st == state){ "OIDC state mismatch" }
 
         tokens = getTokens(URI.create(tokenEndpoint), code, codeVerifier)
-        d{ "OIDC tokens: $tokens" }
 
         val accessToken = tokens["access_token"]?.textValue()
             ?: throw Exception("Missing access token in OIDC response")
+
         val exp = OffsetDateTime.now().plusSeconds(tokens["expires_in"]?.longValue() ?: 600)
         return ZitiAuthenticator.ZitiAccessToken(ZitiAuthenticator.TokenType.BEARER, accessToken, exp)
     }
 
     override suspend fun refresh(): ZitiAuthenticator.ZitiAccessToken {
+        d { "starting refresh" }
         val refreshToken = tokens.get("refresh_token")?.textValue()
 
-        if (refreshToken == null) return login()
+        refreshToken ?: throw ZitiAuthenticator.AuthException(msg = "no refresh_token")
 
         val form = mapOf(
-            "grant_type" to TOKEN_EXCHANGE_GRANT,
-            "requested_token_type" to "urn:ietf:params:oauth:token-type:refresh_token",
-            "subject_token_type" to   "urn:ietf:params:oauth:token-type:refresh_token",
-            "subject_token" to  refreshToken,
+            "client_id"     to CLIENT_ID,
+            "grant_type"    to "refresh_token",
+            "refresh_token" to refreshToken,
         )
 
         val req = HttpRequest.newBuilder()
             .uri(config["token_endpoint"]?.textValue()?.let { URI.create(it) })
-            .header("Accept", "application/x-www-form-urlencoded")
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .header("Authorization", CLIENT_ID_BASIC_AUTH)
             .POST(HttpRequest.BodyPublishers.ofString(formatForm(form)))
             .build()
 
         val resp = http.sendAsync(req, HttpResponse.BodyHandlers.ofString()).await()
 
+        if (resp.statusCode() == HTTP_UNAUTHORIZED) {
+            throw ZitiAuthenticator.AuthException()
+        }
         if (resp.statusCode() != 200) {
-            return login()
+            throw Exception("unexpected refresh response $resp")
         }
 
         tokens = json.readTree(resp.body())
