@@ -5,7 +5,7 @@ dokka = "2.1.0"
 nexus = "2.0.0"
 semver-git = "2.3.7"
 openapi-gen = "7.20.0"
-spotless = "8.2.1"
+spotless = "8.3.0"
 shadow-jar = "9.3.2"
 download = "5.7.0"
 
