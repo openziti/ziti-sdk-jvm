@@ -1,12 +1,12 @@
 [versions]
 # plugings
-kotlin = "2.3.10"
+kotlin = "2.3.20"
 dokka = "2.1.0"
 nexus = "2.0.0"
 semver-git = "2.3.7"
 openapi-gen = "7.20.0"
-spotless = "8.2.1"
-shadow-jar = "9.3.2"
+spotless = "8.3.0"
+shadow-jar = "9.4.0"
 download = "5.7.0"
 
 # OpenZiti Edge API
