@@ -164,7 +164,9 @@ internal class AsyncSocketImpl(private val connector: Connector = DefaultConnect
                         }
                         input.flip()
 
-                        val count = min(len, readCount.getOrElse { throwIOException(it) })
+                        val readResult = readCount.getOrElse { throwIOException(it) }
+                        if (readResult < 0) return@withLock readResult
+                        val count = min(len, readResult)
                         input.get(b, off, count)
                         count
                     }
