@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.jackson.annotations)
     implementation(libs.jackson.bind)
     implementation(libs.jackson.datatype)
-    implementation("org.openapitools:jackson-databind-nullable:0.2.9")
+    implementation("org.openapitools:jackson-databind-nullable:0.2.10")
     implementation("jakarta.annotation:jakarta.annotation-api:$jakartaAnnotationVersion")
 }
 
