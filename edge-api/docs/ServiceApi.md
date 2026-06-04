@@ -106,7 +106,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteServiceWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteService deleteServiceWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteServiceWithHttpInfo(id)
 
 Delete a service
 
@@ -281,7 +281,7 @@ CompletableFuture<[**DetailServiceEnvelope**](DetailServiceEnvelope.md)>
 
 ## detailServiceWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailServiceEnvelope>> detailService detailServiceWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailServiceEnvelope>> detailServiceWithHttpInfo(id)
 
 Retrieves a single service
 
@@ -462,7 +462,7 @@ CompletableFuture<[**ListServiceEdgeRoutersEnvelope**](ListServiceEdgeRoutersEnv
 
 ## listServiceEdgeRoutersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServiceEdgeRoutersEnvelope>> listServiceEdgeRouters listServiceEdgeRoutersWithHttpInfo(id, limit, offset, filter, sessionToken)
+> CompletableFuture<ApiResponse<ListServiceEdgeRoutersEnvelope>> listServiceEdgeRoutersWithHttpInfo(id, limit, offset, filter, sessionToken)
 
 List of edge routers permitted to handle traffic for the specified service
 
@@ -649,7 +649,7 @@ CompletableFuture<[**ListClientTerminatorsEnvelope**](ListClientTerminatorsEnvel
 
 ## listServiceTerminatorsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListClientTerminatorsEnvelope>> listServiceTerminators listServiceTerminatorsWithHttpInfo(id, limit, offset, filter)
+> CompletableFuture<ApiResponse<ListClientTerminatorsEnvelope>> listServiceTerminatorsWithHttpInfo(id, limit, offset, filter)
 
 List of terminators assigned to a service
 
@@ -838,7 +838,7 @@ CompletableFuture<[**ListServicesEnvelope**](ListServicesEnvelope.md)>
 
 ## listServicesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicesEnvelope>> listServices listServicesWithHttpInfo(limit, offset, filter, configTypes, roleFilter, roleSemantic)
+> CompletableFuture<ApiResponse<ListServicesEnvelope>> listServicesWithHttpInfo(limit, offset, filter, configTypes, roleFilter, roleSemantic)
 
 List services
 
@@ -1024,7 +1024,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchServiceWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchService patchServiceWithHttpInfo(id, service)
+> CompletableFuture<ApiResponse<Empty>> patchServiceWithHttpInfo(id, service)
 
 Update the supplied fields on a service
 
@@ -1203,7 +1203,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateServiceWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateService updateServiceWithHttpInfo(id, service)
+> CompletableFuture<ApiResponse<Empty>> updateServiceWithHttpInfo(id, service)
 
 Update all fields on a service
 

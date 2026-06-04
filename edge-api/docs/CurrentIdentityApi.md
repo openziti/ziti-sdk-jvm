@@ -106,7 +106,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## createMfaRecoveryCodesWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> createMfaRecoveryCodes createMfaRecoveryCodesWithHttpInfo(mfaValidation)
+> CompletableFuture<ApiResponse<Empty>> createMfaRecoveryCodesWithHttpInfo(mfaValidation)
 
 For a completed MFA enrollment regenerate the recovery codes
 
@@ -275,7 +275,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteMfaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteMfa deleteMfaWithHttpInfo(mfaValidationCode)
+> CompletableFuture<ApiResponse<Empty>> deleteMfaWithHttpInfo(mfaValidationCode)
 
 Disable MFA for the current identity
 
@@ -440,7 +440,7 @@ CompletableFuture<[**DetailMfaEnvelope**](DetailMfaEnvelope.md)>
 
 ## detailMfaWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailMfaEnvelope>> detailMfa detailMfaWithHttpInfo()
+> CompletableFuture<ApiResponse<DetailMfaEnvelope>> detailMfaWithHttpInfo()
 
 Returns the current status of MFA enrollment
 
@@ -599,7 +599,7 @@ CompletableFuture<void> (empty response body)
 
 ## detailMfaQrCodeWithHttpInfo
 
-> CompletableFuture<ApiResponse<Void>> detailMfaQrCode detailMfaQrCodeWithHttpInfo()
+> CompletableFuture<ApiResponse<Void>> detailMfaQrCodeWithHttpInfo()
 
 Show a QR code for unverified MFA enrollments
 
@@ -764,7 +764,7 @@ CompletableFuture<[**DetailMfaRecoveryCodesEnvelope**](DetailMfaRecoveryCodesEnv
 
 ## detailMfaRecoveryCodesWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailMfaRecoveryCodesEnvelope>> detailMfaRecoveryCodes detailMfaRecoveryCodesWithHttpInfo(mfaValidationCode, mfaValidation)
+> CompletableFuture<ApiResponse<DetailMfaRecoveryCodesEnvelope>> detailMfaRecoveryCodesWithHttpInfo(mfaValidationCode, mfaValidation)
 
 For a completed MFA enrollment view the current recovery codes
 
@@ -931,7 +931,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## enrollMfaWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> enrollMfa enrollMfaWithHttpInfo()
+> CompletableFuture<ApiResponse<CreateEnvelope>> enrollMfaWithHttpInfo()
 
 Initiate MFA enrollment
 
@@ -1091,7 +1091,7 @@ CompletableFuture<[**CurrentIdentityDetailEnvelope**](CurrentIdentityDetailEnvel
 
 ## getCurrentIdentityWithHttpInfo
 
-> CompletableFuture<ApiResponse<CurrentIdentityDetailEnvelope>> getCurrentIdentity getCurrentIdentityWithHttpInfo()
+> CompletableFuture<ApiResponse<CurrentIdentityDetailEnvelope>> getCurrentIdentityWithHttpInfo()
 
 Return the current identity
 
@@ -1252,7 +1252,7 @@ CompletableFuture<[**ListCurrentIdentityEdgeRoutersEnvelope**](ListCurrentIdenti
 
 ## getCurrentIdentityEdgeRoutersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListCurrentIdentityEdgeRoutersEnvelope>> getCurrentIdentityEdgeRouters getCurrentIdentityEdgeRoutersWithHttpInfo()
+> CompletableFuture<ApiResponse<ListCurrentIdentityEdgeRoutersEnvelope>> getCurrentIdentityEdgeRoutersWithHttpInfo()
 
 Return this list of Edge Routers the identity has access to
 
@@ -1418,7 +1418,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## verifyMfaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> verifyMfa verifyMfaWithHttpInfo(mfaValidation)
+> CompletableFuture<ApiResponse<Empty>> verifyMfaWithHttpInfo(mfaValidation)
 
 Complete MFA enrollment by verifying a time based one time token
 

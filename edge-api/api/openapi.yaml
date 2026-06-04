@@ -9,7 +9,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Client
-  version: 0.26.53
+  version: 0.31.0
 servers:
 - url: https://demo.ziti.dev/edge/client/v1
 paths:
@@ -6811,6 +6811,7 @@ components:
       enum:
       - OIDC_AUTH
       - HA_CONTROLLER
+      - OIDC_AUTH_WITH_CSR
       type: string
     clientExternalJwtSignerDetail:
       allOf:
@@ -6938,6 +6939,8 @@ components:
             type: string
           isOnline:
             type: boolean
+          isPreferredLeader:
+            type: boolean
           lastJoinedAt:
             format: date-time
             type: string
@@ -6952,21 +6955,22 @@ components:
         type: object
       description: A controller resource
       example:
-        createdAt: 2000-01-23T04:56:07.000+00:00
         _links:
           key:
             method: method
             comment: comment
             href: https://openapi-generator.tech
         apiAddresses: null
-        fingerprint: fingerprint
-        name: name
         ctrlAddress: ctrlAddress
         certPem: certPem
         isOnline: true
-        id: id
-        lastJoinedAt: 2000-01-23T04:56:07.000+00:00
         tags: {}
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        fingerprint: fingerprint
+        name: name
+        id: id
+        isPreferredLeader: true
+        lastJoinedAt: 2000-01-23T04:56:07.000+00:00
         updatedAt: 2000-01-23T04:56:07.000+00:00
     controllersList:
       description: An array of controller resources
@@ -8898,37 +8902,39 @@ components:
     listControllersEnvelope:
       example:
         data:
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          _links:
+        - _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
           apiAddresses: null
-          fingerprint: fingerprint
-          name: name
           ctrlAddress: ctrlAddress
           certPem: certPem
           isOnline: true
-          id: id
-          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
           tags: {}
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          fingerprint: fingerprint
+          name: name
+          id: id
+          isPreferredLeader: true
+          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
           updatedAt: 2000-01-23T04:56:07.000+00:00
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          _links:
+        - _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
           apiAddresses: null
-          fingerprint: fingerprint
-          name: name
           ctrlAddress: ctrlAddress
           certPem: certPem
           isOnline: true
-          id: id
-          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
           tags: {}
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          fingerprint: fingerprint
+          name: name
+          id: id
+          isPreferredLeader: true
+          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
           updatedAt: 2000-01-23T04:56:07.000+00:00
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion

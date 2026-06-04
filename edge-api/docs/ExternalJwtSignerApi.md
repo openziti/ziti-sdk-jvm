@@ -85,7 +85,7 @@ No authorization required
 
 ## listExternalJwtSignersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListClientExternalJwtSignersEnvelope>> listExternalJwtSigners listExternalJwtSignersWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListClientExternalJwtSignersEnvelope>> listExternalJwtSignersWithHttpInfo(limit, offset, filter)
 
 List Client Authentication External JWT
 

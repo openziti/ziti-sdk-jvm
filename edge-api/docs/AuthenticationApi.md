@@ -84,7 +84,7 @@ No authorization required
 
 ## authenticateWithHttpInfo
 
-> CompletableFuture<ApiResponse<CurrentApiSessionDetailEnvelope>> authenticate authenticateWithHttpInfo(method, auth)
+> CompletableFuture<ApiResponse<CurrentApiSessionDetailEnvelope>> authenticateWithHttpInfo(method, auth)
 
 Authenticate via a method supplied via a query string parameter
 
@@ -245,7 +245,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## authenticateMfaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> authenticateMfa authenticateMfaWithHttpInfo(mfaAuth)
+> CompletableFuture<ApiResponse<Empty>> authenticateMfaWithHttpInfo(mfaAuth)
 
 Complete MFA authentication
 

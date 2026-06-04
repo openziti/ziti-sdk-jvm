@@ -9,5 +9,7 @@
 
 * `HA_CONTROLLER` (value: `"HA_CONTROLLER"`)
 
+* `OIDC_AUTH_WITH_CSR` (value: `"OIDC_AUTH_WITH_CSR"`)
+
 
 
