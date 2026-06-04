@@ -112,7 +112,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createEdgeRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createEdgeRouter createEdgeRouterWithHttpInfo(edgeRouter)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createEdgeRouterWithHttpInfo(edgeRouter)
 
 Create an edge router
 
@@ -287,7 +287,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteEdgeRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteEdgeRouter deleteEdgeRouterWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteEdgeRouterWithHttpInfo(id)
 
 Delete an edge router
 
@@ -462,7 +462,7 @@ CompletableFuture<[**DetailedEdgeRouterEnvelope**](DetailedEdgeRouterEnvelope.md
 
 ## detailEdgeRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailedEdgeRouterEnvelope>> detailEdgeRouter detailEdgeRouterWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailedEdgeRouterEnvelope>> detailEdgeRouterWithHttpInfo(id)
 
 Retrieves a single edge router
 
@@ -635,7 +635,7 @@ CompletableFuture<[**ListEdgeRouterPoliciesEnvelope**](ListEdgeRouterPoliciesEnv
 
 ## listEdgeRouterEdgeRouterPoliciesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListEdgeRouterPoliciesEnvelope>> listEdgeRouterEdgeRouterPolicies listEdgeRouterEdgeRouterPoliciesWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListEdgeRouterPoliciesEnvelope>> listEdgeRouterEdgeRouterPoliciesWithHttpInfo(id)
 
 List the edge router policies that affect an edge router
 
@@ -808,7 +808,7 @@ CompletableFuture<[**ListIdentitiesEnvelope**](ListIdentitiesEnvelope.md)>
 
 ## listEdgeRouterIdentitiesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListIdentitiesEnvelope>> listEdgeRouterIdentities listEdgeRouterIdentitiesWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListIdentitiesEnvelope>> listEdgeRouterIdentitiesWithHttpInfo(id)
 
 List associated identities
 
@@ -981,7 +981,7 @@ CompletableFuture<[**ListServicePoliciesEnvelope**](ListServicePoliciesEnvelope.
 
 ## listEdgeRouterServiceEdgeRouterPoliciesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicePoliciesEnvelope>> listEdgeRouterServiceEdgeRouterPolicies listEdgeRouterServiceEdgeRouterPoliciesWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListServicePoliciesEnvelope>> listEdgeRouterServiceEdgeRouterPoliciesWithHttpInfo(id)
 
 List the service policies that affect an edge router
 
@@ -1154,7 +1154,7 @@ CompletableFuture<[**ListServicesEnvelope**](ListServicesEnvelope.md)>
 
 ## listEdgeRouterServicesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicesEnvelope>> listEdgeRouterServices listEdgeRouterServicesWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListServicesEnvelope>> listEdgeRouterServicesWithHttpInfo(id)
 
 List associated services
 
@@ -1335,7 +1335,7 @@ CompletableFuture<[**ListEdgeRoutersEnvelope**](ListEdgeRoutersEnvelope.md)>
 
 ## listEdgeRoutersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListEdgeRoutersEnvelope>> listEdgeRouters listEdgeRoutersWithHttpInfo(limit, offset, filter, roleFilter, roleSemantic)
+> CompletableFuture<ApiResponse<ListEdgeRoutersEnvelope>> listEdgeRoutersWithHttpInfo(limit, offset, filter, roleFilter, roleSemantic)
 
 List edge routers
 
@@ -1519,7 +1519,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchEdgeRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchEdgeRouter patchEdgeRouterWithHttpInfo(id, edgeRouter)
+> CompletableFuture<ApiResponse<Empty>> patchEdgeRouterWithHttpInfo(id, edgeRouter)
 
 Update the supplied fields on an edge router
 
@@ -1695,7 +1695,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## reEnrollEdgeRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> reEnrollEdgeRouter reEnrollEdgeRouterWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> reEnrollEdgeRouterWithHttpInfo(id)
 
 Re-enroll an edge router
 
@@ -1871,7 +1871,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateEdgeRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateEdgeRouter updateEdgeRouterWithHttpInfo(id, edgeRouter)
+> CompletableFuture<ApiResponse<Empty>> updateEdgeRouterWithHttpInfo(id, edgeRouter)
 
 Update all fields on an edge router
 

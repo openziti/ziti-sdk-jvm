@@ -141,7 +141,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## associateIdentitysServiceConfigsWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> associateIdentitysServiceConfigs associateIdentitysServiceConfigsWithHttpInfo(id, serviceConfigs)
+> CompletableFuture<ApiResponse<Empty>> associateIdentitysServiceConfigsWithHttpInfo(id, serviceConfigs)
 
 Associate service configs for a specific identity
 
@@ -317,7 +317,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createIdentityWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createIdentity createIdentityWithHttpInfo(identity)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createIdentityWithHttpInfo(identity)
 
 Create an identity resource
 
@@ -492,7 +492,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteIdentityWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteIdentity deleteIdentityWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteIdentityWithHttpInfo(id)
 
 Delete an identity
 
@@ -667,7 +667,7 @@ CompletableFuture<[**DetailIdentityEnvelope**](DetailIdentityEnvelope.md)>
 
 ## detailIdentityWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailIdentityEnvelope>> detailIdentity detailIdentityWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailIdentityEnvelope>> detailIdentityWithHttpInfo(id)
 
 Retrieves a single identity
 
@@ -840,7 +840,7 @@ CompletableFuture<[**DetailIdentityTypeEnvelope**](DetailIdentityTypeEnvelope.md
 
 ## detailIdentityTypeWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailIdentityTypeEnvelope>> detailIdentityType detailIdentityTypeWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailIdentityTypeEnvelope>> detailIdentityTypeWithHttpInfo(id)
 
 Retrieves a identity type
 
@@ -1015,7 +1015,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## disableIdentityWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> disableIdentity disableIdentityWithHttpInfo(id, disable)
+> CompletableFuture<ApiResponse<Empty>> disableIdentityWithHttpInfo(id, disable)
 
 Set an identity as disabled
 
@@ -1193,7 +1193,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## disassociateIdentitysServiceConfigsWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> disassociateIdentitysServiceConfigs disassociateIdentitysServiceConfigsWithHttpInfo(id, serviceConfigIdPairs)
+> CompletableFuture<ApiResponse<Empty>> disassociateIdentitysServiceConfigsWithHttpInfo(id, serviceConfigIdPairs)
 
 Remove associated service configs from a specific identity
 
@@ -1369,7 +1369,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## enableIdentityWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> enableIdentity enableIdentityWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> enableIdentityWithHttpInfo(id)
 
 Clears all disabled state from an identity
 
@@ -1542,7 +1542,7 @@ CompletableFuture<[**ListAuthenticatorsEnvelope**](ListAuthenticatorsEnvelope.md
 
 ## getIdentityAuthenticatorsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListAuthenticatorsEnvelope>> getIdentityAuthenticators getIdentityAuthenticatorsWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListAuthenticatorsEnvelope>> getIdentityAuthenticatorsWithHttpInfo(id)
 
 Retrieve the current authenticators of a specific identity
 
@@ -1715,7 +1715,7 @@ CompletableFuture<[**ListEnrollmentsEnvelope**](ListEnrollmentsEnvelope.md)>
 
 ## getIdentityEnrollmentsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListEnrollmentsEnvelope>> getIdentityEnrollments getIdentityEnrollmentsWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListEnrollmentsEnvelope>> getIdentityEnrollmentsWithHttpInfo(id)
 
 Retrieve the current enrollments of a specific identity
 
@@ -1888,7 +1888,7 @@ CompletableFuture<[**FailedServiceRequestEnvelope**](FailedServiceRequestEnvelop
 
 ## getIdentityFailedServiceRequestsWithHttpInfo
 
-> CompletableFuture<ApiResponse<FailedServiceRequestEnvelope>> getIdentityFailedServiceRequests getIdentityFailedServiceRequestsWithHttpInfo(id)
+> CompletableFuture<ApiResponse<FailedServiceRequestEnvelope>> getIdentityFailedServiceRequestsWithHttpInfo(id)
 
 Retrieve a list of the most recent service failure requests due to posture checks
 
@@ -2063,7 +2063,7 @@ CompletableFuture<[**GetIdentityPolicyAdviceEnvelope**](GetIdentityPolicyAdviceE
 
 ## getIdentityPolicyAdviceWithHttpInfo
 
-> CompletableFuture<ApiResponse<GetIdentityPolicyAdviceEnvelope>> getIdentityPolicyAdvice getIdentityPolicyAdviceWithHttpInfo(id, serviceId)
+> CompletableFuture<ApiResponse<GetIdentityPolicyAdviceEnvelope>> getIdentityPolicyAdviceWithHttpInfo(id, serviceId)
 
 Analyze policies relating the given identity and service
 
@@ -2238,7 +2238,7 @@ CompletableFuture<[**PostureDataEnvelope**](PostureDataEnvelope.md)>
 
 ## getIdentityPostureDataWithHttpInfo
 
-> CompletableFuture<ApiResponse<PostureDataEnvelope>> getIdentityPostureData getIdentityPostureDataWithHttpInfo(id)
+> CompletableFuture<ApiResponse<PostureDataEnvelope>> getIdentityPostureDataWithHttpInfo(id)
 
 Retrieve the curent posture data for a specific identity.
 
@@ -2419,7 +2419,7 @@ CompletableFuture<[**ListIdentitiesEnvelope**](ListIdentitiesEnvelope.md)>
 
 ## listIdentitiesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListIdentitiesEnvelope>> listIdentities listIdentitiesWithHttpInfo(limit, offset, filter, roleFilter, roleSemantic)
+> CompletableFuture<ApiResponse<ListIdentitiesEnvelope>> listIdentitiesWithHttpInfo(limit, offset, filter, roleFilter, roleSemantic)
 
 List identities
 
@@ -2600,7 +2600,7 @@ CompletableFuture<[**ListEdgeRoutersEnvelope**](ListEdgeRoutersEnvelope.md)>
 
 ## listIdentityEdgeRoutersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListEdgeRoutersEnvelope>> listIdentityEdgeRouters listIdentityEdgeRoutersWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListEdgeRoutersEnvelope>> listIdentityEdgeRoutersWithHttpInfo(id)
 
 List accessible edge-routers
 
@@ -2773,7 +2773,7 @@ CompletableFuture<[**ListServicePoliciesEnvelope**](ListServicePoliciesEnvelope.
 
 ## listIdentityServicePoliciesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicePoliciesEnvelope>> listIdentityServicePolicies listIdentityServicePoliciesWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListServicePoliciesEnvelope>> listIdentityServicePoliciesWithHttpInfo(id)
 
 List the service policies that affect an identity
 
@@ -2950,7 +2950,7 @@ CompletableFuture<[**ListServicesEnvelope**](ListServicesEnvelope.md)>
 
 ## listIdentityServicesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicesEnvelope>> listIdentityServices listIdentityServicesWithHttpInfo(id, filter, policyType)
+> CompletableFuture<ApiResponse<ListServicesEnvelope>> listIdentityServicesWithHttpInfo(id, filter, policyType)
 
 List accessible services
 
@@ -3131,7 +3131,7 @@ CompletableFuture<[**ListIdentityTypesEnvelope**](ListIdentityTypesEnvelope.md)>
 
 ## listIdentityTypesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListIdentityTypesEnvelope>> listIdentityTypes listIdentityTypesWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListIdentityTypesEnvelope>> listIdentityTypesWithHttpInfo(limit, offset, filter)
 
 List available identity types
 
@@ -3308,7 +3308,7 @@ CompletableFuture<[**ListEdgeRouterPoliciesEnvelope**](ListEdgeRouterPoliciesEnv
 
 ## listIdentitysEdgeRouterPoliciesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListEdgeRouterPoliciesEnvelope>> listIdentitysEdgeRouterPolicies listIdentitysEdgeRouterPoliciesWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListEdgeRouterPoliciesEnvelope>> listIdentitysEdgeRouterPoliciesWithHttpInfo(id)
 
 List the edge router policies that affect an identity
 
@@ -3481,7 +3481,7 @@ CompletableFuture<[**ListServiceConfigsEnvelope**](ListServiceConfigsEnvelope.md
 
 ## listIdentitysServiceConfigsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServiceConfigsEnvelope>> listIdentitysServiceConfigs listIdentitysServiceConfigsWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListServiceConfigsEnvelope>> listIdentitysServiceConfigsWithHttpInfo(id)
 
 List the service configs associated a specific identity
 
@@ -3657,7 +3657,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchIdentityWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchIdentity patchIdentityWithHttpInfo(id, identity)
+> CompletableFuture<ApiResponse<Empty>> patchIdentityWithHttpInfo(id, identity)
 
 Update the supplied fields on an identity
 
@@ -3833,7 +3833,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## removeIdentityMfaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> removeIdentityMfa removeIdentityMfaWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> removeIdentityMfaWithHttpInfo(id)
 
 Remove MFA from an identitity
 
@@ -4009,7 +4009,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateIdentityWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateIdentity updateIdentityWithHttpInfo(id, identity)
+> CompletableFuture<ApiResponse<Empty>> updateIdentityWithHttpInfo(id, identity)
 
 Update all fields on an identity
 
@@ -4188,7 +4188,7 @@ CompletableFuture<[**TraceDetailEnvelope**](TraceDetailEnvelope.md)>
 
 ## updateIdentityTracingWithHttpInfo
 
-> CompletableFuture<ApiResponse<TraceDetailEnvelope>> updateIdentityTracing updateIdentityTracingWithHttpInfo(id, traceSpec)
+> CompletableFuture<ApiResponse<TraceDetailEnvelope>> updateIdentityTracingWithHttpInfo(id, traceSpec)
 
 Enable/disable data flow tracing for an identity
 

@@ -93,7 +93,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteAPISessionsWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteAPISessions deleteAPISessionsWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteAPISessionsWithHttpInfo(id)
 
 Deletes an API Sessions
 
@@ -263,7 +263,7 @@ CompletableFuture<[**DetailApiSessionEnvelope**](DetailApiSessionEnvelope.md)>
 
 ## detailAPISessionsWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailApiSessionEnvelope>> detailAPISessions detailAPISessionsWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailApiSessionEnvelope>> detailAPISessionsWithHttpInfo(id)
 
 Retrieves a single API Session
 
@@ -440,7 +440,7 @@ CompletableFuture<[**ListApiSessionsEnvelope**](ListApiSessionsEnvelope.md)>
 
 ## listAPISessionsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListApiSessionsEnvelope>> listAPISessions listAPISessionsWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListApiSessionsEnvelope>> listAPISessionsWithHttpInfo(limit, offset, filter)
 
 List active API sessions
 

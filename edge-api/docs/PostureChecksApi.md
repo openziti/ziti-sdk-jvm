@@ -94,7 +94,7 @@ CompletableFuture<[**PostureResponseEnvelope**](PostureResponseEnvelope.md)>
 
 ## createPostureResponseWithHttpInfo
 
-> CompletableFuture<ApiResponse<PostureResponseEnvelope>> createPostureResponse createPostureResponseWithHttpInfo(postureResponse)
+> CompletableFuture<ApiResponse<PostureResponseEnvelope>> createPostureResponseWithHttpInfo(postureResponse)
 
 Submit a posture response to a posture query
 
@@ -267,7 +267,7 @@ CompletableFuture<[**PostureResponseEnvelope**](PostureResponseEnvelope.md)>
 
 ## createPostureResponseBulkWithHttpInfo
 
-> CompletableFuture<ApiResponse<PostureResponseEnvelope>> createPostureResponseBulk createPostureResponseBulkWithHttpInfo(postureResponse)
+> CompletableFuture<ApiResponse<PostureResponseEnvelope>> createPostureResponseBulkWithHttpInfo(postureResponse)
 
 Submit multiple posture responses
 

@@ -91,6 +91,7 @@ docs/DetailMfaRecoveryCodes.md
 docs/DetailMfaRecoveryCodesEnvelope.md
 docs/DetailPostureCheckEnvelope.md
 docs/DetailPostureCheckTypeEnvelope.md
+docs/DetailRevocationEnvelope.md
 docs/DetailRouterEnvelope.md
 docs/DetailServiceEdgePolicyEnvelope.md
 docs/DetailServiceEnvelope.md
@@ -170,6 +171,8 @@ docs/ListIdentityTypesEnvelope.md
 docs/ListNetworkJWTsEnvelope.md
 docs/ListPostureCheckEnvelope.md
 docs/ListPostureCheckTypesEnvelope.md
+docs/ListRevocationsEnvelope.md
+docs/ListRoleAttributeUsageEnvelope.md
 docs/ListRoleAttributesEnvelope.md
 docs/ListRoutersEnvelope.md
 docs/ListServiceConfigsEnvelope.md
@@ -254,6 +257,12 @@ docs/Process.md
 docs/ProcessMulti.md
 docs/ReEnroll.md
 docs/RequestExtendAuthenticator.md
+docs/RevocationApi.md
+docs/RevocationCreate.md
+docs/RevocationDetail.md
+docs/RevocationTypeEnum.md
+docs/RoleAttributeSourceUsage.md
+docs/RoleAttributeUsageDetail.md
 docs/RoleAttributesApi.md
 docs/RouterApi.md
 docs/RouterCreate.md
@@ -336,6 +345,7 @@ src/main/java/org/openziti/management/api/IdentityApi.java
 src/main/java/org/openziti/management/api/InformationalApi.java
 src/main/java/org/openziti/management/api/MfaApi.java
 src/main/java/org/openziti/management/api/PostureChecksApi.java
+src/main/java/org/openziti/management/api/RevocationApi.java
 src/main/java/org/openziti/management/api/RoleAttributesApi.java
 src/main/java/org/openziti/management/api/RouterApi.java
 src/main/java/org/openziti/management/api/ServiceApi.java
@@ -428,6 +438,7 @@ src/main/java/org/openziti/management/model/DetailMfaRecoveryCodes.java
 src/main/java/org/openziti/management/model/DetailMfaRecoveryCodesEnvelope.java
 src/main/java/org/openziti/management/model/DetailPostureCheckEnvelope.java
 src/main/java/org/openziti/management/model/DetailPostureCheckTypeEnvelope.java
+src/main/java/org/openziti/management/model/DetailRevocationEnvelope.java
 src/main/java/org/openziti/management/model/DetailRouterEnvelope.java
 src/main/java/org/openziti/management/model/DetailServiceEdgePolicyEnvelope.java
 src/main/java/org/openziti/management/model/DetailServiceEnvelope.java
@@ -499,6 +510,8 @@ src/main/java/org/openziti/management/model/ListIdentityTypesEnvelope.java
 src/main/java/org/openziti/management/model/ListNetworkJWTsEnvelope.java
 src/main/java/org/openziti/management/model/ListPostureCheckEnvelope.java
 src/main/java/org/openziti/management/model/ListPostureCheckTypesEnvelope.java
+src/main/java/org/openziti/management/model/ListRevocationsEnvelope.java
+src/main/java/org/openziti/management/model/ListRoleAttributeUsageEnvelope.java
 src/main/java/org/openziti/management/model/ListRoleAttributesEnvelope.java
 src/main/java/org/openziti/management/model/ListRoutersEnvelope.java
 src/main/java/org/openziti/management/model/ListServiceConfigsEnvelope.java
@@ -581,6 +594,11 @@ src/main/java/org/openziti/management/model/Process.java
 src/main/java/org/openziti/management/model/ProcessMulti.java
 src/main/java/org/openziti/management/model/ReEnroll.java
 src/main/java/org/openziti/management/model/RequestExtendAuthenticator.java
+src/main/java/org/openziti/management/model/RevocationCreate.java
+src/main/java/org/openziti/management/model/RevocationDetail.java
+src/main/java/org/openziti/management/model/RevocationTypeEnum.java
+src/main/java/org/openziti/management/model/RoleAttributeSourceUsage.java
+src/main/java/org/openziti/management/model/RoleAttributeUsageDetail.java
 src/main/java/org/openziti/management/model/RouterCreate.java
 src/main/java/org/openziti/management/model/RouterDetail.java
 src/main/java/org/openziti/management/model/RouterEntityRef.java

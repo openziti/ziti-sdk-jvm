@@ -95,7 +95,7 @@ CompletableFuture<[**IdentityExtendEnrollmentEnvelope**](IdentityExtendEnrollmen
 
 ## extendCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<IdentityExtendEnrollmentEnvelope>> extendCurrentIdentityAuthenticator extendCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
+> CompletableFuture<ApiResponse<IdentityExtendEnrollmentEnvelope>> extendCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
 
 Allows the current identity to recieve a new certificate associated with a certificate based authenticator
 
@@ -255,7 +255,7 @@ No authorization required
 
 ## extendRouterEnrollmentWithHttpInfo
 
-> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> extendRouterEnrollment extendRouterEnrollmentWithHttpInfo(routerExtendEnrollmentRequest)
+> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> extendRouterEnrollmentWithHttpInfo(routerExtendEnrollmentRequest)
 
 Extend the life of a currently enrolled router&#39;s certificates
 
@@ -415,7 +415,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## extendVerifyCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> extendVerifyCurrentIdentityAuthenticator extendVerifyCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
+> CompletableFuture<ApiResponse<Empty>> extendVerifyCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
 
 Allows the current identity to validate reciept of a new client certificate
 

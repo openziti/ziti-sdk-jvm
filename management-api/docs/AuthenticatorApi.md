@@ -16,8 +16,6 @@ All URIs are relative to *https://demo.ziti.dev/edge/management/v1*
 | [**patchAuthenticatorWithHttpInfo**](AuthenticatorApi.md#patchAuthenticatorWithHttpInfo) | **PATCH** /authenticators/{id} | Update the supplied fields on an authenticator |
 | [**reEnrollAuthenticator**](AuthenticatorApi.md#reEnrollAuthenticator) | **POST** /authenticators/{id}/re-enroll | Reverts an authenticator to an enrollment |
 | [**reEnrollAuthenticatorWithHttpInfo**](AuthenticatorApi.md#reEnrollAuthenticatorWithHttpInfo) | **POST** /authenticators/{id}/re-enroll | Reverts an authenticator to an enrollment |
-| [**requestExtendAllCertAuthenticators**](AuthenticatorApi.md#requestExtendAllCertAuthenticators) | **POST** /identities/{id}/request-extend | Indicate all certificate authenticators for the identity should be extended and optionally key rolled on next authentication. |
-| [**requestExtendAllCertAuthenticatorsWithHttpInfo**](AuthenticatorApi.md#requestExtendAllCertAuthenticatorsWithHttpInfo) | **POST** /identities/{id}/request-extend | Indicate all certificate authenticators for the identity should be extended and optionally key rolled on next authentication. |
 | [**requestExtendAuthenticator**](AuthenticatorApi.md#requestExtendAuthenticator) | **POST** /authenticators/{id}/request-extend | Indicate a certificate authenticator should be extended and optionally key rolled on next authentication. |
 | [**requestExtendAuthenticatorWithHttpInfo**](AuthenticatorApi.md#requestExtendAuthenticatorWithHttpInfo) | **POST** /authenticators/{id}/request-extend | Indicate a certificate authenticator should be extended and optionally key rolled on next authentication. |
 | [**updateAuthenticator**](AuthenticatorApi.md#updateAuthenticator) | **PUT** /authenticators/{id} | Update all fields on an authenticator |
@@ -108,7 +106,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createAuthenticator createAuthenticatorWithHttpInfo(authenticator)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createAuthenticatorWithHttpInfo(authenticator)
 
 Creates an authenticator
 
@@ -282,7 +280,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteAuthenticator deleteAuthenticatorWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteAuthenticatorWithHttpInfo(id)
 
 Delete an Authenticator
 
@@ -456,7 +454,7 @@ CompletableFuture<[**DetailAuthenticatorEnvelope**](DetailAuthenticatorEnvelope.
 
 ## detailAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailAuthenticatorEnvelope>> detailAuthenticator detailAuthenticatorWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailAuthenticatorEnvelope>> detailAuthenticatorWithHttpInfo(id)
 
 Retrieves a single authenticator
 
@@ -633,7 +631,7 @@ CompletableFuture<[**ListAuthenticatorsEnvelope**](ListAuthenticatorsEnvelope.md
 
 ## listAuthenticatorsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListAuthenticatorsEnvelope>> listAuthenticators listAuthenticatorsWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListAuthenticatorsEnvelope>> listAuthenticatorsWithHttpInfo(limit, offset, filter)
 
 List authenticators
 
@@ -813,7 +811,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchAuthenticator patchAuthenticatorWithHttpInfo(id, authenticator)
+> CompletableFuture<ApiResponse<Empty>> patchAuthenticatorWithHttpInfo(id, authenticator)
 
 Update the supplied fields on an authenticator
 
@@ -991,7 +989,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## reEnrollAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> reEnrollAuthenticator reEnrollAuthenticatorWithHttpInfo(id, reEnroll)
+> CompletableFuture<ApiResponse<CreateEnvelope>> reEnrollAuthenticatorWithHttpInfo(id, reEnroll)
 
 Reverts an authenticator to an enrollment
 
@@ -1083,185 +1081,6 @@ CompletableFuture<ApiResponse<[**CreateEnvelope**](CreateEnvelope.md)>>
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 
 
-## requestExtendAllCertAuthenticators
-
-> CompletableFuture<Empty> requestExtendAllCertAuthenticators(id, requestExtendAuthenticator)
-
-Indicate all certificate authenticators for the identity should be extended and optionally key rolled on next authentication.
-
-Allows all certificate authenticators on an identity to be flagged for early extension and optionally private  key rolling. Connecting clients will receive flags in their API Session indicating that an early extension is  request and a hint on whether private keys should be rolled. Clients that do not support extension or cannot  roll keys may ignore one or both flags.  If this request is made against an identity with zero certificate authenticators, a 403 will be returned. 
-
-### Example
-
-```java
-// Import classes:
-import org.openziti.management.ApiClient;
-import org.openziti.management.ApiException;
-import org.openziti.management.Configuration;
-import org.openziti.management.auth.*;
-import org.openziti.management.models.*;
-import org.openziti.management.api.AuthenticatorApi;
-import java.util.concurrent.CompletableFuture;
-
-public class Example {
-    public static void main(String[] args) {
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        defaultClient.setBasePath("https://demo.ziti.dev/edge/management/v1");
-        
-        // Configure API key authorization: ztSession
-        ApiKeyAuth ztSession = (ApiKeyAuth) defaultClient.getAuthentication("ztSession");
-        ztSession.setApiKey("YOUR API KEY");
-        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
-        //ztSession.setApiKeyPrefix("Token");
-
-        // Configure OAuth2 access token for authorization: oauth2
-        OAuth oauth2 = (OAuth) defaultClient.getAuthentication("oauth2");
-        oauth2.setAccessToken("YOUR ACCESS TOKEN");
-
-        AuthenticatorApi apiInstance = new AuthenticatorApi(defaultClient);
-        String id = "id_example"; // String | The id of the requested resource
-        RequestExtendAuthenticator requestExtendAuthenticator = new RequestExtendAuthenticator(); // RequestExtendAuthenticator | A request to flag a certificate authenticator for early extension/key rolling.
-        try {
-            CompletableFuture<Empty> result = apiInstance.requestExtendAllCertAuthenticators(id, requestExtendAuthenticator);
-            System.out.println(result.get());
-        } catch (ApiException e) {
-            System.err.println("Exception when calling AuthenticatorApi#requestExtendAllCertAuthenticators");
-            System.err.println("Status code: " + e.getCode());
-            System.err.println("Reason: " + e.getResponseBody());
-            System.err.println("Response headers: " + e.getResponseHeaders());
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **id** | **String**| The id of the requested resource | |
-| **requestExtendAuthenticator** | [**RequestExtendAuthenticator**](RequestExtendAuthenticator.md)| A request to flag a certificate authenticator for early extension/key rolling. | |
-
-### Return type
-
-CompletableFuture<[**Empty**](Empty.md)>
-
-
-### Authorization
-
-[ztSession](../README.md#ztSession), [oauth2](../README.md#oauth2)
-
-### HTTP request headers
-
-- **Content-Type**: application/json
-- **Accept**: application/json
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Base empty response |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-| **401** | The supplied session does not have the correct access rights to request this resource |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-| **403** | The request could not be completed and will never complete due to unchangeable state or conflicts. |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-| **404** | The requested resource does not exist |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-| **429** | The resource requested is rate limited and the rate limit has been exceeded |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-
-## requestExtendAllCertAuthenticatorsWithHttpInfo
-
-> CompletableFuture<ApiResponse<Empty>> requestExtendAllCertAuthenticators requestExtendAllCertAuthenticatorsWithHttpInfo(id, requestExtendAuthenticator)
-
-Indicate all certificate authenticators for the identity should be extended and optionally key rolled on next authentication.
-
-Allows all certificate authenticators on an identity to be flagged for early extension and optionally private  key rolling. Connecting clients will receive flags in their API Session indicating that an early extension is  request and a hint on whether private keys should be rolled. Clients that do not support extension or cannot  roll keys may ignore one or both flags.  If this request is made against an identity with zero certificate authenticators, a 403 will be returned. 
-
-### Example
-
-```java
-// Import classes:
-import org.openziti.management.ApiClient;
-import org.openziti.management.ApiException;
-import org.openziti.management.ApiResponse;
-import org.openziti.management.Configuration;
-import org.openziti.management.auth.*;
-import org.openziti.management.models.*;
-import org.openziti.management.api.AuthenticatorApi;
-import java.util.concurrent.CompletableFuture;
-
-public class Example {
-    public static void main(String[] args) {
-        ApiClient defaultClient = Configuration.getDefaultApiClient();
-        defaultClient.setBasePath("https://demo.ziti.dev/edge/management/v1");
-        
-        // Configure API key authorization: ztSession
-        ApiKeyAuth ztSession = (ApiKeyAuth) defaultClient.getAuthentication("ztSession");
-        ztSession.setApiKey("YOUR API KEY");
-        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
-        //ztSession.setApiKeyPrefix("Token");
-
-        // Configure OAuth2 access token for authorization: oauth2
-        OAuth oauth2 = (OAuth) defaultClient.getAuthentication("oauth2");
-        oauth2.setAccessToken("YOUR ACCESS TOKEN");
-
-        AuthenticatorApi apiInstance = new AuthenticatorApi(defaultClient);
-        String id = "id_example"; // String | The id of the requested resource
-        RequestExtendAuthenticator requestExtendAuthenticator = new RequestExtendAuthenticator(); // RequestExtendAuthenticator | A request to flag a certificate authenticator for early extension/key rolling.
-        try {
-            CompletableFuture<ApiResponse<Empty>> response = apiInstance.requestExtendAllCertAuthenticatorsWithHttpInfo(id, requestExtendAuthenticator);
-            System.out.println("Status code: " + response.get().getStatusCode());
-            System.out.println("Response headers: " + response.get().getHeaders());
-            System.out.println("Response body: " + response.get().getData());
-        } catch (InterruptedException | ExecutionException e) {
-            ApiException apiException = (ApiException)e.getCause();
-            System.err.println("Exception when calling AuthenticatorApi#requestExtendAllCertAuthenticators");
-            System.err.println("Status code: " + apiException.getCode());
-            System.err.println("Response headers: " + apiException.getResponseHeaders());
-            System.err.println("Reason: " + apiException.getResponseBody());
-            e.printStackTrace();
-        } catch (ApiException e) {
-            System.err.println("Exception when calling AuthenticatorApi#requestExtendAllCertAuthenticators");
-            System.err.println("Status code: " + e.getCode());
-            System.err.println("Response headers: " + e.getResponseHeaders());
-            System.err.println("Reason: " + e.getResponseBody());
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-### Parameters
-
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **id** | **String**| The id of the requested resource | |
-| **requestExtendAuthenticator** | [**RequestExtendAuthenticator**](RequestExtendAuthenticator.md)| A request to flag a certificate authenticator for early extension/key rolling. | |
-
-### Return type
-
-CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
-
-
-### Authorization
-
-[ztSession](../README.md#ztSession), [oauth2](../README.md#oauth2)
-
-### HTTP request headers
-
-- **Content-Type**: application/json
-- **Accept**: application/json
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-| **200** | Base empty response |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-| **401** | The supplied session does not have the correct access rights to request this resource |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-| **403** | The request could not be completed and will never complete due to unchangeable state or conflicts. |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-| **404** | The requested resource does not exist |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-| **429** | The resource requested is rate limited and the rate limit has been exceeded |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
-
-
 ## requestExtendAuthenticator
 
 > CompletableFuture<Empty> requestExtendAuthenticator(id, requestExtendAuthenticator)
@@ -1348,7 +1167,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## requestExtendAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> requestExtendAuthenticator requestExtendAuthenticatorWithHttpInfo(id, requestExtendAuthenticator)
+> CompletableFuture<ApiResponse<Empty>> requestExtendAuthenticatorWithHttpInfo(id, requestExtendAuthenticator)
 
 Indicate a certificate authenticator should be extended and optionally key rolled on next authentication.
 
@@ -1527,7 +1346,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateAuthenticator updateAuthenticatorWithHttpInfo(id, authenticator)
+> CompletableFuture<ApiResponse<Empty>> updateAuthenticatorWithHttpInfo(id, authenticator)
 
 Update all fields on an authenticator
 

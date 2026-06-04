@@ -103,7 +103,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createEnrollmentWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createEnrollment createEnrollmentWithHttpInfo(enrollment)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createEnrollmentWithHttpInfo(enrollment)
 
 Create an outstanding enrollment for an identity
 
@@ -278,7 +278,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteEnrollmentWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteEnrollment deleteEnrollmentWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteEnrollmentWithHttpInfo(id)
 
 Delete an outstanding enrollment
 
@@ -452,7 +452,7 @@ CompletableFuture<[**DetailEnrollmentEnvelope**](DetailEnrollmentEnvelope.md)>
 
 ## detailEnrollmentWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailEnrollmentEnvelope>> detailEnrollment detailEnrollmentWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailEnrollmentEnvelope>> detailEnrollmentWithHttpInfo(id)
 
 Retrieves an outstanding enrollment
 
@@ -629,7 +629,7 @@ CompletableFuture<[**ListEnrollmentsEnvelope**](ListEnrollmentsEnvelope.md)>
 
 ## listEnrollmentsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListEnrollmentsEnvelope>> listEnrollments listEnrollmentsWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListEnrollmentsEnvelope>> listEnrollmentsWithHttpInfo(limit, offset, filter)
 
 List outstanding enrollments
 
@@ -789,7 +789,7 @@ No authorization required
 
 ## listNetworkJWTsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListNetworkJWTsEnvelope>> listNetworkJWTs listNetworkJWTsWithHttpInfo()
+> CompletableFuture<ApiResponse<ListNetworkJWTsEnvelope>> listNetworkJWTsWithHttpInfo()
 
 Returns a list of JWTs suitable for bootstrapping network trust.
 
@@ -947,7 +947,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## refreshEnrollmentWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> refreshEnrollment refreshEnrollmentWithHttpInfo(id, refresh)
+> CompletableFuture<ApiResponse<CreateEnvelope>> refreshEnrollmentWithHttpInfo(id, refresh)
 
 Refreshes an enrollment record&#39;s expiration window
 

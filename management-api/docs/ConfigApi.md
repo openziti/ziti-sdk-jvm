@@ -118,7 +118,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createConfigWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createConfig createConfigWithHttpInfo(config)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createConfigWithHttpInfo(config)
 
 Create a config resource
 
@@ -289,7 +289,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createConfigTypeWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createConfigType createConfigTypeWithHttpInfo(configType)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createConfigTypeWithHttpInfo(configType)
 
 Create a config-type. Requires admin access.
 
@@ -462,7 +462,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteConfigWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteConfig deleteConfigWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteConfigWithHttpInfo(id)
 
 Delete a config
 
@@ -639,7 +639,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteConfigTypeWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteConfigType deleteConfigTypeWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteConfigTypeWithHttpInfo(id)
 
 Delete a config-type
 
@@ -814,7 +814,7 @@ CompletableFuture<[**DetailConfigEnvelope**](DetailConfigEnvelope.md)>
 
 ## detailConfigWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailConfigEnvelope>> detailConfig detailConfigWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailConfigEnvelope>> detailConfigWithHttpInfo(id)
 
 Retrieves a single config
 
@@ -987,7 +987,7 @@ CompletableFuture<[**DetailConfigTypeEnvelope**](DetailConfigTypeEnvelope.md)>
 
 ## detailConfigTypeWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailConfigTypeEnvelope>> detailConfigType detailConfigTypeWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailConfigTypeEnvelope>> detailConfigTypeWithHttpInfo(id)
 
 Retrieves a single config-type
 
@@ -1166,7 +1166,7 @@ CompletableFuture<[**ListServicesEnvelope**](ListServicesEnvelope.md)>
 
 ## listConfigServicesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicesEnvelope>> listConfigServices listConfigServicesWithHttpInfo(id, limit, offset, filter)
+> CompletableFuture<ApiResponse<ListServicesEnvelope>> listConfigServicesWithHttpInfo(id, limit, offset, filter)
 
 List services referenced by a config
 
@@ -1349,7 +1349,7 @@ CompletableFuture<[**ListConfigTypesEnvelope**](ListConfigTypesEnvelope.md)>
 
 ## listConfigTypesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListConfigTypesEnvelope>> listConfigTypes listConfigTypesWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListConfigTypesEnvelope>> listConfigTypesWithHttpInfo(limit, offset, filter)
 
 List config-types
 
@@ -1530,7 +1530,7 @@ CompletableFuture<[**ListConfigsEnvelope**](ListConfigsEnvelope.md)>
 
 ## listConfigsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListConfigsEnvelope>> listConfigs listConfigsWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListConfigsEnvelope>> listConfigsWithHttpInfo(limit, offset, filter)
 
 List configs
 
@@ -1706,7 +1706,7 @@ CompletableFuture<[**ListConfigsEnvelope**](ListConfigsEnvelope.md)>
 
 ## listConfigsForConfigTypeWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListConfigsEnvelope>> listConfigsForConfigType listConfigsForConfigTypeWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListConfigsEnvelope>> listConfigsForConfigTypeWithHttpInfo(id)
 
 Lists the configs of a specific config-type
 
@@ -1881,7 +1881,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchConfigWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchConfig patchConfigWithHttpInfo(id, config)
+> CompletableFuture<ApiResponse<Empty>> patchConfigWithHttpInfo(id, config)
 
 Update the supplied fields on a config
 
@@ -2060,7 +2060,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchConfigTypeWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchConfigType patchConfigTypeWithHttpInfo(id, configType)
+> CompletableFuture<ApiResponse<Empty>> patchConfigTypeWithHttpInfo(id, configType)
 
 Update the supplied fields on a config-type
 
@@ -2239,7 +2239,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateConfigWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateConfig updateConfigWithHttpInfo(id, config)
+> CompletableFuture<ApiResponse<Empty>> updateConfigWithHttpInfo(id, config)
 
 Update all fields on a config
 
@@ -2418,7 +2418,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateConfigTypeWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateConfigType updateConfigTypeWithHttpInfo(id, configType)
+> CompletableFuture<ApiResponse<Empty>> updateConfigTypeWithHttpInfo(id, configType)
 
 Update all fields on a config-type
 

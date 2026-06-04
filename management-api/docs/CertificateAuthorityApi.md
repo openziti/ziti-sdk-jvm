@@ -106,7 +106,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createCaWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createCa createCaWithHttpInfo(ca)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createCaWithHttpInfo(ca)
 
 Creates a CA
 
@@ -280,7 +280,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteCaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteCa deleteCaWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteCaWithHttpInfo(id)
 
 Delete a CA
 
@@ -454,7 +454,7 @@ CompletableFuture<[**DetailCaEnvelope**](DetailCaEnvelope.md)>
 
 ## detailCaWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailCaEnvelope>> detailCa detailCaWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailCaEnvelope>> detailCaWithHttpInfo(id)
 
 Retrieves a single CA
 
@@ -627,7 +627,7 @@ CompletableFuture<**String**>
 
 ## getCaJwtWithHttpInfo
 
-> CompletableFuture<ApiResponse<String>> getCaJwt getCaJwtWithHttpInfo(id)
+> CompletableFuture<ApiResponse<String>> getCaJwtWithHttpInfo(id)
 
 Retrieve the enrollment JWT for a CA
 
@@ -804,7 +804,7 @@ CompletableFuture<[**ListCasEnvelope**](ListCasEnvelope.md)>
 
 ## listCasWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListCasEnvelope>> listCas listCasWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListCasEnvelope>> listCasWithHttpInfo(limit, offset, filter)
 
 List CAs
 
@@ -984,7 +984,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchCaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchCa patchCaWithHttpInfo(id, ca)
+> CompletableFuture<ApiResponse<Empty>> patchCaWithHttpInfo(id, ca)
 
 Update the supplied fields on a CA
 
@@ -1163,7 +1163,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateCaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateCa updateCaWithHttpInfo(id, ca)
+> CompletableFuture<ApiResponse<Empty>> updateCaWithHttpInfo(id, ca)
 
 Update all fields on a CA
 
@@ -1342,7 +1342,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## verifyCaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> verifyCa verifyCaWithHttpInfo(id, certificate)
+> CompletableFuture<ApiResponse<Empty>> verifyCaWithHttpInfo(id, certificate)
 
 Verify a CA
 

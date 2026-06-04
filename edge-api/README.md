@@ -2,11 +2,11 @@
 
 Ziti Edge Client
 
-- API version: 0.26.53
+- API version: 0.31.0
 
-- Build date: 2026-02-17T13:48:12.956235-05:00[America/New_York]
+- Build date: 2026-06-04T08:57:54.007806-04:00[America/New_York]
 
-- Generator version: 7.20.0
+- Generator version: 7.22.0
 
 OpenZiti Edge Client API
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>edge-api</artifactId>
-  <version>0.31.2-bump-edge-api-8.fea3ec8-dirty-SNAPSHOT</version>
+  <version>0.33.2-bump-edge-api-0.31.0-9.1229f20-dirty-SNAPSHOT</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:edge-api:0.31.2-bump-edge-api-8.fea3ec8-dirty-SNAPSHOT"
+compile "org.openziti:edge-api:0.33.2-bump-edge-api-0.31.0-9.1229f20-dirty-SNAPSHOT"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/edge-api-0.31.2-bump-edge-api-8.fea3ec8-dirty-SNAPSHOT.jar`
+- `target/edge-api-0.33.2-bump-edge-api-0.31.0-9.1229f20-dirty-SNAPSHOT.jar`
 - `target/lib/*.jar`
 
 ## Getting Started

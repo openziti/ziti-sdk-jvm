@@ -109,7 +109,7 @@ No authorization required
 
 ## enrollWithHttpInfo
 
-> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enroll enrollWithHttpInfo(token, method, body)
+> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollWithHttpInfo(token, method, body)
 
 Enroll an identity via one-time-token
 
@@ -262,7 +262,7 @@ No authorization required
 
 ## enrollCaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> enrollCa enrollCaWithHttpInfo()
+> CompletableFuture<ApiResponse<Empty>> enrollCaWithHttpInfo()
 
 Enroll an identity with a pre-exchanged certificate
 
@@ -408,7 +408,7 @@ No authorization required
 
 ## enrollErOttWithHttpInfo
 
-> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollErOtt enrollErOttWithHttpInfo(erOttEnrollmentRequest)
+> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollErOttWithHttpInfo(erOttEnrollmentRequest)
 
 Enroll an edge-router
 
@@ -558,7 +558,7 @@ No authorization required
 
 ## enrollOttWithHttpInfo
 
-> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollOtt enrollOttWithHttpInfo(ottEnrollmentRequest)
+> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollOttWithHttpInfo(ottEnrollmentRequest)
 
 Enroll an identity via one-time-token
 
@@ -708,7 +708,7 @@ No authorization required
 
 ## enrollOttCaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> enrollOttCa enrollOttCaWithHttpInfo(ottEnrollmentRequest)
+> CompletableFuture<ApiResponse<Empty>> enrollOttCaWithHttpInfo(ottEnrollmentRequest)
 
 Enroll an identity via one-time-token with a pre-exchanged client certificate
 
@@ -862,7 +862,7 @@ No authorization required
 
 ## enrollTokenWithHttpInfo
 
-> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollToken enrollTokenWithHttpInfo(authorization, tokenEnrollmentRequest, zitiTokenIssuerId)
+> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> enrollTokenWithHttpInfo(authorization, tokenEnrollmentRequest, zitiTokenIssuerId)
 
 
 
@@ -1019,7 +1019,7 @@ No authorization required
 
 ## enrollUpdbWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> enrollUpdb enrollUpdbWithHttpInfo(token, updbCredentials)
+> CompletableFuture<ApiResponse<Empty>> enrollUpdbWithHttpInfo(token, updbCredentials)
 
 Enroll an identity via one-time-token
 
@@ -1170,7 +1170,7 @@ No authorization required
 
 ## enrollmentChallengeWithHttpInfo
 
-> CompletableFuture<ApiResponse<NonceSignature>> enrollmentChallenge enrollmentChallengeWithHttpInfo(nonce)
+> CompletableFuture<ApiResponse<NonceSignature>> enrollmentChallengeWithHttpInfo(nonce)
 
 Allows verification of a controller or cluster of controllers as being the valid target for enrollment.
 
@@ -1329,7 +1329,7 @@ CompletableFuture<[**IdentityExtendEnrollmentEnvelope**](IdentityExtendEnrollmen
 
 ## extendCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<IdentityExtendEnrollmentEnvelope>> extendCurrentIdentityAuthenticator extendCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
+> CompletableFuture<ApiResponse<IdentityExtendEnrollmentEnvelope>> extendCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
 
 Allows the current identity to recieve a new certificate associated with a certificate based authenticator
 
@@ -1489,7 +1489,7 @@ No authorization required
 
 ## extendRouterEnrollmentWithHttpInfo
 
-> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> extendRouterEnrollment extendRouterEnrollmentWithHttpInfo(routerExtendEnrollmentRequest)
+> CompletableFuture<ApiResponse<EnrollmentCertsEnvelope>> extendRouterEnrollmentWithHttpInfo(routerExtendEnrollmentRequest)
 
 Extend the life of a currently enrolled router&#39;s certificates
 
@@ -1649,7 +1649,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## extendVerifyCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> extendVerifyCurrentIdentityAuthenticator extendVerifyCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
+> CompletableFuture<ApiResponse<Empty>> extendVerifyCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
 
 Allows the current identity to validate reciept of a new client certificate
 
@@ -1802,7 +1802,7 @@ No authorization required
 
 ## getEnrollmentJwksWithHttpInfo
 
-> CompletableFuture<ApiResponse<Jwks>> getEnrollmentJwks getEnrollmentJwksWithHttpInfo()
+> CompletableFuture<ApiResponse<Jwks>> getEnrollmentJwksWithHttpInfo()
 
 List JSON Web Keys associated with enrollment
 

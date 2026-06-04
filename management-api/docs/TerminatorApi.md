@@ -102,7 +102,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createTerminatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createTerminator createTerminatorWithHttpInfo(terminator)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createTerminatorWithHttpInfo(terminator)
 
 Create a terminator resource
 
@@ -277,7 +277,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteTerminatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteTerminator deleteTerminatorWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteTerminatorWithHttpInfo(id)
 
 Delete a terminator
 
@@ -452,7 +452,7 @@ CompletableFuture<[**DetailTerminatorEnvelope**](DetailTerminatorEnvelope.md)>
 
 ## detailTerminatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailTerminatorEnvelope>> detailTerminator detailTerminatorWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailTerminatorEnvelope>> detailTerminatorWithHttpInfo(id)
 
 Retrieves a single terminator
 
@@ -629,7 +629,7 @@ CompletableFuture<[**ListTerminatorsEnvelope**](ListTerminatorsEnvelope.md)>
 
 ## listTerminatorsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListTerminatorsEnvelope>> listTerminators listTerminatorsWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListTerminatorsEnvelope>> listTerminatorsWithHttpInfo(limit, offset, filter)
 
 List terminators
 
@@ -809,7 +809,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchTerminatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchTerminator patchTerminatorWithHttpInfo(id, terminator)
+> CompletableFuture<ApiResponse<Empty>> patchTerminatorWithHttpInfo(id, terminator)
 
 Update the supplied fields on a terminator
 
@@ -988,7 +988,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateTerminatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateTerminator updateTerminatorWithHttpInfo(id, terminator)
+> CompletableFuture<ApiResponse<Empty>> updateTerminatorWithHttpInfo(id, terminator)
 
 Update all fields on a terminator
 

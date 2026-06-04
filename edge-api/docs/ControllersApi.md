@@ -95,7 +95,7 @@ CompletableFuture<[**ListControllersEnvelope**](ListControllersEnvelope.md)>
 
 ## listControllersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListControllersEnvelope>> listControllers listControllersWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListControllersEnvelope>> listControllersWithHttpInfo(limit, offset, filter)
 
 List controllers
 

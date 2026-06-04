@@ -93,7 +93,7 @@ CompletableFuture<[**IdentityExtendEnrollmentEnvelope**](IdentityExtendEnrollmen
 
 ## extendCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<IdentityExtendEnrollmentEnvelope>> extendCurrentIdentityAuthenticator extendCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
+> CompletableFuture<ApiResponse<IdentityExtendEnrollmentEnvelope>> extendCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
 
 Allows the current identity to recieve a new certificate associated with a certificate based authenticator
 
@@ -264,7 +264,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## extendVerifyCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> extendVerifyCurrentIdentityAuthenticator extendVerifyCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
+> CompletableFuture<ApiResponse<Empty>> extendVerifyCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
 
 Allows the current identity to validate reciept of a new client certificate
 

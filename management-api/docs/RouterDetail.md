@@ -12,7 +12,9 @@
 |**id** | **String** |  |  |
 |**tags** | [**Tags**](Tags.md) |  |  [optional] |
 |**updatedAt** | **OffsetDateTime** |  |  |
+|**configs** | **List&lt;String&gt;** | Config IDs associated with this router |  [optional] |
 |**cost** | **Integer** |  |  |
+|**ctrlChanListeners** | **Map&lt;String, List&lt;String&gt;&gt;** |  |  [optional] |
 |**disabled** | **Boolean** |  |  |
 |**enrollmentCreatedAt** | **OffsetDateTime** |  |  [optional] |
 |**enrollmentExpiresAt** | **OffsetDateTime** |  |  [optional] |

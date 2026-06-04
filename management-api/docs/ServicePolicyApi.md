@@ -108,7 +108,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createServicePolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createServicePolicy createServicePolicyWithHttpInfo(policy)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createServicePolicyWithHttpInfo(policy)
 
 Create a service policy resource
 
@@ -283,7 +283,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteServicePolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteServicePolicy deleteServicePolicyWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteServicePolicyWithHttpInfo(id)
 
 Delete a service policy
 
@@ -458,7 +458,7 @@ CompletableFuture<[**DetailServicePolicyEnvelop**](DetailServicePolicyEnvelop.md
 
 ## detailServicePolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailServicePolicyEnvelop>> detailServicePolicy detailServicePolicyWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailServicePolicyEnvelop>> detailServicePolicyWithHttpInfo(id)
 
 Retrieves a single service policy
 
@@ -635,7 +635,7 @@ CompletableFuture<[**ListServicePoliciesEnvelope**](ListServicePoliciesEnvelope.
 
 ## listServicePoliciesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicePoliciesEnvelope>> listServicePolicies listServicePoliciesWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListServicePoliciesEnvelope>> listServicePoliciesWithHttpInfo(limit, offset, filter)
 
 List service policies
 
@@ -818,7 +818,7 @@ CompletableFuture<[**ListIdentitiesEnvelope**](ListIdentitiesEnvelope.md)>
 
 ## listServicePolicyIdentitiesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListIdentitiesEnvelope>> listServicePolicyIdentities listServicePolicyIdentitiesWithHttpInfo(id, limit, offset, filter)
+> CompletableFuture<ApiResponse<ListIdentitiesEnvelope>> listServicePolicyIdentitiesWithHttpInfo(id, limit, offset, filter)
 
 List identities a service policy affects
 
@@ -1003,7 +1003,7 @@ CompletableFuture<[**ListPostureCheckEnvelope**](ListPostureCheckEnvelope.md)>
 
 ## listServicePolicyPostureChecksWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListPostureCheckEnvelope>> listServicePolicyPostureChecks listServicePolicyPostureChecksWithHttpInfo(id, limit, offset, filter)
+> CompletableFuture<ApiResponse<ListPostureCheckEnvelope>> listServicePolicyPostureChecksWithHttpInfo(id, limit, offset, filter)
 
 List posture check a service policy includes
 
@@ -1188,7 +1188,7 @@ CompletableFuture<[**ListServicesEnvelope**](ListServicesEnvelope.md)>
 
 ## listServicePolicyServicesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicesEnvelope>> listServicePolicyServices listServicePolicyServicesWithHttpInfo(id, limit, offset, filter)
+> CompletableFuture<ApiResponse<ListServicesEnvelope>> listServicePolicyServicesWithHttpInfo(id, limit, offset, filter)
 
 List services a service policy affects
 
@@ -1370,7 +1370,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchServicePolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchServicePolicy patchServicePolicyWithHttpInfo(id, policy)
+> CompletableFuture<ApiResponse<Empty>> patchServicePolicyWithHttpInfo(id, policy)
 
 Update the supplied fields on a service policy
 
@@ -1549,7 +1549,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateServicePolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateServicePolicy updateServicePolicyWithHttpInfo(id, policy)
+> CompletableFuture<ApiResponse<Empty>> updateServicePolicyWithHttpInfo(id, policy)
 
 Update all fields on a service policy
 

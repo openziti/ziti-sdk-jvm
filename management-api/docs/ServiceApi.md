@@ -114,7 +114,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createServiceWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createService createServiceWithHttpInfo(service)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createServiceWithHttpInfo(service)
 
 Create a services resource
 
@@ -289,7 +289,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteServiceWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteService deleteServiceWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteServiceWithHttpInfo(id)
 
 Delete a service
 
@@ -464,7 +464,7 @@ CompletableFuture<[**DetailServiceEnvelope**](DetailServiceEnvelope.md)>
 
 ## detailServiceWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailServiceEnvelope>> detailService detailServiceWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailServiceEnvelope>> detailServiceWithHttpInfo(id)
 
 Retrieves a single service
 
@@ -643,7 +643,7 @@ CompletableFuture<[**ListConfigsEnvelope**](ListConfigsEnvelope.md)>
 
 ## listServiceConfigWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListConfigsEnvelope>> listServiceConfig listServiceConfigWithHttpInfo(id, limit, offset, filter)
+> CompletableFuture<ApiResponse<ListConfigsEnvelope>> listServiceConfigWithHttpInfo(id, limit, offset, filter)
 
 List configs associated to a specific service
 
@@ -828,7 +828,7 @@ CompletableFuture<[**ListEdgeRoutersEnvelope**](ListEdgeRoutersEnvelope.md)>
 
 ## listServiceEdgeRoutersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListEdgeRoutersEnvelope>> listServiceEdgeRouters listServiceEdgeRoutersWithHttpInfo(id, limit, offset, filter)
+> CompletableFuture<ApiResponse<ListEdgeRoutersEnvelope>> listServiceEdgeRoutersWithHttpInfo(id, limit, offset, filter)
 
 List accessible edge-routers
 
@@ -1015,7 +1015,7 @@ CompletableFuture<[**ListIdentitiesEnvelope**](ListIdentitiesEnvelope.md)>
 
 ## listServiceIdentitiesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListIdentitiesEnvelope>> listServiceIdentities listServiceIdentitiesWithHttpInfo(id, limit, offset, filter, policyType)
+> CompletableFuture<ApiResponse<ListIdentitiesEnvelope>> listServiceIdentitiesWithHttpInfo(id, limit, offset, filter, policyType)
 
 List identities with access
 
@@ -1202,7 +1202,7 @@ CompletableFuture<[**ListServiceEdgeRouterPoliciesEnvelope**](ListServiceEdgeRou
 
 ## listServiceServiceEdgeRouterPoliciesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServiceEdgeRouterPoliciesEnvelope>> listServiceServiceEdgeRouterPolicies listServiceServiceEdgeRouterPoliciesWithHttpInfo(id, limit, offset, filter)
+> CompletableFuture<ApiResponse<ListServiceEdgeRouterPoliciesEnvelope>> listServiceServiceEdgeRouterPoliciesWithHttpInfo(id, limit, offset, filter)
 
 List service edge router policies that affect a specific service
 
@@ -1387,7 +1387,7 @@ CompletableFuture<[**ListServicePoliciesEnvelope**](ListServicePoliciesEnvelope.
 
 ## listServiceServicePoliciesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicePoliciesEnvelope>> listServiceServicePolicies listServiceServicePoliciesWithHttpInfo(id, limit, offset, filter)
+> CompletableFuture<ApiResponse<ListServicePoliciesEnvelope>> listServiceServicePoliciesWithHttpInfo(id, limit, offset, filter)
 
 List service policies that affect a specific service
 
@@ -1572,7 +1572,7 @@ CompletableFuture<[**ListTerminatorsEnvelope**](ListTerminatorsEnvelope.md)>
 
 ## listServiceTerminatorsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListTerminatorsEnvelope>> listServiceTerminators listServiceTerminatorsWithHttpInfo(id, limit, offset, filter)
+> CompletableFuture<ApiResponse<ListTerminatorsEnvelope>> listServiceTerminatorsWithHttpInfo(id, limit, offset, filter)
 
 List of terminators assigned to a service
 
@@ -1761,7 +1761,7 @@ CompletableFuture<[**ListServicesEnvelope**](ListServicesEnvelope.md)>
 
 ## listServicesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicesEnvelope>> listServices listServicesWithHttpInfo(limit, offset, filter, configTypes, roleFilter, roleSemantic)
+> CompletableFuture<ApiResponse<ListServicesEnvelope>> listServicesWithHttpInfo(limit, offset, filter, configTypes, roleFilter, roleSemantic)
 
 List services
 
@@ -1947,7 +1947,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchServiceWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchService patchServiceWithHttpInfo(id, service)
+> CompletableFuture<ApiResponse<Empty>> patchServiceWithHttpInfo(id, service)
 
 Update the supplied fields on a service
 
@@ -2126,7 +2126,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateServiceWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateService updateServiceWithHttpInfo(id, service)
+> CompletableFuture<ApiResponse<Empty>> updateServiceWithHttpInfo(id, service)
 
 Update all fields on a service
 

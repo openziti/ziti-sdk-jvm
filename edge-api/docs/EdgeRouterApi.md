@@ -87,7 +87,7 @@ CompletableFuture<[**ListCurrentIdentityEdgeRoutersEnvelope**](ListCurrentIdenti
 
 ## getCurrentIdentityEdgeRoutersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListCurrentIdentityEdgeRoutersEnvelope>> getCurrentIdentityEdgeRouters getCurrentIdentityEdgeRoutersWithHttpInfo()
+> CompletableFuture<ApiResponse<ListCurrentIdentityEdgeRoutersEnvelope>> getCurrentIdentityEdgeRoutersWithHttpInfo()
 
 Return this list of Edge Routers the identity has access to
 

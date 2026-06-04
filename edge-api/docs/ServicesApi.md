@@ -87,7 +87,7 @@ CompletableFuture<[**ListCurrentApiSessionServiceUpdatesEnvelope**](ListCurrentA
 
 ## listServiceUpdatesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListCurrentApiSessionServiceUpdatesEnvelope>> listServiceUpdates listServiceUpdatesWithHttpInfo()
+> CompletableFuture<ApiResponse<ListCurrentApiSessionServiceUpdatesEnvelope>> listServiceUpdatesWithHttpInfo()
 
 Returns data indicating whether a client should updates it service list
 

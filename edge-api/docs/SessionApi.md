@@ -99,7 +99,7 @@ CompletableFuture<[**SessionCreateEnvelope**](SessionCreateEnvelope.md)>
 
 ## createSessionWithHttpInfo
 
-> CompletableFuture<ApiResponse<SessionCreateEnvelope>> createSession createSessionWithHttpInfo(session)
+> CompletableFuture<ApiResponse<SessionCreateEnvelope>> createSessionWithHttpInfo(session)
 
 Create a session resource
 
@@ -274,7 +274,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteSessionWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteSession deleteSessionWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteSessionWithHttpInfo(id)
 
 Delete a session
 
@@ -446,7 +446,7 @@ CompletableFuture<[**DetailSessionEnvelope**](DetailSessionEnvelope.md)>
 
 ## detailSessionWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailSessionEnvelope>> detailSession detailSessionWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailSessionEnvelope>> detailSessionWithHttpInfo(id)
 
 Retrieves a single session
 
@@ -621,7 +621,7 @@ CompletableFuture<[**ListSessionsEnvelope**](ListSessionsEnvelope.md)>
 
 ## listSessionsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListSessionsEnvelope>> listSessions listSessionsWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListSessionsEnvelope>> listSessionsWithHttpInfo(limit, offset, filter)
 
 List sessions
 

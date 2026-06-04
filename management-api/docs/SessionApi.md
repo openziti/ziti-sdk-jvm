@@ -100,7 +100,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteSessionWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteSession deleteSessionWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteSessionWithHttpInfo(id)
 
 Delete a session
 
@@ -275,7 +275,7 @@ CompletableFuture<[**DetailSessionManagementEnvelope**](DetailSessionManagementE
 
 ## detailSessionWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailSessionManagementEnvelope>> detailSession detailSessionWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailSessionManagementEnvelope>> detailSessionWithHttpInfo(id)
 
 Retrieves a single session
 
@@ -448,7 +448,7 @@ CompletableFuture<[**DetailSessionRoutePathEnvelope**](DetailSessionRoutePathEnv
 
 ## detailSessionRoutePathWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailSessionRoutePathEnvelope>> detailSessionRoutePath detailSessionRoutePathWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailSessionRoutePathEnvelope>> detailSessionRoutePathWithHttpInfo(id)
 
 Retrieves a single session&#39;s router path
 
@@ -625,7 +625,7 @@ CompletableFuture<[**ListSessionsManagementEnvelope**](ListSessionsManagementEnv
 
 ## listSessionsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListSessionsManagementEnvelope>> listSessions listSessionsWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListSessionsManagementEnvelope>> listSessionsWithHttpInfo(limit, offset, filter)
 
 List sessions
 

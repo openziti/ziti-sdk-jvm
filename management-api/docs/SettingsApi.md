@@ -103,7 +103,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createControllerSettingWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createControllerSetting createControllerSettingWithHttpInfo(controllerSetting)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createControllerSettingWithHttpInfo(controllerSetting)
 
 Create a controller specific setting
 
@@ -275,7 +275,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteControllerSettingWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteControllerSetting deleteControllerSettingWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteControllerSettingWithHttpInfo(id)
 
 Delete a controller setting object
 
@@ -447,7 +447,7 @@ CompletableFuture<[**DetailControllerSettingEnvelope**](DetailControllerSettingE
 
 ## detailControllerSettingWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailControllerSettingEnvelope>> detailControllerSetting detailControllerSettingWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailControllerSettingEnvelope>> detailControllerSettingWithHttpInfo(id)
 
 Retrieves a single controller setting object.
 
@@ -618,7 +618,7 @@ CompletableFuture<[**DetailControllerSettingEffectiveEnvelope**](DetailControlle
 
 ## detailControllerSettingEffectiveWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailControllerSettingEffectiveEnvelope>> detailControllerSettingEffective detailControllerSettingEffectiveWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailControllerSettingEffectiveEnvelope>> detailControllerSettingEffectiveWithHttpInfo(id)
 
 Retrieves a single controller&#39;s effective calculated settings from the instance and global configuration.
 
@@ -793,7 +793,7 @@ CompletableFuture<[**ListControllerSettingEnvelope**](ListControllerSettingEnvel
 
 ## listControllerSettingsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListControllerSettingEnvelope>> listControllerSettings listControllerSettingsWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListControllerSettingEnvelope>> listControllerSettingsWithHttpInfo(limit, offset, filter)
 
 List controller settings
 
@@ -971,7 +971,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchControllerSettingWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchControllerSetting patchControllerSettingWithHttpInfo(id, controllerSetting)
+> CompletableFuture<ApiResponse<Empty>> patchControllerSettingWithHttpInfo(id, controllerSetting)
 
 Update the supplied fields on a controller setting object
 
@@ -1148,7 +1148,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateControllerSettingWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateControllerSetting updateControllerSettingWithHttpInfo(id, controllerSetting)
+> CompletableFuture<ApiResponse<Empty>> updateControllerSettingWithHttpInfo(id, controllerSetting)
 
 Update all fields on a controller setting object
 

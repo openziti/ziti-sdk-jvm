@@ -73,7 +73,7 @@ No authorization required
 
 ## listWellKnownCasWithHttpInfo
 
-> CompletableFuture<ApiResponse<String>> listWellKnownCas listWellKnownCasWithHttpInfo()
+> CompletableFuture<ApiResponse<String>> listWellKnownCasWithHttpInfo()
 
 Get CA Cert Store
 

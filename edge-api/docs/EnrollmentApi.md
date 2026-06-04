@@ -75,7 +75,7 @@ No authorization required
 
 ## listNetworkJWTsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListNetworkJWTsEnvelope>> listNetworkJWTs listNetworkJWTsWithHttpInfo()
+> CompletableFuture<ApiResponse<ListNetworkJWTsEnvelope>> listNetworkJWTsWithHttpInfo()
 
 Returns a list of JWTs suitable for bootstrapping network trust.
 
