@@ -106,7 +106,7 @@ CompletableFuture<[**TotpTokenEnvelope**](TotpTokenEnvelope.md)>
 
 ## createTotpTokenWithHttpInfo
 
-> CompletableFuture<ApiResponse<TotpTokenEnvelope>> createTotpToken createTotpTokenWithHttpInfo(mfaValidation)
+> CompletableFuture<ApiResponse<TotpTokenEnvelope>> createTotpTokenWithHttpInfo(mfaValidation)
 
 Create an MFA TOTP token that proves TOTP code checking has passed as a specific time for posture checks.
 
@@ -270,7 +270,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## currentApiSessionDeleteWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> currentApiSessionDelete currentApiSessionDeleteWithHttpInfo()
+> CompletableFuture<ApiResponse<Empty>> currentApiSessionDeleteWithHttpInfo()
 
 Logout
 
@@ -434,7 +434,7 @@ CompletableFuture<[**DetailAuthenticatorEnvelope**](DetailAuthenticatorEnvelope.
 
 ## detailCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailAuthenticatorEnvelope>> detailCurrentIdentityAuthenticator detailCurrentIdentityAuthenticatorWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailAuthenticatorEnvelope>> detailCurrentIdentityAuthenticatorWithHttpInfo(id)
 
 Retrieve an authenticator for the current identity
 
@@ -604,7 +604,7 @@ CompletableFuture<[**IdentityExtendEnrollmentEnvelope**](IdentityExtendEnrollmen
 
 ## extendCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<IdentityExtendEnrollmentEnvelope>> extendCurrentIdentityAuthenticator extendCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
+> CompletableFuture<ApiResponse<IdentityExtendEnrollmentEnvelope>> extendCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
 
 Allows the current identity to recieve a new certificate associated with a certificate based authenticator
 
@@ -775,7 +775,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## extendVerifyCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> extendVerifyCurrentIdentityAuthenticator extendVerifyCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
+> CompletableFuture<ApiResponse<Empty>> extendVerifyCurrentIdentityAuthenticatorWithHttpInfo(id, extend)
 
 Allows the current identity to validate reciept of a new client certificate
 
@@ -940,7 +940,7 @@ CompletableFuture<[**CurrentApiSessionDetailEnvelope**](CurrentApiSessionDetailE
 
 ## getCurrentAPISessionWithHttpInfo
 
-> CompletableFuture<ApiResponse<CurrentApiSessionDetailEnvelope>> getCurrentAPISession getCurrentAPISessionWithHttpInfo()
+> CompletableFuture<ApiResponse<CurrentApiSessionDetailEnvelope>> getCurrentAPISessionWithHttpInfo()
 
 Return the current API session
 
@@ -1108,7 +1108,7 @@ CompletableFuture<[**ListAuthenticatorsEnvelope**](ListAuthenticatorsEnvelope.md
 
 ## listCurrentIdentityAuthenticatorsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListAuthenticatorsEnvelope>> listCurrentIdentityAuthenticators listCurrentIdentityAuthenticatorsWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListAuthenticatorsEnvelope>> listCurrentIdentityAuthenticatorsWithHttpInfo(limit, offset, filter)
 
 List authenticators for the current identity
 
@@ -1284,7 +1284,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchCurrentIdentityAuthenticator patchCurrentIdentityAuthenticatorWithHttpInfo(id, authenticator)
+> CompletableFuture<ApiResponse<Empty>> patchCurrentIdentityAuthenticatorWithHttpInfo(id, authenticator)
 
 Update the supplied fields on an authenticator of this identity
 
@@ -1459,7 +1459,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateCurrentIdentityAuthenticatorWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateCurrentIdentityAuthenticator updateCurrentIdentityAuthenticatorWithHttpInfo(id, authenticator)
+> CompletableFuture<ApiResponse<Empty>> updateCurrentIdentityAuthenticatorWithHttpInfo(id, authenticator)
 
 Update all fields on an authenticator of this identity
 

@@ -2,11 +2,11 @@
 
 Ziti Edge Management
 
-- API version: 0.26.53
+- API version: 0.31.0
 
-- Build date: 2026-02-17T13:51:23.777813-05:00[America/New_York]
+- Build date: 2026-06-04T09:00:03.854034-04:00[America/New_York]
 
-- Generator version: 7.20.0
+- Generator version: 7.22.0
 
 OpenZiti Edge Management API
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>management-api</artifactId>
-  <version>0.31.2-bump-edge-api-10.bb4980a-dirty-SNAPSHOT</version>
+  <version>0.33.2-bump-edge-api-0.31.0-10.60d9baf-dirty-SNAPSHOT</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:management-api:0.31.2-bump-edge-api-10.bb4980a-dirty-SNAPSHOT"
+compile "org.openziti:management-api:0.33.2-bump-edge-api-0.31.0-10.60d9baf-dirty-SNAPSHOT"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/management-api-0.31.2-bump-edge-api-10.bb4980a-dirty-SNAPSHOT.jar`
+- `target/management-api-0.33.2-bump-edge-api-0.31.0-10.60d9baf-dirty-SNAPSHOT.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -145,8 +145,6 @@ Class | Method | HTTP request | Description
 *AuthenticatorApi* | [**patchAuthenticatorWithHttpInfo**](docs/AuthenticatorApi.md#patchAuthenticatorWithHttpInfo) | **PATCH** /authenticators/{id} | Update the supplied fields on an authenticator
 *AuthenticatorApi* | [**reEnrollAuthenticator**](docs/AuthenticatorApi.md#reEnrollAuthenticator) | **POST** /authenticators/{id}/re-enroll | Reverts an authenticator to an enrollment
 *AuthenticatorApi* | [**reEnrollAuthenticatorWithHttpInfo**](docs/AuthenticatorApi.md#reEnrollAuthenticatorWithHttpInfo) | **POST** /authenticators/{id}/re-enroll | Reverts an authenticator to an enrollment
-*AuthenticatorApi* | [**requestExtendAllCertAuthenticators**](docs/AuthenticatorApi.md#requestExtendAllCertAuthenticators) | **POST** /identities/{id}/request-extend | Indicate all certificate authenticators for the identity should be extended and optionally key rolled on next authentication.
-*AuthenticatorApi* | [**requestExtendAllCertAuthenticatorsWithHttpInfo**](docs/AuthenticatorApi.md#requestExtendAllCertAuthenticatorsWithHttpInfo) | **POST** /identities/{id}/request-extend | Indicate all certificate authenticators for the identity should be extended and optionally key rolled on next authentication.
 *AuthenticatorApi* | [**requestExtendAuthenticator**](docs/AuthenticatorApi.md#requestExtendAuthenticator) | **POST** /authenticators/{id}/request-extend | Indicate a certificate authenticator should be extended and optionally key rolled on next authentication.
 *AuthenticatorApi* | [**requestExtendAuthenticatorWithHttpInfo**](docs/AuthenticatorApi.md#requestExtendAuthenticatorWithHttpInfo) | **POST** /authenticators/{id}/request-extend | Indicate a certificate authenticator should be extended and optionally key rolled on next authentication.
 *AuthenticatorApi* | [**updateAuthenticator**](docs/AuthenticatorApi.md#updateAuthenticator) | **PUT** /authenticators/{id} | Update all fields on an authenticator
@@ -407,12 +405,26 @@ Class | Method | HTTP request | Description
 *PostureChecksApi* | [**patchPostureCheckWithHttpInfo**](docs/PostureChecksApi.md#patchPostureCheckWithHttpInfo) | **PATCH** /posture-checks/{id} | Update the supplied fields on a Posture Checks
 *PostureChecksApi* | [**updatePostureCheck**](docs/PostureChecksApi.md#updatePostureCheck) | **PUT** /posture-checks/{id} | Update all fields on a Posture Checks
 *PostureChecksApi* | [**updatePostureCheckWithHttpInfo**](docs/PostureChecksApi.md#updatePostureCheckWithHttpInfo) | **PUT** /posture-checks/{id} | Update all fields on a Posture Checks
+*RevocationApi* | [**createRevocation**](docs/RevocationApi.md#createRevocation) | **POST** /revocations | Create a Revocation
+*RevocationApi* | [**createRevocationWithHttpInfo**](docs/RevocationApi.md#createRevocationWithHttpInfo) | **POST** /revocations | Create a Revocation
+*RevocationApi* | [**detailRevocation**](docs/RevocationApi.md#detailRevocation) | **GET** /revocations/{id} | Retrieves a single Revocation
+*RevocationApi* | [**detailRevocationWithHttpInfo**](docs/RevocationApi.md#detailRevocationWithHttpInfo) | **GET** /revocations/{id} | Retrieves a single Revocation
+*RevocationApi* | [**listRevocations**](docs/RevocationApi.md#listRevocations) | **GET** /revocations | List Revocations
+*RevocationApi* | [**listRevocationsWithHttpInfo**](docs/RevocationApi.md#listRevocationsWithHttpInfo) | **GET** /revocations | List Revocations
+*RoleAttributesApi* | [**listEdgeRouterRoleAttributeUsage**](docs/RoleAttributesApi.md#listEdgeRouterRoleAttributeUsage) | **GET** /edge-router-role-attribute-usage | List edge router role attributes with usage breakdowns
+*RoleAttributesApi* | [**listEdgeRouterRoleAttributeUsageWithHttpInfo**](docs/RoleAttributesApi.md#listEdgeRouterRoleAttributeUsageWithHttpInfo) | **GET** /edge-router-role-attribute-usage | List edge router role attributes with usage breakdowns
 *RoleAttributesApi* | [**listEdgeRouterRoleAttributes**](docs/RoleAttributesApi.md#listEdgeRouterRoleAttributes) | **GET** /edge-router-role-attributes | List role attributes in use by edge routers
 *RoleAttributesApi* | [**listEdgeRouterRoleAttributesWithHttpInfo**](docs/RoleAttributesApi.md#listEdgeRouterRoleAttributesWithHttpInfo) | **GET** /edge-router-role-attributes | List role attributes in use by edge routers
+*RoleAttributesApi* | [**listIdentityRoleAttributeUsage**](docs/RoleAttributesApi.md#listIdentityRoleAttributeUsage) | **GET** /identity-role-attribute-usage | List identity role attributes with usage breakdowns
+*RoleAttributesApi* | [**listIdentityRoleAttributeUsageWithHttpInfo**](docs/RoleAttributesApi.md#listIdentityRoleAttributeUsageWithHttpInfo) | **GET** /identity-role-attribute-usage | List identity role attributes with usage breakdowns
 *RoleAttributesApi* | [**listIdentityRoleAttributes**](docs/RoleAttributesApi.md#listIdentityRoleAttributes) | **GET** /identity-role-attributes | List role attributes in use by identities
 *RoleAttributesApi* | [**listIdentityRoleAttributesWithHttpInfo**](docs/RoleAttributesApi.md#listIdentityRoleAttributesWithHttpInfo) | **GET** /identity-role-attributes | List role attributes in use by identities
+*RoleAttributesApi* | [**listPostureCheckRoleAttributeUsage**](docs/RoleAttributesApi.md#listPostureCheckRoleAttributeUsage) | **GET** /posture-check-role-attribute-usage | List posture check role attributes with usage breakdowns
+*RoleAttributesApi* | [**listPostureCheckRoleAttributeUsageWithHttpInfo**](docs/RoleAttributesApi.md#listPostureCheckRoleAttributeUsageWithHttpInfo) | **GET** /posture-check-role-attribute-usage | List posture check role attributes with usage breakdowns
 *RoleAttributesApi* | [**listPostureCheckRoleAttributes**](docs/RoleAttributesApi.md#listPostureCheckRoleAttributes) | **GET** /posture-check-role-attributes | List role attributes in use by posture checks
 *RoleAttributesApi* | [**listPostureCheckRoleAttributesWithHttpInfo**](docs/RoleAttributesApi.md#listPostureCheckRoleAttributesWithHttpInfo) | **GET** /posture-check-role-attributes | List role attributes in use by posture checks
+*RoleAttributesApi* | [**listServiceRoleAttributeUsage**](docs/RoleAttributesApi.md#listServiceRoleAttributeUsage) | **GET** /service-role-attribute-usage | List service role attributes with usage breakdowns
+*RoleAttributesApi* | [**listServiceRoleAttributeUsageWithHttpInfo**](docs/RoleAttributesApi.md#listServiceRoleAttributeUsageWithHttpInfo) | **GET** /service-role-attribute-usage | List service role attributes with usage breakdowns
 *RoleAttributesApi* | [**listServiceRoleAttributes**](docs/RoleAttributesApi.md#listServiceRoleAttributes) | **GET** /service-role-attributes | List role attributes in use by services
 *RoleAttributesApi* | [**listServiceRoleAttributesWithHttpInfo**](docs/RoleAttributesApi.md#listServiceRoleAttributesWithHttpInfo) | **GET** /service-role-attributes | List role attributes in use by services
 *RouterApi* | [**createRouter**](docs/RouterApi.md#createRouter) | **POST** /routers | Create a router resource
@@ -620,6 +632,7 @@ Class | Method | HTTP request | Description
  - [DetailMfaRecoveryCodesEnvelope](docs/DetailMfaRecoveryCodesEnvelope.md)
  - [DetailPostureCheckEnvelope](docs/DetailPostureCheckEnvelope.md)
  - [DetailPostureCheckTypeEnvelope](docs/DetailPostureCheckTypeEnvelope.md)
+ - [DetailRevocationEnvelope](docs/DetailRevocationEnvelope.md)
  - [DetailRouterEnvelope](docs/DetailRouterEnvelope.md)
  - [DetailServiceEdgePolicyEnvelope](docs/DetailServiceEdgePolicyEnvelope.md)
  - [DetailServiceEnvelope](docs/DetailServiceEnvelope.md)
@@ -691,6 +704,8 @@ Class | Method | HTTP request | Description
  - [ListNetworkJWTsEnvelope](docs/ListNetworkJWTsEnvelope.md)
  - [ListPostureCheckEnvelope](docs/ListPostureCheckEnvelope.md)
  - [ListPostureCheckTypesEnvelope](docs/ListPostureCheckTypesEnvelope.md)
+ - [ListRevocationsEnvelope](docs/ListRevocationsEnvelope.md)
+ - [ListRoleAttributeUsageEnvelope](docs/ListRoleAttributeUsageEnvelope.md)
  - [ListRoleAttributesEnvelope](docs/ListRoleAttributesEnvelope.md)
  - [ListRoutersEnvelope](docs/ListRoutersEnvelope.md)
  - [ListServiceConfigsEnvelope](docs/ListServiceConfigsEnvelope.md)
@@ -773,6 +788,11 @@ Class | Method | HTTP request | Description
  - [ProcessMulti](docs/ProcessMulti.md)
  - [ReEnroll](docs/ReEnroll.md)
  - [RequestExtendAuthenticator](docs/RequestExtendAuthenticator.md)
+ - [RevocationCreate](docs/RevocationCreate.md)
+ - [RevocationDetail](docs/RevocationDetail.md)
+ - [RevocationTypeEnum](docs/RevocationTypeEnum.md)
+ - [RoleAttributeSourceUsage](docs/RoleAttributeSourceUsage.md)
+ - [RoleAttributeUsageDetail](docs/RoleAttributeUsageDetail.md)
  - [RouterCreate](docs/RouterCreate.md)
  - [RouterDetail](docs/RouterDetail.md)
  - [RouterEntityRef](docs/RouterEntityRef.md)

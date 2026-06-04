@@ -106,7 +106,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createServiceEdgeRouterPolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createServiceEdgeRouterPolicy createServiceEdgeRouterPolicyWithHttpInfo(policy)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createServiceEdgeRouterPolicyWithHttpInfo(policy)
 
 Create a service edge router policy resource
 
@@ -281,7 +281,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteServiceEdgeRouterPolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteServiceEdgeRouterPolicy deleteServiceEdgeRouterPolicyWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteServiceEdgeRouterPolicyWithHttpInfo(id)
 
 Delete a service edge policy
 
@@ -456,7 +456,7 @@ CompletableFuture<[**DetailServiceEdgePolicyEnvelope**](DetailServiceEdgePolicyE
 
 ## detailServiceEdgeRouterPolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailServiceEdgePolicyEnvelope>> detailServiceEdgeRouterPolicy detailServiceEdgeRouterPolicyWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailServiceEdgePolicyEnvelope>> detailServiceEdgeRouterPolicyWithHttpInfo(id)
 
 Retrieves a single service edge policy
 
@@ -633,7 +633,7 @@ CompletableFuture<[**ListServiceEdgeRouterPoliciesEnvelope**](ListServiceEdgeRou
 
 ## listServiceEdgeRouterPoliciesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServiceEdgeRouterPoliciesEnvelope>> listServiceEdgeRouterPolicies listServiceEdgeRouterPoliciesWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListServiceEdgeRouterPoliciesEnvelope>> listServiceEdgeRouterPoliciesWithHttpInfo(limit, offset, filter)
 
 List service edge router policies
 
@@ -810,7 +810,7 @@ CompletableFuture<[**ListEdgeRoutersEnvelope**](ListEdgeRoutersEnvelope.md)>
 
 ## listServiceEdgeRouterPolicyEdgeRoutersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListEdgeRoutersEnvelope>> listServiceEdgeRouterPolicyEdgeRouters listServiceEdgeRouterPolicyEdgeRoutersWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListEdgeRoutersEnvelope>> listServiceEdgeRouterPolicyEdgeRoutersWithHttpInfo(id)
 
 List the edge routers that a service edge router policy applies to
 
@@ -983,7 +983,7 @@ CompletableFuture<[**ListServicesEnvelope**](ListServicesEnvelope.md)>
 
 ## listServiceEdgeRouterPolicyServicesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListServicesEnvelope>> listServiceEdgeRouterPolicyServices listServiceEdgeRouterPolicyServicesWithHttpInfo(id)
+> CompletableFuture<ApiResponse<ListServicesEnvelope>> listServiceEdgeRouterPolicyServicesWithHttpInfo(id)
 
 List the services that a service edge router policy applies to
 
@@ -1159,7 +1159,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchServiceEdgeRouterPolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchServiceEdgeRouterPolicy patchServiceEdgeRouterPolicyWithHttpInfo(id, policy)
+> CompletableFuture<ApiResponse<Empty>> patchServiceEdgeRouterPolicyWithHttpInfo(id, policy)
 
 Update the supplied fields on a service edge policy
 
@@ -1338,7 +1338,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateServiceEdgeRouterPolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateServiceEdgeRouterPolicy updateServiceEdgeRouterPolicyWithHttpInfo(id, policy)
+> CompletableFuture<ApiResponse<Empty>> updateServiceEdgeRouterPolicyWithHttpInfo(id, policy)
 
 Update all fields on a service edge policy
 

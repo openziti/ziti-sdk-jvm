@@ -92,7 +92,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## checkDataIntegrityWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> checkDataIntegrity checkDataIntegrityWithHttpInfo()
+> CompletableFuture<ApiResponse<Empty>> checkDataIntegrityWithHttpInfo()
 
 Starts a data integrity scan on the datastore
 
@@ -253,7 +253,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## createDatabaseSnapshotWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> createDatabaseSnapshot createDatabaseSnapshotWithHttpInfo()
+> CompletableFuture<ApiResponse<Empty>> createDatabaseSnapshotWithHttpInfo()
 
 Create a new database snapshot
 
@@ -415,7 +415,7 @@ CompletableFuture<[**DataIntegrityCheckResultEnvelope**](DataIntegrityCheckResul
 
 ## dataIntegrityResultsWithHttpInfo
 
-> CompletableFuture<ApiResponse<DataIntegrityCheckResultEnvelope>> dataIntegrityResults dataIntegrityResultsWithHttpInfo()
+> CompletableFuture<ApiResponse<DataIntegrityCheckResultEnvelope>> dataIntegrityResultsWithHttpInfo()
 
 Returns any results found from in-progress integrity checks
 
@@ -577,7 +577,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## fixDataIntegrityWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> fixDataIntegrity fixDataIntegrityWithHttpInfo()
+> CompletableFuture<ApiResponse<Empty>> fixDataIntegrityWithHttpInfo()
 
 Runs a data integrity scan on the datastore, attempts to fix any issues it can and returns any found issues
 

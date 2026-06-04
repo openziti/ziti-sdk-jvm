@@ -9,7 +9,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Management
-  version: 0.26.53
+  version: 0.31.0
 servers:
 - url: https://demo.ziti.dev/edge/management/v1
 paths:
@@ -10364,6 +10364,163 @@ paths:
       - Edge Router Policy
       x-accepts:
       - application/json
+  /edge-router-role-attribute-usage:
+    get:
+      description: |
+        Retrieves edge router role attributes along with per-source usage counts.
+        Each response item reports how many edge routers declare the attribute
+        and how many edge-router policies or service-edge-router policies
+        reference it. When `withIds=true`, the entity ids backing each count are
+        also returned. Requires admin access.
+      operationId: listEdgeRouterRoleAttributeUsage
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: query
+        name: offset
+        schema:
+          type: integer
+      - in: query
+        name: filter
+        schema:
+          type: string
+      - description: |
+          When true, each usage breakdown in the response also includes the list of
+          entity ids that contribute to the count. Defaults to false to keep
+          responses small when the id list is not needed.
+        in: query
+        name: withIds
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listRoleAttributeUsageEnvelope"
+          description: A list of role attributes with per-source usage breakdowns
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: List edge router role attributes with usage breakdowns
+      tags:
+      - Role Attributes
+      x-accepts:
+      - application/json
   /edge-router-role-attributes:
     get:
       description: |
@@ -16041,163 +16198,6 @@ paths:
       - Identity
       x-accepts:
       - application/json
-  /identities/{id}/request-extend:
-    post:
-      description: "Allows all certificate authenticators on an identity to be flagged\
-        \ for early extension and optionally private \nkey rolling. Connecting clients\
-        \ will receive flags in their API Session indicating that an early extension\
-        \ is \nrequest and a hint on whether private keys should be rolled. Clients\
-        \ that do not support extension or cannot \nroll keys may ignore one or both\
-        \ flags.\n\nIf this request is made against an identity with zero certificate\
-        \ authenticators, a 403 will be returned.\n"
-      operationId: requestExtendAllCertAuthenticators
-      parameters:
-      - description: The id of the requested resource
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/requestExtendAuthenticator"
-        description: A request to flag a certificate authenticator for early extension/key
-          rolling.
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/empty"
-          description: Base empty response
-          headers:
-            WWW-Authenticate:
-              description: Denotes different type of security token related information
-              schema:
-                items:
-                  type: string
-                type: array
-        "401":
-          content:
-            application/json:
-              example:
-                error:
-                  args:
-                    urlVars: {}
-                  cause: ""
-                  causeMessage: ""
-                  code: UNAUTHORIZED
-                  message: The request could not be completed. The session is not
-                    authorized or the credentials are invalid
-                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
-                meta:
-                  apiEnrollmentVersion: 0.0.1
-                  apiVersion: 0.0.1
-              schema:
-                $ref: "#/components/schemas/apiErrorEnvelope"
-          description: The supplied session does not have the correct access rights
-            to request this resource
-          headers:
-            WWW-Authenticate:
-              description: Denotes different type of security token related information
-              schema:
-                items:
-                  type: string
-                type: array
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/apiErrorEnvelope"
-          description: The request could not be completed and will never complete
-            due to unchangeable state or conflicts.
-          headers:
-            WWW-Authenticate:
-              description: Denotes different type of security token related information
-              schema:
-                items:
-                  type: string
-                type: array
-        "404":
-          content:
-            application/json:
-              example:
-                error:
-                  args:
-                    urlVars:
-                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
-                  causeMessage: ""
-                  code: NOT_FOUND
-                  message: The resource requested was not found or is no longer available
-                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
-                meta:
-                  apiEnrollmentVersion: 0.0.1
-                  apiVersion: 0.0.1
-              schema:
-                $ref: "#/components/schemas/apiErrorEnvelope"
-          description: The requested resource does not exist
-          headers:
-            WWW-Authenticate:
-              description: Denotes different type of security token related information
-              schema:
-                items:
-                  type: string
-                type: array
-        "429":
-          content:
-            application/json:
-              example:
-                error:
-                  args:
-                    urlVars: {}
-                  causeMessage: you have hit a rate limit in the requested operation
-                  code: RATE_LIMITED
-                  message: The resource is rate limited and the rate limit has been
-                    exceeded. Please try again later
-                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
-                meta:
-                  apiEnrollmentVersion: 0.0.1
-                  apiVersion: 0.0.1
-              schema:
-                $ref: "#/components/schemas/apiErrorEnvelope"
-          description: The resource requested is rate limited and the rate limit has
-            been exceeded
-          headers:
-            WWW-Authenticate:
-              description: Denotes different type of security token related information
-              schema:
-                items:
-                  type: string
-                type: array
-        "503":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/apiErrorEnvelope"
-          description: The request could not be completed due to the server being
-            busy or in a temporarily bad state
-          headers:
-            WWW-Authenticate:
-              description: Denotes different type of security token related information
-              schema:
-                items:
-                  type: string
-                type: array
-      security:
-      - ztSession: []
-      - oauth2:
-        - openid
-      summary: Indicate all certificate authenticators for the identity should be
-        extended and optionally key rolled on next authentication.
-      tags:
-      - Authenticator
-      x-codegen-request-body-name: requestExtendAuthenticator
-      x-content-type: application/json
-      x-accepts:
-      - application/json
   /identities/{id}/service-configs:
     delete:
       description: Remove service configs from a specific identity
@@ -17105,6 +17105,163 @@ paths:
       x-content-type: application/json
       x-accepts:
       - application/json
+  /identity-role-attribute-usage:
+    get:
+      description: |
+        Retrieves identity role attributes along with per-source usage counts.
+        Each response item reports how many identities declare the attribute and
+        how many service policies or edge-router policies reference it. When
+        `withIds=true`, the entity ids backing each count are also returned.
+        Requires admin access.
+      operationId: listIdentityRoleAttributeUsage
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: query
+        name: offset
+        schema:
+          type: integer
+      - in: query
+        name: filter
+        schema:
+          type: string
+      - description: |
+          When true, each usage breakdown in the response also includes the list of
+          entity ids that contribute to the count. Defaults to false to keep
+          responses small when the id list is not needed.
+        in: query
+        name: withIds
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listRoleAttributeUsageEnvelope"
+          description: A list of role attributes with per-source usage breakdowns
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: List identity role attributes with usage breakdowns
+      tags:
+      - Role Attributes
+      x-accepts:
+      - application/json
   /identity-role-attributes:
     get:
       description: |
@@ -17605,6 +17762,163 @@ paths:
       summary: Returns a list of JWTs suitable for bootstrapping network trust.
       tags:
       - Enrollment
+      x-accepts:
+      - application/json
+  /posture-check-role-attribute-usage:
+    get:
+      description: |
+        Retrieves posture check role attributes along with per-source usage
+        counts. Each response item reports how many posture checks declare the
+        attribute and how many service policies reference it. When
+        `withIds=true`, the entity ids backing each count are also returned.
+        Requires admin access.
+      operationId: listPostureCheckRoleAttributeUsage
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: query
+        name: offset
+        schema:
+          type: integer
+      - in: query
+        name: filter
+        schema:
+          type: string
+      - description: |
+          When true, each usage breakdown in the response also includes the list of
+          entity ids that contribute to the count. Defaults to false to keep
+          responses small when the id list is not needed.
+        in: query
+        name: withIds
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listRoleAttributeUsageEnvelope"
+          description: A list of role attributes with per-source usage breakdowns
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: List posture check role attributes with usage breakdowns
+      tags:
+      - Role Attributes
       x-accepts:
       - application/json
   /posture-check-role-attributes:
@@ -18922,6 +19236,441 @@ paths:
       - Posture Checks
       x-codegen-request-body-name: postureCheck
       x-content-type: application/json
+      x-accepts:
+      - application/json
+  /revocations:
+    get:
+      description: Retrieves a list of revocations
+      operationId: listRevocations
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: query
+        name: offset
+        schema:
+          type: integer
+      - in: query
+        name: filter
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listRevocationsEnvelope"
+          description: A list of revocations
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: List Revocations
+      tags:
+      - Revocation
+      x-accepts:
+      - application/json
+    post:
+      description: Creates a revocation entry. Requires admin access.
+      operationId: createRevocation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/revocationCreate"
+        description: A Revocation to create
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/createEnvelope"
+          description: The create request was successful and the resource has been
+            added at the following location
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Create a Revocation
+      tags:
+      - Revocation
+      x-codegen-request-body-name: revocation
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /revocations/{id}:
+    get:
+      description: Retrieves a single revocation by id. Requires admin access.
+      operationId: detailRevocation
+      parameters:
+      - description: The id of the requested resource
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/detailRevocationEnvelope"
+          description: A singular Revocation resource
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "404":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars:
+                      id: 71a3000f-7dda-491a-9b90-a19f4ee6c406
+                  causeMessage: ""
+                  code: NOT_FOUND
+                  message: The resource requested was not found or is no longer available
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The requested resource does not exist
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Retrieves a single Revocation
+      tags:
+      - Revocation
       x-accepts:
       - application/json
   /routers:
@@ -22405,6 +23154,163 @@ paths:
       summary: List services a service policy affects
       tags:
       - Service Policy
+      x-accepts:
+      - application/json
+  /service-role-attribute-usage:
+    get:
+      description: |
+        Retrieves service role attributes along with per-source usage counts.
+        Each response item reports how many services declare the attribute and
+        how many service policies or service-edge-router policies reference it.
+        When `withIds=true`, the entity ids backing each count are also
+        returned. Requires admin access.
+      operationId: listServiceRoleAttributeUsage
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: query
+        name: offset
+        schema:
+          type: integer
+      - in: query
+        name: filter
+        schema:
+          type: string
+      - description: |
+          When true, each usage breakdown in the response also includes the list of
+          entity ids that contribute to the count. Defaults to false to keep
+          responses small when the id list is not needed.
+        in: query
+        name: withIds
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listRoleAttributeUsageEnvelope"
+          description: A list of role attributes with per-source usage breakdowns
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "400":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause:
+                    details:
+                      context: (root)
+                      field: (root)
+                      property: fooField3
+                    field: (root)
+                    message: "(root): fooField3 is required"
+                    type: required
+                    value:
+                      fooField: abc
+                      fooField2: def
+                  causeMessage: schema validation failed
+                  code: COULD_NOT_VALIDATE
+                  message: The supplied request contains an invalid document
+                  requestId: ac6766d6-3a09-44b3-8d8a-1b541d97fdd9
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: "The supplied request contains invalid fields or could not\
+            \ be parsed (json and non-json bodies). The error's code, message, and\
+            \ cause fields can be inspected for further information"
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: List service role attributes with usage breakdowns
+      tags:
+      - Role Attributes
       x-accepts:
       - application/json
   /service-role-attributes:
@@ -28145,6 +29051,7 @@ components:
       enum:
       - OIDC_AUTH
       - HA_CONTROLLER
+      - OIDC_AUTH_WITH_CSR
       type: string
     commonEdgeRouterProperties:
       properties:
@@ -28287,6 +29194,16 @@ components:
           type: object
         tags:
           $ref: "#/components/schemas/tags"
+        target:
+          description: |
+            Indicates the target of this config type, e.g. "service", "router" or "other". If not provided,
+            defaults to "service".
+          enum:
+          - service
+          - router
+          - other
+          nullable: true
+          type: string
       required:
       - name
       type: object
@@ -28301,6 +29218,15 @@ components:
             additionalProperties: true
             description: A JSON schema to enforce configuration against
             type: object
+          target:
+            description: "Indicates the target of this config type, e.g. \"service\"\
+              , \"router\" or \"other\""
+            enum:
+            - service
+            - router
+            - other
+            nullable: true
+            type: string
         required:
         - name
         - schema
@@ -28319,6 +29245,7 @@ components:
         id: id
         tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
+        target: service
     configTypeList:
       description: An array of config-type resources
       items:
@@ -28395,6 +29322,8 @@ components:
             type: string
           isOnline:
             type: boolean
+          isPreferredLeader:
+            type: boolean
           lastJoinedAt:
             format: date-time
             type: string
@@ -28409,21 +29338,22 @@ components:
         type: object
       description: A controller resource
       example:
-        createdAt: 2000-01-23T04:56:07.000+00:00
         _links:
           key:
             method: method
             comment: comment
             href: https://openapi-generator.tech
         apiAddresses: null
-        fingerprint: fingerprint
-        name: name
         ctrlAddress: ctrlAddress
         certPem: certPem
         isOnline: true
-        id: id
-        lastJoinedAt: 2000-01-23T04:56:07.000+00:00
         tags: {}
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        fingerprint: fingerprint
+        name: name
+        id: id
+        isPreferredLeader: true
+        lastJoinedAt: 2000-01-23T04:56:07.000+00:00
         updatedAt: 2000-01-23T04:56:07.000+00:00
     controllerSettingCreate:
       allOf:
@@ -29262,6 +30192,7 @@ components:
           id: id
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
+          target: service
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
@@ -29914,10 +30845,46 @@ components:
       - data
       - meta
       type: object
+    detailRevocationEnvelope:
+      example:
+        data:
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          _links:
+            key:
+              method: method
+              comment: comment
+              href: https://openapi-generator.tech
+          id: id
+          type: JTI
+          expiresAt: 2000-01-23T04:56:07.000+00:00
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          pagination:
+            offset: 6.027456183070403
+            limit: 0.8008281904610115
+            totalCount: 1.4658129805029452
+          filterableFields:
+          - filterableFields
+          - filterableFields
+      properties:
+        data:
+          $ref: "#/components/schemas/revocationDetail"
+        meta:
+          $ref: "#/components/schemas/meta"
+      required:
+      - data
+      - meta
+      type: object
     detailRouterEnvelope:
       example:
         data:
           unverifiedFingerprint: unverifiedFingerprint
+          configs:
+          - configs
+          - configs
           enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
           interfaces:
           - hardwareAddress: hardwareAddress
@@ -29954,6 +30921,10 @@ components:
           unverifiedCertPem: unverifiedCertPem
           noTraversal: true
           isOnline: true
+          ctrlChanListeners:
+            key:
+            - ctrlChanListeners
+            - ctrlChanListeners
           tags: {}
           createdAt: 2000-01-23T04:56:07.000+00:00
           enrollmentToken: enrollmentToken
@@ -30463,6 +31434,9 @@ components:
     detailedEdgeRouterEnvelope:
       example:
         data:
+          configs:
+          - configs
+          - configs
           _links:
             key:
               method: method
@@ -30514,6 +31488,10 @@ components:
             isMulticast: true
             mtu: 0
           cost: 5248
+          ctrlChanListeners:
+            key:
+            - ctrlChanListeners
+            - ctrlChanListeners
           versionInfo:
             os: os
             arch: arch
@@ -30567,11 +31545,24 @@ components:
       properties:
         appData:
           $ref: "#/components/schemas/tags"
+        configs:
+          description: Config IDs to associate with this edge router
+          items:
+            type: string
+          type: array
         cost:
           maximum: 65535
           minimum: 0
           nullable: true
           type: integer
+        ctrlChanListeners:
+          additionalProperties:
+            items:
+              type: string
+            type: array
+          nullable: true
+          type: object
+          x-omitempty: false
         disabled:
           nullable: true
           type: boolean
@@ -30604,6 +31595,17 @@ components:
             nullable: true
             type: string
             x-omitempty: false
+          configs:
+            description: Config IDs associated with this edge router
+            items:
+              type: string
+            type: array
+          ctrlChanListeners:
+            additionalProperties:
+              items:
+                type: string
+              type: array
+            type: object
           enrollmentCreatedAt:
             format: date-time
             nullable: true
@@ -30647,6 +31649,9 @@ components:
         type: object
       description: A detail edge router resource
       example:
+        configs:
+        - configs
+        - configs
         _links:
           key:
             method: method
@@ -30698,6 +31703,10 @@ components:
           isMulticast: true
           mtu: 0
         cost: 5248
+        ctrlChanListeners:
+          key:
+          - ctrlChanListeners
+          - ctrlChanListeners
         versionInfo:
           os: os
           arch: arch
@@ -30720,11 +31729,24 @@ components:
       properties:
         appData:
           $ref: "#/components/schemas/tags"
+        configs:
+          description: Config IDs to associate with this edge router
+          items:
+            type: string
+          type: array
         cost:
           maximum: 65535
           minimum: 0
           nullable: true
           type: integer
+        ctrlChanListeners:
+          additionalProperties:
+            items:
+              type: string
+            type: array
+          nullable: true
+          type: object
+          x-omitempty: false
         disabled:
           nullable: true
           type: boolean
@@ -30869,11 +31891,24 @@ components:
       properties:
         appData:
           $ref: "#/components/schemas/tags"
+        configs:
+          description: Config IDs to associate with this edge router
+          items:
+            type: string
+          type: array
         cost:
           maximum: 65535
           minimum: 0
           nullable: true
           type: integer
+        ctrlChanListeners:
+          additionalProperties:
+            items:
+              type: string
+            type: array
+          nullable: true
+          type: object
+          x-omitempty: false
         disabled:
           nullable: true
           type: boolean
@@ -32886,6 +33921,7 @@ components:
           id: id
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
+          target: service
         - schema:
             key: ""
           createdAt: 2000-01-23T04:56:07.000+00:00
@@ -32898,6 +33934,7 @@ components:
           id: id
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
+          target: service
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
@@ -33017,37 +34054,39 @@ components:
     listControllersEnvelope:
       example:
         data:
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          _links:
+        - _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
           apiAddresses: null
-          fingerprint: fingerprint
-          name: name
           ctrlAddress: ctrlAddress
           certPem: certPem
           isOnline: true
-          id: id
-          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
           tags: {}
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          fingerprint: fingerprint
+          name: name
+          id: id
+          isPreferredLeader: true
+          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
           updatedAt: 2000-01-23T04:56:07.000+00:00
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          _links:
+        - _links:
             key:
               method: method
               comment: comment
               href: https://openapi-generator.tech
           apiAddresses: null
-          fingerprint: fingerprint
-          name: name
           ctrlAddress: ctrlAddress
           certPem: certPem
           isOnline: true
-          id: id
-          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
           tags: {}
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          fingerprint: fingerprint
+          name: name
+          id: id
+          isPreferredLeader: true
+          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
           updatedAt: 2000-01-23T04:56:07.000+00:00
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
@@ -33142,7 +34181,10 @@ components:
     listEdgeRoutersEnvelope:
       example:
         data:
-        - _links:
+        - configs:
+          - configs
+          - configs
+          _links:
             key:
               method: method
               comment: comment
@@ -33193,6 +34235,10 @@ components:
             isMulticast: true
             mtu: 0
           cost: 5248
+          ctrlChanListeners:
+            key:
+            - ctrlChanListeners
+            - ctrlChanListeners
           versionInfo:
             os: os
             arch: arch
@@ -33205,7 +34251,10 @@ components:
           enrollmentToken: enrollmentToken
           name: name
           syncStatus: syncStatus
-        - _links:
+        - configs:
+          - configs
+          - configs
+          _links:
             key:
               method: method
               comment: comment
@@ -33256,6 +34305,10 @@ components:
             isMulticast: true
             mtu: 0
           cost: 5248
+          ctrlChanListeners:
+            key:
+            - ctrlChanListeners
+            - ctrlChanListeners
           versionInfo:
             os: os
             arch: arch
@@ -33984,6 +35037,95 @@ components:
       - data
       - meta
       type: object
+    listRevocationsEnvelope:
+      example:
+        data:
+        - createdAt: 2000-01-23T04:56:07.000+00:00
+          _links:
+            key:
+              method: method
+              comment: comment
+              href: https://openapi-generator.tech
+          id: id
+          type: JTI
+          expiresAt: 2000-01-23T04:56:07.000+00:00
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        - createdAt: 2000-01-23T04:56:07.000+00:00
+          _links:
+            key:
+              method: method
+              comment: comment
+              href: https://openapi-generator.tech
+          id: id
+          type: JTI
+          expiresAt: 2000-01-23T04:56:07.000+00:00
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          pagination:
+            offset: 6.027456183070403
+            limit: 0.8008281904610115
+            totalCount: 1.4658129805029452
+          filterableFields:
+          - filterableFields
+          - filterableFields
+      properties:
+        data:
+          description: An array of Revocation resources
+          items:
+            $ref: "#/components/schemas/revocationDetail"
+          type: array
+        meta:
+          $ref: "#/components/schemas/meta"
+      required:
+      - data
+      - meta
+      type: object
+    listRoleAttributeUsageEnvelope:
+      example:
+        data:
+        - usage:
+            key:
+              count: 0
+              ids:
+              - ids
+              - ids
+          roleAttribute: roleAttribute
+        - usage:
+            key:
+              count: 0
+              ids:
+              - ids
+              - ids
+          roleAttribute: roleAttribute
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          pagination:
+            offset: 6.027456183070403
+            limit: 0.8008281904610115
+            totalCount: 1.4658129805029452
+          filterableFields:
+          - filterableFields
+          - filterableFields
+      properties:
+        data:
+          description: |
+            An array of role attributes, each with a per-source usage breakdown
+            describing how many entities declare the attribute and how many
+            policies reference it.
+          items:
+            $ref: "#/components/schemas/roleAttributeUsageDetail"
+          type: array
+        meta:
+          $ref: "#/components/schemas/meta"
+      required:
+      - data
+      - meta
+      type: object
     listRoleAttributesEnvelope:
       example:
         data:
@@ -34015,6 +35157,9 @@ components:
       example:
         data:
         - unverifiedFingerprint: unverifiedFingerprint
+          configs:
+          - configs
+          - configs
           enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
           interfaces:
           - hardwareAddress: hardwareAddress
@@ -34051,6 +35196,10 @@ components:
           unverifiedCertPem: unverifiedCertPem
           noTraversal: true
           isOnline: true
+          ctrlChanListeners:
+            key:
+            - ctrlChanListeners
+            - ctrlChanListeners
           tags: {}
           createdAt: 2000-01-23T04:56:07.000+00:00
           enrollmentToken: enrollmentToken
@@ -34062,6 +35211,9 @@ components:
           enrollmentJwt: enrollmentJwt
           updatedAt: 2000-01-23T04:56:07.000+00:00
         - unverifiedFingerprint: unverifiedFingerprint
+          configs:
+          - configs
+          - configs
           enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
           interfaces:
           - hardwareAddress: hardwareAddress
@@ -34098,6 +35250,10 @@ components:
           unverifiedCertPem: unverifiedCertPem
           noTraversal: true
           isOnline: true
+          ctrlChanListeners:
+            key:
+            - ctrlChanListeners
+            - ctrlChanListeners
           tags: {}
           createdAt: 2000-01-23T04:56:07.000+00:00
           enrollmentToken: enrollmentToken
@@ -36425,6 +37581,114 @@ components:
         rollKeys:
           type: boolean
       type: object
+    revocationCreate:
+      description: A Revocation creation request
+      properties:
+        id:
+          type: string
+        tags:
+          $ref: "#/components/schemas/tags"
+        type:
+          $ref: "#/components/schemas/revocationTypeEnum"
+      required:
+      - id
+      - type
+      type: object
+    revocationDetail:
+      allOf:
+      - $ref: "#/components/schemas/baseEntity"
+      - properties:
+          expiresAt:
+            format: date-time
+            type: string
+          type:
+            $ref: "#/components/schemas/revocationTypeEnum"
+        required:
+        - expiresAt
+        - type
+        type: object
+      description: A Revocation resource
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        _links:
+          key:
+            method: method
+            comment: comment
+            href: https://openapi-generator.tech
+        id: id
+        type: JTI
+        expiresAt: 2000-01-23T04:56:07.000+00:00
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+    revocationList:
+      description: An array of Revocation resources
+      items:
+        $ref: "#/components/schemas/revocationDetail"
+      type: array
+    revocationTypeEnum:
+      enum:
+      - JTI
+      - IDENTITY
+      - API_SESSION
+      type: string
+    roleAttributeSourceUsage:
+      example:
+        count: 0
+        ids:
+        - ids
+        - ids
+      properties:
+        count:
+          description: Number of entities from this source that use the attribute.
+          format: int64
+          type: integer
+        ids:
+          description: |
+            The entity ids that contribute to `count`. Populated only when the
+            request includes `withIds=true`.
+          items:
+            type: string
+          type: array
+      required:
+      - count
+      type: object
+    roleAttributeUsageDetail:
+      example:
+        usage:
+          key:
+            count: 0
+            ids:
+            - ids
+            - ids
+        roleAttribute: roleAttribute
+      properties:
+        roleAttribute:
+          description: The role attribute value (without any leading '#').
+          type: string
+        usage:
+          additionalProperties:
+            $ref: "#/components/schemas/roleAttributeSourceUsage"
+          description: |
+            Per-source usage breakdown keyed by source name. Source names include
+            the defining-entity collection ("identities", "edgeRouters",
+            "services", "postureChecks") and the policy collections that may
+            reference the attribute ("servicePolicies", "edgeRouterPolicies",
+            "serviceEdgeRouterPolicies"). Sources that don't apply to the
+            endpoint are omitted; sources that apply but have no references are
+            still emitted with a zero count for schema symmetry.
+          type: object
+      required:
+      - roleAttribute
+      - usage
+      type: object
+    roleAttributeUsageList:
+      description: |
+        An array of role attributes, each with a per-source usage breakdown
+        describing how many entities declare the attribute and how many
+        policies reference it.
+      items:
+        $ref: "#/components/schemas/roleAttributeUsageDetail"
+      type: array
     roleAttributesList:
       description: An array of role attributes
       items:
@@ -36437,11 +37701,24 @@ components:
       x-omitempty: false
     routerCreate:
       properties:
+        configs:
+          description: Config IDs to associate with this router
+          items:
+            type: string
+          type: array
         cost:
           maximum: 65535
           minimum: 0
           nullable: true
           type: integer
+        ctrlChanListeners:
+          additionalProperties:
+            items:
+              type: string
+            type: array
+          nullable: true
+          type: object
+          x-omitempty: false
         disabled:
           nullable: true
           type: boolean
@@ -36459,10 +37736,21 @@ components:
       allOf:
       - $ref: "#/components/schemas/baseEntity"
       - properties:
+          configs:
+            description: Config IDs associated with this router
+            items:
+              type: string
+            type: array
           cost:
             maximum: 65535
             minimum: 0
             type: integer
+          ctrlChanListeners:
+            additionalProperties:
+              items:
+                type: string
+              type: array
+            type: object
           disabled:
             type: boolean
           enrollmentCreatedAt:
@@ -36512,6 +37800,9 @@ components:
         type: object
       example:
         unverifiedFingerprint: unverifiedFingerprint
+        configs:
+        - configs
+        - configs
         enrollmentCreatedAt: 2000-01-23T04:56:07.000+00:00
         interfaces:
         - hardwareAddress: hardwareAddress
@@ -36548,6 +37839,10 @@ components:
         unverifiedCertPem: unverifiedCertPem
         noTraversal: true
         isOnline: true
+        ctrlChanListeners:
+          key:
+          - ctrlChanListeners
+          - ctrlChanListeners
         tags: {}
         createdAt: 2000-01-23T04:56:07.000+00:00
         enrollmentToken: enrollmentToken
@@ -36583,11 +37878,24 @@ components:
       type: array
     routerPatch:
       properties:
+        configs:
+          description: Config IDs to associate with this router
+          items:
+            type: string
+          type: array
         cost:
           maximum: 65535
           minimum: 0
           nullable: true
           type: integer
+        ctrlChanListeners:
+          additionalProperties:
+            items:
+              type: string
+            type: array
+          nullable: true
+          type: object
+          x-omitempty: false
         disabled:
           nullable: true
           type: boolean
@@ -36601,11 +37909,24 @@ components:
       type: object
     routerUpdate:
       properties:
+        configs:
+          description: Config IDs to associate with this router
+          items:
+            type: string
+          type: array
         cost:
           maximum: 65535
           minimum: 0
           nullable: true
           type: integer
+        ctrlChanListeners:
+          additionalProperties:
+            items:
+              type: string
+            type: array
+          nullable: true
+          type: object
+          x-omitempty: false
         disabled:
           nullable: true
           type: boolean

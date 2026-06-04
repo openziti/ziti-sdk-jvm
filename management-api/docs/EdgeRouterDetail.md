@@ -23,6 +23,8 @@ A detail edge router resource
 |**supportedProtocols** | **Map&lt;String, String&gt;** |  |  |
 |**syncStatus** | **String** |  |  |
 |**certPem** | **String** |  |  [optional] |
+|**configs** | **List&lt;String&gt;** | Config IDs associated with this edge router |  [optional] |
+|**ctrlChanListeners** | **Map&lt;String, List&lt;String&gt;&gt;** |  |  [optional] |
 |**enrollmentCreatedAt** | **OffsetDateTime** |  |  [optional] |
 |**enrollmentExpiresAt** | **OffsetDateTime** |  |  [optional] |
 |**enrollmentJwt** | **String** |  |  [optional] |

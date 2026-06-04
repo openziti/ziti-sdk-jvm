@@ -106,7 +106,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createPostureCheckWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createPostureCheck createPostureCheckWithHttpInfo(postureCheck)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createPostureCheckWithHttpInfo(postureCheck)
 
 Creates a Posture Checks
 
@@ -279,7 +279,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deletePostureCheckWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deletePostureCheck deletePostureCheckWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deletePostureCheckWithHttpInfo(id)
 
 Deletes an Posture Checks
 
@@ -452,7 +452,7 @@ CompletableFuture<[**DetailPostureCheckEnvelope**](DetailPostureCheckEnvelope.md
 
 ## detailPostureCheckWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailPostureCheckEnvelope>> detailPostureCheck detailPostureCheckWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailPostureCheckEnvelope>> detailPostureCheckWithHttpInfo(id)
 
 Retrieves a single Posture Checks
 
@@ -625,7 +625,7 @@ CompletableFuture<[**DetailPostureCheckTypeEnvelope**](DetailPostureCheckTypeEnv
 
 ## detailPostureCheckTypeWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailPostureCheckTypeEnvelope>> detailPostureCheckType detailPostureCheckTypeWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailPostureCheckTypeEnvelope>> detailPostureCheckTypeWithHttpInfo(id)
 
 Retrieves a single posture check type
 
@@ -802,7 +802,7 @@ CompletableFuture<[**ListPostureCheckTypesEnvelope**](ListPostureCheckTypesEnvel
 
 ## listPostureCheckTypesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListPostureCheckTypesEnvelope>> listPostureCheckTypes listPostureCheckTypesWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListPostureCheckTypesEnvelope>> listPostureCheckTypesWithHttpInfo(limit, offset, filter)
 
 List a subset of posture check types
 
@@ -987,7 +987,7 @@ CompletableFuture<[**ListPostureCheckEnvelope**](ListPostureCheckEnvelope.md)>
 
 ## listPostureChecksWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListPostureCheckEnvelope>> listPostureChecks listPostureChecksWithHttpInfo(limit, offset, filter, roleFilter, roleSemantic)
+> CompletableFuture<ApiResponse<ListPostureCheckEnvelope>> listPostureChecksWithHttpInfo(limit, offset, filter, roleFilter, roleSemantic)
 
 List a subset of posture checks
 
@@ -1171,7 +1171,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchPostureCheckWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchPostureCheck patchPostureCheckWithHttpInfo(id, postureCheck)
+> CompletableFuture<ApiResponse<Empty>> patchPostureCheckWithHttpInfo(id, postureCheck)
 
 Update the supplied fields on a Posture Checks
 
@@ -1350,7 +1350,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updatePostureCheckWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updatePostureCheck updatePostureCheckWithHttpInfo(id, postureCheck)
+> CompletableFuture<ApiResponse<Empty>> updatePostureCheckWithHttpInfo(id, postureCheck)
 
 Update all fields on a Posture Checks
 

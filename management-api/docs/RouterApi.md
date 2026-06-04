@@ -114,7 +114,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createRouter createRouterWithHttpInfo(router)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createRouterWithHttpInfo(router)
 
 Create a router resource
 
@@ -287,7 +287,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createTransitRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createTransitRouter createTransitRouterWithHttpInfo(router)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createTransitRouterWithHttpInfo(router)
 
 Create a router resource
 
@@ -461,7 +461,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteRouter deleteRouterWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteRouterWithHttpInfo(id)
 
 Delete a router
 
@@ -637,7 +637,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteTransitRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteTransitRouter deleteTransitRouterWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteTransitRouterWithHttpInfo(id)
 
 Delete a router
 
@@ -812,7 +812,7 @@ CompletableFuture<[**DetailRouterEnvelope**](DetailRouterEnvelope.md)>
 
 ## detailRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailRouterEnvelope>> detailRouter detailRouterWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailRouterEnvelope>> detailRouterWithHttpInfo(id)
 
 Retrieves a single router
 
@@ -985,7 +985,7 @@ CompletableFuture<[**DetailRouterEnvelope**](DetailRouterEnvelope.md)>
 
 ## detailTransitRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailRouterEnvelope>> detailTransitRouter detailTransitRouterWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailRouterEnvelope>> detailTransitRouterWithHttpInfo(id)
 
 Retrieves a single router
 
@@ -1162,7 +1162,7 @@ CompletableFuture<[**ListRoutersEnvelope**](ListRoutersEnvelope.md)>
 
 ## listRoutersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListRoutersEnvelope>> listRouters listRoutersWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListRoutersEnvelope>> listRoutersWithHttpInfo(limit, offset, filter)
 
 List routers
 
@@ -1343,7 +1343,7 @@ CompletableFuture<[**ListRoutersEnvelope**](ListRoutersEnvelope.md)>
 
 ## listTransitRoutersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListRoutersEnvelope>> listTransitRouters listTransitRoutersWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListRoutersEnvelope>> listTransitRoutersWithHttpInfo(limit, offset, filter)
 
 List routers
 
@@ -1523,7 +1523,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchRouter patchRouterWithHttpInfo(id, router)
+> CompletableFuture<ApiResponse<Empty>> patchRouterWithHttpInfo(id, router)
 
 Update the supplied fields on a router
 
@@ -1702,7 +1702,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchTransitRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchTransitRouter patchTransitRouterWithHttpInfo(id, router)
+> CompletableFuture<ApiResponse<Empty>> patchTransitRouterWithHttpInfo(id, router)
 
 Update the supplied fields on a router
 
@@ -1881,7 +1881,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateRouter updateRouterWithHttpInfo(id, router)
+> CompletableFuture<ApiResponse<Empty>> updateRouterWithHttpInfo(id, router)
 
 Update all fields on a router
 
@@ -2060,7 +2060,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateTransitRouterWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateTransitRouter updateTransitRouterWithHttpInfo(id, router)
+> CompletableFuture<ApiResponse<Empty>> updateTransitRouterWithHttpInfo(id, router)
 
 Update all fields on a router
 

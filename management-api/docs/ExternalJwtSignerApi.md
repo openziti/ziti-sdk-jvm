@@ -102,7 +102,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createExternalJwtSignerWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createExternalJwtSigner createExternalJwtSignerWithHttpInfo(externalJwtSigner)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createExternalJwtSignerWithHttpInfo(externalJwtSigner)
 
 Creates an External JWT Signer
 
@@ -276,7 +276,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteExternalJwtSignerWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteExternalJwtSigner deleteExternalJwtSignerWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteExternalJwtSignerWithHttpInfo(id)
 
 Delete an External JWT Signer
 
@@ -450,7 +450,7 @@ CompletableFuture<[**DetailExternalJwtSignerEnvelope**](DetailExternalJwtSignerE
 
 ## detailExternalJwtSignerWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailExternalJwtSignerEnvelope>> detailExternalJwtSigner detailExternalJwtSignerWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailExternalJwtSignerEnvelope>> detailExternalJwtSignerWithHttpInfo(id)
 
 Retrieves a single External JWT Signer
 
@@ -627,7 +627,7 @@ CompletableFuture<[**ListExternalJwtSignersEnvelope**](ListExternalJwtSignersEnv
 
 ## listExternalJwtSignersWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListExternalJwtSignersEnvelope>> listExternalJwtSigners listExternalJwtSignersWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListExternalJwtSignersEnvelope>> listExternalJwtSignersWithHttpInfo(limit, offset, filter)
 
 List External JWT Signers
 
@@ -807,7 +807,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchExternalJwtSignerWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchExternalJwtSigner patchExternalJwtSignerWithHttpInfo(id, externalJwtSigner)
+> CompletableFuture<ApiResponse<Empty>> patchExternalJwtSignerWithHttpInfo(id, externalJwtSigner)
 
 Update the supplied fields on an External JWT Signer
 
@@ -986,7 +986,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateExternalJwtSignerWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateExternalJwtSigner updateExternalJwtSignerWithHttpInfo(id, externalJwtSigner)
+> CompletableFuture<ApiResponse<Empty>> updateExternalJwtSignerWithHttpInfo(id, externalJwtSigner)
 
 Update all fields on an External JWT Signer
 

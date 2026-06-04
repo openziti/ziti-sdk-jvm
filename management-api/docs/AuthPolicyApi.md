@@ -102,7 +102,7 @@ CompletableFuture<[**CreateEnvelope**](CreateEnvelope.md)>
 
 ## createAuthPolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<CreateEnvelope>> createAuthPolicy createAuthPolicyWithHttpInfo(authPolicy)
+> CompletableFuture<ApiResponse<CreateEnvelope>> createAuthPolicyWithHttpInfo(authPolicy)
 
 Creates an Auth Policy
 
@@ -276,7 +276,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## deleteAuthPolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> deleteAuthPolicy deleteAuthPolicyWithHttpInfo(id)
+> CompletableFuture<ApiResponse<Empty>> deleteAuthPolicyWithHttpInfo(id)
 
 Delete an Auth Policy
 
@@ -450,7 +450,7 @@ CompletableFuture<[**DetailAuthPolicyEnvelope**](DetailAuthPolicyEnvelope.md)>
 
 ## detailAuthPolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailAuthPolicyEnvelope>> detailAuthPolicy detailAuthPolicyWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailAuthPolicyEnvelope>> detailAuthPolicyWithHttpInfo(id)
 
 Retrieves a single Auth Policy
 
@@ -627,7 +627,7 @@ CompletableFuture<[**ListAuthPoliciesEnvelope**](ListAuthPoliciesEnvelope.md)>
 
 ## listAuthPoliciesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListAuthPoliciesEnvelope>> listAuthPolicies listAuthPoliciesWithHttpInfo(limit, offset, filter)
+> CompletableFuture<ApiResponse<ListAuthPoliciesEnvelope>> listAuthPoliciesWithHttpInfo(limit, offset, filter)
 
 List Auth Policies
 
@@ -807,7 +807,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## patchAuthPolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> patchAuthPolicy patchAuthPolicyWithHttpInfo(id, authPolicy)
+> CompletableFuture<ApiResponse<Empty>> patchAuthPolicyWithHttpInfo(id, authPolicy)
 
 Update the supplied fields on an Auth Policy
 
@@ -986,7 +986,7 @@ CompletableFuture<[**Empty**](Empty.md)>
 
 ## updateAuthPolicyWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> updateAuthPolicy updateAuthPolicyWithHttpInfo(id, authPolicy)
+> CompletableFuture<ApiResponse<Empty>> updateAuthPolicyWithHttpInfo(id, authPolicy)
 
 Update all fields on an Auth Policy
 

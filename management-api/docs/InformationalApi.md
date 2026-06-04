@@ -89,7 +89,7 @@ No authorization required
 
 ## detailSpecWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailSpecEnvelope>> detailSpec detailSpecWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailSpecEnvelope>> detailSpecWithHttpInfo(id)
 
 Return a single spec resource
 
@@ -232,7 +232,7 @@ No authorization required
 
 ## detailSpecBodyWithHttpInfo
 
-> CompletableFuture<ApiResponse<DetailSpecBodyEnvelope>> detailSpecBody detailSpecBodyWithHttpInfo(id)
+> CompletableFuture<ApiResponse<DetailSpecBodyEnvelope>> detailSpecBodyWithHttpInfo(id)
 
 Returns the spec&#39;s file
 
@@ -369,7 +369,7 @@ No authorization required
 
 ## listEnumeratedCapabilitiesWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListEnumeratedCapabilitiesEnvelope>> listEnumeratedCapabilities listEnumeratedCapabilitiesWithHttpInfo()
+> CompletableFuture<ApiResponse<ListEnumeratedCapabilitiesEnvelope>> listEnumeratedCapabilitiesWithHttpInfo()
 
 Returns all capabilities this version of the controller is aware of, enabled or not.
 
@@ -500,7 +500,7 @@ No authorization required
 
 ## listRootWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListVersionEnvelope>> listRoot listRootWithHttpInfo()
+> CompletableFuture<ApiResponse<ListVersionEnvelope>> listRootWithHttpInfo()
 
 Returns version information
 
@@ -633,7 +633,7 @@ No authorization required
 
 ## listSpecsWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListSpecsEnvelope>> listSpecs listSpecsWithHttpInfo()
+> CompletableFuture<ApiResponse<ListSpecsEnvelope>> listSpecsWithHttpInfo()
 
 Returns a list of API specs
 
@@ -782,7 +782,7 @@ CompletableFuture<[**ListSummaryCountsEnvelope**](ListSummaryCountsEnvelope.md)>
 
 ## listSummaryWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListSummaryCountsEnvelope>> listSummary listSummaryWithHttpInfo()
+> CompletableFuture<ApiResponse<ListSummaryCountsEnvelope>> listSummaryWithHttpInfo()
 
 Returns a list of accessible resource counts
 
@@ -929,7 +929,7 @@ No authorization required
 
 ## listVersionWithHttpInfo
 
-> CompletableFuture<ApiResponse<ListVersionEnvelope>> listVersion listVersionWithHttpInfo()
+> CompletableFuture<ApiResponse<ListVersionEnvelope>> listVersionWithHttpInfo()
 
 Returns version information
 

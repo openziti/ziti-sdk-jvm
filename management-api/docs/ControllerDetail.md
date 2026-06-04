@@ -18,6 +18,7 @@ A controller resource
 |**ctrlAddress** | **String** |  |  [optional] |
 |**fingerprint** | **String** |  |  |
 |**isOnline** | **Boolean** |  |  |
+|**isPreferredLeader** | **Boolean** |  |  [optional] |
 |**lastJoinedAt** | **OffsetDateTime** |  |  |
 |**name** | **String** |  |  |
 

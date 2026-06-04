@@ -95,7 +95,7 @@ CompletableFuture<[**TraceDetailEnvelope**](TraceDetailEnvelope.md)>
 
 ## updateIdentityTracingWithHttpInfo
 
-> CompletableFuture<ApiResponse<TraceDetailEnvelope>> updateIdentityTracing updateIdentityTracingWithHttpInfo(id, traceSpec)
+> CompletableFuture<ApiResponse<TraceDetailEnvelope>> updateIdentityTracingWithHttpInfo(id, traceSpec)
 
 Enable/disable data flow tracing for an identity
 
