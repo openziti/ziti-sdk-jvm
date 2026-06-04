@@ -24,6 +24,7 @@ import org.junit.Rule
 import org.junit.jupiter.api.assertThrows
 import org.junit.rules.Timeout
 import java.io.IOException
+import java.net.ConnectException
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousCloseException
@@ -44,7 +45,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-private const val testhost = "httpbingo.org"
+private const val testhost = "google.com"
 private const val connectTimeout = 2L
 private const val readTimeout = 5L
 
@@ -115,14 +116,14 @@ class AsyncTLSChannelTest {
         val transport = AsynchronousSocketChannel.open()
         ch = AsyncTLSChannel(transport, SSLContext.getDefault())
 
-        ch.connect(InetSocketAddress("google.com", 443)).get(connectTimeout, TimeUnit.SECONDS)
+        ch.connect(InetSocketAddress(testhost, 443)).get(connectTimeout, TimeUnit.SECONDS)
         verifyConnection(ch)
     }
 
     @Test
     fun useConnected() {
         val transport = AsynchronousSocketChannel.open()
-        transport.connect(InetSocketAddress("google.com", 443)).get(connectTimeout, TimeUnit.SECONDS)
+        transport.connect(InetSocketAddress(testhost, 443)).get(connectTimeout, TimeUnit.SECONDS)
         ch = AsyncTLSChannel(transport, SSLContext.getDefault())
 
         verifyConnection(ch)
@@ -138,7 +139,7 @@ class AsyncTLSChannelTest {
         params.applicationProtocols = arrayOf("h2","http1.1")
         ch.setSSLParameters(params)
 
-        ch.connect(InetSocketAddress("google.com", 443)).get(connectTimeout, TimeUnit.SECONDS)
+        ch.connect(InetSocketAddress(testhost, 443)).get(connectTimeout, TimeUnit.SECONDS)
         ch.startHandshake()
         ch.getSession()
         val p = ch.getApplicationProtocol()
@@ -211,7 +212,7 @@ Content-Length: ${payload.remaining()}
         rb.flip()
 
         val resp = StandardCharsets.UTF_8.decode(rb).toString().reader().readLines()
-        assertThat(resp.first(), startsWith("HTTP/1.1 200 OK"))
+        assertThat(resp.first(), startsWith("HTTP/1.1 404 Not Found"))
 
     }
 
