@@ -46,8 +46,8 @@ class ZitiTransport @JvmOverloads constructor(
         ): EventLoopGroup =
             DefaultEventLoopGroup(nThreads, threadFactory)
 
-        override fun datagramChannel(): DatagramChannel {
-            error("Not supported")
+        override fun datagramChannelFactory(): ChannelFactory<out DatagramChannel?>? {
+            error("Not yet implemented")
         }
 
         override fun datagramChannel(family: InternetProtocolFamily?): DatagramChannel {
