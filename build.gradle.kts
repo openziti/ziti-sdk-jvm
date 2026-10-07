@@ -30,6 +30,18 @@ apply(from = "gradle/git-version.gradle.kts")
 val gitVersion: String by extra
 val gitCommit: String by extra
 val gitDirty: Boolean by extra
+val gitBranch = extra["gitBranch"] as String
+
+// prints the computed version and git details, the release workflow runs it to record what is being published
+tasks.register("showInfo") {
+    description = "Prints the version and git details of this build."
+    group = "help"
+    // local copies: the action must not hold on to the build script for the configuration cache
+    val info = listOf("Version" to gitVersion, "Branch" to gitBranch, "Commit" to gitCommit, "Dirty" to gitDirty)
+    doLast {
+        info.forEach { (name, value) -> println("$name: $value") }
+    }
+}
 
 group = "org.openziti"
 version = gitVersion
