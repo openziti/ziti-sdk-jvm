@@ -40,6 +40,7 @@ import org.openziti.util.IPUtil
 import org.openziti.util.Logged
 import org.openziti.util.Retry
 import org.openziti.util.ZitiLog
+import java.io.IOException
 import java.io.Writer
 import java.net.*
 import java.nio.channels.AsynchronousServerSocketChannel
@@ -50,6 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.math.min
 import kotlin.properties.Delegates
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
@@ -125,18 +127,27 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
 
         launch {
-            accessToken.filterNotNull().collect { token ->
+            // latest: a newer token supersedes retries still in flight for an older one
+            accessToken.filterNotNull().collectLatest { token ->
                 // routers may be slow to answer, don't hold up the controller update
                 channels.forEach { (_, channel) ->
                     launch { channel.updateToken(token) }
                 }
 
                 // keep the cached session in sync: new/reconnecting channels send its token in hello
-                runCatching { controller.setAccessToken(token) }
-                    .onSuccess { apiSession.value = it }
+                runCatching {
+                    Retry.withExponentialBackoff(maxRetry = 5) {
+                        try {
+                            controller.setAccessToken(token)
+                        } catch (ex: Exception) {
+                            if (ex !is CancellationException) w { "failed to apply refreshed access token: ${ex.message}" }
+                            throw ex
+                        }
+                    }
+                }.onSuccess { apiSession.value = it }
                     .onFailure {
                         if (it is CancellationException) throw it
-                        w { "failed to apply refreshed access token: ${it.message}" }
+                        w { "giving up applying refreshed access token" }
                     }
             }
         }
@@ -247,84 +258,97 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     private suspend fun runner() {
         val ctrlEndpoints = id.controllers().toMutableSet()
         lateinit var authenticator: ZitiAuthenticator
+        var failures = 0
         while(true) {
-            val c = Retry.withExponentialBackoff {
-                Controller.getActiveController(ctrlEndpoints, id.sslContext())
-            }
-            ctrl.value = c
+            try {
+                val c = Retry.withExponentialBackoff {
+                    Controller.getActiveController(ctrlEndpoints, id.sslContext())
+                }
+                ctrl.value = c
 
-            val oidc = controller.capabilities.contains(Capabilities.OIDC_AUTH)
-            val ha = controller.capabilities.contains(Capabilities.HA_CONTROLLER)
-            authenticator = authenticator(controller.endpoint, id.sslContext(), oidc)
+                val oidc = controller.capabilities.contains(Capabilities.OIDC_AUTH)
+                val ha = controller.capabilities.contains(Capabilities.HA_CONTROLLER)
+                authenticator = authenticator(controller.endpoint, id.sslContext(), oidc)
 
-            val currentSession = runCatching {
-                accessToken.value?.let { controller.setAccessToken(it) }
-            }.onFailure {
-                accessToken.value = null
-                null
-            }.getOrNull()
+                val currentSession = runCatching {
+                    accessToken.value?.let { controller.setAccessToken(it) }
+                }.onFailure {
+                    // a transient failure says nothing about the token: retry rather than log in again
+                    if (it is CancellationException || isTransientFailure(it)) throw it
+                    accessToken.value = null
+                    null
+                }.getOrNull()
 
-            val session = if (currentSession != null)
-                currentSession
-            else {
-                val token = authenticator.login()
-                accessToken.value = token
-                controller.setAccessToken(token)
-            }
-
-            identity.value = controller.currentIdentity()
-            apiSession.value = session
-
-            val mfa = session.authQueries.find {
-                it.typeId == AuthQueryType.MFA && it.provider.value == "ziti"
-            }
-            if (mfa != null) {
-                updateStatus(ZitiContext.Status.NeedsAuth(mfa.typeId!!, mfa.provider.value))
-                val success = runCatching {
-                    val code = authCode.receive()
-                    controller.authMFA(code)
-                    true
-                }.getOrElse {
-                    updateStatus(ZitiContext.Status.NotAuthorized(it))
-                    false
+                val session = if (currentSession != null)
+                    currentSession
+                else {
+                    val token = authenticator.login()
+                    accessToken.value = token
+                    controller.setAccessToken(token)
                 }
 
-                if (!success) continue
-            }
+                identity.value = controller.currentIdentity()
+                apiSession.value = session
 
-            if (ha) {
-                val ctrls = controller.listControllers().mapNotNull {
-                    it.apiAddresses?.get("edge-client")?.first { addr -> addr.version == "v1" }?.url
-                }.toSet()
-
-                if (ctrls != ctrlEndpoints) {
-                    ctrlEndpoints.clear()
-                    ctrlEndpoints.addAll(ctrls)
+                val mfa = session.authQueries.find {
+                    it.typeId == AuthQueryType.MFA && it.provider.value == "ziti"
                 }
+                if (mfa != null) {
+                    updateStatus(ZitiContext.Status.NeedsAuth(mfa.typeId!!, mfa.provider.value))
+                    val success = runCatching {
+                        val code = authCode.receive()
+                        controller.authMFA(code)
+                        true
+                    }.getOrElse {
+                        updateStatus(ZitiContext.Status.NotAuthorized(it))
+                        false
+                    }
+
+                    if (!success) continue
+                }
+
+                if (ha) {
+                    val ctrls = controller.listControllers().mapNotNull {
+                        it.apiAddresses?.get("edge-client")?.first { addr -> addr.version == "v1" }?.url
+                    }.toSet()
+
+                    if (ctrls != ctrlEndpoints) {
+                        ctrlEndpoints.clear()
+                        ctrlEndpoints.addAll(ctrls)
+                    }
+                }
+
+                val services = controller.getServices().toList()
+                processServiceUpdates(services)
+
+                updateStatus(ZitiContext.Status.Active)
+                failures = 0
+
+                val apiSessionUpdate = maintainApiSession(authenticator)
+                val serviceUpdate = runServiceUpdates()
+
+                val finisher = select<Job> {
+                    apiSessionUpdate.onJoin { apiSessionUpdate }
+                    serviceUpdate.onJoin { serviceUpdate }
+                }
+
+                finisher.invokeOnCompletion { ex ->
+                    w {"$finisher is completed due to $ex"}
+                }
+
+                listOf(apiSessionUpdate, serviceUpdate).forEach {
+                    it.cancelAndJoin()
+                }
+
+                networkSessions.clear()
+            } catch (ex: Exception) {
+                // the controller being unreachable must not end the context: retry the whole cycle
+                if (ex is CancellationException || !isTransientFailure(ex)) throw ex
+
+                w { "controller is not available, will retry: ${ex.message}" }
+                updateStatus(ZitiContext.Status.Unavailable(ex))
+                delay(1000L + Random.nextLong(1000L shl min(failures++, 5)))
             }
-
-            val services = controller.getServices().toList()
-            processServiceUpdates(services)
-
-            updateStatus(ZitiContext.Status.Active)
-
-            val apiSessionUpdate = maintainApiSession(authenticator)
-            val serviceUpdate = runServiceUpdates()
-
-            val finisher = select<Job> {
-                apiSessionUpdate.onJoin { apiSessionUpdate }
-                serviceUpdate.onJoin { serviceUpdate }
-            }
-
-            finisher.invokeOnCompletion { ex ->
-                w {"$finisher is completed due to $ex"}
-            }
-
-            listOf(apiSessionUpdate, serviceUpdate).forEach {
-                it.cancelAndJoin()
-            }
-
-            networkSessions.clear()
         }
     }
 
@@ -821,4 +845,9 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             writer.appendLine("conn[$id]: $conn")
         }
     }
+}
+
+// the controller could not be reached (as opposed to rejecting us), so trying again may succeed
+internal fun isTransientFailure(ex: Throwable): Boolean = generateSequence(ex) { it.cause }.any {
+    it is IOException || (it is ZitiException && it.code == Errors.ControllerUnavailable)
 }
