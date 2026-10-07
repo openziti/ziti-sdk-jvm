@@ -1,4 +1,3 @@
-import io.wusa.Info
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.text.SimpleDateFormat
@@ -23,41 +22,17 @@ import java.util.*
 plugins {
     alias(libs.plugins.kotlin).apply(false)
     alias(libs.plugins.nexus.publish)
-    alias(libs.plugins.semver.git)
     alias(libs.plugins.download).apply(false)
 }
 
-semver {
-    initialVersion = "0.1.0"
-    tagType = io.wusa.TagType.LIGHTWEIGHT
-    branches {
-        branch {
-            regex = "main"
-            incrementer = "PATCH_INCREMENTER"
-            formatter = Transformer<Any, Info> { info ->
-                "${info.version.major}.${info.version.minor}.${info.version.patch}"
-            }
-        }
-        branch {
-            regex = ".+"
-            incrementer = "PATCH_INCREMENTER"
-            formatter = Transformer<Any, Info> { info ->
-                val v = info.version
-                """${v.major}.${v.minor}.${v.patch}-${info.branch.id}-${v.suffix?.count ?: "0"}.${v.suffix?.sha}"""
-            }
-        }
-    }
-}
-
-val gitCommit = semver.info.shortCommit
-val dirty = semver.info.dirty
-ext {
-    set("gitCommit", semver.info.shortCommit)
-    set("gitBranch", semver.info.branch.name)
-}
+// version and git details (gitVersion, gitCommit, gitBranch, gitDirty), see the script for the rules
+apply(from = "gradle/git-version.gradle.kts")
+val gitVersion: String by extra
+val gitCommit: String by extra
+val gitDirty: Boolean by extra
 
 group = "org.openziti"
-version = "${semver.info}"
+version = gitVersion
 
 println("${project.name}: ${project.version}")
 
@@ -69,6 +44,8 @@ subprojects {
         mavenCentral()
     }
 
+    // a local copy: the lambda must not hold on to the build script for the configuration cache
+    val dirty = gitDirty
     tasks.withType<PublishToMavenRepository>().configureEach {
         onlyIf { !dirty }
     }
