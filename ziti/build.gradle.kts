@@ -1,6 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 
 /*
  * Copyright (c) 2018-2021 NetFoundry Inc.
@@ -148,51 +146,86 @@ kotlin {
     }
 }
 
-val quickstartHome = layout.buildDirectory.dir("quickstart").get()
+// Owns the quickstart process so the tasks below only hold a reference to the service, which the
+// configuration cache can handle. Gradle also closes it when the build ends, so a failed build can't leave it running.
+abstract class QuickstartService : BuildService<QuickstartService.Params>, AutoCloseable {
+    interface Params : BuildServiceParameters {
+        val home: DirectoryProperty
+        val log: RegularFileProperty
+        val errorLog: RegularFileProperty
+    }
+
+    private var process: Process? = null
+
+    val errorLogPath: String get() = parameters.errorLog.get().asFile.absolutePath
+
+    @Synchronized
+    fun start() {
+        process = ProcessBuilder().apply {
+            command("ziti", "edge", "quickstart", "--verbose", "--home", parameters.home.get().asFile.absolutePath)
+            redirectOutput(parameters.log.get().asFile)
+            redirectError(parameters.errorLog.get().asFile)
+        }.start()
+    }
+
+    @Synchronized
+    fun isAlive() = process?.isAlive ?: false
+
+    fun isReady() = runCatching {
+        parameters.log.get().asFile.readLines().any { it.contains("controller and router started") }
+    }.getOrDefault(false)
+
+    // returns true if there was a running quickstart to stop
+    @Synchronized
+    fun stop(): Boolean {
+        val running = process ?: return false
+        process = null
+        running.destroy()
+        return true
+    }
+
+    override fun close() {
+        stop()
+    }
+}
+
+val quickstart = gradle.sharedServices.registerIfAbsent("quickstart", QuickstartService::class) {
+    parameters.home.set(layout.buildDirectory.dir("quickstart"))
+    parameters.log.set(layout.buildDirectory.file("quickstart.log"))
+    parameters.errorLog.set(layout.buildDirectory.file("error.log"))
+}
 
 tasks.register("start-quickstart") {
     description = "Starts Ziti quickstart"
-    val qsLog = layout.buildDirectory.file("quickstart.log").get().asFile
-    val errLog = layout.buildDirectory.file("error.log").get().asFile
+    // local copy: the action must capture the service, not the build script
+    val service = quickstart
+    usesService(service)
 
     doLast {
-        val pb = ProcessBuilder().apply {
-            command("ziti", "edge", "quickstart", "--verbose",
-                "--home", quickstartHome.asFile.absolutePath)
-            redirectOutput(qsLog)
-            redirectError(errLog)
-        }
-        val qsProc = pb.start()
-        ext["quickstart"] = qsProc
-        runBlocking {
-
-            while(true) {
-                delay(1000)
-                if (!qsProc.isAlive) {
-                    throw GradleException("quickstart failed: check ${errLog.absolutePath}")
-                }
-
-                val started = kotlin.runCatching {
-                    qsLog.readLines().find { it.contains("controller and router started") }
-                }
-                if (started.getOrNull() != null) {
-                    logger.lifecycle("quickstart is ready")
-                    break
-                }
-
-                logger.lifecycle("waiting for qs router...")
+        val qs = service.get()
+        qs.start()
+        while (true) {
+            Thread.sleep(1000)
+            if (!qs.isAlive()) {
+                throw GradleException("quickstart failed: check ${qs.errorLogPath}")
             }
+            if (qs.isReady()) {
+                logger.lifecycle("quickstart is ready")
+                break
+            }
+            logger.lifecycle("waiting for qs router...")
         }
     }
     dependsOn("integrationTestClasses")
 }
 
 tasks.register("stop-quickstart") {
+    val service = quickstart
+    usesService(service)
+
     doLast {
-        val proc = ext["quickstart"] as Process?
-        proc?.let {
+        if (service.get().stop()) {
             logger.lifecycle("stopping quickstart...")
-            it.destroy()
         }
     }
 }

@@ -3,7 +3,6 @@
 kotlin = "2.4.20"
 dokka = "2.2.0"
 nexus = "2.0.0"
-semver-git = "2.3.7"
 openapi-gen = "7.25.0"
 spotless = "8.10.3"
 shadow-jar = "9.6.1"
@@ -80,7 +79,6 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus" }
-semver-git = { id = "io.wusa.semver-git-plugin", version.ref = "semver-git" }
 openapi = { id = "org.openapi.generator", version.ref = "openapi-gen" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow-jar"}
