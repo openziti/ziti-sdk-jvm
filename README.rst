@@ -69,6 +69,40 @@ ______
       implementation 'org.openziti:ziti:+' // TODO fix version
    }
 
+Verifying Artifacts
+-------------------
+Every artifact published to Maven Central is accompanied by a detached PGP signature (the ``.asc`` file
+next to the artifact). To check a signature, first make sure the fingerprint of the signing key matches
+one of the fingerprints listed here, since this file is the authenticated source for them.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Releases
+     - Key ID
+     - Fingerprint
+   * - 0.25.0 and later
+     - ``50F7E3AF69BDDDA1``
+     - ``1548 22DE 7AC6 47A1 0EAE  4100 50F7 E3AF 69BD DDA1``
+   * - 0.24.0 and earlier (key retired)
+     - ``1F48CBDE8E60E1E1``
+     - ``B1AF F043 67E6 B44A 888B  814C 1F48 CBDE 8E60 E1E1``
+
+.. code-block:: bash
+
+    # fetch the signing key and compare the fingerprint it prints with the table above
+    # (for the current key, keys.openpgp.org works in place of keyserver.ubuntu.com)
+    gpg --keyserver keyserver.ubuntu.com --recv-keys 154822DE7AC647A10EAE410050F7E3AF69BDDDA1
+    gpg --fingerprint 154822DE7AC647A10EAE410050F7E3AF69BDDDA1
+
+    # download the jar and its signature from Maven Central, then verify
+    gpg --verify ziti-<version>.jar.asc ziti-<version>.jar
+
+``gpg`` reports a good signature only if the artifact is unmodified and was signed by the key you imported.
+It also warns that the key is not certified with a trusted signature; this is expected, since the fingerprint
+comparison above is what establishes trust. The retired key expired on 2023-03-25, so ``gpg`` adds a note that
+it has expired, but still reports a good signature for releases up to 0.24.0.
+
 Building from Source
 --------------------
 Once you check out the project from GitHub, you can build it using gradle:
