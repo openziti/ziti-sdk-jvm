@@ -57,6 +57,7 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
     private val receivers = mutableMapOf<UInt, Channel.MessageReceiver>()
     private val chState = MutableStateFlow<Channel.State>(Channel.State.Initial)
     private val reconnectSignal = kotlinx.coroutines.channels.Channel<Unit>()
+    private val dropSignal = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
 
     internal val latencyMeter: Timer = Timer()
 
@@ -123,6 +124,7 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
                     setHeader(ZitiProtocol.Header.SessionToken, session.token)
                 }
 
+                dropSignal.tryReceive() // a request made against the previous connection is moot
                 var peer: Transport? = null
                 chState.value = Channel.State.Connecting
                 val jobs = mutableListOf<Deferred<Unit>>()
@@ -145,6 +147,7 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
 
                     v{"starting latency check"}
                     jobs += startLatencyCheckAsync(Duration.ofMinutes(1), latencyMeter)
+                    jobs += async { dropSignal.receive() }
 
                     v{"channel is active"}
                     val j = select<Deferred<Unit>> {
@@ -155,8 +158,9 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
                 } catch (ex: Exception) {
                     onDisconnect(ex)
                 } finally {
-                    jobs.forEach { it.cancelAndJoin() }
+                    // close first: a read parked on a healthy connection is not cancellable
                     peer?.runCatching { close() }
+                    jobs.forEach { it.cancelAndJoin() }
                 }
             }
         }
@@ -319,8 +323,13 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
             )
 
             runCatching {
-                val resp = SendAndWait(update)
-                when (resp.content) {
+                // not every router replies to a failed update
+                val resp = withTimeoutOrNull(TOKEN_UPDATE_TIMEOUT) { SendAndWait(update) }
+                if (resp == null) {
+                    // router keeps the old token until it expires, then drops us: reconnect with the current one
+                    w { "token update stalled, reconnecting" }
+                    dropSignal.trySend(Unit)
+                } else when (resp.content) {
                     ZitiProtocol.ContentType.TokenUpdateSuccess -> d { "token updated" }
                     ZitiProtocol.ContentType.TokenUpdateFailure ->
                         w { "token update failure: ${resp.body.toString(UTF_8)}" }
@@ -337,6 +346,7 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
 
     companion object {
         const val CONNECT_TIMEOUT: Long = 20_000
+        const val TOKEN_UPDATE_TIMEOUT: Long = 10_000
         const val EDGE_APP_PROTOCOL = "ziti-edge"
     }
 }

@@ -126,10 +126,18 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
         launch {
             accessToken.filterNotNull().collect { token ->
-                controller.setAccessToken(token)
+                // routers may be slow to answer, don't hold up the controller update
                 channels.forEach { (_, channel) ->
-                    channel.updateToken(token)
+                    launch { channel.updateToken(token) }
                 }
+
+                // keep the cached session in sync: new/reconnecting channels send its token in hello
+                runCatching { controller.setAccessToken(token) }
+                    .onSuccess { apiSession.value = it }
+                    .onFailure {
+                        if (it is CancellationException) throw it
+                        w { "failed to apply refreshed access token: ${it.message}" }
+                    }
             }
         }
 
