@@ -2,11 +2,11 @@
 
 Ziti Edge Management
 
-- API version: 0.31.0
+- API version: 0.36.0
 
-- Build date: 2026-06-04T09:00:03.854034-04:00[America/New_York]
+- Build date: 2026-10-14T14:15:34.272865-04:00[America/New_York]
 
-- Generator version: 7.22.0
+- Generator version: 7.26.0
 
 OpenZiti Edge Management API
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>management-api</artifactId>
-  <version>0.33.2-bump-edge-api-0.31.0-10.60d9baf-dirty-SNAPSHOT</version>
+  <version>0.35.1-update-edge-api-4.cac9499-dirty-SNAPSHOT</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:management-api:0.33.2-bump-edge-api-0.31.0-10.60d9baf-dirty-SNAPSHOT"
+compile "org.openziti:management-api:0.35.1-update-edge-api-4.cac9499-dirty-SNAPSHOT"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/management-api-0.33.2-bump-edge-api-0.31.0-10.60d9baf-dirty-SNAPSHOT.jar`
+- `target/management-api-0.35.1-update-edge-api-4.cac9499-dirty-SNAPSHOT.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -361,6 +361,8 @@ Class | Method | HTTP request | Description
 *InformationalApi* | [**detailSpecBodyWithHttpInfo**](docs/InformationalApi.md#detailSpecBodyWithHttpInfo) | **GET** /specs/{id}/spec | Returns the spec&#39;s file
 *InformationalApi* | [**listEnumeratedCapabilities**](docs/InformationalApi.md#listEnumeratedCapabilities) | **GET** /enumerated-capabilities | Returns all capabilities this version of the controller is aware of, enabled or not.
 *InformationalApi* | [**listEnumeratedCapabilitiesWithHttpInfo**](docs/InformationalApi.md#listEnumeratedCapabilitiesWithHttpInfo) | **GET** /enumerated-capabilities | Returns all capabilities this version of the controller is aware of, enabled or not.
+*InformationalApi* | [**listEnumeratedRouterCapabilities**](docs/InformationalApi.md#listEnumeratedRouterCapabilities) | **GET** /enumerated-router-capabilities | Returns all router capabilities this version of the controller is aware of
+*InformationalApi* | [**listEnumeratedRouterCapabilitiesWithHttpInfo**](docs/InformationalApi.md#listEnumeratedRouterCapabilitiesWithHttpInfo) | **GET** /enumerated-router-capabilities | Returns all router capabilities this version of the controller is aware of
 *InformationalApi* | [**listRoot**](docs/InformationalApi.md#listRoot) | **GET** / | Returns version information
 *InformationalApi* | [**listRootWithHttpInfo**](docs/InformationalApi.md#listRootWithHttpInfo) | **GET** / | Returns version information
 *InformationalApi* | [**listSpecs**](docs/InformationalApi.md#listSpecs) | **GET** /specs | Returns a list of API specs
@@ -698,6 +700,7 @@ Class | Method | HTTP request | Description
  - [ListEdgeRoutersEnvelope](docs/ListEdgeRoutersEnvelope.md)
  - [ListEnrollmentsEnvelope](docs/ListEnrollmentsEnvelope.md)
  - [ListEnumeratedCapabilitiesEnvelope](docs/ListEnumeratedCapabilitiesEnvelope.md)
+ - [ListEnumeratedRouterCapabilitiesEnvelope](docs/ListEnumeratedRouterCapabilitiesEnvelope.md)
  - [ListExternalJwtSignersEnvelope](docs/ListExternalJwtSignersEnvelope.md)
  - [ListIdentitiesEnvelope](docs/ListIdentitiesEnvelope.md)
  - [ListIdentityTypesEnvelope](docs/ListIdentityTypesEnvelope.md)
@@ -793,6 +796,7 @@ Class | Method | HTTP request | Description
  - [RevocationTypeEnum](docs/RevocationTypeEnum.md)
  - [RoleAttributeSourceUsage](docs/RoleAttributeSourceUsage.md)
  - [RoleAttributeUsageDetail](docs/RoleAttributeUsageDetail.md)
+ - [RouterCapabilities](docs/RouterCapabilities.md)
  - [RouterCreate](docs/RouterCreate.md)
  - [RouterDetail](docs/RouterDetail.md)
  - [RouterEntityRef](docs/RouterEntityRef.md)

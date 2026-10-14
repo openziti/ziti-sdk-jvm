@@ -2,11 +2,11 @@
 
 Ziti Edge Client
 
-- API version: 0.31.0
+- API version: 0.36.0
 
-- Build date: 2026-06-04T08:57:54.007806-04:00[America/New_York]
+- Build date: 2026-10-14T14:15:33.267268-04:00[America/New_York]
 
-- Generator version: 7.22.0
+- Generator version: 7.26.0
 
 OpenZiti Edge Client API
 
@@ -45,7 +45,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>org.openziti</groupId>
   <artifactId>edge-api</artifactId>
-  <version>0.33.2-bump-edge-api-0.31.0-9.1229f20-dirty-SNAPSHOT</version>
+  <version>0.35.1-update-edge-api-4.cac9499-dirty-SNAPSHOT</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "org.openziti:edge-api:0.33.2-bump-edge-api-0.31.0-9.1229f20-dirty-SNAPSHOT"
+compile "org.openziti:edge-api:0.35.1-update-edge-api-4.cac9499-dirty-SNAPSHOT"
 ```
 
 ### Others
@@ -68,7 +68,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/edge-api-0.33.2-bump-edge-api-0.31.0-9.1229f20-dirty-SNAPSHOT.jar`
+- `target/edge-api-0.35.1-update-edge-api-4.cac9499-dirty-SNAPSHOT.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -206,6 +206,8 @@ Class | Method | HTTP request | Description
 *InformationalApi* | [**detailSpecBodyWithHttpInfo**](docs/InformationalApi.md#detailSpecBodyWithHttpInfo) | **GET** /specs/{id}/spec | Returns the spec&#39;s file
 *InformationalApi* | [**listEnumeratedCapabilities**](docs/InformationalApi.md#listEnumeratedCapabilities) | **GET** /enumerated-capabilities | Returns all capabilities this version of the controller is aware of, enabled or not.
 *InformationalApi* | [**listEnumeratedCapabilitiesWithHttpInfo**](docs/InformationalApi.md#listEnumeratedCapabilitiesWithHttpInfo) | **GET** /enumerated-capabilities | Returns all capabilities this version of the controller is aware of, enabled or not.
+*InformationalApi* | [**listEnumeratedRouterCapabilities**](docs/InformationalApi.md#listEnumeratedRouterCapabilities) | **GET** /enumerated-router-capabilities | Returns all router capabilities this version of the controller is aware of
+*InformationalApi* | [**listEnumeratedRouterCapabilitiesWithHttpInfo**](docs/InformationalApi.md#listEnumeratedRouterCapabilitiesWithHttpInfo) | **GET** /enumerated-router-capabilities | Returns all router capabilities this version of the controller is aware of
 *InformationalApi* | [**listProtocols**](docs/InformationalApi.md#listProtocols) | **GET** /protocols | Return a list of the listening Edge protocols
 *InformationalApi* | [**listProtocolsWithHttpInfo**](docs/InformationalApi.md#listProtocolsWithHttpInfo) | **GET** /protocols | Return a list of the listening Edge protocols
 *InformationalApi* | [**listRoot**](docs/InformationalApi.md#listRoot) | **GET** / | Returns version information
@@ -313,6 +315,10 @@ Class | Method | HTTP request | Description
  - [EnrollUpdbRequest](docs/EnrollUpdbRequest.md)
  - [EnrollmentCerts](docs/EnrollmentCerts.md)
  - [EnrollmentCertsEnvelope](docs/EnrollmentCertsEnvelope.md)
+ - [EnrollmentResponse](docs/EnrollmentResponse.md)
+ - [EnrollmentResponseEnvelope](docs/EnrollmentResponseEnvelope.md)
+ - [EnrollmentResponseUpdb](docs/EnrollmentResponseUpdb.md)
+ - [EnrollmentResponseUpdbEnvelope](docs/EnrollmentResponseUpdbEnvelope.md)
  - [EntityRef](docs/EntityRef.md)
  - [EnvInfo](docs/EnvInfo.md)
  - [ErOttEnrollmentRequest](docs/ErOttEnrollmentRequest.md)
@@ -339,6 +345,7 @@ Class | Method | HTTP request | Description
  - [ListCurrentApiSessionServiceUpdatesEnvelope](docs/ListCurrentApiSessionServiceUpdatesEnvelope.md)
  - [ListCurrentIdentityEdgeRoutersEnvelope](docs/ListCurrentIdentityEdgeRoutersEnvelope.md)
  - [ListEnumeratedCapabilitiesEnvelope](docs/ListEnumeratedCapabilitiesEnvelope.md)
+ - [ListEnumeratedRouterCapabilitiesEnvelope](docs/ListEnumeratedRouterCapabilitiesEnvelope.md)
  - [ListNetworkJWTsEnvelope](docs/ListNetworkJWTsEnvelope.md)
  - [ListProtocolsEnvelope](docs/ListProtocolsEnvelope.md)
  - [ListServiceEdgeRoutersEnvelope](docs/ListServiceEdgeRoutersEnvelope.md)
@@ -372,6 +379,7 @@ Class | Method | HTTP request | Description
  - [PostureResponseProcessCreate](docs/PostureResponseProcessCreate.md)
  - [PostureResponseService](docs/PostureResponseService.md)
  - [Protocol](docs/Protocol.md)
+ - [RouterCapabilities](docs/RouterCapabilities.md)
  - [RouterExtendEnrollmentRequest](docs/RouterExtendEnrollmentRequest.md)
  - [SdkInfo](docs/SdkInfo.md)
  - [ServiceDetail](docs/ServiceDetail.md)

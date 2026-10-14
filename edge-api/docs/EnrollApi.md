@@ -639,7 +639,7 @@ No authorization required
 
 ## enrollOttCa
 
-> CompletableFuture<Empty> enrollOttCa(ottEnrollmentRequest)
+> CompletableFuture<EnrollmentResponseEnvelope> enrollOttCa(ottEnrollmentRequest)
 
 Enroll an identity via one-time-token with a pre-exchanged client certificate
 
@@ -664,7 +664,7 @@ public class Example {
         EnrollApi apiInstance = new EnrollApi(defaultClient);
         OttEnrollmentRequest ottEnrollmentRequest = new OttEnrollmentRequest(); // OttEnrollmentRequest | An OTT enrollment request
         try {
-            CompletableFuture<Empty> result = apiInstance.enrollOttCa(ottEnrollmentRequest);
+            CompletableFuture<EnrollmentResponseEnvelope> result = apiInstance.enrollOttCa(ottEnrollmentRequest);
             System.out.println(result.get());
         } catch (ApiException e) {
             System.err.println("Exception when calling EnrollApi#enrollOttCa");
@@ -686,7 +686,7 @@ public class Example {
 
 ### Return type
 
-CompletableFuture<[**Empty**](Empty.md)>
+CompletableFuture<[**EnrollmentResponseEnvelope**](EnrollmentResponseEnvelope.md)>
 
 
 ### Authorization
@@ -701,14 +701,14 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Base empty response |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+| **200** | A response to a successful enrollment that carries no certificates, only common enrollment data such as the list of controllers |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 
 ## enrollOttCaWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> enrollOttCaWithHttpInfo(ottEnrollmentRequest)
+> CompletableFuture<ApiResponse<EnrollmentResponseEnvelope>> enrollOttCaWithHttpInfo(ottEnrollmentRequest)
 
 Enroll an identity via one-time-token with a pre-exchanged client certificate
 
@@ -734,7 +734,7 @@ public class Example {
         EnrollApi apiInstance = new EnrollApi(defaultClient);
         OttEnrollmentRequest ottEnrollmentRequest = new OttEnrollmentRequest(); // OttEnrollmentRequest | An OTT enrollment request
         try {
-            CompletableFuture<ApiResponse<Empty>> response = apiInstance.enrollOttCaWithHttpInfo(ottEnrollmentRequest);
+            CompletableFuture<ApiResponse<EnrollmentResponseEnvelope>> response = apiInstance.enrollOttCaWithHttpInfo(ottEnrollmentRequest);
             System.out.println("Status code: " + response.get().getStatusCode());
             System.out.println("Response headers: " + response.get().getHeaders());
             System.out.println("Response body: " + response.get().getData());
@@ -765,7 +765,7 @@ public class Example {
 
 ### Return type
 
-CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
+CompletableFuture<ApiResponse<[**EnrollmentResponseEnvelope**](EnrollmentResponseEnvelope.md)>>
 
 
 ### Authorization
@@ -780,7 +780,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Base empty response |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+| **200** | A response to a successful enrollment that carries no certificates, only common enrollment data such as the list of controllers |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
@@ -947,7 +947,7 @@ No authorization required
 
 ## enrollUpdb
 
-> CompletableFuture<Empty> enrollUpdb(token, updbCredentials)
+> CompletableFuture<EnrollmentResponseUpdbEnvelope> enrollUpdb(token, updbCredentials)
 
 Enroll an identity via one-time-token
 
@@ -973,7 +973,7 @@ public class Example {
         UUID token = UUID.randomUUID(); // UUID | 
         EnrollUpdbRequest updbCredentials = new EnrollUpdbRequest(); // EnrollUpdbRequest | 
         try {
-            CompletableFuture<Empty> result = apiInstance.enrollUpdb(token, updbCredentials);
+            CompletableFuture<EnrollmentResponseUpdbEnvelope> result = apiInstance.enrollUpdb(token, updbCredentials);
             System.out.println(result.get());
         } catch (ApiException e) {
             System.err.println("Exception when calling EnrollApi#enrollUpdb");
@@ -996,7 +996,7 @@ public class Example {
 
 ### Return type
 
-CompletableFuture<[**Empty**](Empty.md)>
+CompletableFuture<[**EnrollmentResponseUpdbEnvelope**](EnrollmentResponseUpdbEnvelope.md)>
 
 
 ### Authorization
@@ -1011,7 +1011,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Base empty response |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+| **200** | A response to a successful username/password enrollment carrying the established username and common enrollment data |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **404** | The requested resource does not exist |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
@@ -1019,7 +1019,7 @@ No authorization required
 
 ## enrollUpdbWithHttpInfo
 
-> CompletableFuture<ApiResponse<Empty>> enrollUpdbWithHttpInfo(token, updbCredentials)
+> CompletableFuture<ApiResponse<EnrollmentResponseUpdbEnvelope>> enrollUpdbWithHttpInfo(token, updbCredentials)
 
 Enroll an identity via one-time-token
 
@@ -1046,7 +1046,7 @@ public class Example {
         UUID token = UUID.randomUUID(); // UUID | 
         EnrollUpdbRequest updbCredentials = new EnrollUpdbRequest(); // EnrollUpdbRequest | 
         try {
-            CompletableFuture<ApiResponse<Empty>> response = apiInstance.enrollUpdbWithHttpInfo(token, updbCredentials);
+            CompletableFuture<ApiResponse<EnrollmentResponseUpdbEnvelope>> response = apiInstance.enrollUpdbWithHttpInfo(token, updbCredentials);
             System.out.println("Status code: " + response.get().getStatusCode());
             System.out.println("Response headers: " + response.get().getHeaders());
             System.out.println("Response body: " + response.get().getData());
@@ -1078,7 +1078,7 @@ public class Example {
 
 ### Return type
 
-CompletableFuture<ApiResponse<[**Empty**](Empty.md)>>
+CompletableFuture<ApiResponse<[**EnrollmentResponseUpdbEnvelope**](EnrollmentResponseUpdbEnvelope.md)>>
 
 
 ### Authorization
@@ -1093,7 +1093,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Base empty response |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+| **200** | A response to a successful username/password enrollment carrying the established username and common enrollment data |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **400** | The supplied request contains invalid fields or could not be parsed (json and non-json bodies). The error&#39;s code, message, and cause fields can be inspected for further information |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **404** | The requested resource does not exist |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 | **429** | The resource requested is rate limited and the rate limit has been exceeded |  * WWW-Authenticate - Denotes different type of security token related information <br>  |

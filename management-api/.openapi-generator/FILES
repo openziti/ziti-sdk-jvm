@@ -165,6 +165,7 @@ docs/ListEdgeRouterPoliciesEnvelope.md
 docs/ListEdgeRoutersEnvelope.md
 docs/ListEnrollmentsEnvelope.md
 docs/ListEnumeratedCapabilitiesEnvelope.md
+docs/ListEnumeratedRouterCapabilitiesEnvelope.md
 docs/ListExternalJwtSignersEnvelope.md
 docs/ListIdentitiesEnvelope.md
 docs/ListIdentityTypesEnvelope.md
@@ -265,6 +266,7 @@ docs/RoleAttributeSourceUsage.md
 docs/RoleAttributeUsageDetail.md
 docs/RoleAttributesApi.md
 docs/RouterApi.md
+docs/RouterCapabilities.md
 docs/RouterCreate.md
 docs/RouterDetail.md
 docs/RouterEntityRef.md
@@ -504,6 +506,7 @@ src/main/java/org/openziti/management/model/ListEdgeRouterPoliciesEnvelope.java
 src/main/java/org/openziti/management/model/ListEdgeRoutersEnvelope.java
 src/main/java/org/openziti/management/model/ListEnrollmentsEnvelope.java
 src/main/java/org/openziti/management/model/ListEnumeratedCapabilitiesEnvelope.java
+src/main/java/org/openziti/management/model/ListEnumeratedRouterCapabilitiesEnvelope.java
 src/main/java/org/openziti/management/model/ListExternalJwtSignersEnvelope.java
 src/main/java/org/openziti/management/model/ListIdentitiesEnvelope.java
 src/main/java/org/openziti/management/model/ListIdentityTypesEnvelope.java
@@ -599,6 +602,7 @@ src/main/java/org/openziti/management/model/RevocationDetail.java
 src/main/java/org/openziti/management/model/RevocationTypeEnum.java
 src/main/java/org/openziti/management/model/RoleAttributeSourceUsage.java
 src/main/java/org/openziti/management/model/RoleAttributeUsageDetail.java
+src/main/java/org/openziti/management/model/RouterCapabilities.java
 src/main/java/org/openziti/management/model/RouterCreate.java
 src/main/java/org/openziti/management/model/RouterDetail.java
 src/main/java/org/openziti/management/model/RouterEntityRef.java
