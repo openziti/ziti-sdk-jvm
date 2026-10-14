@@ -51,7 +51,16 @@ internal interface Channel: Closeable {
 
     suspend fun Send(msg: Message)
     suspend fun SendSynch(msg: Message)
-    suspend fun SendAndWait(msg: Message): Message
+
+    /**
+     * Sends [msg] and returns a deferred for its reply once the frame has been written to the
+     * transport. Await the result to receive the reply.
+     *
+     * The write completes before this returns, so a caller can arm a reply-only timeout on the
+     * deferred: a reconnect triggered by that timeout closes the transport and would otherwise
+     * cancel an in-flight write, dropping the frame.
+     */
+    suspend fun SendForReply(msg: Message): Deferred<Message>
 
     fun getCurrentLatency(): Long
     suspend fun updateToken(token: ZitiAuthenticator.ZitiAccessToken)
