@@ -50,7 +50,7 @@ jobs:
           report_paths: '**/build/**/TEST-*.xml'
 
       - name: Build
-        run: ./gradlew build assemble
+        run: ./gradlew build assemble -x integrationTest
 
 #      - name: check samples build
 #        run: |

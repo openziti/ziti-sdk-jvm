@@ -9,7 +9,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   title: Ziti Edge Client
-  version: 0.31.0
+  version: 0.36.0
 servers:
 - url: https://demo.ziti.dev/edge/client/v1
 paths:
@@ -3530,8 +3530,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/empty"
-          description: Base empty response
+                $ref: "#/components/schemas/enrollmentResponseEnvelope"
+          description: "A response to a successful enrollment that carries no certificates,\
+            \ only common enrollment data such as the list of controllers"
           headers:
             WWW-Authenticate:
               description: Denotes different type of security token related information
@@ -3822,8 +3823,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/empty"
-          description: Base empty response
+                $ref: "#/components/schemas/enrollmentResponseUpdbEnvelope"
+          description: A response to a successful username/password enrollment carrying
+            the established username and common enrollment data
           headers:
             WWW-Authenticate:
               description: Denotes different type of security token related information
@@ -3960,6 +3962,100 @@ paths:
       security: []
       summary: "Returns all capabilities this version of the controller is aware of,\
         \ enabled or not."
+      tags:
+      - Informational
+      x-accepts:
+      - application/json
+  /enumerated-router-capabilities:
+    get:
+      operationId: listEnumeratedRouterCapabilities
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listEnumeratedRouterCapabilitiesEnvelope"
+          description: A typed and enumerated list of router capabilities
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "401":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  cause: ""
+                  causeMessage: ""
+                  code: UNAUTHORIZED
+                  message: The request could not be completed. The session is not
+                    authorized or the credentials are invalid
+                  requestId: 0bfe7a04-9229-4b7a-812c-9eb3cc0eac0f
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The supplied session does not have the correct access rights
+            to request this resource
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "429":
+          content:
+            application/json:
+              example:
+                error:
+                  args:
+                    urlVars: {}
+                  causeMessage: you have hit a rate limit in the requested operation
+                  code: RATE_LIMITED
+                  message: The resource is rate limited and the rate limit has been
+                    exceeded. Please try again later
+                  requestId: 270908d6-f2ef-4577-b973-67bec18ae376
+                meta:
+                  apiEnrollmentVersion: 0.0.1
+                  apiVersion: 0.0.1
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The resource requested is rate limited and the rate limit has
+            been exceeded
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiErrorEnvelope"
+          description: The request could not be completed due to the server being
+            busy or in a temporarily bad state
+          headers:
+            WWW-Authenticate:
+              description: Denotes different type of security token related information
+              schema:
+                items:
+                  type: string
+                type: array
+      security:
+      - ztSession: []
+      - oauth2:
+        - openid
+      summary: Returns all router capabilities this version of the controller is aware
+        of
       tags:
       - Informational
       x-accepts:
@@ -6383,26 +6479,16 @@ components:
         args:
           urlVars:
             key: urlVars
+        cause:
+          field: field
+          reason: reason
+          value: "{}"
+        causeMessage: causeMessage
         code: code
         data:
           key: ""
-        requestId: requestId
-        cause:
-          args:
-            urlVars:
-              key: urlVars
-          reason: reason
-          code: code
-          field: field
-          data:
-            key: ""
-          requestId: requestId
-          cause: null
-          message: message
-          value: "{}"
-          causeMessage: causeMessage
         message: message
-        causeMessage: causeMessage
+        requestId: requestId
       properties:
         args:
           $ref: "#/components/schemas/apiErrorArgs"
@@ -6435,55 +6521,35 @@ components:
       - $ref: "#/components/schemas/apiFieldError"
       - $ref: "#/components/schemas/apiError"
       example:
-        args:
-          urlVars:
-            key: urlVars
-        reason: reason
-        code: code
         field: field
-        data:
-          key: ""
-        requestId: requestId
-        cause: null
-        message: message
+        reason: reason
         value: "{}"
-        causeMessage: causeMessage
     apiErrorEnvelope:
       example:
-        meta:
-          apiEnrollmentVersion: apiEnrollmentVersion
-          apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
-          filterableFields:
-          - filterableFields
-          - filterableFields
         error:
           args:
             urlVars:
               key: urlVars
+          cause:
+            field: field
+            reason: reason
+            value: "{}"
+          causeMessage: causeMessage
           code: code
           data:
             key: ""
-          requestId: requestId
-          cause:
-            args:
-              urlVars:
-                key: urlVars
-            reason: reason
-            code: code
-            field: field
-            data:
-              key: ""
-            requestId: requestId
-            cause: null
-            message: message
-            value: "{}"
-            causeMessage: causeMessage
           message: message
-          causeMessage: causeMessage
+          requestId: requestId
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          filterableFields:
+          - filterableFields
+          - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         error:
           $ref: "#/components/schemas/apiError"
@@ -6556,10 +6622,10 @@ components:
       description: An API Session object
     apiVersion:
       example:
-        path: path
         apiBaseUrls:
         - apiBaseUrls
         - apiBaseUrls
+        path: path
         version: version
       properties:
         apiBaseUrls:
@@ -6584,18 +6650,18 @@ components:
     authQueryDetail:
       example:
         clientId: clientId
-        isTotpEnrolled: true
-        provider: ziti
-        httpUrl: httpUrl
-        minLength: 6
         format: numeric
-        typeId: MFA
+        httpMethod: httpMethod
+        httpUrl: httpUrl
         id: id
+        isTotpEnrolled: true
+        maxLength: 0
+        minLength: 6
+        provider: ziti
         scopes:
         - scopes
         - scopes
-        httpMethod: httpMethod
-        maxLength: 0
+        typeId: MFA
       properties:
         clientId:
           type: string
@@ -6693,34 +6759,34 @@ components:
         type: object
       description: A singular authenticator resource
       example:
-        method: method
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        extendRequestedAt: 2000-01-23T04:56:07.000+00:00
-        certPem: certPem
-        isIssuedByNetwork: true
-        lastExtendRolledKeys: true
-        tags: {}
-        isExtendRequested: true
+            method: method
         createdAt: 2000-01-23T04:56:07.000+00:00
+        id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+        certPem: certPem
+        extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+        fingerprint: fingerprint
         identity:
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          name: name
-          id: id
+              method: method
           entity: entity
+          id: id
+          name: name
         identityId: identityId
+        isExtendRequested: true
+        isIssuedByNetwork: true
         isKeyRollRequested: true
-        fingerprint: fingerprint
         lastAuthResolvedToRoot: true
-        id: id
-        updatedAt: 2000-01-23T04:56:07.000+00:00
+        lastExtendRolledKeys: true
+        method: method
         username: username
     authenticatorList:
       description: An array of authenticator resources
@@ -6847,26 +6913,26 @@ components:
         type: object
       description: A External JWT Signer resource
       example:
-        audience: audience
-        clientId: clientId
-        externalAuthUrl: http://example.com/aeiou
-        enrollToTokenEnabled: true
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        targetToken: ACCESS
-        enrollToCertEnabled: true
-        tags: {}
+            method: method
         createdAt: 2000-01-23T04:56:07.000+00:00
-        openIdConfigurationUrl: openIdConfigurationUrl
-        name: MyApps Signer
         id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+        audience: audience
+        clientId: clientId
+        enrollToCertEnabled: true
+        enrollToTokenEnabled: true
+        externalAuthUrl: http://example.com/aeiou
+        name: MyApps Signer
+        openIdConfigurationUrl: openIdConfigurationUrl
         scopes:
         - scopes
         - scopes
-        updatedAt: 2000-01-23T04:56:07.000+00:00
+        targetToken: ACCESS
     clientExternalJwtSignerList:
       description: An array of External JWT Signers resources
       items:
@@ -6874,19 +6940,29 @@ components:
       type: array
     commonEdgeRouterProperties:
       example:
-        hostname: hostname
+        appData: {}
+        capabilities:
+        - capabilities
+        - capabilities
         cost: 5248
+        disabled: true
+        hostname: hostname
+        isOnline: true
         name: name
         noTraversal: true
-        disabled: true
-        isOnline: true
         supportedProtocols:
           key: supportedProtocols
-        appData: {}
         syncStatus: syncStatus
+        version: version
       properties:
         appData:
           $ref: "#/components/schemas/tags"
+        capabilities:
+          description: |
+            Capabilities this edge router advertises, used by SDK clients to select a router that supports a given feature before connecting. Open-ended: clients ignore values they do not recognize. Absent when the controller predates this field.
+          items:
+            type: string
+          type: array
         cost:
           maximum: 65535
           minimum: 0
@@ -6908,6 +6984,10 @@ components:
             type: string
           type: object
         syncStatus:
+          type: string
+        version:
+          description: |
+            The version of the edge router binary, as reported to the controller when the router connects. Empty when the controller has not yet received a version from the router or predates this field.
           type: string
       required:
       - cost
@@ -6957,21 +7037,21 @@ components:
       example:
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        apiAddresses: null
-        ctrlAddress: ctrlAddress
-        certPem: certPem
-        isOnline: true
-        tags: {}
+            method: method
         createdAt: 2000-01-23T04:56:07.000+00:00
-        fingerprint: fingerprint
-        name: name
         id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+        apiAddresses: null
+        certPem: certPem
+        ctrlAddress: ctrlAddress
+        fingerprint: fingerprint
+        isOnline: true
         isPreferredLeader: true
         lastJoinedAt: 2000-01-23T04:56:07.000+00:00
-        updatedAt: 2000-01-23T04:56:07.000+00:00
+        name: name
     controllersList:
       description: An array of controller resources
       items:
@@ -6980,24 +7060,24 @@ components:
     createCurrentApiSessionCertificateEnvelope:
       example:
         data:
-          cas: cas
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          certificate: certificate
+              method: method
           id: id
+          cas: cas
+          certificate: certificate
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/currentApiSessionCertificateCreateResponse"
@@ -7012,20 +7092,20 @@ components:
         data:
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
+              method: method
           id: id
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/createLocation"
@@ -7036,9 +7116,9 @@ components:
       example:
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
+            method: method
         id: id
       properties:
         _links:
@@ -7069,14 +7149,14 @@ components:
         - certificate
         type: object
       example:
-        cas: cas
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        certificate: certificate
+            method: method
         id: id
+        cas: cas
+        certificate: certificate
     currentApiSessionCertificateDetail:
       allOf:
       - $ref: "#/components/schemas/baseEntity"
@@ -7101,19 +7181,19 @@ components:
         - validTo
         type: object
       example:
-        createdAt: 2000-01-23T04:56:07.000+00:00
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        subject: subject
-        certificate: certificate
-        fingerprint: fingerprint
+            method: method
+        createdAt: 2000-01-23T04:56:07.000+00:00
         id: id
-        validFrom: 2000-01-23T04:56:07.000+00:00
         tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
+        certificate: certificate
+        fingerprint: fingerprint
+        subject: subject
+        validFrom: 2000-01-23T04:56:07.000+00:00
         validTo: 2000-01-23T04:56:07.000+00:00
     currentApiSessionCertificateList:
       items:
@@ -7134,143 +7214,143 @@ components:
         type: object
       description: An API Session object for the current API session
       example:
-        isCertExtendRequested: true
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
+            method: method
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+        authQueries:
+        - clientId: clientId
+          format: numeric
+          httpMethod: httpMethod
+          httpUrl: httpUrl
+          id: id
+          isTotpEnrolled: true
+          maxLength: 0
+          minLength: 6
+          provider: ziti
+          scopes:
+          - scopes
+          - scopes
+          typeId: MFA
+        - clientId: clientId
+          format: numeric
+          httpMethod: httpMethod
+          httpUrl: httpUrl
+          id: id
+          isTotpEnrolled: true
+          maxLength: 0
+          minLength: 6
+          provider: ziti
+          scopes:
+          - scopes
+          - scopes
+          typeId: MFA
+        authenticatorId: authenticatorId
+        cachedLastActivityAt: 2000-01-23T04:56:07.000+00:00
         configTypes:
         - configTypes
         - configTypes
-        authQueries:
-        - clientId: clientId
-          isTotpEnrolled: true
-          provider: ziti
-          httpUrl: httpUrl
-          minLength: 6
-          format: numeric
-          typeId: MFA
-          id: id
-          scopes:
-          - scopes
-          - scopes
-          httpMethod: httpMethod
-          maxLength: 0
-        - clientId: clientId
-          isTotpEnrolled: true
-          provider: ziti
-          httpUrl: httpUrl
-          minLength: 6
-          format: numeric
-          typeId: MFA
-          id: id
-          scopes:
-          - scopes
-          - scopes
-          httpMethod: httpMethod
-          maxLength: 0
-        expirationSeconds: 1
-        ipAddress: ipAddress
-        lastActivityAt: 2000-01-23T04:56:07.000+00:00
-        isMfaRequired: true
-        expiresAt: 2000-01-23T04:56:07.000+00:00
-        tags: {}
-        token: token
-        createdAt: 2000-01-23T04:56:07.000+00:00
-        isMfaComplete: true
-        cachedLastActivityAt: 2000-01-23T04:56:07.000+00:00
         identity:
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          name: name
-          id: id
+              method: method
           entity: entity
+          id: id
+          name: name
         identityId: identityId
         improperClientCertChain: true
-        isCertKeyRollRequested: true
-        authenticatorId: authenticatorId
-        id: id
+        ipAddress: ipAddress
+        isCertExtendRequested: true
         isCertExtendable: true
-        updatedAt: 2000-01-23T04:56:07.000+00:00
+        isCertKeyRollRequested: true
+        isMfaComplete: true
+        isMfaRequired: true
+        lastActivityAt: 2000-01-23T04:56:07.000+00:00
+        token: token
+        expirationSeconds: 1
+        expiresAt: 2000-01-23T04:56:07.000+00:00
     currentApiSessionDetailEnvelope:
       example:
         data:
-          isCertExtendRequested: true
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          authQueries:
+          - clientId: clientId
+            format: numeric
+            httpMethod: httpMethod
+            httpUrl: httpUrl
+            id: id
+            isTotpEnrolled: true
+            maxLength: 0
+            minLength: 6
+            provider: ziti
+            scopes:
+            - scopes
+            - scopes
+            typeId: MFA
+          - clientId: clientId
+            format: numeric
+            httpMethod: httpMethod
+            httpUrl: httpUrl
+            id: id
+            isTotpEnrolled: true
+            maxLength: 0
+            minLength: 6
+            provider: ziti
+            scopes:
+            - scopes
+            - scopes
+            typeId: MFA
+          authenticatorId: authenticatorId
+          cachedLastActivityAt: 2000-01-23T04:56:07.000+00:00
           configTypes:
           - configTypes
           - configTypes
-          authQueries:
-          - clientId: clientId
-            isTotpEnrolled: true
-            provider: ziti
-            httpUrl: httpUrl
-            minLength: 6
-            format: numeric
-            typeId: MFA
-            id: id
-            scopes:
-            - scopes
-            - scopes
-            httpMethod: httpMethod
-            maxLength: 0
-          - clientId: clientId
-            isTotpEnrolled: true
-            provider: ziti
-            httpUrl: httpUrl
-            minLength: 6
-            format: numeric
-            typeId: MFA
-            id: id
-            scopes:
-            - scopes
-            - scopes
-            httpMethod: httpMethod
-            maxLength: 0
-          expirationSeconds: 1
-          ipAddress: ipAddress
-          lastActivityAt: 2000-01-23T04:56:07.000+00:00
-          isMfaRequired: true
-          expiresAt: 2000-01-23T04:56:07.000+00:00
-          tags: {}
-          token: token
-          createdAt: 2000-01-23T04:56:07.000+00:00
-          isMfaComplete: true
-          cachedLastActivityAt: 2000-01-23T04:56:07.000+00:00
           identity:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
+            id: id
+            name: name
           identityId: identityId
           improperClientCertChain: true
-          isCertKeyRollRequested: true
-          authenticatorId: authenticatorId
-          id: id
+          ipAddress: ipAddress
+          isCertExtendRequested: true
           isCertExtendable: true
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          isCertKeyRollRequested: true
+          isMfaComplete: true
+          isMfaRequired: true
+          lastActivityAt: 2000-01-23T04:56:07.000+00:00
+          token: token
+          expirationSeconds: 1
+          expiresAt: 2000-01-23T04:56:07.000+00:00
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/currentApiSessionDetail"
@@ -7293,21 +7373,26 @@ components:
     currentIdentityDetailEnvelope:
       example:
         data:
-          defaultHostingPrecedence: default
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          appData: {}
           authPolicy:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
+            id: id
+            name: name
+          authPolicyId: authPolicyId
           authenticators:
             cert:
               fingerprint: fingerprint
@@ -7315,117 +7400,112 @@ components:
             updb:
               id: id
               username: username
-          type:
-            _links:
-              key:
-                method: method
-                comment: comment
-                href: https://openapi-generator.tech
-            name: name
-            id: id
-            entity: entity
-          isMfaEnabled: true
-          appData: {}
-          disabledAt: 2000-01-23T04:56:07.000+00:00
-          createdAt: 2000-01-23T04:56:07.000+00:00
-          roleAttributes:
-          - null
-          - null
-          edgeRouterConnectionStatus: online
-          hasEdgeRouterConnection: true
-          permissions:
-          - admin_readonly
-          - admin_readonly
-          serviceHostingPrecedences: null
-          envInfo:
-            hostname: hostname
-            os: os
-            osVersion: osVersion
-            domain: domain
-            arch: arch
-            osRelease: osRelease
-          hasApiSession: true
-          disabled: true
-          id: id
-          updatedAt: 2000-01-23T04:56:07.000+00:00
-          sdkInfo:
-            appVersion: appVersion
-            appId: appId
-            type: type
-            branch: branch
-            version: version
-            revision: revision
           defaultHostingCost: null
-          interfaces:
-          - hardwareAddress: hardwareAddress
-            addresses:
-            - addresses
-            - addresses
-            isUp: true
-            isRunning: true
-            isBroadcast: true
-            name: name
-            index: 0
-            isLoopback: true
-            isMulticast: true
-            mtu: 0
-          - hardwareAddress: hardwareAddress
-            addresses:
-            - addresses
-            - addresses
-            isUp: true
-            isRunning: true
-            isBroadcast: true
-            name: name
-            index: 0
-            isLoopback: true
-            isMulticast: true
-            mtu: 0
-          authPolicyId: authPolicyId
-          externalId: externalId
+          defaultHostingPrecedence: default
+          disabled: true
+          disabledAt: 2000-01-23T04:56:07.000+00:00
           disabledUntil: 2000-01-23T04:56:07.000+00:00
-          isAdmin: true
-          tags: {}
+          edgeRouterConnectionStatus: online
           enrollment:
             ott:
-              jwt: jwt
-              id: id
               expiresAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              jwt: jwt
               token: token
             ottca:
-              jwt: jwt
-              caId: caId
-              id: id
               ca:
                 _links:
                   key:
-                    method: method
                     comment: comment
                     href: https://openapi-generator.tech
-                name: name
-                id: id
+                    method: method
                 entity: entity
+                id: id
+                name: name
+              caId: caId
               expiresAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              jwt: jwt
               token: token
             updb:
-              jwt: jwt
-              id: id
               expiresAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              jwt: jwt
               token: token
+          envInfo:
+            arch: arch
+            domain: domain
+            hostname: hostname
+            os: os
+            osRelease: osRelease
+            osVersion: osVersion
+          externalId: externalId
+          hasApiSession: true
+          hasEdgeRouterConnection: true
+          interfaces:
+          - addresses:
+            - addresses
+            - addresses
+            hardwareAddress: hardwareAddress
+            index: 0
+            isBroadcast: true
+            isLoopback: true
+            isMulticast: true
+            isRunning: true
+            isUp: true
+            mtu: 0
+            name: name
+          - addresses:
+            - addresses
+            - addresses
+            hardwareAddress: hardwareAddress
+            index: 0
+            isBroadcast: true
+            isLoopback: true
+            isMulticast: true
+            isRunning: true
+            isUp: true
+            mtu: 0
+            name: name
+          isAdmin: true
           isDefaultAdmin: true
+          isMfaEnabled: true
           name: name
-          typeId: typeId
+          permissions:
+          - admin_readonly
+          - admin_readonly
+          roleAttributes:
+          - null
+          - null
+          sdkInfo:
+            appId: appId
+            appVersion: appVersion
+            branch: branch
+            revision: revision
+            type: type
+            version: version
           serviceHostingCosts: null
+          serviceHostingPrecedences: null
+          type:
+            _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            entity: entity
+            id: id
+            name: name
+          typeId: typeId
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/identityDetail"
@@ -7441,25 +7521,29 @@ components:
       - $ref: "#/components/schemas/commonEdgeRouterProperties"
       description: A detail edge router resource
       example:
-        cost: 5248
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        noTraversal: true
+            method: method
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+        appData: {}
+        capabilities:
+        - capabilities
+        - capabilities
+        cost: 5248
+        disabled: true
+        hostname: hostname
         isOnline: true
+        name: name
+        noTraversal: true
         supportedProtocols:
           key: supportedProtocols
-        appData: {}
-        tags: {}
-        createdAt: 2000-01-23T04:56:07.000+00:00
-        hostname: hostname
-        name: name
-        disabled: true
-        id: id
         syncStatus: syncStatus
-        updatedAt: 2000-01-23T04:56:07.000+00:00
+        version: version
     currentIdentityEdgeRouterList:
       description: A list of edge router resources
       items:
@@ -7468,45 +7552,45 @@ components:
     detailAuthenticatorEnvelope:
       example:
         data:
-          method: method
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
-          certPem: certPem
-          isIssuedByNetwork: true
-          lastExtendRolledKeys: true
-          tags: {}
-          isExtendRequested: true
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          certPem: certPem
+          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+          fingerprint: fingerprint
           identity:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
+            id: id
+            name: name
           identityId: identityId
+          isExtendRequested: true
+          isIssuedByNetwork: true
           isKeyRollRequested: true
-          fingerprint: fingerprint
           lastAuthResolvedToRoot: true
-          id: id
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          lastExtendRolledKeys: true
+          method: method
           username: username
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/authenticatorDetail"
@@ -7519,30 +7603,30 @@ components:
     detailCurrentApiSessionCertificateEnvelope:
       example:
         data:
-          createdAt: 2000-01-23T04:56:07.000+00:00
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          subject: subject
-          certificate: certificate
-          fingerprint: fingerprint
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
-          validFrom: 2000-01-23T04:56:07.000+00:00
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
+          certificate: certificate
+          fingerprint: fingerprint
+          subject: subject
+          validFrom: 2000-01-23T04:56:07.000+00:00
           validTo: 2000-01-23T04:56:07.000+00:00
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/currentApiSessionCertificateDetail"
@@ -7570,47 +7654,47 @@ components:
         - isVerified
         type: object
       example:
-        createdAt: 2000-01-23T04:56:07.000+00:00
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
+            method: method
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
         isVerified: true
         provisioningUrl: provisioningUrl
-        id: id
         recoveryCodes:
         - recoveryCodes
         - recoveryCodes
-        tags: {}
-        updatedAt: 2000-01-23T04:56:07.000+00:00
     detailMfaEnvelope:
       example:
         data:
-          createdAt: 2000-01-23T04:56:07.000+00:00
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           isVerified: true
           provisioningUrl: provisioningUrl
-          id: id
           recoveryCodes:
           - recoveryCodes
           - recoveryCodes
-          tags: {}
-          updatedAt: 2000-01-23T04:56:07.000+00:00
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/detailMfa"
@@ -7632,43 +7716,43 @@ components:
         - recoveryCodes
         type: object
       example:
-        createdAt: 2000-01-23T04:56:07.000+00:00
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
+            method: method
+        createdAt: 2000-01-23T04:56:07.000+00:00
         id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
         recoveryCodes:
         - recoveryCodes
         - recoveryCodes
-        tags: {}
-        updatedAt: 2000-01-23T04:56:07.000+00:00
     detailMfaRecoveryCodesEnvelope:
       example:
         data:
-          createdAt: 2000-01-23T04:56:07.000+00:00
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           recoveryCodes:
           - recoveryCodes
           - recoveryCodes
-          tags: {}
-          updatedAt: 2000-01-23T04:56:07.000+00:00
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/detailMfaRecoveryCodes"
@@ -7681,150 +7765,150 @@ components:
     detailServiceEnvelope:
       example:
         data:
-          maxIdleTimeMillis: 0
-          configs:
-          - configs
-          - configs
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          encryptionRequired: true
-          terminatorStrategy: terminatorStrategy
-          tags: {}
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
-          roleAttributes:
-          - null
-          - null
-          postureQueries:
-          - policyId: policyId
-            postureQueries:
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            policyType: null
-            isPassing: true
-          - policyId: policyId
-            postureQueries:
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            policyType: null
-            isPassing: true
-          permissions:
-          - Dial
-          - Dial
-          name: name
           id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           config:
             key:
               key: "{}"
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          configs:
+          - configs
+          - configs
+          encryptionRequired: true
+          maxIdleTimeMillis: 0
+          name: name
+          permissions:
+          - Dial
+          - Dial
+          postureQueries:
+          - isPassing: true
+            policyId: policyId
+            policyType: null
+            postureQueries:
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+          - isPassing: true
+            policyId: policyId
+            policyType: null
+            postureQueries:
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+          roleAttributes:
+          - null
+          - null
+          terminatorStrategy: terminatorStrategy
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/serviceDetail"
@@ -7839,71 +7923,79 @@ components:
         data:
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          type: Dial
-          tags: {}
-          token: token
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           apiSession:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
+            id: id
+            name: name
+          apiSessionId: apiSessionId
           edgeRouters:
-          - hostname: hostname
-            urls:
-              key: urls
+          - appData: {}
+            capabilities:
+            - capabilities
+            - capabilities
             cost: 5248
+            disabled: true
+            hostname: hostname
+            isOnline: true
             name: name
             noTraversal: true
-            disabled: true
-            isOnline: true
             supportedProtocols:
               key: supportedProtocols
-            appData: {}
             syncStatus: syncStatus
-          - hostname: hostname
+            version: version
             urls:
               key: urls
+          - appData: {}
+            capabilities:
+            - capabilities
+            - capabilities
             cost: 5248
+            disabled: true
+            hostname: hostname
+            isOnline: true
             name: name
             noTraversal: true
-            disabled: true
-            isOnline: true
             supportedProtocols:
               key: supportedProtocols
-            appData: {}
             syncStatus: syncStatus
+            version: version
+            urls:
+              key: urls
           identityId: identityId
           service:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
-          id: id
+            id: id
+            name: name
           serviceId: serviceId
-          apiSessionId: apiSessionId
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          token: token
+          type: Dial
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/sessionDetail"
@@ -7919,13 +8011,13 @@ components:
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           type: string
@@ -7938,26 +8030,26 @@ components:
     detailSpecEnvelope:
       example:
         data:
-          createdAt: 2000-01-23T04:56:07.000+00:00
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          name: name
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
+          name: name
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/specDetail"
@@ -7983,13 +8075,13 @@ components:
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           example: {}
@@ -8002,40 +8094,313 @@ components:
       - meta
       type: object
     enrollmentCerts:
+      allOf:
+      - $ref: "#/components/schemas/enrollmentResponse"
+      - properties:
+          ca:
+            description: A PEM encoded set of CA certificates to trust
+            type: string
+          cert:
+            description: A PEM encoded set of certificates to use as the client chain
+            type: string
+          serverCert:
+            description: A PEM encoded set of certificates to use as the servers chain
+            type: string
+        type: object
       example:
-        serverCert: serverCert
-        cert: cert
+        controllers:
+        - _links:
+            key:
+              comment: comment
+              href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          apiAddresses: null
+          certPem: certPem
+          ctrlAddress: ctrlAddress
+          fingerprint: fingerprint
+          isOnline: true
+          isPreferredLeader: true
+          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+          name: name
+        - _links:
+            key:
+              comment: comment
+              href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          apiAddresses: null
+          certPem: certPem
+          ctrlAddress: ctrlAddress
+          fingerprint: fingerprint
+          isOnline: true
+          isPreferredLeader: true
+          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+          name: name
         ca: ca
-      properties:
-        ca:
-          description: A PEM encoded set of CA certificates to trust
-          type: string
-        cert:
-          description: A PEM encoded set of certificates to use as the client chain
-          type: string
-        serverCert:
-          description: A PEM encoded set of certificates to use as the servers chain
-          type: string
-      type: object
+        cert: cert
+        serverCert: serverCert
     enrollmentCertsEnvelope:
       example:
         data:
-          serverCert: serverCert
-          cert: cert
+          controllers:
+          - _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            tags: {}
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+            apiAddresses: null
+            certPem: certPem
+            ctrlAddress: ctrlAddress
+            fingerprint: fingerprint
+            isOnline: true
+            isPreferredLeader: true
+            lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+            name: name
+          - _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            tags: {}
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+            apiAddresses: null
+            certPem: certPem
+            ctrlAddress: ctrlAddress
+            fingerprint: fingerprint
+            isOnline: true
+            isPreferredLeader: true
+            lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+            name: name
           ca: ca
+          cert: cert
+          serverCert: serverCert
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/enrollmentCerts"
+        meta:
+          $ref: "#/components/schemas/meta"
+      type: object
+    enrollmentResponse:
+      description: "Common data returned on any successful enrollment, regardless\
+        \ of method. The controllers field carries the set of controllers in the cluster\
+        \ the enrolling client may connect to."
+      example:
+        controllers:
+        - _links:
+            key:
+              comment: comment
+              href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          apiAddresses: null
+          certPem: certPem
+          ctrlAddress: ctrlAddress
+          fingerprint: fingerprint
+          isOnline: true
+          isPreferredLeader: true
+          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+          name: name
+        - _links:
+            key:
+              comment: comment
+              href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          apiAddresses: null
+          certPem: certPem
+          ctrlAddress: ctrlAddress
+          fingerprint: fingerprint
+          isOnline: true
+          isPreferredLeader: true
+          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+          name: name
+      properties:
+        controllers:
+          description: An array of controller resources
+          items:
+            $ref: "#/components/schemas/controllerDetail"
+          type: array
+      type: object
+    enrollmentResponseEnvelope:
+      example:
+        data:
+          controllers:
+          - _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            tags: {}
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+            apiAddresses: null
+            certPem: certPem
+            ctrlAddress: ctrlAddress
+            fingerprint: fingerprint
+            isOnline: true
+            isPreferredLeader: true
+            lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+            name: name
+          - _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            tags: {}
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+            apiAddresses: null
+            certPem: certPem
+            ctrlAddress: ctrlAddress
+            fingerprint: fingerprint
+            isOnline: true
+            isPreferredLeader: true
+            lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+            name: name
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          filterableFields:
+          - filterableFields
+          - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
+      properties:
+        data:
+          $ref: "#/components/schemas/enrollmentResponse"
+        meta:
+          $ref: "#/components/schemas/meta"
+      type: object
+    enrollmentResponseUpdb:
+      allOf:
+      - $ref: "#/components/schemas/enrollmentResponse"
+      - properties:
+          username:
+            description: The username established for the enrolled identity
+            type: string
+        type: object
+      example:
+        controllers:
+        - _links:
+            key:
+              comment: comment
+              href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          apiAddresses: null
+          certPem: certPem
+          ctrlAddress: ctrlAddress
+          fingerprint: fingerprint
+          isOnline: true
+          isPreferredLeader: true
+          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+          name: name
+        - _links:
+            key:
+              comment: comment
+              href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          apiAddresses: null
+          certPem: certPem
+          ctrlAddress: ctrlAddress
+          fingerprint: fingerprint
+          isOnline: true
+          isPreferredLeader: true
+          lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+          name: name
+        username: username
+    enrollmentResponseUpdbEnvelope:
+      example:
+        data:
+          controllers:
+          - _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            tags: {}
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+            apiAddresses: null
+            certPem: certPem
+            ctrlAddress: ctrlAddress
+            fingerprint: fingerprint
+            isOnline: true
+            isPreferredLeader: true
+            lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+            name: name
+          - _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            tags: {}
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+            apiAddresses: null
+            certPem: certPem
+            ctrlAddress: ctrlAddress
+            fingerprint: fingerprint
+            isOnline: true
+            isPreferredLeader: true
+            lastJoinedAt: 2000-01-23T04:56:07.000+00:00
+            name: name
+          username: username
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          filterableFields:
+          - filterableFields
+          - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
+      properties:
+        data:
+          $ref: "#/components/schemas/enrollmentResponseUpdb"
         meta:
           $ref: "#/components/schemas/meta"
       type: object
@@ -8044,12 +8409,12 @@ components:
       example:
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        name: name
-        id: id
+            method: method
         entity: entity
+        id: id
+        name: name
       properties:
         _links:
           additionalProperties:
@@ -8067,12 +8432,12 @@ components:
     envInfo:
       description: Environment information an authenticating client may provide
       example:
+        arch: arch
+        domain: domain
         hostname: hostname
         os: os
-        osVersion: osVersion
-        domain: domain
-        arch: arch
         osRelease: osRelease
+        osVersion: osVersion
       properties:
         arch:
           maxLength: 255
@@ -8230,21 +8595,26 @@ components:
         type: object
       description: Detail of a specific identity
       example:
-        defaultHostingPrecedence: default
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
+            method: method
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+        appData: {}
         authPolicy:
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          name: name
-          id: id
+              method: method
           entity: entity
+          id: id
+          name: name
+        authPolicyId: authPolicyId
         authenticators:
           cert:
             fingerprint: fingerprint
@@ -8252,133 +8622,128 @@ components:
           updb:
             id: id
             username: username
-        type:
-          _links:
-            key:
-              method: method
-              comment: comment
-              href: https://openapi-generator.tech
-          name: name
-          id: id
-          entity: entity
-        isMfaEnabled: true
-        appData: {}
-        disabledAt: 2000-01-23T04:56:07.000+00:00
-        createdAt: 2000-01-23T04:56:07.000+00:00
-        roleAttributes:
-        - null
-        - null
-        edgeRouterConnectionStatus: online
-        hasEdgeRouterConnection: true
-        permissions:
-        - admin_readonly
-        - admin_readonly
-        serviceHostingPrecedences: null
-        envInfo:
-          hostname: hostname
-          os: os
-          osVersion: osVersion
-          domain: domain
-          arch: arch
-          osRelease: osRelease
-        hasApiSession: true
-        disabled: true
-        id: id
-        updatedAt: 2000-01-23T04:56:07.000+00:00
-        sdkInfo:
-          appVersion: appVersion
-          appId: appId
-          type: type
-          branch: branch
-          version: version
-          revision: revision
         defaultHostingCost: null
-        interfaces:
-        - hardwareAddress: hardwareAddress
-          addresses:
-          - addresses
-          - addresses
-          isUp: true
-          isRunning: true
-          isBroadcast: true
-          name: name
-          index: 0
-          isLoopback: true
-          isMulticast: true
-          mtu: 0
-        - hardwareAddress: hardwareAddress
-          addresses:
-          - addresses
-          - addresses
-          isUp: true
-          isRunning: true
-          isBroadcast: true
-          name: name
-          index: 0
-          isLoopback: true
-          isMulticast: true
-          mtu: 0
-        authPolicyId: authPolicyId
-        externalId: externalId
+        defaultHostingPrecedence: default
+        disabled: true
+        disabledAt: 2000-01-23T04:56:07.000+00:00
         disabledUntil: 2000-01-23T04:56:07.000+00:00
-        isAdmin: true
-        tags: {}
+        edgeRouterConnectionStatus: online
         enrollment:
           ott:
-            jwt: jwt
-            id: id
             expiresAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            jwt: jwt
             token: token
           ottca:
-            jwt: jwt
-            caId: caId
-            id: id
             ca:
               _links:
                 key:
-                  method: method
                   comment: comment
                   href: https://openapi-generator.tech
-              name: name
-              id: id
+                  method: method
               entity: entity
+              id: id
+              name: name
+            caId: caId
             expiresAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            jwt: jwt
             token: token
           updb:
-            jwt: jwt
-            id: id
             expiresAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            jwt: jwt
             token: token
+        envInfo:
+          arch: arch
+          domain: domain
+          hostname: hostname
+          os: os
+          osRelease: osRelease
+          osVersion: osVersion
+        externalId: externalId
+        hasApiSession: true
+        hasEdgeRouterConnection: true
+        interfaces:
+        - addresses:
+          - addresses
+          - addresses
+          hardwareAddress: hardwareAddress
+          index: 0
+          isBroadcast: true
+          isLoopback: true
+          isMulticast: true
+          isRunning: true
+          isUp: true
+          mtu: 0
+          name: name
+        - addresses:
+          - addresses
+          - addresses
+          hardwareAddress: hardwareAddress
+          index: 0
+          isBroadcast: true
+          isLoopback: true
+          isMulticast: true
+          isRunning: true
+          isUp: true
+          mtu: 0
+          name: name
+        isAdmin: true
         isDefaultAdmin: true
+        isMfaEnabled: true
         name: name
-        typeId: typeId
+        permissions:
+        - admin_readonly
+        - admin_readonly
+        roleAttributes:
+        - null
+        - null
+        sdkInfo:
+          appId: appId
+          appVersion: appVersion
+          branch: branch
+          revision: revision
+          type: type
+          version: version
         serviceHostingCosts: null
+        serviceHostingPrecedences: null
+        type:
+          _links:
+            key:
+              comment: comment
+              href: https://openapi-generator.tech
+              method: method
+          entity: entity
+          id: id
+          name: name
+        typeId: typeId
     identityEnrollments:
       example:
         ott:
-          jwt: jwt
-          id: id
           expiresAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          jwt: jwt
           token: token
         ottca:
-          jwt: jwt
-          caId: caId
-          id: id
           ca:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
+            id: id
+            name: name
+          caId: caId
           expiresAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          jwt: jwt
           token: token
         updb:
-          jwt: jwt
-          id: id
           expiresAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          jwt: jwt
           token: token
       properties:
         ott:
@@ -8390,8 +8755,8 @@ components:
       type: object
     identityExtendCerts:
       example:
-        clientCert: clientCert
         ca: ca
+        clientCert: clientCert
       properties:
         ca:
           description: A PEM encoded set of CA certificates
@@ -8403,18 +8768,18 @@ components:
     identityExtendEnrollmentEnvelope:
       example:
         data:
-          clientCert: clientCert
           ca: ca
+          clientCert: clientCert
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/identityExtendCerts"
@@ -8440,18 +8805,18 @@ components:
     interface:
       description: A resource describing a network interface
       example:
-        hardwareAddress: hardwareAddress
         addresses:
         - addresses
         - addresses
-        isUp: true
-        isRunning: true
-        isBroadcast: true
-        name: name
+        hardwareAddress: hardwareAddress
         index: 0
+        isBroadcast: true
         isLoopback: true
         isMulticast: true
+        isRunning: true
+        isUp: true
         mtu: 0
+        name: name
       properties:
         addresses:
           items:
@@ -8490,37 +8855,37 @@ components:
       type: object
     jwk:
       example:
-        oth:
-        - r: r
-          d: d
-          t: t
-        - r: r
-          d: d
-          t: t
-        d: d
-        e: e
+        alg: alg
         crv: crv
-        use: use
-        kid: kid
-        x5c:
-        - x5c
-        - x5c
+        d: d
         dp: dp
         dq: dq
-        "n": "n"
-        p: p
-        kty: kty
-        q: q
-        x5t#S256: x5t#S256
-        x5t: x5t
+        e: e
         key_ops:
         - key_ops
         - key_ops
+        kid: kid
+        kty: kty
+        "n": "n"
+        oth:
+        - d: d
+          r: r
+          t: t
+        - d: d
+          r: r
+          t: t
+        p: p
+        q: q
         qi: qi
+        use: use
         x: x
+        x5c:
+        - x5c
+        - x5c
+        x5t: x5t
+        x5t#S256: x5t#S256
         x5u: x5u
         "y": "y"
-        alg: alg
       properties:
         alg:
           description: Algorithm intended for use with the key.
@@ -8597,68 +8962,68 @@ components:
     jwks:
       example:
         keys:
-        - oth:
-          - r: r
-            d: d
-            t: t
-          - r: r
-            d: d
-            t: t
-          d: d
-          e: e
+        - alg: alg
           crv: crv
-          use: use
-          kid: kid
-          x5c:
-          - x5c
-          - x5c
+          d: d
           dp: dp
           dq: dq
-          "n": "n"
-          p: p
-          kty: kty
-          q: q
-          x5t#S256: x5t#S256
-          x5t: x5t
+          e: e
           key_ops:
           - key_ops
           - key_ops
-          qi: qi
-          x: x
-          x5u: x5u
-          "y": "y"
-          alg: alg
-        - oth:
-          - r: r
-            d: d
-            t: t
-          - r: r
-            d: d
-            t: t
-          d: d
-          e: e
-          crv: crv
-          use: use
           kid: kid
+          kty: kty
+          "n": "n"
+          oth:
+          - d: d
+            r: r
+            t: t
+          - d: d
+            r: r
+            t: t
+          p: p
+          q: q
+          qi: qi
+          use: use
+          x: x
           x5c:
           - x5c
           - x5c
+          x5t: x5t
+          x5t#S256: x5t#S256
+          x5u: x5u
+          "y": "y"
+        - alg: alg
+          crv: crv
+          d: d
           dp: dp
           dq: dq
-          "n": "n"
-          p: p
-          kty: kty
-          q: q
-          x5t#S256: x5t#S256
-          x5t: x5t
+          e: e
           key_ops:
           - key_ops
           - key_ops
+          kid: kid
+          kty: kty
+          "n": "n"
+          oth:
+          - d: d
+            r: r
+            t: t
+          - d: d
+            r: r
+            t: t
+          p: p
+          q: q
           qi: qi
+          use: use
           x: x
+          x5c:
+          - x5c
+          - x5c
+          x5t: x5t
+          x5t#S256: x5t#S256
           x5u: x5u
           "y": "y"
-          alg: alg
       properties:
         keys:
           items:
@@ -8668,9 +9033,9 @@ components:
     link:
       description: A link to another resource
       example:
-        method: method
         comment: comment
         href: https://openapi-generator.tech
+        method: method
       properties:
         comment:
           type: string
@@ -8691,74 +9056,74 @@ components:
     listAuthenticatorsEnvelope:
       example:
         data:
-        - method: method
-          _links:
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
-          certPem: certPem
-          isIssuedByNetwork: true
-          lastExtendRolledKeys: true
-          tags: {}
-          isExtendRequested: true
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          certPem: certPem
+          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+          fingerprint: fingerprint
           identity:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
+            id: id
+            name: name
           identityId: identityId
+          isExtendRequested: true
+          isIssuedByNetwork: true
           isKeyRollRequested: true
-          fingerprint: fingerprint
           lastAuthResolvedToRoot: true
-          id: id
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          lastExtendRolledKeys: true
+          method: method
           username: username
-        - method: method
-          _links:
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
-          certPem: certPem
-          isIssuedByNetwork: true
-          lastExtendRolledKeys: true
-          tags: {}
-          isExtendRequested: true
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          certPem: certPem
+          extendRequestedAt: 2000-01-23T04:56:07.000+00:00
+          fingerprint: fingerprint
           identity:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
+            id: id
+            name: name
           identityId: identityId
+          isExtendRequested: true
+          isIssuedByNetwork: true
           isKeyRollRequested: true
-          fingerprint: fingerprint
           lastAuthResolvedToRoot: true
-          id: id
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          lastExtendRolledKeys: true
+          method: method
           username: username
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           description: An array of authenticator resources
@@ -8771,56 +9136,56 @@ components:
     listClientExternalJwtSignersEnvelope:
       example:
         data:
-        - audience: audience
-          clientId: clientId
-          externalAuthUrl: http://example.com/aeiou
-          enrollToTokenEnabled: true
-          _links:
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          targetToken: ACCESS
-          enrollToCertEnabled: true
-          tags: {}
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
-          openIdConfigurationUrl: openIdConfigurationUrl
-          name: MyApps Signer
           id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          audience: audience
+          clientId: clientId
+          enrollToCertEnabled: true
+          enrollToTokenEnabled: true
+          externalAuthUrl: http://example.com/aeiou
+          name: MyApps Signer
+          openIdConfigurationUrl: openIdConfigurationUrl
           scopes:
           - scopes
           - scopes
-          updatedAt: 2000-01-23T04:56:07.000+00:00
-        - audience: audience
-          clientId: clientId
-          externalAuthUrl: http://example.com/aeiou
-          enrollToTokenEnabled: true
-          _links:
+          targetToken: ACCESS
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          targetToken: ACCESS
-          enrollToCertEnabled: true
-          tags: {}
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
-          openIdConfigurationUrl: openIdConfigurationUrl
-          name: MyApps Signer
           id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          audience: audience
+          clientId: clientId
+          enrollToCertEnabled: true
+          enrollToTokenEnabled: true
+          externalAuthUrl: http://example.com/aeiou
+          name: MyApps Signer
+          openIdConfigurationUrl: openIdConfigurationUrl
           scopes:
           - scopes
           - scopes
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          targetToken: ACCESS
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           description: An array of External JWT Signers resources
@@ -8836,58 +9201,58 @@ components:
     listClientTerminatorsEnvelope:
       example:
         data:
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          _links:
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           identity: identity
           routerId: routerId
           service:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
-          id: id
+            id: id
+            name: name
           serviceId: serviceId
-          tags: {}
-          updatedAt: 2000-01-23T04:56:07.000+00:00
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          _links:
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           identity: identity
           routerId: routerId
           service:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
-          id: id
+            id: id
+            name: name
           serviceId: serviceId
-          tags: {}
-          updatedAt: 2000-01-23T04:56:07.000+00:00
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           items:
@@ -8904,48 +9269,48 @@ components:
         data:
         - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          apiAddresses: null
-          ctrlAddress: ctrlAddress
-          certPem: certPem
-          isOnline: true
-          tags: {}
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
-          fingerprint: fingerprint
-          name: name
           id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          apiAddresses: null
+          certPem: certPem
+          ctrlAddress: ctrlAddress
+          fingerprint: fingerprint
+          isOnline: true
           isPreferredLeader: true
           lastJoinedAt: 2000-01-23T04:56:07.000+00:00
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          name: name
         - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          apiAddresses: null
-          ctrlAddress: ctrlAddress
-          certPem: certPem
-          isOnline: true
-          tags: {}
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
-          fingerprint: fingerprint
-          name: name
           id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          apiAddresses: null
+          certPem: certPem
+          ctrlAddress: ctrlAddress
+          fingerprint: fingerprint
+          isOnline: true
           isPreferredLeader: true
           lastJoinedAt: 2000-01-23T04:56:07.000+00:00
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          name: name
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           description: An array of controller resources
@@ -8961,44 +9326,44 @@ components:
     listCurrentApiSessionCertificatesEnvelope:
       example:
         data:
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          _links:
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          subject: subject
-          certificate: certificate
-          fingerprint: fingerprint
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
-          validFrom: 2000-01-23T04:56:07.000+00:00
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
+          certificate: certificate
+          fingerprint: fingerprint
+          subject: subject
+          validFrom: 2000-01-23T04:56:07.000+00:00
           validTo: 2000-01-23T04:56:07.000+00:00
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          _links:
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          subject: subject
-          certificate: certificate
-          fingerprint: fingerprint
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
-          validFrom: 2000-01-23T04:56:07.000+00:00
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
+          certificate: certificate
+          fingerprint: fingerprint
+          subject: subject
+          validFrom: 2000-01-23T04:56:07.000+00:00
           validTo: 2000-01-23T04:56:07.000+00:00
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           items:
@@ -9017,13 +9382,13 @@ components:
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/currentApiSessionServiceUpdateList"
@@ -9036,54 +9401,62 @@ components:
     listCurrentIdentityEdgeRoutersEnvelope:
       example:
         data:
-        - cost: 5248
-          _links:
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          noTraversal: true
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          appData: {}
+          capabilities:
+          - capabilities
+          - capabilities
+          cost: 5248
+          disabled: true
+          hostname: hostname
           isOnline: true
+          name: name
+          noTraversal: true
           supportedProtocols:
             key: supportedProtocols
-          appData: {}
-          tags: {}
-          createdAt: 2000-01-23T04:56:07.000+00:00
-          hostname: hostname
-          name: name
-          disabled: true
-          id: id
           syncStatus: syncStatus
-          updatedAt: 2000-01-23T04:56:07.000+00:00
-        - cost: 5248
-          _links:
+          version: version
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          noTraversal: true
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          appData: {}
+          capabilities:
+          - capabilities
+          - capabilities
+          cost: 5248
+          disabled: true
+          hostname: hostname
           isOnline: true
+          name: name
+          noTraversal: true
           supportedProtocols:
             key: supportedProtocols
-          appData: {}
-          tags: {}
-          createdAt: 2000-01-23T04:56:07.000+00:00
-          hostname: hostname
-          name: name
-          disabled: true
-          id: id
           syncStatus: syncStatus
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          version: version
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           description: A list of edge router resources
@@ -9104,17 +9477,43 @@ components:
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           items:
             $ref: "#/components/schemas/capabilities"
+          type: array
+        meta:
+          $ref: "#/components/schemas/meta"
+      required:
+      - data
+      - meta
+      type: object
+    listEnumeratedRouterCapabilitiesEnvelope:
+      example:
+        data:
+        - MULTI_CHANNEL
+        - MULTI_CHANNEL
+        meta:
+          apiEnrollmentVersion: apiEnrollmentVersion
+          apiVersion: apiVersion
+          filterableFields:
+          - filterableFields
+          - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/routerCapabilities"
           type: array
         meta:
           $ref: "#/components/schemas/meta"
@@ -9132,13 +9531,13 @@ components:
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           description: An array of network JWTs
@@ -9163,13 +9562,13 @@ components:
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           additionalProperties:
@@ -9185,36 +9584,44 @@ components:
       example:
         data:
           edgeRouters:
-          - hostname: hostname
+          - appData: {}
+            capabilities:
+            - capabilities
+            - capabilities
             cost: 5248
+            disabled: true
+            hostname: hostname
+            isOnline: true
             name: name
             noTraversal: true
-            disabled: true
-            isOnline: true
             supportedProtocols:
               key: supportedProtocols
-            appData: {}
             syncStatus: syncStatus
-          - hostname: hostname
+            version: version
+          - appData: {}
+            capabilities:
+            - capabilities
+            - capabilities
             cost: 5248
+            disabled: true
+            hostname: hostname
+            isOnline: true
             name: name
             noTraversal: true
-            disabled: true
-            isOnline: true
             supportedProtocols:
               key: supportedProtocols
-            appData: {}
             syncStatus: syncStatus
+            version: version
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/serviceEdgeRouters"
@@ -9227,284 +9634,284 @@ components:
     listServicesEnvelope:
       example:
         data:
-        - maxIdleTimeMillis: 0
-          configs:
-          - configs
-          - configs
-          _links:
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          encryptionRequired: true
-          terminatorStrategy: terminatorStrategy
-          tags: {}
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
-          roleAttributes:
-          - null
-          - null
-          postureQueries:
-          - policyId: policyId
-            postureQueries:
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            policyType: null
-            isPassing: true
-          - policyId: policyId
-            postureQueries:
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            policyType: null
-            isPassing: true
-          permissions:
-          - Dial
-          - Dial
-          name: name
           id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           config:
             key:
               key: "{}"
-          updatedAt: 2000-01-23T04:56:07.000+00:00
-        - maxIdleTimeMillis: 0
           configs:
           - configs
           - configs
-          _links:
-            key:
-              method: method
-              comment: comment
-              href: https://openapi-generator.tech
           encryptionRequired: true
-          terminatorStrategy: terminatorStrategy
-          tags: {}
-          createdAt: 2000-01-23T04:56:07.000+00:00
-          roleAttributes:
-          - null
-          - null
-          postureQueries:
-          - policyId: policyId
-            postureQueries:
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            policyType: null
-            isPassing: true
-          - policyId: policyId
-            postureQueries:
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            - promptOnWake: true
-              timeoutRemaining: 5
-              process:
-                path: path
-                osType: Windows
-              processes:
-              - path: path
-                osType: Windows
-              - path: path
-                osType: Windows
-              _links:
-                key:
-                  method: method
-                  comment: comment
-                  href: https://openapi-generator.tech
-              promptOnUnlock: true
-              timeoutAt: 2000-01-23T04:56:07.000+00:00
-              promptGracePeriodSeconds: 6
-              timeout: 1
-              tags: {}
-              queryType: OS
-              createdAt: 2000-01-23T04:56:07.000+00:00
-              id: id
-              isPassing: true
-              updatedAt: 2000-01-23T04:56:07.000+00:00
-            policyType: null
-            isPassing: true
+          maxIdleTimeMillis: 0
+          name: name
           permissions:
           - Dial
           - Dial
-          name: name
+          postureQueries:
+          - isPassing: true
+            policyId: policyId
+            policyType: null
+            postureQueries:
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+          - isPassing: true
+            policyId: policyId
+            policyType: null
+            postureQueries:
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+          roleAttributes:
+          - null
+          - null
+          terminatorStrategy: terminatorStrategy
+        - _links:
+            key:
+              comment: comment
+              href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           config:
             key:
               key: "{}"
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          configs:
+          - configs
+          - configs
+          encryptionRequired: true
+          maxIdleTimeMillis: 0
+          name: name
+          permissions:
+          - Dial
+          - Dial
+          postureQueries:
+          - isPassing: true
+            policyId: policyId
+            policyType: null
+            postureQueries:
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+          - isPassing: true
+            policyId: policyId
+            policyType: null
+            postureQueries:
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+            - _links:
+                key:
+                  comment: comment
+                  href: https://openapi-generator.tech
+                  method: method
+              createdAt: 2000-01-23T04:56:07.000+00:00
+              id: id
+              tags: {}
+              updatedAt: 2000-01-23T04:56:07.000+00:00
+              isPassing: true
+              process:
+                osType: Windows
+                path: path
+              processes:
+              - osType: Windows
+                path: path
+              - osType: Windows
+                path: path
+              promptGracePeriodSeconds: 6
+              promptOnUnlock: true
+              promptOnWake: true
+              queryType: OS
+              timeout: 1
+              timeoutAt: 2000-01-23T04:56:07.000+00:00
+              timeoutRemaining: 5
+          roleAttributes:
+          - null
+          - null
+          terminatorStrategy: terminatorStrategy
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           items:
@@ -9521,128 +9928,144 @@ components:
         data:
         - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          type: Dial
-          tags: {}
-          token: token
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           apiSession:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
+            id: id
+            name: name
+          apiSessionId: apiSessionId
           edgeRouters:
-          - hostname: hostname
-            urls:
-              key: urls
+          - appData: {}
+            capabilities:
+            - capabilities
+            - capabilities
             cost: 5248
+            disabled: true
+            hostname: hostname
+            isOnline: true
             name: name
             noTraversal: true
-            disabled: true
-            isOnline: true
             supportedProtocols:
               key: supportedProtocols
-            appData: {}
             syncStatus: syncStatus
-          - hostname: hostname
+            version: version
             urls:
               key: urls
+          - appData: {}
+            capabilities:
+            - capabilities
+            - capabilities
             cost: 5248
+            disabled: true
+            hostname: hostname
+            isOnline: true
             name: name
             noTraversal: true
-            disabled: true
-            isOnline: true
             supportedProtocols:
               key: supportedProtocols
-            appData: {}
             syncStatus: syncStatus
+            version: version
+            urls:
+              key: urls
           identityId: identityId
           service:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
-          id: id
+            id: id
+            name: name
           serviceId: serviceId
-          apiSessionId: apiSessionId
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          token: token
+          type: Dial
         - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          type: Dial
-          tags: {}
-          token: token
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           apiSession:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
+            id: id
+            name: name
+          apiSessionId: apiSessionId
           edgeRouters:
-          - hostname: hostname
-            urls:
-              key: urls
+          - appData: {}
+            capabilities:
+            - capabilities
+            - capabilities
             cost: 5248
+            disabled: true
+            hostname: hostname
+            isOnline: true
             name: name
             noTraversal: true
-            disabled: true
-            isOnline: true
             supportedProtocols:
               key: supportedProtocols
-            appData: {}
             syncStatus: syncStatus
-          - hostname: hostname
+            version: version
             urls:
               key: urls
+          - appData: {}
+            capabilities:
+            - capabilities
+            - capabilities
             cost: 5248
+            disabled: true
+            hostname: hostname
+            isOnline: true
             name: name
             noTraversal: true
-            disabled: true
-            isOnline: true
             supportedProtocols:
               key: supportedProtocols
-            appData: {}
             syncStatus: syncStatus
+            version: version
+            urls:
+              key: urls
           identityId: identityId
           service:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
-          id: id
+            id: id
+            name: name
           serviceId: serviceId
-          apiSessionId: apiSessionId
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          token: token
+          type: Dial
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           items:
@@ -9657,36 +10080,36 @@ components:
     listSpecsEnvelope:
       example:
         data:
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          _links:
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          name: name
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
-        - createdAt: 2000-01-23T04:56:07.000+00:00
-          _links:
+          name: name
+        - _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          name: name
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
           id: id
           tags: {}
           updatedAt: 2000-01-23T04:56:07.000+00:00
+          name: name
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           items:
@@ -9701,31 +10124,34 @@ components:
     listVersionEnvelope:
       example:
         data:
-          runtimeVersion: go1.13.5
-          capabilities:
-          - capabilities
-          - capabilities
           apiVersions:
             key:
               key:
-                path: path
                 apiBaseUrls:
                 - apiBaseUrls
                 - apiBaseUrls
+                path: path
                 version: version
           buildDate: 2020-02-11 16:09:08
-          version: v0.9.0
+          buildFlags:
+          - buildFlags
+          - buildFlags
+          capabilities:
+          - capabilities
+          - capabilities
           revision: ea556fc18740
+          runtimeVersion: go1.13.5
+          version: v0.9.0
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/version"
@@ -9739,13 +10165,13 @@ components:
       example:
         apiEnrollmentVersion: apiEnrollmentVersion
         apiVersion: apiVersion
-        pagination:
-          offset: 6.027456183070403
-          limit: 0.8008281904610115
-          totalCount: 1.4658129805029452
         filterableFields:
         - filterableFields
         - filterableFields
+        pagination:
+          limit: 0.8008281904610115
+          offset: 6.027456183070403
+          totalCount: 1.4658129805029452
       properties:
         apiEnrollmentVersion:
           type: string
@@ -9810,10 +10236,10 @@ components:
       type: object
     nonceSignature:
       example:
-        signature: signature
+        algorithm: algorithm
         caPool: caPool
         kid: kid
-        algorithm: algorithm
+        signature: signature
       properties:
         algorithm:
           type: string
@@ -9840,8 +10266,8 @@ components:
       type: string
     otherPrime:
       example:
-        r: r
         d: d
+        r: r
         t: t
       properties:
         d:
@@ -9863,8 +10289,8 @@ components:
       type: object
     pagination:
       example:
-        offset: 6.027456183070403
         limit: 0.8008281904610115
+        offset: 6.027456183070403
         totalCount: 1.4658129805029452
       properties:
         limit:
@@ -9987,60 +10413,60 @@ components:
       type: string
     postureQueries:
       example:
-        policyId: policyId
-        postureQueries:
-        - promptOnWake: true
-          timeoutRemaining: 5
-          process:
-            path: path
-            osType: Windows
-          processes:
-          - path: path
-            osType: Windows
-          - path: path
-            osType: Windows
-          _links:
-            key:
-              method: method
-              comment: comment
-              href: https://openapi-generator.tech
-          promptOnUnlock: true
-          timeoutAt: 2000-01-23T04:56:07.000+00:00
-          promptGracePeriodSeconds: 6
-          timeout: 1
-          tags: {}
-          queryType: OS
-          createdAt: 2000-01-23T04:56:07.000+00:00
-          id: id
-          isPassing: true
-          updatedAt: 2000-01-23T04:56:07.000+00:00
-        - promptOnWake: true
-          timeoutRemaining: 5
-          process:
-            path: path
-            osType: Windows
-          processes:
-          - path: path
-            osType: Windows
-          - path: path
-            osType: Windows
-          _links:
-            key:
-              method: method
-              comment: comment
-              href: https://openapi-generator.tech
-          promptOnUnlock: true
-          timeoutAt: 2000-01-23T04:56:07.000+00:00
-          promptGracePeriodSeconds: 6
-          timeout: 1
-          tags: {}
-          queryType: OS
-          createdAt: 2000-01-23T04:56:07.000+00:00
-          id: id
-          isPassing: true
-          updatedAt: 2000-01-23T04:56:07.000+00:00
-        policyType: null
         isPassing: true
+        policyId: policyId
+        policyType: null
+        postureQueries:
+        - _links:
+            key:
+              comment: comment
+              href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          isPassing: true
+          process:
+            osType: Windows
+            path: path
+          processes:
+          - osType: Windows
+            path: path
+          - osType: Windows
+            path: path
+          promptGracePeriodSeconds: 6
+          promptOnUnlock: true
+          promptOnWake: true
+          queryType: OS
+          timeout: 1
+          timeoutAt: 2000-01-23T04:56:07.000+00:00
+          timeoutRemaining: 5
+        - _links:
+            key:
+              comment: comment
+              href: https://openapi-generator.tech
+              method: method
+          createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
+          isPassing: true
+          process:
+            osType: Windows
+            path: path
+          processes:
+          - osType: Windows
+            path: path
+          - osType: Windows
+            path: path
+          promptGracePeriodSeconds: 6
+          promptOnUnlock: true
+          promptOnWake: true
+          queryType: OS
+          timeout: 1
+          timeoutAt: 2000-01-23T04:56:07.000+00:00
+          timeoutRemaining: 5
       properties:
         isPassing:
           type: boolean
@@ -10092,35 +10518,35 @@ components:
         - timeoutRemaining
         type: object
       example:
-        promptOnWake: true
-        timeoutRemaining: 5
-        process:
-          path: path
-          osType: Windows
-        processes:
-        - path: path
-          osType: Windows
-        - path: path
-          osType: Windows
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        promptOnUnlock: true
-        timeoutAt: 2000-01-23T04:56:07.000+00:00
-        promptGracePeriodSeconds: 6
-        timeout: 1
-        tags: {}
-        queryType: OS
+            method: method
         createdAt: 2000-01-23T04:56:07.000+00:00
         id: id
-        isPassing: true
+        tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
+        isPassing: true
+        process:
+          osType: Windows
+          path: path
+        processes:
+        - osType: Windows
+          path: path
+        - osType: Windows
+          path: path
+        promptGracePeriodSeconds: 6
+        promptOnUnlock: true
+        promptOnWake: true
+        queryType: OS
+        timeout: 1
+        timeoutAt: 2000-01-23T04:56:07.000+00:00
+        timeoutRemaining: 5
     postureQueryProcess:
       example:
-        path: path
         osType: Windows
+        path: path
       properties:
         osType:
           $ref: "#/components/schemas/osType"
@@ -10130,16 +10556,16 @@ components:
     postureResponse:
       example:
         services:
-        - timeoutRemaining: 6
+        - id: id
           name: name
-          id: id
           postureQueryType: postureQueryType
           timeout: 0
-        - timeoutRemaining: 6
+          timeoutRemaining: 6
+        - id: id
           name: name
-          id: id
           postureQueryType: postureQueryType
           timeout: 0
+          timeoutRemaining: 6
       properties:
         services:
           items:
@@ -10184,26 +10610,26 @@ components:
       example:
         data:
           services:
-          - timeoutRemaining: 6
+          - id: id
             name: name
-            id: id
             postureQueryType: postureQueryType
             timeout: 0
-          - timeoutRemaining: 6
+            timeoutRemaining: 6
+          - id: id
             name: name
-            id: id
             postureQueryType: postureQueryType
             timeout: 0
+            timeoutRemaining: 6
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/postureResponse"
@@ -10258,11 +10684,11 @@ components:
       x-class: PROCESS
     postureResponseService:
       example:
-        timeoutRemaining: 6
-        name: name
         id: id
+        name: name
         postureQueryType: postureQueryType
         timeout: 0
+        timeoutRemaining: 6
       properties:
         id:
           type: string
@@ -10290,6 +10716,14 @@ components:
       required:
       - address
       type: object
+    routerCapabilities:
+      enum:
+      - MULTI_CHANNEL
+      - SERVICE_SUBSCRIPTIONS
+      - CONNECT_V2
+      - POSTURE_CHECKS
+      - BIND_SUCCESS
+      type: string
     routerExtendEnrollmentRequest:
       properties:
         certCsr:
@@ -10303,12 +10737,12 @@ components:
     sdkInfo:
       description: SDK information an authenticating client may provide
       example:
-        appVersion: appVersion
         appId: appId
-        type: type
+        appVersion: appVersion
         branch: branch
-        version: version
         revision: revision
+        type: type
+        version: version
       properties:
         appId:
           maxLength: 255
@@ -10376,163 +10810,171 @@ components:
         - terminatorStrategy
         type: object
       example:
-        maxIdleTimeMillis: 0
-        configs:
-        - configs
-        - configs
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        encryptionRequired: true
-        terminatorStrategy: terminatorStrategy
-        tags: {}
+            method: method
         createdAt: 2000-01-23T04:56:07.000+00:00
-        roleAttributes:
-        - null
-        - null
-        postureQueries:
-        - policyId: policyId
-          postureQueries:
-          - promptOnWake: true
-            timeoutRemaining: 5
-            process:
-              path: path
-              osType: Windows
-            processes:
-            - path: path
-              osType: Windows
-            - path: path
-              osType: Windows
-            _links:
-              key:
-                method: method
-                comment: comment
-                href: https://openapi-generator.tech
-            promptOnUnlock: true
-            timeoutAt: 2000-01-23T04:56:07.000+00:00
-            promptGracePeriodSeconds: 6
-            timeout: 1
-            tags: {}
-            queryType: OS
-            createdAt: 2000-01-23T04:56:07.000+00:00
-            id: id
-            isPassing: true
-            updatedAt: 2000-01-23T04:56:07.000+00:00
-          - promptOnWake: true
-            timeoutRemaining: 5
-            process:
-              path: path
-              osType: Windows
-            processes:
-            - path: path
-              osType: Windows
-            - path: path
-              osType: Windows
-            _links:
-              key:
-                method: method
-                comment: comment
-                href: https://openapi-generator.tech
-            promptOnUnlock: true
-            timeoutAt: 2000-01-23T04:56:07.000+00:00
-            promptGracePeriodSeconds: 6
-            timeout: 1
-            tags: {}
-            queryType: OS
-            createdAt: 2000-01-23T04:56:07.000+00:00
-            id: id
-            isPassing: true
-            updatedAt: 2000-01-23T04:56:07.000+00:00
-          policyType: null
-          isPassing: true
-        - policyId: policyId
-          postureQueries:
-          - promptOnWake: true
-            timeoutRemaining: 5
-            process:
-              path: path
-              osType: Windows
-            processes:
-            - path: path
-              osType: Windows
-            - path: path
-              osType: Windows
-            _links:
-              key:
-                method: method
-                comment: comment
-                href: https://openapi-generator.tech
-            promptOnUnlock: true
-            timeoutAt: 2000-01-23T04:56:07.000+00:00
-            promptGracePeriodSeconds: 6
-            timeout: 1
-            tags: {}
-            queryType: OS
-            createdAt: 2000-01-23T04:56:07.000+00:00
-            id: id
-            isPassing: true
-            updatedAt: 2000-01-23T04:56:07.000+00:00
-          - promptOnWake: true
-            timeoutRemaining: 5
-            process:
-              path: path
-              osType: Windows
-            processes:
-            - path: path
-              osType: Windows
-            - path: path
-              osType: Windows
-            _links:
-              key:
-                method: method
-                comment: comment
-                href: https://openapi-generator.tech
-            promptOnUnlock: true
-            timeoutAt: 2000-01-23T04:56:07.000+00:00
-            promptGracePeriodSeconds: 6
-            timeout: 1
-            tags: {}
-            queryType: OS
-            createdAt: 2000-01-23T04:56:07.000+00:00
-            id: id
-            isPassing: true
-            updatedAt: 2000-01-23T04:56:07.000+00:00
-          policyType: null
-          isPassing: true
-        permissions:
-        - Dial
-        - Dial
-        name: name
         id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
         config:
           key:
             key: "{}"
-        updatedAt: 2000-01-23T04:56:07.000+00:00
+        configs:
+        - configs
+        - configs
+        encryptionRequired: true
+        maxIdleTimeMillis: 0
+        name: name
+        permissions:
+        - Dial
+        - Dial
+        postureQueries:
+        - isPassing: true
+          policyId: policyId
+          policyType: null
+          postureQueries:
+          - _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            tags: {}
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+            isPassing: true
+            process:
+              osType: Windows
+              path: path
+            processes:
+            - osType: Windows
+              path: path
+            - osType: Windows
+              path: path
+            promptGracePeriodSeconds: 6
+            promptOnUnlock: true
+            promptOnWake: true
+            queryType: OS
+            timeout: 1
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            timeoutRemaining: 5
+          - _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            tags: {}
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+            isPassing: true
+            process:
+              osType: Windows
+              path: path
+            processes:
+            - osType: Windows
+              path: path
+            - osType: Windows
+              path: path
+            promptGracePeriodSeconds: 6
+            promptOnUnlock: true
+            promptOnWake: true
+            queryType: OS
+            timeout: 1
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            timeoutRemaining: 5
+        - isPassing: true
+          policyId: policyId
+          policyType: null
+          postureQueries:
+          - _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            tags: {}
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+            isPassing: true
+            process:
+              osType: Windows
+              path: path
+            processes:
+            - osType: Windows
+              path: path
+            - osType: Windows
+              path: path
+            promptGracePeriodSeconds: 6
+            promptOnUnlock: true
+            promptOnWake: true
+            queryType: OS
+            timeout: 1
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            timeoutRemaining: 5
+          - _links:
+              key:
+                comment: comment
+                href: https://openapi-generator.tech
+                method: method
+            createdAt: 2000-01-23T04:56:07.000+00:00
+            id: id
+            tags: {}
+            updatedAt: 2000-01-23T04:56:07.000+00:00
+            isPassing: true
+            process:
+              osType: Windows
+              path: path
+            processes:
+            - osType: Windows
+              path: path
+            - osType: Windows
+              path: path
+            promptGracePeriodSeconds: 6
+            promptOnUnlock: true
+            promptOnWake: true
+            queryType: OS
+            timeout: 1
+            timeoutAt: 2000-01-23T04:56:07.000+00:00
+            timeoutRemaining: 5
+        roleAttributes:
+        - null
+        - null
+        terminatorStrategy: terminatorStrategy
     serviceEdgeRouters:
       example:
         edgeRouters:
-        - hostname: hostname
+        - appData: {}
+          capabilities:
+          - capabilities
+          - capabilities
           cost: 5248
+          disabled: true
+          hostname: hostname
+          isOnline: true
           name: name
           noTraversal: true
-          disabled: true
-          isOnline: true
           supportedProtocols:
             key: supportedProtocols
-          appData: {}
           syncStatus: syncStatus
-        - hostname: hostname
+          version: version
+        - appData: {}
+          capabilities:
+          - capabilities
+          - capabilities
           cost: 5248
+          disabled: true
+          hostname: hostname
+          isOnline: true
           name: name
           noTraversal: true
-          disabled: true
-          isOnline: true
           supportedProtocols:
             key: supportedProtocols
-          appData: {}
           syncStatus: syncStatus
+          version: version
       properties:
         edgeRouters:
           items:
@@ -10605,71 +11047,79 @@ components:
         data:
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          type: Dial
-          tags: {}
-          token: token
+              method: method
           createdAt: 2000-01-23T04:56:07.000+00:00
+          id: id
+          tags: {}
+          updatedAt: 2000-01-23T04:56:07.000+00:00
           apiSession:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
+            id: id
+            name: name
+          apiSessionId: apiSessionId
           edgeRouters:
-          - hostname: hostname
-            urls:
-              key: urls
+          - appData: {}
+            capabilities:
+            - capabilities
+            - capabilities
             cost: 5248
+            disabled: true
+            hostname: hostname
+            isOnline: true
             name: name
             noTraversal: true
-            disabled: true
-            isOnline: true
             supportedProtocols:
               key: supportedProtocols
-            appData: {}
             syncStatus: syncStatus
-          - hostname: hostname
+            version: version
             urls:
               key: urls
+          - appData: {}
+            capabilities:
+            - capabilities
+            - capabilities
             cost: 5248
+            disabled: true
+            hostname: hostname
+            isOnline: true
             name: name
             noTraversal: true
-            disabled: true
-            isOnline: true
             supportedProtocols:
               key: supportedProtocols
-            appData: {}
             syncStatus: syncStatus
+            version: version
+            urls:
+              key: urls
           identityId: identityId
           service:
             _links:
               key:
-                method: method
                 comment: comment
                 href: https://openapi-generator.tech
-            name: name
-            id: id
+                method: method
             entity: entity
-          id: id
+            id: id
+            name: name
           serviceId: serviceId
-          apiSessionId: apiSessionId
-          updatedAt: 2000-01-23T04:56:07.000+00:00
+          token: token
+          type: Dial
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/sessionDetail"
@@ -10711,61 +11161,69 @@ components:
       example:
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        type: Dial
-        tags: {}
-        token: token
+            method: method
         createdAt: 2000-01-23T04:56:07.000+00:00
+        id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
         apiSession:
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          name: name
-          id: id
+              method: method
           entity: entity
+          id: id
+          name: name
+        apiSessionId: apiSessionId
         edgeRouters:
-        - hostname: hostname
-          urls:
-            key: urls
+        - appData: {}
+          capabilities:
+          - capabilities
+          - capabilities
           cost: 5248
+          disabled: true
+          hostname: hostname
+          isOnline: true
           name: name
           noTraversal: true
-          disabled: true
-          isOnline: true
           supportedProtocols:
             key: supportedProtocols
-          appData: {}
           syncStatus: syncStatus
-        - hostname: hostname
+          version: version
           urls:
             key: urls
+        - appData: {}
+          capabilities:
+          - capabilities
+          - capabilities
           cost: 5248
+          disabled: true
+          hostname: hostname
+          isOnline: true
           name: name
           noTraversal: true
-          disabled: true
-          isOnline: true
           supportedProtocols:
             key: supportedProtocols
-          appData: {}
           syncStatus: syncStatus
+          version: version
+          urls:
+            key: urls
         identityId: identityId
         service:
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          name: name
-          id: id
+              method: method
           entity: entity
-        id: id
+          id: id
+          name: name
         serviceId: serviceId
-        apiSessionId: apiSessionId
-        updatedAt: 2000-01-23T04:56:07.000+00:00
+        token: token
+        type: Dial
     sessionEdgeRouter:
       allOf:
       - $ref: "#/components/schemas/commonEdgeRouterProperties"
@@ -10778,18 +11236,22 @@ components:
         - urls
         type: object
       example:
-        hostname: hostname
-        urls:
-          key: urls
+        appData: {}
+        capabilities:
+        - capabilities
+        - capabilities
         cost: 5248
+        disabled: true
+        hostname: hostname
+        isOnline: true
         name: name
         noTraversal: true
-        disabled: true
-        isOnline: true
         supportedProtocols:
           key: supportedProtocols
-        appData: {}
         syncStatus: syncStatus
+        version: version
+        urls:
+          key: urls
     sessionList:
       items:
         $ref: "#/components/schemas/sessionDetail"
@@ -10806,16 +11268,16 @@ components:
         - name
         type: object
       example:
-        createdAt: 2000-01-23T04:56:07.000+00:00
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
-        name: name
+            method: method
+        createdAt: 2000-01-23T04:56:07.000+00:00
         id: id
         tags: {}
         updatedAt: 2000-01-23T04:56:07.000+00:00
+        name: name
     specList:
       items:
         $ref: "#/components/schemas/specDetail"
@@ -10831,6 +11293,7 @@ components:
       description: "A map of user defined fields and values. The values are limited\
         \ to the following types/values: null, string, boolean"
       example: {}
+      nullable: true
     targetToken:
       description: Defines the target token type
       enum:
@@ -10858,27 +11321,27 @@ components:
         - serviceId
         type: object
       example:
-        createdAt: 2000-01-23T04:56:07.000+00:00
         _links:
           key:
-            method: method
             comment: comment
             href: https://openapi-generator.tech
+            method: method
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        id: id
+        tags: {}
+        updatedAt: 2000-01-23T04:56:07.000+00:00
         identity: identity
         routerId: routerId
         service:
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          name: name
-          id: id
+              method: method
           entity: entity
-        id: id
+          id: id
+          name: name
         serviceId: serviceId
-        tags: {}
-        updatedAt: 2000-01-23T04:56:07.000+00:00
     terminatorClientList:
       items:
         $ref: "#/components/schemas/terminatorClientDetail"
@@ -10928,13 +11391,13 @@ components:
         meta:
           apiEnrollmentVersion: apiEnrollmentVersion
           apiVersion: apiVersion
-          pagination:
-            offset: 6.027456183070403
-            limit: 0.8008281904610115
-            totalCount: 1.4658129805029452
           filterableFields:
           - filterableFields
           - filterableFields
+          pagination:
+            limit: 0.8008281904610115
+            offset: 6.027456183070403
+            totalCount: 1.4658129805029452
       properties:
         data:
           $ref: "#/components/schemas/totpToken"
@@ -10956,21 +11419,24 @@ components:
       x-nullable: true
     version:
       example:
-        runtimeVersion: go1.13.5
-        capabilities:
-        - capabilities
-        - capabilities
         apiVersions:
           key:
             key:
-              path: path
               apiBaseUrls:
               - apiBaseUrls
               - apiBaseUrls
+              path: path
               version: version
         buildDate: 2020-02-11 16:09:08
-        version: v0.9.0
+        buildFlags:
+        - buildFlags
+        - buildFlags
+        capabilities:
+        - capabilities
+        - capabilities
         revision: ea556fc18740
+        runtimeVersion: go1.13.5
+        version: v0.9.0
       properties:
         apiVersions:
           additionalProperties:
@@ -10981,6 +11447,12 @@ components:
         buildDate:
           example: 2020-02-11 16:09:08
           type: string
+        buildFlags:
+          description: |
+            Flags supplied when this controller binary was built, naming build time choices a client may need to know about. Distinct from capabilities, which describe features the controller offers over the API. Open-ended: the values are defined by whoever produced the build, and clients ignore values they do not recognize. Absent when the controller predates this field or was built without flags.
+          items:
+            type: string
+          type: array
         capabilities:
           items:
             type: string
@@ -11028,9 +11500,9 @@ components:
       type: object
     identityEnrollments_ott:
       example:
-        jwt: jwt
-        id: id
         expiresAt: 2000-01-23T04:56:07.000+00:00
+        id: id
+        jwt: jwt
         token: token
       properties:
         expiresAt:
@@ -11045,19 +11517,19 @@ components:
       type: object
     identityEnrollments_ottca:
       example:
-        jwt: jwt
-        caId: caId
-        id: id
         ca:
           _links:
             key:
-              method: method
               comment: comment
               href: https://openapi-generator.tech
-          name: name
-          id: id
+              method: method
           entity: entity
+          id: id
+          name: name
+        caId: caId
         expiresAt: 2000-01-23T04:56:07.000+00:00
+        id: id
+        jwt: jwt
         token: token
       properties:
         ca:

@@ -14,6 +14,7 @@ A detail edge router resource
 |**tags** | [**Tags**](Tags.md) |  |  [optional] |
 |**updatedAt** | **OffsetDateTime** |  |  |
 |**appData** | [**Tags**](Tags.md) |  |  [optional] |
+|**capabilities** | **List&lt;String&gt;** | Capabilities this edge router advertises, used by SDK clients to select a router that supports a given feature before connecting. Open-ended: clients ignore values they do not recognize. Absent when the controller predates this field.  |  [optional] |
 |**cost** | **Integer** |  |  |
 |**disabled** | **Boolean** |  |  |
 |**hostname** | **String** |  |  |
@@ -22,6 +23,8 @@ A detail edge router resource
 |**noTraversal** | **Boolean** |  |  |
 |**supportedProtocols** | **Map&lt;String, String&gt;** |  |  |
 |**syncStatus** | **String** |  |  |
+|**version** | **String** | The version of the edge router binary, as reported to the controller when the router connects. Empty when the controller has not yet received a version from the router or predates this field.  |  [optional] |
+|**capabilitiesMask** | **Long** | The raw router capabilities bitmask as reported to the controller, exposed for diagnostics. The capabilities array is the decoded, human-readable form of the bits this controller recognizes.  |  [optional] |
 |**certPem** | **String** |  |  [optional] |
 |**configs** | **List&lt;String&gt;** | Config IDs associated with this edge router |  [optional] |
 |**ctrlChanListeners** | **Map&lt;String, List&lt;String&gt;&gt;** |  |  [optional] |

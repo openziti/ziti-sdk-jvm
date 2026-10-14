@@ -54,6 +54,10 @@ docs/EnrollUpdbRequest.md
 docs/EnrollmentApi.md
 docs/EnrollmentCerts.md
 docs/EnrollmentCertsEnvelope.md
+docs/EnrollmentResponse.md
+docs/EnrollmentResponseEnvelope.md
+docs/EnrollmentResponseUpdb.md
+docs/EnrollmentResponseUpdbEnvelope.md
 docs/EntityRef.md
 docs/EnvInfo.md
 docs/ErOttEnrollmentRequest.md
@@ -83,6 +87,7 @@ docs/ListCurrentApiSessionCertificatesEnvelope.md
 docs/ListCurrentApiSessionServiceUpdatesEnvelope.md
 docs/ListCurrentIdentityEdgeRoutersEnvelope.md
 docs/ListEnumeratedCapabilitiesEnvelope.md
+docs/ListEnumeratedRouterCapabilitiesEnvelope.md
 docs/ListNetworkJWTsEnvelope.md
 docs/ListProtocolsEnvelope.md
 docs/ListServiceEdgeRoutersEnvelope.md
@@ -118,6 +123,7 @@ docs/PostureResponseOperatingSystemCreate.md
 docs/PostureResponseProcessCreate.md
 docs/PostureResponseService.md
 docs/Protocol.md
+docs/RouterCapabilities.md
 docs/RouterExtendEnrollmentRequest.md
 docs/SdkInfo.md
 docs/ServiceApi.md
@@ -217,6 +223,10 @@ src/main/java/org/openziti/edge/model/Empty.java
 src/main/java/org/openziti/edge/model/EnrollUpdbRequest.java
 src/main/java/org/openziti/edge/model/EnrollmentCerts.java
 src/main/java/org/openziti/edge/model/EnrollmentCertsEnvelope.java
+src/main/java/org/openziti/edge/model/EnrollmentResponse.java
+src/main/java/org/openziti/edge/model/EnrollmentResponseEnvelope.java
+src/main/java/org/openziti/edge/model/EnrollmentResponseUpdb.java
+src/main/java/org/openziti/edge/model/EnrollmentResponseUpdbEnvelope.java
 src/main/java/org/openziti/edge/model/EntityRef.java
 src/main/java/org/openziti/edge/model/EnvInfo.java
 src/main/java/org/openziti/edge/model/ErOttEnrollmentRequest.java
@@ -243,6 +253,7 @@ src/main/java/org/openziti/edge/model/ListCurrentApiSessionCertificatesEnvelope.
 src/main/java/org/openziti/edge/model/ListCurrentApiSessionServiceUpdatesEnvelope.java
 src/main/java/org/openziti/edge/model/ListCurrentIdentityEdgeRoutersEnvelope.java
 src/main/java/org/openziti/edge/model/ListEnumeratedCapabilitiesEnvelope.java
+src/main/java/org/openziti/edge/model/ListEnumeratedRouterCapabilitiesEnvelope.java
 src/main/java/org/openziti/edge/model/ListNetworkJWTsEnvelope.java
 src/main/java/org/openziti/edge/model/ListProtocolsEnvelope.java
 src/main/java/org/openziti/edge/model/ListServiceEdgeRoutersEnvelope.java
@@ -276,6 +287,7 @@ src/main/java/org/openziti/edge/model/PostureResponseOperatingSystemCreate.java
 src/main/java/org/openziti/edge/model/PostureResponseProcessCreate.java
 src/main/java/org/openziti/edge/model/PostureResponseService.java
 src/main/java/org/openziti/edge/model/Protocol.java
+src/main/java/org/openziti/edge/model/RouterCapabilities.java
 src/main/java/org/openziti/edge/model/RouterExtendEnrollmentRequest.java
 src/main/java/org/openziti/edge/model/SdkInfo.java
 src/main/java/org/openziti/edge/model/ServiceDetail.java

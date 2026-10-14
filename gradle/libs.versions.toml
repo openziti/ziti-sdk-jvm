@@ -9,7 +9,7 @@ shadow-jar = "9.6.1"
 download = "5.7.0"
 
 # OpenZiti Edge API
-ziti-api = "0.31.0"
+ziti-api = "0.36.1"
 ziti-cli = "1.6.9"
 
 # third party

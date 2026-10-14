@@ -10,6 +10,8 @@ All URIs are relative to *https://demo.ziti.dev/edge/management/v1*
 | [**detailSpecBodyWithHttpInfo**](InformationalApi.md#detailSpecBodyWithHttpInfo) | **GET** /specs/{id}/spec | Returns the spec&#39;s file |
 | [**listEnumeratedCapabilities**](InformationalApi.md#listEnumeratedCapabilities) | **GET** /enumerated-capabilities | Returns all capabilities this version of the controller is aware of, enabled or not. |
 | [**listEnumeratedCapabilitiesWithHttpInfo**](InformationalApi.md#listEnumeratedCapabilitiesWithHttpInfo) | **GET** /enumerated-capabilities | Returns all capabilities this version of the controller is aware of, enabled or not. |
+| [**listEnumeratedRouterCapabilities**](InformationalApi.md#listEnumeratedRouterCapabilities) | **GET** /enumerated-router-capabilities | Returns all router capabilities this version of the controller is aware of |
+| [**listEnumeratedRouterCapabilitiesWithHttpInfo**](InformationalApi.md#listEnumeratedRouterCapabilitiesWithHttpInfo) | **GET** /enumerated-router-capabilities | Returns all router capabilities this version of the controller is aware of |
 | [**listRoot**](InformationalApi.md#listRoot) | **GET** / | Returns version information |
 | [**listRootWithHttpInfo**](InformationalApi.md#listRootWithHttpInfo) | **GET** / | Returns version information |
 | [**listSpecs**](InformationalApi.md#listSpecs) | **GET** /specs | Returns a list of API specs |
@@ -436,6 +438,165 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A typed and enumerated list of capabilities |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+
+
+## listEnumeratedRouterCapabilities
+
+> CompletableFuture<ListEnumeratedRouterCapabilitiesEnvelope> listEnumeratedRouterCapabilities()
+
+Returns all router capabilities this version of the controller is aware of
+
+### Example
+
+```java
+// Import classes:
+import org.openziti.management.ApiClient;
+import org.openziti.management.ApiException;
+import org.openziti.management.Configuration;
+import org.openziti.management.auth.*;
+import org.openziti.management.models.*;
+import org.openziti.management.api.InformationalApi;
+import java.util.concurrent.CompletableFuture;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("https://demo.ziti.dev/edge/management/v1");
+        
+        // Configure API key authorization: ztSession
+        ApiKeyAuth ztSession = (ApiKeyAuth) defaultClient.getAuthentication("ztSession");
+        ztSession.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ztSession.setApiKeyPrefix("Token");
+
+        // Configure OAuth2 access token for authorization: oauth2
+        OAuth oauth2 = (OAuth) defaultClient.getAuthentication("oauth2");
+        oauth2.setAccessToken("YOUR ACCESS TOKEN");
+
+        InformationalApi apiInstance = new InformationalApi(defaultClient);
+        try {
+            CompletableFuture<ListEnumeratedRouterCapabilitiesEnvelope> result = apiInstance.listEnumeratedRouterCapabilities();
+            System.out.println(result.get());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling InformationalApi#listEnumeratedRouterCapabilities");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+CompletableFuture<[**ListEnumeratedRouterCapabilitiesEnvelope**](ListEnumeratedRouterCapabilitiesEnvelope.md)>
+
+
+### Authorization
+
+[ztSession](../README.md#ztSession), [oauth2](../README.md#oauth2)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | A typed and enumerated list of router capabilities |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+| **401** | The supplied session does not have the correct access rights to request this resource |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+| **429** | The resource requested is rate limited and the rate limit has been exceeded |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+
+## listEnumeratedRouterCapabilitiesWithHttpInfo
+
+> CompletableFuture<ApiResponse<ListEnumeratedRouterCapabilitiesEnvelope>> listEnumeratedRouterCapabilitiesWithHttpInfo()
+
+Returns all router capabilities this version of the controller is aware of
+
+### Example
+
+```java
+// Import classes:
+import org.openziti.management.ApiClient;
+import org.openziti.management.ApiException;
+import org.openziti.management.ApiResponse;
+import org.openziti.management.Configuration;
+import org.openziti.management.auth.*;
+import org.openziti.management.models.*;
+import org.openziti.management.api.InformationalApi;
+import java.util.concurrent.CompletableFuture;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("https://demo.ziti.dev/edge/management/v1");
+        
+        // Configure API key authorization: ztSession
+        ApiKeyAuth ztSession = (ApiKeyAuth) defaultClient.getAuthentication("ztSession");
+        ztSession.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ztSession.setApiKeyPrefix("Token");
+
+        // Configure OAuth2 access token for authorization: oauth2
+        OAuth oauth2 = (OAuth) defaultClient.getAuthentication("oauth2");
+        oauth2.setAccessToken("YOUR ACCESS TOKEN");
+
+        InformationalApi apiInstance = new InformationalApi(defaultClient);
+        try {
+            CompletableFuture<ApiResponse<ListEnumeratedRouterCapabilitiesEnvelope>> response = apiInstance.listEnumeratedRouterCapabilitiesWithHttpInfo();
+            System.out.println("Status code: " + response.get().getStatusCode());
+            System.out.println("Response headers: " + response.get().getHeaders());
+            System.out.println("Response body: " + response.get().getData());
+        } catch (InterruptedException | ExecutionException e) {
+            ApiException apiException = (ApiException)e.getCause();
+            System.err.println("Exception when calling InformationalApi#listEnumeratedRouterCapabilities");
+            System.err.println("Status code: " + apiException.getCode());
+            System.err.println("Response headers: " + apiException.getResponseHeaders());
+            System.err.println("Reason: " + apiException.getResponseBody());
+            e.printStackTrace();
+        } catch (ApiException e) {
+            System.err.println("Exception when calling InformationalApi#listEnumeratedRouterCapabilities");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+CompletableFuture<ApiResponse<[**ListEnumeratedRouterCapabilitiesEnvelope**](ListEnumeratedRouterCapabilitiesEnvelope.md)>>
+
+
+### Authorization
+
+[ztSession](../README.md#ztSession), [oauth2](../README.md#oauth2)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | A typed and enumerated list of router capabilities |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+| **401** | The supplied session does not have the correct access rights to request this resource |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+| **429** | The resource requested is rate limited and the rate limit has been exceeded |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
+| **503** | The request could not be completed due to the server being busy or in a temporarily bad state |  * WWW-Authenticate - Denotes different type of security token related information <br>  |
 
 
 ## listRoot
