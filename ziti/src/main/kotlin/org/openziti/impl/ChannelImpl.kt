@@ -135,7 +135,7 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
                     jobs += async { rxer(peer) }
 
                     val latencyStart = System.currentTimeMillis()
-                    val reply = SendAndWait(helloMsg)
+                    val reply = SendForReply(helloMsg).await()
 
                     check(reply.content == ZitiProtocol.ContentType.ResultType) { "Invalid response type" }
                     val success = reply.getBoolHeader(ZitiProtocol.Header.ResultSuccess)
@@ -213,11 +213,20 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
         }
     }
 
-    override suspend fun SendAndWait(msg: Message): Message = CompletableDeferred<Message>().let {
+    override suspend fun SendForReply(msg: Message): Deferred<Message> {
         msg.seqNo = sequencer.getAndIncrement()
-        waiters[msg.seqNo] = it
+        val reply = CompletableDeferred<Message>()
+        val written = CompletableDeferred<Unit>()
+        waiters[msg.seqNo] = reply
+        synchers[msg.seqNo] = written
         txChan.send(msg)
-        it.await()
+        try {
+            written.await()
+        } catch (ex: Throwable) {
+            waiters.remove(msg.seqNo)
+            throw ex
+        }
+        return reply
     }
 
     private suspend fun txer(peer: Transport) {
@@ -294,7 +303,7 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
                 val start = Instant.now()
 
                 val q = Message(ZitiProtocol.ContentType.LatencyType)
-                val r = SendAndWait(q)
+                val r = SendForReply(q).await()
                 check(r.content == ZitiProtocol.ContentType.ResultType) {"invalid response"}
                 check(r.getBoolHeader(ZitiProtocol.Header.ResultSuccess)) {"not successful"}
 
@@ -323,8 +332,12 @@ internal class ChannelImpl(val addr: String, val sslContext: SSLContext, val api
             )
 
             runCatching {
+                // Flush the update before arming the stall timeout: on timeout we reconnect,
+                // which closes the transport and would otherwise cancel an in-flight write,
+                // dropping the update before it ever reaches the router.
+                val reply = SendForReply(update)
                 // not every router replies to a failed update
-                val resp = withTimeoutOrNull(TOKEN_UPDATE_TIMEOUT) { SendAndWait(update) }
+                val resp = withTimeoutOrNull(TOKEN_UPDATE_TIMEOUT) { reply.await() }
                 if (resp == null) {
                     // router keeps the old token until it expires, then drops us: reconnect with the current one
                     w { "token update stalled, reconnecting" }

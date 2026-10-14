@@ -470,7 +470,7 @@ internal class ZitiSocketChannel private constructor(internal val ctx: ZitiConte
         }
 
         d("starting network connection ${ns.id}/$connId")
-        val reply = ch.SendAndWait(connectMsg)
+        val reply = ch.SendForReply(connectMsg).await()
         when (reply.content) {
             ZitiProtocol.ContentType.StateConnected -> {
                 val peerPk = reply.getHeader(Header.PublicKeyHeader)

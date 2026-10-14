@@ -148,7 +148,7 @@ internal class ZitiServerSocketChannel(val ctx: ZitiContextImpl):
             }
 
             d("starting network connection ${session.id}/$connId")
-            val reply = ch.SendAndWait(connectMsg)
+            val reply = ch.SendForReply(connectMsg).await()
             when (reply.content) {
                 ZitiProtocol.ContentType.StateConnected -> {
                     d("network connection established ${session.id}/$connId")
