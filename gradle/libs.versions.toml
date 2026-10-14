@@ -1,10 +1,10 @@
 [versions]
 # plugings
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 dokka = "2.2.0"
 nexus = "2.0.0"
-openapi-gen = "7.25.0"
-spotless = "8.10.3"
+openapi-gen = "7.26.0"
+spotless = "8.10.4"
 shadow-jar = "9.6.1"
 download = "5.7.0"
 
@@ -21,7 +21,7 @@ gson = "2.14.0"
 tls-channel = "1.0.0"
 jjwt = "0.13.0"
 netty = "4.2.19.Final"
-vertx = "5.2.0"
+vertx = "5.2.1"
 lombok = "1.18.36"
 springboot = "3.2.5"
 jackson = "2.22.3"
