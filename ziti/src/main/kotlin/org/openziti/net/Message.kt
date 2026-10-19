@@ -126,6 +126,16 @@ class Message(
         headers.put(header.id, b)
     }
 
+    fun setHeader(header: ZitiProtocol.Header, v: Short): Message = this.apply {
+        val b = ByteArray(2)
+        ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).putShort(v)
+        headers.put(header.id, b)
+    }
+
+    fun setHeader(header: ZitiProtocol.Header, v: Byte): Message = this.apply {
+        headers.put(header.id, byteArrayOf(v))
+    }
+
     fun setHeader(header: ZitiProtocol.Header, b: ByteArray) = this.apply {
         headers.put(header.id, b)
     }
