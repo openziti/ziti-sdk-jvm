@@ -153,6 +153,12 @@ internal class Controller internal constructor(
         }
     }
 
+    // routers permitted to host the specified service (the response is not paged)
+    internal suspend fun getServiceRouters(s: Service): List<CommonEdgeRouterProperties> = runCatching {
+        ServiceApi(edgeApi).listServiceEdgeRouters(s.id, null, null, null, null).await().data?.edgeRouters
+            ?: emptyList()
+    }.getOrElse { convertError(it) }
+
     internal suspend fun postMFA() =
         CurrentIdentityApi(edgeApi).enrollMfa().await().data
 
