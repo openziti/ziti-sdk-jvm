@@ -22,6 +22,7 @@ import org.openziti.management.ApiClient
 import org.openziti.management.JSON
 import org.openziti.management.api.AuthenticationApi
 import org.openziti.management.api.ConfigApi
+import org.openziti.management.api.EdgeRouterApi
 import org.openziti.management.api.EnrollmentApi
 import org.openziti.management.api.IdentityApi
 import org.openziti.management.api.InformationalApi
@@ -74,6 +75,7 @@ internal object ManagementHelper {
     private val enrollmentApi by lazy { EnrollmentApi(api) }
     private val serviceApi by lazy { ServiceApi(api) }
     private val spApi by lazy { ServicePolicyApi(api) }
+    private val erApi by lazy { EdgeRouterApi(api) }
 
     private object TrustAll : X509TrustManager {
         override fun checkClientTrusted(p0: Array<out X509Certificate>?, p1: String?) {}
@@ -121,6 +123,9 @@ internal object ManagementHelper {
     }
 
     internal fun getIdentity(id: String) = identityApi.detailIdentity(id).waitFor()
+
+    internal fun listEdgeRouters(): List<EdgeRouterDetail> =
+        erApi.listEdgeRouters(100, 0, null, null, null).waitFor().data ?: emptyList()
     /**
      * returns enrollment JWT
      */
