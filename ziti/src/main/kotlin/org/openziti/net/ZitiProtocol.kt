@@ -47,7 +47,7 @@ object ZitiProtocol {
         Unbind(CT.UnbindType),
         StateSessionEnded(CT.StateSessionEndedType),
         Probe(CT.ProbeType),
-        UpdateBind(CT.UnbindType),
+        UpdateBind(CT.UpdateBindType),
         HealthEvent(CT.HealthEventType),
         TraceRoute(CT.TraceRouteType),
         TraceRouteResponse(CT.TraceRouteResponseType),
