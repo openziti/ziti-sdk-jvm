@@ -43,8 +43,10 @@ import java.net.InetSocketAddress
 import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.nio.channels.InterruptedByTimeoutException
+import java.nio.channels.UnsupportedAddressTypeException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
+import kotlin.math.min
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -125,10 +127,10 @@ class ConnectionTests: BaseTest() {
 
             srv.bind(ZitiAddress.Bind(service))
 
-            // wait for binding -- test dispatcher skips delays
+            // wait for Binding -- test dispatcher skips delays
             withContext(Dispatchers.Default) {
                 val zrv = srv as ZitiServerSocketChannel
-                while (zrv.state != ZitiServerSocketChannel.State.bound) {
+                while (zrv.state != ZitiServerSocketChannel.State.Bound) {
                     delay(50)
                 }
             }
@@ -167,6 +169,68 @@ class ConnectionTests: BaseTest() {
     }
 
     @Test
+    fun `test multi-terminator bind and connect`() = runTest(timeout = 20.seconds) {
+        val greeting = "Hello from Ziti".toByteArray()
+
+        // one terminator per edge router available for the service, up to maxTerminators
+        val maxTerminators = 3
+        val expectedTerminators = min(maxTerminators, ManagementHelper.listEdgeRouters().size)
+        assertTrue(expectedTerminators >= 1)
+
+        val termId = "multi-term-${System.nanoTime()}"
+
+        ztx.openServer().use { srv ->
+
+            srv.bind(ZitiAddress.Bind(
+                service = service,
+                identity = termId,
+                maxTerminators = maxTerminators))
+
+            // wait for Binding -- test dispatcher skips delays
+            withContext(Dispatchers.Default) {
+                val zrv = srv as ZitiServerSocketChannel
+                while (zrv.state != ZitiServerSocketChannel.State.Bound) {
+                    delay(50)
+                }
+            }
+
+            // wait for a terminator to be established on every edge router
+            withContext(Dispatchers.Default) {
+                val srvDetail = ztx.getService(service)!!
+                var matching = 0
+                while (matching < expectedTerminators) {
+                    // controllers may report the SDK-provided terminator identity as-is
+                    // or with the hosting router appended, e.g. `<identity>@<router>`
+                    matching = ztx.getServiceTerminators(srvDetail).count {
+                        it.identity == termId || it.identity.startsWith("$termId@")
+                    }
+                    if (matching < expectedTerminators) delay(100)
+                }
+            }
+
+            launch(Dispatchers.IO) {
+                val c = srv.acceptSuspend()
+                c.writeSuspend(ByteBuffer.wrap(greeting))
+                delay(1000)
+                c.close()
+            }
+
+            ztx.open().use { clt ->
+                clt.connect(ZitiAddress.Dial(service, identity = termId)).get(1, TimeUnit.SECONDS)
+
+                val buf = ByteBuffer.allocate(1024)
+
+                // read: return greeting
+                val read1 = clt.readSuspend(buf, 2, TimeUnit.SECONDS)
+                assertEquals(read1, greeting.size)
+                val readMsg = ByteArray(read1)
+                buf.flip().get(readMsg)
+                assertContentEquals(greeting, readMsg)
+            }
+        }
+    }
+
+    @Test
     fun `test socket-connect-read-timeout`() = runTest(timeout = 10.seconds) {
         val greeting = "Hello from Ziti".toByteArray()
         val s = assertDoesNotThrow {
@@ -179,10 +243,10 @@ class ConnectionTests: BaseTest() {
 
             srv.bind(ZitiAddress.Bind(service))
 
-            // wait for binding -- test dispatcher skips delays
+            // wait for Binding -- test dispatcher skips delays
             withContext(Dispatchers.Default) {
                 val zrv = srv as ZitiServerSocketChannel
-                while (zrv.state != ZitiServerSocketChannel.State.bound) {
+                while (zrv.state != ZitiServerSocketChannel.State.Bound) {
                     delay(50)
                 }
             }
@@ -221,5 +285,19 @@ class ConnectionTests: BaseTest() {
         val sock = Ziti.getSocketFactory().createSocket()
         sock.close()
         assertTrue(sock.isClosed)
+    }
+
+    @Test
+    fun closeUnboundServerChannel() = runTest(timeout = 1.seconds) {
+        ztx.openServer().use { srv ->
+            assertTrue(srv.isOpen)
+
+            // non-Bind address is rejected before the channel is even initialized:
+            // close() on it must not throw either
+            assertThrows<UnsupportedAddressTypeException> {
+                srv.bind(InetSocketAddress(hostname, port))
+            }
+            assertTrue(srv.isOpen)
+        }
     }
 }
