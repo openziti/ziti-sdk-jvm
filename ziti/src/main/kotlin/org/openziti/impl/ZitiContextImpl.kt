@@ -54,6 +54,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.min
 import kotlin.properties.Delegates
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -276,7 +277,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                     // a transient failure says nothing about the token: retry rather than log in again
                     if (it is CancellationException || isTransientFailure(it)) throw it
                     accessToken.value = null
-                    null
                 }.getOrNull()
 
                 val session = if (currentSession != null)
@@ -347,7 +347,7 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
 
                 w { "controller is not available, will retry: ${ex.message}" }
                 updateStatus(ZitiContext.Status.Unavailable(ex))
-                delay(1000L + Random.nextLong(1000L shl min(failures++, 5)))
+                delay(1.seconds + Random.nextLong(1000L shl min(failures++, 5)).milliseconds)
             }
         }
     }
@@ -377,31 +377,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         d{"shutting down"}
         runBlocking { supervisor.cancelAndJoin() }
         d{"ziti context is finished"}
-    }
-
-    internal suspend fun login(): ApiSession {
-        var attempt = 0
-        statusCh.value = ZitiContext.Status.Loading
-        while(true) {
-            if (attempt > 0) {
-                val backoff = Random.nextInt(0, attempt) % 6
-                val delaySeconds = (1 shl backoff) * 5
-                d{ "retrying login() after ${delaySeconds}s (attempt=$attempt)"}
-                delay(delaySeconds * 1000L)
-            }
-
-            try {
-                return controller.login()
-            } catch (ex: Exception) {
-                if (ex is ZitiException && ex.code == Errors.NotAuthorized) {
-                    throw ex
-                }
-                updateStatus(ZitiContext.Status.Unavailable(ex))
-                w { "failed to login: ${ex.localizedMessage}" }
-                attempt++
-                continue
-            }
-        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -470,16 +445,14 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
                 }
             }
             d{"delaying service refresh for ${refreshDelay}ms"}
-            delay(refreshDelay)
+            delay(refreshDelay.milliseconds)
         }
     }
-
-    fun logout() = runBlocking { controller.logout() }
 
     fun checkServicesLoaded() = runBlocking {
         checkEnabled()
         try {
-            withTimeout(30_000) {
+            withTimeout(30.seconds) {
                 servicesLoaded.await()
             }
         } catch (tex: TimeoutCancellationException) {
@@ -490,7 +463,16 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     internal suspend fun getNetworkSession(service: Service, st: SessionType): Session {
         checkEnabled()
 
-        d("getNetworkSession(${service.name})")
+        d("getNetworkSession(${service.name}/${st})")
+
+        if (st == SessionType.BIND) {
+            // never cache bind sessions: each hosted service establishes and maintains
+            // its own session, so a rejected/ended session does not affect other bindings
+            val session = controller.createNetSession(service, st)
+            t("received $session for service[${service.name}]")
+            return session
+        }
+
         return networkSessions.getOrPut(SessionKey(service.id, st)) {
             val netSession = controller.createNetSession(service, st)
             t("received $netSession for service[${service.name}]")
@@ -498,13 +480,15 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    internal suspend fun getNetworkSession(name: String, st: SessionType): Session {
-        val service = servicesByName.get(name) ?: throw ZitiException(Errors.ServiceNotAvailable)
-        if (!service.permissions.contains(st)) throw ZitiException(Errors.ServiceNotAvailable)
+    /**
+     * Addresses (tls) of the enabled edge routers permitted to host the [service].
+     * Routers that are not connected to the controller report no protocols and are skipped.
+     */
+    internal suspend fun getServiceRouters(service: Service): List<String> =
+        controller.getServiceRouters(service)
+            .filter { it.disabled != true }
+            .mapNotNull { it.supportedProtocols["tls"] }
 
-        return getNetworkSession(service, st)
-
-    }
     private fun getDnsTarget(addr: InetSocketAddress): String? {
         if (addr.hostString != null ) {
             if (IPUtil.isValidIPv4(addr.hostString)) {
@@ -581,10 +565,10 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     override fun getService(name: String, timeout: Long): Service {
         return getService(name) ?: runCatching {
             runBlocking {
-                withTimeout(timeout) {
-                    serviceUpdates().filter {
+                withTimeout(timeout.milliseconds) {
+                    serviceUpdates().first {
                         it.type == ZitiContext.ServiceUpdate.Available && it.service.name == name
-                    }.first().service
+                    }.service
                 }
             }
         }.getOrElse { throw TimeoutException("failed to get service[$name] in ${timeout}ms") }
@@ -603,11 +587,11 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
     internal fun getService(host: String, port: Int, timeout: Long): Service {
         return getServiceForAddress(host, port) ?: runCatching {
             runBlocking {
-                withTimeout(timeout) {
-                    serviceUpdates().filter {
+                withTimeout(timeout.milliseconds) {
+                    serviceUpdates().first {
                         it.type == ZitiContext.ServiceUpdate.Available &&
                                 (it.service.interceptConfig()?.matches(host, port) ?: false)
-                    }.first().service
+                    }.service
                 }
             }
         }.getOrElse { throw TimeoutException("failed to get service[$host:$port] in ${timeout}ms") }
@@ -662,16 +646,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         }
     }
 
-    // can't just replace old with new as updates do not contain session token
-    // do update list of edge routers for this session
-    private fun updateSession(s: Session): Session? {
-        val sessionKey = SessionKey(s.serviceId, s.type)
-        networkSessions.containsKey(sessionKey) || return null
-        return networkSessions.merge(sessionKey, s) { old, new ->
-            old.apply { edgeRouters = new.edgeRouters }
-        }
-    }
-
     internal fun processServiceUpdates(services: Collection<Service>) {
         val events = mutableListOf<ZitiContext.ServiceEvent>()
 
@@ -694,7 +668,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
             }
 
             networkSessions.remove(SessionKey(rid, SessionType.DIAL))
-            networkSessions.remove(SessionKey(rid, SessionType.BIND))
         }
 
         // update
@@ -772,12 +745,6 @@ internal class ZitiContextImpl(internal val id: Identity, enabled: Boolean) : Zi
         val detail = getId()
         val ep = ctrl.value?.endpoint ?: id.controllers().firstOrNull() ?: "unknown"
         return "${detail?.name ?: name()}[${detail?.id}]@$ep"
-    }
-
-    internal suspend fun waitForActive() {
-        checkEnabled()
-        // wait for active
-        statusCh.takeWhile { it != ZitiContext.Status.Active }.collect()
     }
 
     override fun isMFAEnrolled(): Boolean {

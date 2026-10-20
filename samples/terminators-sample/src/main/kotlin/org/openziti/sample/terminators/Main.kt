@@ -34,6 +34,10 @@ import java.nio.channels.AsynchronousSocketChannel
  *   - server binds to the given service with a terminator identity
  *   - client dials the given service with the same terminator identity
  *
+ * the hosted service is established with one terminator per available edge
+ * router (up to `maxTerminators`, 3 by default), all sharing the same
+ * terminator identity, so the service stays reachable if a router goes away
+ *
  * Prerequisites:
  *  - enrolled Ziti identity
  *  - a ziti service with both `Dial` and `Bind` permissions for the above identity
@@ -66,10 +70,27 @@ object Main: CoroutineScope {
 
     fun runClient(ztx: ZitiContext, service: Service, terminator: String) = launch {
 
-        val allTerminators = ztx.getServiceTerminators(service)
-        require(allTerminators.find { it.identity == terminator } != null) {
-            "can't find teminator idenitiy[$terminator] for service[$service.name]"
+        // the controller may report the terminator identity as-is or with the hosting
+        // router appended (`<identity>@<router>`): one terminator per router the server bound to
+        fun ours() = ztx.getServiceTerminators(service).filter {
+            it.identity == terminator || it.identity?.startsWith("$terminator@") == true
         }
+
+        // the server establishes its terminators in the background: wait for the first
+        // one to show up, more may follow as the server binds to the other edge routers
+        val terminators = withTimeoutOrNull(30_000) {
+            var terms = ours()
+            while (terms.isEmpty()) {
+                delay(1_000)
+                terms = ours()
+            }
+            terms
+        } ?: emptyList()
+
+        require(terminators.isNotEmpty()) {
+            "can't find terminator identity[$terminator] for service[${service.name}]"
+        }
+        println("service[${service.name}] terminators for identity[$terminator]: ${terminators.map { it.identity }}")
 
         val conn = ztx.open()
         conn.connectSuspend(ZitiAddress.Dial(service.name, terminator))

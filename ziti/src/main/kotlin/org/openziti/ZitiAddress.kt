@@ -37,8 +37,35 @@ sealed class ZitiAddress: SocketAddress() {
         val callerId: String? = null
     ) : ZitiAddress()
 
-    data class Bind  @JvmOverloads constructor(
-        val service: String, val identity: String? = null, val useEdgeId: Boolean = false)
+    /**
+     * Terminator precedence for a hosted service binding.
+     */
+    enum class Precedence(val value: Byte) {
+        Default(0), Required(1), Failed(2);
+    }
+
+    /**
+     * Address representing a service to host. The resulting hosted service is backed by
+     * multiple terminators -- up to [maxTerminators] (one per available edge router) --
+     * to keep the service reachable if a router goes away.
+     *
+     * @param service name of the service
+     * @param identity terminator identity. If not specified, the terminator is not
+     *        addressable by identity
+     * @param useEdgeId use the current identity name as terminator identity
+     * @param cost terminator cost; defaults to the identity's hosting cost attribute
+     *        (`serviceHostingCosts`/`defaultHostingCost`), 0 if not set. Only sent if > 0
+     * @param precedence terminator precedence; defaults to the identity's hosting
+     *        precedence attribute (`serviceHostingPrecedences`/`defaultHostingPrecedence`)
+     * @param maxTerminators max number of terminators to establish, one per edge router
+     */
+    data class Bind @JvmOverloads constructor(
+        val service: String,
+        val identity: String? = null,
+        val useEdgeId: Boolean = false,
+        val cost: Int? = null,
+        val precedence: Precedence? = null,
+        val maxTerminators: Int = 3)
         : ZitiAddress()
 
     class Session internal constructor(
