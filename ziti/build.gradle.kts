@@ -257,6 +257,8 @@ tasks.register("stop-quickstart") {
 tasks.named<Test>("integrationTest") {
     // the tests must look for the controller on the port the quickstart was started with
     localProperty("ziti.quickstart.ctrl.port").orNull?.let { systemProperty("ziti.quickstart.ctrl.port", it) }
+    // seamless mode (SeamlessTests) replaces the JVM's socket implementation for good
+    forkEvery = 1
     dependsOn("start-quickstart")
     finalizedBy("stop-quickstart")
 }
