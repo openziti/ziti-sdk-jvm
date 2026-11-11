@@ -28,6 +28,7 @@ import okhttp3.tls.HeldCertificate
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -35,6 +36,7 @@ import org.openziti.identity.makeSSLContext
 import java.io.InterruptedIOException
 import java.net.InetAddress
 import java.time.Duration
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLHandshakeException
@@ -87,6 +89,28 @@ class ControllerHttpTest {
 
         assertTrue(client.socketFactory is LazyBypassSocketFactory)
         assertTrue(client.sslSocketFactory is LazyBypassSSLSocketFactory)
+    }
+
+    // OkHttp's default dispatcher uses non-daemon threads that linger for 60s, which would delay the exit of a
+    // short-lived application using the SDK; the java.net.http client ran on daemon threads.
+    @Test
+    fun dispatcherThreadsAreDaemon() {
+        val client = ControllerHttp.client(SSLContext.getDefault())
+        val daemon = CompletableFuture<Boolean>()
+
+        client.dispatcher.executorService.execute { daemon.complete(Thread.currentThread().isDaemon) }
+
+        assertTrue(daemon.get(5, TimeUnit.SECONDS))
+    }
+
+    // one pool for all clients; and no per-host limit of 5 concurrent calls, which the old client did not have
+    @Test
+    fun dispatcherIsSharedAndNotThrottledPerHost() {
+        val first = ControllerHttp.client(SSLContext.getDefault())
+        val second = ControllerHttp.client(SSLContext.getDefault())
+
+        assertSame(first.dispatcher, second.dispatcher)
+        assertEquals(64, first.dispatcher.maxRequestsPerHost)
     }
 
     @Test

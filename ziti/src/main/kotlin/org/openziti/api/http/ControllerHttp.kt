@@ -20,11 +20,15 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.CookieJar
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import java.io.IOException
 import java.security.KeyStore
 import java.time.Duration
+import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
@@ -37,6 +41,18 @@ internal object ControllerHttp {
     private val CONNECT_TIMEOUT = Duration.ofSeconds(10)
     private val READ_TIMEOUT = Duration.ofSeconds(60)
     private val WRITE_TIMEOUT = Duration.ofSeconds(30)
+
+    // One pool of daemon threads for all clients. OkHttp's default dispatcher uses non-daemon threads that
+    // linger for 60s, which would delay the exit of a short-lived application, and its limit of 5 concurrent
+    // calls per host is something the java.net.http client did not have.
+    private val dispatcher = Dispatcher(
+        ThreadPoolExecutor(0, Int.MAX_VALUE, 60L, TimeUnit.SECONDS, SynchronousQueue()) { task ->
+            Thread(task, "ziti-http").apply { isDaemon = true }
+        }
+    ).apply {
+        maxRequests = 64
+        maxRequestsPerHost = 64
+    }
 
     // OkHttp insists on an X509TrustManager next to a custom SSLSocketFactory, but only uses it for
     // certificate pinning (not used here) and for cleaning the chain it reports in `Handshake`.
@@ -55,6 +71,7 @@ internal object ControllerHttp {
      */
     fun client(ssl: SSLContext, callTimeout: Duration = Duration.ZERO): OkHttpClient =
         OkHttpClient.Builder()
+            .dispatcher(dispatcher)
             .socketFactory(LazyBypassSocketFactory())
             .sslSocketFactory(LazyBypassSSLSocketFactory(ssl), placeholderTrustManager)
             // the old java.net.http client never followed redirects, and OIDC depends on seeing them
