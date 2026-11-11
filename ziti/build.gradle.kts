@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import java.util.Properties
 
 /*
  * Copyright (c) 2018-2021 NetFoundry Inc.
@@ -158,6 +159,9 @@ abstract class QuickstartService : BuildService<QuickstartService.Params>, AutoC
         val home: DirectoryProperty
         val log: RegularFileProperty
         val errorLog: RegularFileProperty
+        // quickstart defaults are used when unset; see local.properties below
+        val ctrlPort: Property<String>
+        val routerPort: Property<String>
     }
 
     private var process: Process? = null
@@ -166,8 +170,12 @@ abstract class QuickstartService : BuildService<QuickstartService.Params>, AutoC
 
     @Synchronized
     fun start() {
+        val cmd = mutableListOf("ziti", "edge", "quickstart", "--verbose", "--home", parameters.home.get().asFile.absolutePath)
+        parameters.ctrlPort.orNull?.let { cmd += listOf("--ctrl-port", it) }
+        parameters.routerPort.orNull?.let { cmd += listOf("--router-port", it) }
+
         process = ProcessBuilder().apply {
-            command("ziti", "edge", "quickstart", "--verbose", "--home", parameters.home.get().asFile.absolutePath)
+            command(cmd)
             redirectOutput(parameters.log.get().asFile)
             redirectError(parameters.errorLog.get().asFile)
         }.start()
@@ -194,10 +202,21 @@ abstract class QuickstartService : BuildService<QuickstartService.Params>, AutoC
     }
 }
 
+// Optional overrides for the quickstart ports, to run the integration tests while another controller is using the
+// defaults (1280 and 3022). Put them in local.properties, which is git-ignored, in the root of the repository:
+//     ziti.quickstart.ctrl.port=11280
+//     ziti.quickstart.router.port=13022
+val localProperties = providers.fileContents(rootProject.layout.projectDirectory.file("local.properties"))
+    .asText.map { text -> Properties().apply { load(text.reader()) } }
+
+fun localProperty(name: String): Provider<String> = localProperties.map { it.getProperty(name) }
+
 val quickstart = gradle.sharedServices.registerIfAbsent("quickstart", QuickstartService::class) {
     parameters.home.set(layout.buildDirectory.dir("quickstart"))
     parameters.log.set(layout.buildDirectory.file("quickstart.log"))
     parameters.errorLog.set(layout.buildDirectory.file("error.log"))
+    parameters.ctrlPort.set(localProperty("ziti.quickstart.ctrl.port"))
+    parameters.routerPort.set(localProperty("ziti.quickstart.router.port"))
 }
 
 tasks.register("start-quickstart") {
@@ -235,7 +254,9 @@ tasks.register("stop-quickstart") {
     }
 }
 
-tasks.named("integrationTest") {
+tasks.named<Test>("integrationTest") {
+    // the tests must look for the controller on the port the quickstart was started with
+    localProperty("ziti.quickstart.ctrl.port").orNull?.let { systemProperty("ziti.quickstart.ctrl.port", it) }
     dependsOn("start-quickstart")
     finalizedBy("stop-quickstart")
 }
