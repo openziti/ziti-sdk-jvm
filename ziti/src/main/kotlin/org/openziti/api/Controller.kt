@@ -17,6 +17,9 @@
 package org.openziti.api
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import org.openziti.ZitiException
 import org.openziti.ZitiException.Errors
@@ -188,20 +191,21 @@ internal class Controller internal constructor(
         return edge.get<DetailMfaEnvelope>("/current-identity/mfa").data.recoveryCodes?.toTypedArray() ?: emptyArray()
     }
 
-    // Pages are fetched one after the other and emitted in order. The server reports the page size it used,
-    // so the next offset is taken from that, as before.
+    // The first page tells how many items there are; the remaining pages are then requested together.
+    // Offsets advance by the page size the server reports it used. Nothing is emitted until every page
+    // has arrived, so a failure part way through never hands the caller a partial list.
     private fun <T> paged(fetch: suspend (limit: Int, offset: Int) -> Pair<List<T>, Meta?>): Flow<T> = flow {
-        var offset = 0
-        while (true) {
-            val (items, meta) = fetch(pageSize, offset)
-            items.forEach { emit(it) }
-
-            val pagination = meta?.pagination ?: break
-            val limit = pagination.limit.toInt()
-            if (limit <= 0) break
-            offset += limit
-            if (offset >= pagination.totalCount.toInt()) break
+        val items = coroutineScope {
+            val (first, meta) = fetch(pageSize, 0)
+            val pagination = meta?.pagination
+            val limit = pagination?.limit?.toInt() ?: 0
+            val rest = if (pagination == null || limit <= 0) emptyList()
+                else (limit until pagination.totalCount.toInt() step limit).map { offset ->
+                    async { fetch(pageSize, offset).first }
+                }
+            first + rest.awaitAll().flatten()
         }
+        emitAll(items.asFlow())
     }
 
     internal suspend fun sendPostureResp(responses: List<PostureResponseCreate>) {

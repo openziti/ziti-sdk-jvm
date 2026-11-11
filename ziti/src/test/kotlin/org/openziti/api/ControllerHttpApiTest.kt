@@ -30,6 +30,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.openziti.ZitiException
 import org.openziti.ZitiException.Errors
+import org.openziti.api.http.ZitiHttpException
 import org.openziti.api.http.edgeMapper
 import org.openziti.edge.model.Capabilities
 import org.openziti.edge.model.ServiceDetail
@@ -37,6 +38,8 @@ import org.openziti.impl.isTransientFailure
 import java.net.InetAddress
 import java.time.OffsetDateTime
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import kotlin.test.assertFailsWith
 
@@ -177,21 +180,58 @@ class ControllerHttpApiTest {
 
     // --- listing
 
+    private fun servicesPage(r: RecordedRequest, total: Int): MockResponse {
+        val offset = r.url.queryParameter("offset")!!.toInt()
+        val items = (offset until minOf(offset + 100, total)).joinToString(",") { """{"id":"s$it","name":"n"}""" }
+        return json("""{"data":[$items],"meta":{"pagination":{"limit":100,"offset":$offset,"totalCount":$total}}}""")
+    }
+
     @Test
     fun getServices_pagesUntilTotalCount() = runTest {
+        val s = server { r -> servicesPage(r, 250) }
+
+        val services = Controller(s.base(), ssl).getServices().toList()
+
+        assertEquals((0 until 250).map { "s$it" }, services.map { it.id })
+        // the first page comes first; the others may arrive in any order
+        val offsets = requests.map { it.url.queryParameter("offset")!! }
+        assertEquals("0", offsets.first())
+        assertEquals(listOf("0", "100", "200"), offsets.sorted())
+        assertTrue(requests.all { it.url.encodedPath == "/services" && it.url.queryParameterValues("configTypes") == listOf("all") })
+    }
+
+    // after the first page has told how many there are, the rest are requested together
+    @Test
+    fun getServices_requestsRemainingPagesTogether() = runTest {
+        val remaining = CountDownLatch(2)
+        val othersInFlight = ConcurrentLinkedQueue<Boolean>()
         val s = server { r ->
-            val offset = r.url.queryParameter("offset")!!.toInt()
-            val items = (0 until minOf(100, 250 - offset)).joinToString(",") { """{"id":"s${offset + it}","name":"n"}""" }
-            json("""{"data":[$items],"meta":{"pagination":{"limit":100,"offset":$offset,"totalCount":250}}}""")
+            if (r.url.queryParameter("offset") != "0") {
+                remaining.countDown()
+                // a client fetching one page after another never sends the next while this one is unanswered
+                othersInFlight += remaining.await(3, TimeUnit.SECONDS)
+            }
+            servicesPage(r, 300)
         }
 
         val services = Controller(s.base(), ssl).getServices().toList()
 
-        assertEquals(250, services.size)
-        assertEquals("s0", services.first().id)
-        assertEquals("s249", services.last().id)
-        assertEquals(listOf("0", "100", "200"), requests.map { it.url.queryParameter("offset") })
-        assertTrue(requests.all { it.url.encodedPath == "/services" && it.url.queryParameterValues("configTypes") == listOf("all") })
+        assertEquals((0 until 300).map { "s$it" }, services.map { it.id })
+        assertEquals(listOf(true, true), othersInFlight.toList())
+    }
+
+    // a page that fails must not leave the caller holding the services from the pages before it
+    @Test
+    fun getServices_emitsNothingUntilEveryPageArrived() = runTest {
+        val s = server { r ->
+            if (r.url.queryParameter("offset") == "200") status(500) else servicesPage(r, 300)
+        }
+        val received = mutableListOf<String>()
+
+        assertFailsWith<ZitiHttpException> {
+            Controller(s.base(), ssl).getServices().collect { received += it.id }
+        }
+        assertEquals(emptyList<String>(), received)
     }
 
     @Test
