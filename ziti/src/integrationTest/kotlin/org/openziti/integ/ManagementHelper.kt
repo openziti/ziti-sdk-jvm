@@ -50,7 +50,9 @@ import javax.net.ssl.X509TrustManager
 
 internal object ManagementHelper {
 
-    private val defaultURL = "https://${InetAddress.getLocalHost().hostName}:1280"
+    // the build passes ziti.quickstart.ctrl.port (from local.properties) when it starts the quickstart on another port
+    private val defaultURL =
+        "https://${InetAddress.getLocalHost().hostName}:${System.getProperty("ziti.quickstart.ctrl.port") ?: "1280"}"
 
     private object DefaultCredentials: Authenticate() {
         init {

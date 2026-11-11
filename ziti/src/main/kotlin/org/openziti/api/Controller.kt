@@ -17,25 +17,22 @@
 package org.openziti.api
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.future.await
 import org.openziti.ZitiException
 import org.openziti.ZitiException.Errors
-import org.openziti.edge.ApiClient
-import org.openziti.edge.ApiException
-import org.openziti.edge.api.*
+import org.openziti.api.http.ControllerHttp
+import org.openziti.api.http.EdgeClient
+import org.openziti.api.http.ZitiHttpException
+import org.openziti.api.http.edgeMapper
+import org.openziti.api.http.queryOf
 import org.openziti.edge.model.*
 import org.openziti.impl.ZitiImpl
 import org.openziti.util.*
 import java.io.IOException
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
 import javax.net.ssl.SSLContext
-import kotlin.reflect.full.memberFunctions
 
 internal class Controller internal constructor(
     ep: String,
@@ -45,55 +42,46 @@ internal class Controller internal constructor(
 
     private val pageSize = 100
 
-    private val http = HttpClient.newBuilder()
-        .sslContext(sslContext)
-        .executor(Dispatchers.IO.asExecutor())
-
-    private val edgeApi: ApiClient = ApiClient().apply {
-        setHttpClientBuilder(http)
-        updateBaseUri(ep)
+    private val edge = EdgeClient(ControllerHttp.client(sslContext), ep).apply {
         setBasePath("")
     }
-    private val infoClient: InformationalApi
-        get() = InformationalApi(edgeApi)
-
 
     internal val endpoint: String
-        get() = edgeApi.baseUri
+        get() = edge.baseUri
 
     internal suspend fun listControllers(): List<ControllerDetail> {
         return runCatching {
-            ControllersApi(edgeApi).listControllers(100, 0, null).await().data
+            edge.get<ListControllersEnvelope>("/controllers", queryOf("limit" to 100, "offset" to 0)).data
         }.getOrElse {
             convertError(it)
         }
     }
 
     suspend fun version(): org.openziti.edge.model.Version {
-        val version = infoClient.listVersion().await().data
-        i { "controller[${edgeApi.baseUri}] version(${version.version}/${version.revision})"}
+        val version = edge.get<ListVersionEnvelope>("/version").data
+        i { "controller[${edge.baseUri}] version(${version.version}/${version.revision})"}
         val prefix = version.apiVersions?.run { get("edge-client") ?: get("edge") }?.get("v1")?.path
 
         prefix?.let {
-            edgeApi.setBasePath(it)
+            edge.setBasePath(it)
         } ?: w {"did not receive expected apiVersions mapping"}
         return version
     }
 
     internal suspend fun currentIdentity(): IdentityDetail = runCatching {
-        CurrentIdentityApi(edgeApi).currentIdentity.await().data
+        edge.get<CurrentIdentityDetailEnvelope>("/current-identity").data
     }.getOrElse {
         convertError(it)
     }
 
     internal suspend fun currentApiSession(): ApiSession = runCatching {
-        CurrentApiSessionApi(edgeApi).currentAPISession.await().data
+        edge.get<CurrentApiSessionDetailEnvelope>("/current-api-session").data
     }.getOrElse {
         convertError(it)
     }
 
     internal suspend fun setAccessToken(token: ZitiAuthenticator.ZitiAccessToken): ApiSession {
-        edgeApi.requestInterceptor = ReqInterceptor(token)
+        edge.token = token
         return currentApiSession()
     }
 
@@ -108,7 +96,7 @@ internal class Controller internal constructor(
         }
 
         val apiSession = runCatching {
-            AuthenticationApi(edgeApi).authenticate(method, auth).await().data
+            edge.post<CurrentApiSessionDetailEnvelope>("/authenticate", auth, queryOf("method" to method)).data
         }.getOrElse {
             convertError(it)
         }
@@ -117,56 +105,55 @@ internal class Controller internal constructor(
     }
 
     suspend fun logout() {
-        CurrentApiSessionApi(edgeApi).currentApiSessionDelete().runCatching {
-            await()
+        runCatching {
+            edge.delete("/current-api-session")
         }
     }
 
     fun shutdown() = Unit
 
-    internal suspend fun getServiceUpdates() =
-        CurrentApiSessionApi(edgeApi).listServiceUpdates().runCatching {
-            await().data
-        }.getOrElse {
-            convertError(it)
-        }
+    internal suspend fun getServiceUpdates() = runCatching {
+        edge.get<ListCurrentApiSessionServiceUpdatesEnvelope>("/current-api-session/service-updates").data
+    }.getOrElse {
+        convertError(it)
+    }
 
-    internal fun getServices(): Flow<Service> {
-        val serviceApi = ServiceApi(edgeApi)
-
-        return pagingApiRequest {
-                limit, offset -> serviceApi.listServices(limit,  offset,
-            null, ALL_CONFIGS, null, null)
-        }
+    internal fun getServices(): Flow<Service> = paged { limit, offset ->
+        val page = edge.get<ListServicesEnvelope>(
+            "/services",
+            queryOf("limit" to limit, "offset" to offset, "configTypes" to ALL_CONFIGS)
+        )
+        page.data to page.meta
     }
 
     internal suspend fun createNetSession(s: Service, t: SessionType): Session  = runCatching {
         val req = SessionCreate().type(t).serviceId(s.id)
-        SessionApi(edgeApi).createSession(req).await().data!!
+        edge.post<SessionCreateEnvelope>("/sessions", req).data!!
     }.getOrElse { convertError(it) }
 
 
-    internal fun getServiceTerminators(s: Service): Flow<TerminatorClientDetail> {
-        val serviceApi = ServiceApi(edgeApi)
-        return pagingApiRequest {
-                limit, offset -> serviceApi.listServiceTerminators(s.id, limit, offset, null)
-        }
+    internal fun getServiceTerminators(s: Service): Flow<TerminatorClientDetail> = paged { limit, offset ->
+        val page = edge.get<ListClientTerminatorsEnvelope>(
+            "/services/${s.id}/terminators",
+            queryOf("limit" to limit, "offset" to offset)
+        )
+        page.data to page.meta
     }
 
     // routers permitted to host the specified service (the response is not paged)
     internal suspend fun getServiceRouters(s: Service): List<CommonEdgeRouterProperties> = runCatching {
-        ServiceApi(edgeApi).listServiceEdgeRouters(s.id, null, null, null, null).await().data?.edgeRouters
+        edge.get<ListServiceEdgeRoutersEnvelope>("/services/${s.id}/edge-routers").data?.edgeRouters
             ?: emptyList()
     }.getOrElse { convertError(it) }
 
     internal suspend fun postMFA() =
-        CurrentIdentityApi(edgeApi).enrollMfa().await().data
+        edge.post<CreateEnvelope>("/current-identity/mfa").data
 
     internal suspend fun getMFAEnrollment(): DetailMfa? =
         runCatching {
-            CurrentIdentityApi(edgeApi).detailMfa().await().data
+            edge.get<DetailMfaEnvelope>("/current-identity/mfa").data
         }.getOrElse {
-            if (it is ApiException && it.code == 404) {
+            if (it is ZitiHttpException && it.code == 404) {
                 null
             } else {
                 convertError(it)
@@ -175,19 +162,19 @@ internal class Controller internal constructor(
 
     internal suspend fun verifyMFA(code: String) {
         runCatching {
-            CurrentIdentityApi(edgeApi).verifyMfa(MfaCode().code(code)).await()
+            edge.send("POST", "/current-identity/mfa/verify", body = MfaCode().code(code))
         }.getOrElse { convertError(it) }
     }
 
     internal suspend fun authMFA(code: String) {
         runCatching {
-            AuthenticationApi(edgeApi).authenticateMfa(MfaCode().code(code)).await()
+            edge.send("POST", "/authenticate/mfa", body = MfaCode().code(code))
         }.getOrElse { convertError(it) }
     }
 
     internal suspend fun removeMFA(code: String) {
         runCatching {
-            CurrentIdentityApi(edgeApi).deleteMfa(code).await()
+            edge.delete("/current-identity/mfa", mapOf("mfa-validation-code" to code))
         }.getOrElse { convertError(it) }
     }
 
@@ -195,52 +182,40 @@ internal class Controller internal constructor(
         if (newCodes) {
             val c = MfaCode().code(code)
             runCatching {
-                MfaApi(edgeApi).createMfaRecoveryCodes(c).await()
+                edge.send("POST", "/current-identity/mfa/recovery-codes", body = c)
             }.getOrElse {
                 convertError(it)
             }
         }
 
-        return CurrentIdentityApi(edgeApi).detailMfa().await().data.recoveryCodes?.toTypedArray() ?: emptyArray()
+        return edge.get<DetailMfaEnvelope>("/current-identity/mfa").data.recoveryCodes?.toTypedArray() ?: emptyArray()
     }
 
-    private inline fun <reified Env, reified T> pagingApiRequest(
-        crossinline req: (limit: Int, offset: Int) -> CompletableFuture<Env>
-    ): Flow<T> {
-
-        val metaFunc = Env::class.memberFunctions.first { it.name == "getMeta" }
-        val dataFunc = Env::class.memberFunctions.first { it.name == "getData" }
-
-        return flow {
-            var offset = 0
-            val p0 = req(pageSize, offset)
-            val resp = p0.await()
-            val meta = metaFunc.call(resp) as Meta
-            val pagination = meta.pagination
-            val pages = mutableListOf(p0)
-            pagination?.let {
-                while (it.totalCount.toInt() > offset + it.limit.toInt()) {
-                    offset += pagination.limit.toInt()
-                    pages.add(req(pageSize, offset))
+    // The first page tells how many items there are; the remaining pages are then requested together.
+    // Offsets advance by the page size the server reports it used. Nothing is emitted until every page
+    // has arrived, so a failure part way through never hands the caller a partial list.
+    private fun <T> paged(fetch: suspend (limit: Int, offset: Int) -> Pair<List<T>, Meta?>): Flow<T> = flow {
+        val items = coroutineScope {
+            val (first, meta) = fetch(pageSize, 0)
+            val pagination = meta?.pagination
+            val limit = pagination?.limit?.toInt() ?: 0
+            val rest = if (pagination == null || limit <= 0) emptyList()
+                else (limit until pagination.totalCount.toInt() step limit).map { offset ->
+                    async { fetch(pageSize, offset).first }
                 }
-            }
-
-            pages.forEach {
-                val r = it.await()
-                val d = (dataFunc.call(r) as Collection<*>).filterIsInstance<T>()
-                emitAll(d.asFlow())
-            }
+            first + rest.awaitAll().flatten()
         }
+        emitAll(items.asFlow())
     }
 
     internal suspend fun sendPostureResp(responses: List<PostureResponseCreate>) {
         runCatching {
-            PostureChecksApi(edgeApi).createPostureResponseBulk(responses).await()
+            edge.send("POST", "/posture-response-bulk", body = responses)
         }.getOrNull()
     }
 
     internal suspend fun getEdgeRouters() = runCatching {
-        EdgeRouterApi(edgeApi).currentIdentityEdgeRouters.await().data
+        edge.get<ListCurrentIdentityEdgeRoutersEnvelope>("/current-identity/edge-routers").data
     }.getOrElse {
         convertError(it)
     }
@@ -248,7 +223,10 @@ internal class Controller internal constructor(
     private fun convertError(t: Throwable): Nothing {
         val errCode = when (t) {
             is CancellationException -> throw t
-            is ApiException -> ZitiException.getZitiError(getError(t.responseBody))
+            // an answer that is not an error envelope (a proxy's error page, an empty body) says nothing
+            // about the request, so it is treated like an unreachable controller: retried
+            is ZitiHttpException -> getError(t.responseBody)?.let { ZitiException.getZitiError(it) }
+                ?: Errors.ControllerUnavailable
             is IOException -> Errors.ControllerUnavailable
             else -> Errors.WTF(t.toString())
         }
@@ -256,12 +234,10 @@ internal class Controller internal constructor(
         throw ZitiException(errCode,  t)
     }
 
-    private fun getError(resp: String): String {
-
-        val err = edgeApi.objectMapper.readValue(resp, ApiErrorEnvelope::class.java).error
-
-        return err.code ?: err.message!!
-    }
+    private fun getError(resp: String?): String? = runCatching {
+        val err = edgeMapper.readValue(resp, ApiErrorEnvelope::class.java).error
+        err.code ?: err.message
+    }.getOrNull()
 
     private fun getClientInfo(): Authenticate = Authenticate().apply {
         val info = SystemInfoProvider().getSystemInfo()
@@ -280,15 +256,6 @@ internal class Controller internal constructor(
         configTypes = ALL_CONFIGS
     }
 
-    internal inner class ReqInterceptor(val accessToken: ZitiAuthenticator.ZitiAccessToken): Consumer<HttpRequest.Builder> {
-        override fun accept(req: HttpRequest.Builder) {
-            when (accessToken.type) {
-                ZitiAuthenticator.TokenType.BEARER -> req.header("Authorization", "Bearer ${accessToken.token}")
-                ZitiAuthenticator.TokenType.API_SESSION -> req.header("zt-session", accessToken.token)
-            }
-        }
-    }
-
     class NotAvailableException(msg: String = "Controller is not available") : Exception(msg)
 
     companion object: Logged by ZitiLog(Controller.TAG) {
@@ -297,24 +264,16 @@ internal class Controller internal constructor(
 
         suspend fun getActiveController(endpoints: Collection<String>, sslContext: SSLContext): Controller {
 
-            val edgeApiClient = ApiClient().apply {
-                setHttpClientBuilder(
-                    HttpClient.newBuilder()
-                        .sslContext(sslContext)
-                        .executor(Dispatchers.IO.asExecutor()))
-            }
+            val http = ControllerHttp.client(sslContext)
 
             val eps = endpoints.shuffled()
             for (ep in eps) {
                 d { "attempting to connect to controller $ep" }
 
-                edgeApiClient.apply {
-                    updateBaseUri(ep)
-                    setBasePath("/")
-                }
-
-                InformationalApi(edgeApiClient).runCatching {
-                    val version = listVersion().await().data
+                runCatching {
+                    // the controller's version document is at the root, whatever path the address has
+                    val probe = EdgeClient(http, ep).apply { setBasePath("") }
+                    val version = probe.get<ListVersionEnvelope>("/version").data
                     val capabilities = version.capabilities?.map { Capabilities.valueOf(it) } ?: emptyList()
 
                     val url = version.apiVersions!!["edge"]!!["v1"]!!.apiBaseUrls!![0]

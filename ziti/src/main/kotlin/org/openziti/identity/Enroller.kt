@@ -17,26 +17,29 @@
 package org.openziti.identity
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.runBlocking
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
 import org.openziti.Enrollment
 import org.openziti.IdentityConfig
-import org.openziti.edge.ApiClient
-import org.openziti.edge.ApiException
-import org.openziti.edge.api.AuthenticationApi
-import org.openziti.edge.api.ControllersApi
-import org.openziti.edge.api.InformationalApi
+import org.openziti.api.ZitiAuthenticator
+import org.openziti.api.http.ControllerHttp
+import org.openziti.api.http.EdgeClient
+import org.openziti.api.http.ZitiHttpException
+import org.openziti.api.http.await
+import org.openziti.api.http.edgeMapper
+import org.openziti.api.http.queryOf
 import org.openziti.edge.model.ApiErrorEnvelope
+import org.openziti.edge.model.CurrentApiSessionDetailEnvelope
 import org.openziti.edge.model.EnrollmentCertsEnvelope
+import org.openziti.edge.model.ListControllersEnvelope
+import org.openziti.edge.model.ListVersionEnvelope
 import org.openziti.util.*
 import java.io.File
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.PrivateKey
@@ -44,24 +47,22 @@ import java.security.SecureRandom
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.security.spec.ECGenParameterSpec
+import java.time.Duration
 import java.util.*
-import java.util.concurrent.TimeUnit
-import java.util.function.Consumer
 import javax.net.ssl.SSLContext
 
 internal class Enroller(
     private val jwt: ZitiJWT
 ) : Enrollment, Logged by ZitiLog("ziti-enroll") {
 
-    private val http: HttpClient.Builder = ApiClient.createDefaultHttpClientBuilder().apply {
-        executor(Dispatchers.IO.asExecutor())
-        sslContext(SSLContext.getInstance("TLSv1.2").apply {
+    // Until a certificate is issued the controller is only known by the key in the JWT.
+    private var http: OkHttpClient = ControllerHttp.client(
+        SSLContext.getInstance("TLSv1.2").apply {
             init(null, arrayOf(KeyTrustManager(jwt.serverKey)), SecureRandom())
-        })
-    }
+        }
+    )
 
-    private val api: ApiClient =
-        ApiClient(http, ApiClient.createDefaultObjectMapper(), jwt.controller.toString())
+    private var edge = EdgeClient(http, jwt.controller.toString())
 
     val name = jwt.name
     val token = jwt.token
@@ -69,20 +70,31 @@ internal class Enroller(
     private val caCerts: Collection<X509Certificate>
 
     init {
-        val wellKnownCertsReq = HttpRequest.newBuilder(jwt.controller.resolve("/.well-known/est/cacerts")).build()
-        val pkcs7 = http.build().send(wellKnownCertsReq, HttpResponse.BodyHandlers.ofString()).body()
+        // no `Accept` header, as before: the answer is not JSON
+        val wellKnownCertsReq = Request.Builder()
+            .url(jwt.controller.resolve("/.well-known/est/cacerts").toString().toHttpUrl())
+            .build()
+        val pkcs7 = runBlocking {
+            http.newCall(wellKnownCertsReq).await().use { resp ->
+                val text = resp.body.string()
+                if (!resp.isSuccessful) throw ZitiHttpException(resp.code, text)
+                text
+            }
+        }
         caCerts = Base64.getMimeDecoder().decode(pkcs7).inputStream().use {
                 CertificateFactory.getInstance("X.509").generateCertificates(it)
         }.filterIsInstance<X509Certificate>()
 
-        val path = with(InformationalApi(api).listVersion().join()) {
-            data.apiVersions?.get("edge")?.get("v1")?.path
-        }
-        api.setBasePath(path!!)
+        val path = runBlocking { edge.get<ListVersionEnvelope>("/version") }
+            .data.apiVersions?.get("edge")?.get("v1")?.path
+        edge.setBasePath(path!!)
     }
 
     companion object : Logged by ZitiLog("ziti-enroller") {
         val P256 = ECGenParameterSpec("secp256r1")
+
+        // enrolling must not hang on a controller that stops answering
+        private val LIST_CONTROLLERS_TIMEOUT = Duration.ofSeconds(3)
 
         @JvmStatic
         fun fromJWT(jwt: String): Enroller = runBlocking(Dispatchers.IO) {
@@ -123,27 +135,19 @@ internal class Enroller(
 
         // TODO use generated enrollment API when it is fixed
         // https://github.com/openziti/ziti/issues/2796
-        val uri = URI.create(api.baseUri + "/enroll?method=${jwt.method}&token=$token")
+        val cert = enrolling {
+            edge.post<EnrollmentCertsEnvelope>(
+                "/enroll",
+                csr.toPEM(),
+                queryOf("method" to jwt.method, "token" to token),
+                mapOf("Content-Type" to "application/x-pem-file")
+            )
+        }.data!!.cert!!
 
-        val req = HttpRequest.newBuilder(uri)
-            .header("content-type", "application/x-pem-file")
-            .header("accept", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(csr.toPEM()))
-
-        val resp = http.build().send(req.build(), HttpResponse.BodyHandlers.ofString())
-
-        val body = resp.body()
-        if (resp.statusCode() != 200) {
-            val err = api.objectMapper.readValue(body, ApiErrorEnvelope::class.java)
-            throw ApiException(resp.statusCode(), err.error.message)
-        }
-
-        val cert = api.objectMapper.readValue(body, EnrollmentCertsEnvelope::class.java).data!!.cert!!
-
-        val controllers = listControllers(api.baseUri, kp.private, readCerts(cert), caCerts)
+        val controllers = listControllers(edge.baseUri, kp.private, readCerts(cert), caCerts)
 
         return IdentityConfig(
-            controller = api.baseUri,
+            controller = edge.baseUri,
             apiEndpoints = controllers,
             id = IdentityConfig.Id(
                 key = kp.private.toPEM(),
@@ -159,29 +163,20 @@ internal class Enroller(
         val pk = readKey(key)
         val certs = readCerts(cert)
 
-        val ssl = makeSSLContext(pk, certs, caCerts)
-        http.sslContext(ssl)
+        // from here on the controller is validated by the network CA and the new identity is presented
+        http = ControllerHttp.client(makeSSLContext(pk, certs, caCerts))
+        edge = edge.withClient(http)
 
         // TODO use generated enrollment API when it is fixed
         // https://github.com/openziti/ziti/issues/2796
-        val uri = URI.create(api.baseUri + "/enroll?method=${jwt.method}&token=$token")
-
-        val req = HttpRequest.newBuilder(uri)
-            .header("accept", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofByteArray(byteArrayOf()))
-
-        val resp = http.build().send(req.build(), HttpResponse.BodyHandlers.ofString())
-
-        val body = resp.body()
-        if (resp.statusCode() != 200) {
-            val err = api.objectMapper.readValue(body, ApiErrorEnvelope::class.java)
-            throw ApiException(resp.statusCode(), err.error.message)
+        enrolling {
+            edge.send("POST", "/enroll", queryOf("method" to jwt.method, "token" to token))
         }
 
-        val controllers = listControllers(api.baseUri, pk, certs, caCerts)
+        val controllers = listControllers(edge.baseUri, pk, certs, caCerts)
 
         return IdentityConfig(
-            controller = api.baseUri,
+            controller = edge.baseUri,
             apiEndpoints = controllers,
             id = IdentityConfig.Id(
                 key = key,
@@ -189,17 +184,26 @@ internal class Enroller(
                 ca = caCerts.joinToString(separator = "\n"){ it.toPEM() }),)
     }
 
+    // A rejected enrollment carries the controller's explanation in the error envelope.
+    private fun <T> enrolling(call: suspend () -> T): T = try {
+        runBlocking { call() }
+    } catch (e: ZitiHttpException) {
+        val explanation = runCatching {
+            edgeMapper.readValue(e.responseBody, ApiErrorEnvelope::class.java).error.message
+        }.getOrNull()
+        throw ZitiHttpException(e.code, e.responseBody, explanation)
+    }
+
     private fun listControllers(ctrl: String, key: PrivateKey, certs: Collection<X509Certificate>, ca: Collection<X509Certificate>): List<String> {
         val ssl = makeSSLContext(key, certs, ca)
-        val cb = ApiClient.createDefaultHttpClientBuilder().sslContext(ssl)
-        val api = ApiClient(cb, ApiClient.createDefaultObjectMapper(), ctrl)
-        val resp  = AuthenticationApi(api).authenticate("cert", null).thenApply {
-            api.requestInterceptor = Consumer { req ->
-                req.header("zt-session", it.data.token)
-            }
-        }.thenCompose {
-            ControllersApi(api).listControllers(10, 0, null)
-        }.get(3, TimeUnit.SECONDS)
+        val api = EdgeClient(ControllerHttp.client(ssl, LIST_CONTROLLERS_TIMEOUT), ctrl)
+        val resp = runBlocking {
+            val session = api.post<CurrentApiSessionDetailEnvelope>("/authenticate", query = queryOf("method" to "cert")).data
+            api.token = ZitiAuthenticator.ZitiAccessToken(
+                ZitiAuthenticator.TokenType.API_SESSION, session.token, session.expiresAt
+            )
+            api.get<ListControllersEnvelope>("/controllers", queryOf("limit" to 10, "offset" to 0))
+        }
 
         if (resp.data.isEmpty())
             return listOf(ctrl)

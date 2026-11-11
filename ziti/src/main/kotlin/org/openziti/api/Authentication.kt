@@ -19,23 +19,26 @@ package org.openziti.api
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.kotlinModule
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asExecutor
-import kotlinx.coroutines.future.await
-import org.openziti.edge.ApiClient
-import org.openziti.edge.ApiException
-import org.openziti.edge.api.AuthenticationApi
-import org.openziti.edge.api.CurrentApiSessionApi
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import org.openziti.api.http.ControllerHttp
+import org.openziti.api.http.EdgeClient
+import org.openziti.api.http.ZitiHttpException
+import org.openziti.api.http.await
+import org.openziti.api.http.queryOf
 import org.openziti.edge.model.CurrentApiSessionDetail
+import org.openziti.edge.model.CurrentApiSessionDetailEnvelope
 import org.openziti.impl.ZitiImpl
 import org.openziti.util.Logged
 import org.openziti.util.ZitiLog
 import java.net.HttpURLConnection.HTTP_UNAUTHORIZED
 import java.net.URI
 import java.net.URLEncoder
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.time.OffsetDateTime
@@ -70,19 +73,14 @@ internal fun authenticator(ep: String, ssl: SSLContext, oidc: Boolean): ZitiAuth
 class LegacyAuth(val ep: String, val ssl: SSLContext) : ZitiAuthenticator, Logged by ZitiLog("legacyAuth[$ep]") {
 
     lateinit var apiSession: CurrentApiSessionDetail
-    private val http = HttpClient.newBuilder()
-        .sslContext(ssl)
-        .executor(Dispatchers.IO.asExecutor())
 
-    private val api = ApiClient().apply {
-        setHttpClientBuilder(http)
-        updateBaseUri(ep)
-    }
+    private val api = EdgeClient(ControllerHttp.client(ssl), ep)
 
     override suspend fun login(): ZitiAuthenticator.ZitiAccessToken = runCatching {
         d { "starting authentication" }
-        val authApi = AuthenticationApi(api)
-        apiSession = authApi.authenticate("cert", ZitiImpl.loginInfo).await().data
+        apiSession = api.post<CurrentApiSessionDetailEnvelope>(
+            "/authenticate", ZitiImpl.loginInfo, queryOf("method" to "cert")
+        ).data
         d { "authenticated successfully session.expiresAt[${apiSession.expiresAt}]" }
         ZitiAuthenticator.ZitiAccessToken(
             ZitiAuthenticator.TokenType.API_SESSION,
@@ -91,7 +89,7 @@ class LegacyAuth(val ep: String, val ssl: SSLContext) : ZitiAuthenticator, Logge
         )
     }.getOrElse { ex ->
         e(ex) { "failed to authenticate with error: ${ex.message}" }
-        if (ex is ApiException && ex.code == HTTP_UNAUTHORIZED) {
+        if (ex is ZitiHttpException && ex.code == HTTP_UNAUTHORIZED) {
             throw ZitiAuthenticator.AuthException(ex)
         }
         throw ex
@@ -99,8 +97,9 @@ class LegacyAuth(val ep: String, val ssl: SSLContext) : ZitiAuthenticator, Logge
 
     override suspend fun refresh(): ZitiAuthenticator.ZitiAccessToken = runCatching {
         d { "refreshing API session" }
-        val currentApiSessionApi = CurrentApiSessionApi(api)
-        apiSession = currentApiSessionApi.getCurrentAPISession(mapOf("zt-session" to apiSession.token)).await().data
+        apiSession = api.get<CurrentApiSessionDetailEnvelope>(
+            "/current-api-session", headers = mapOf("zt-session" to apiSession.token)
+        ).data
         ZitiAuthenticator.ZitiAccessToken(
             ZitiAuthenticator.TokenType.API_SESSION,
             apiSession.token,
@@ -108,7 +107,7 @@ class LegacyAuth(val ep: String, val ssl: SSLContext) : ZitiAuthenticator, Logge
         )
     }.getOrElse { ex ->
         e(ex) { "failed to authenticate with error: ${ex.message}" }
-        if (ex is ApiException && ex.code == HTTP_UNAUTHORIZED) {
+        if (ex is ZitiHttpException && ex.code == HTTP_UNAUTHORIZED) {
             throw ZitiAuthenticator.AuthException(ex)
         }
         throw ex
@@ -125,14 +124,12 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
         const val TOKEN_EXCHANGE_GRANT = "urn:ietf:params:oauth:grant-type:token-exchange"
         val json: ObjectMapper = ObjectMapper().registerModule(kotlinModule())
         val CLIENT_ID_BASIC_AUTH = "Basic ${Encoder.encodeToString("$CLIENT_ID:".toByteArray())}"
+        private val FORM = "application/x-www-form-urlencoded".toMediaType()
     }
 
 
-    private val http: HttpClient = HttpClient.newBuilder()
-        .sslContext(ssl)
-        .followRedirects(HttpClient.Redirect.NEVER)
-        .executor(Dispatchers.IO.asExecutor())
-        .build()
+    // the login is a chain of redirects whose Location headers are read here, so redirects are not followed
+    private val http: OkHttpClient = ControllerHttp.client(ssl)
     lateinit var tokens: JsonNode
 
     private val config by lazy {
@@ -142,6 +139,12 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
     private fun formatForm(params: Map<String, String>): String = params.entries.joinToString("&") {
         "${it.key}=${URLEncoder.encode(it.value, StandardCharsets.UTF_8)}"
     }
+
+    // sent as bytes: OkHttp would add "; charset=utf-8" to the content type of a String body
+    private fun formBody(body: String): RequestBody = body.toByteArray().toRequestBody(FORM)
+
+    private fun Response.location(): String =
+        header("Location") ?: throw Exception("Unexpected response from ${request.url}: $code, no Location header")
 
     private suspend fun startAuth(authEndpoint: String, challenge: String, state: String): URI {
         d { "starting auth" }
@@ -157,42 +160,38 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
 
         val body = formatForm(form)
         i("body: $body")
-        val uri = URI.create(authEndpoint)
-        val req = HttpRequest.newBuilder(uri)
+        val req = Request.Builder().url(authEndpoint.toHttpUrl())
             .header("Accept", "application/json")
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .post(formBody(body))
             .build()
 
         d{"sending auth request $req"}
-        val resp = http.sendAsync(req, HttpResponse.BodyHandlers.ofString()).await()
+        http.newCall(req).await().use { resp ->
+            if (resp.code / 100 != 3 && resp.header("Location") == null) {
+                throw Exception("Unexpected login auth response: ${resp.code} ${resp.body.string()}")
+            }
 
-        if (resp.statusCode() / 100 != 3 && resp.headers().firstValue("Location").isEmpty) {
-            throw Exception("Unexpected login auth response: ${resp.statusCode()} ${resp.body()}")
+            return URI.create(ep).resolve(resp.location())
         }
-
-        val path = resp.headers().firstValue("Location").get()
-        return URI.create(ep).resolve(path)
     }
 
     private suspend fun login(loginURI: URI): URI {
-        val req = HttpRequest.newBuilder()
+        val req = Request.Builder().url(loginURI.toString().toHttpUrl())
             .header("Accept", "application/json")
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .uri(loginURI).POST(HttpRequest.BodyPublishers.noBody()).build()
+            .post(formBody(""))
+            .build()
 
-        val resp = http.sendAsync(req, HttpResponse.BodyHandlers.ofString()).await()
-        return URI.create(resp.headers().firstValue("Location").get())
+        http.newCall(req).await().use { resp ->
+            return URI.create(resp.location())
+        }
     }
 
     private suspend fun getCode(codeURI: URI): Pair<String, String> {
-        val req = HttpRequest.newBuilder()
+        val req = Request.Builder().url(codeURI.toString().toHttpUrl())
             .header("Accept", "application/json")
-            .uri(codeURI).GET().build()
+            .get().build()
 
-        val resp = http.sendAsync(req, HttpResponse.BodyHandlers.ofString()).await()
-
-        val redirectUri = resp.headers().firstValue("Location").get().run { URI.create(this) }
+        val redirectUri = http.newCall(req).await().use { resp -> URI.create(resp.location()) }
 
         val query = redirectUri.query.split("&").associate {
             val (k, v) = it.split("=", limit = 2)
@@ -202,6 +201,9 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
     }
 
     private suspend fun getTokens(ep: URI, code: String, codeVerifier: String): JsonNode {
+        // the code and its verifier must not travel in clear text
+        require(ep.scheme == "https") { "OIDC token endpoint must use HTTPS: $ep" }
+
         val body = formatForm(
             mapOf(
                 "grant_type" to "authorization_code",
@@ -211,14 +213,13 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
                 "code_verifier" to codeVerifier
             )
         )
-        val req = HttpRequest.newBuilder().header("Accept", "application/json")
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .uri(ep)
-            .POST(HttpRequest.BodyPublishers.ofString(body)).build()
+        val req = Request.Builder().url(ep.toString().toHttpUrl())
+            .header("Accept", "application/json")
+            .post(formBody(body)).build()
 
-        val tokenResp = http.sendAsync(req, HttpResponse.BodyHandlers.ofString()).await()
-        tokenResp.sslSession().get().peerCertificates[0].publicKey
-        return json.readTree(tokenResp.body())
+        http.newCall(req).await().use { tokenResp ->
+            return json.readTree(tokenResp.body.string())
+        }
     }
 
     override suspend fun login(): ZitiAuthenticator.ZitiAccessToken {
@@ -261,23 +262,23 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
             "refresh_token" to refreshToken,
         )
 
-        val req = HttpRequest.newBuilder()
-            .uri(config["token_endpoint"]?.textValue()?.let { URI.create(it) })
-            .header("Content-Type", "application/x-www-form-urlencoded")
+        val tokenEndpoint = config["token_endpoint"]?.textValue()
+            ?: throw Exception("Missing token endpoint in OIDC config")
+        val req = Request.Builder().url(tokenEndpoint.toHttpUrl())
             .header("Authorization", CLIENT_ID_BASIC_AUTH)
-            .POST(HttpRequest.BodyPublishers.ofString(formatForm(form)))
+            .post(formBody(formatForm(form)))
             .build()
 
-        val resp = http.sendAsync(req, HttpResponse.BodyHandlers.ofString()).await()
+        http.newCall(req).await().use { resp ->
+            if (resp.code == HTTP_UNAUTHORIZED) {
+                throw ZitiAuthenticator.AuthException()
+            }
+            if (resp.code != 200) {
+                throw Exception("unexpected refresh response ${resp.code}")
+            }
 
-        if (resp.statusCode() == HTTP_UNAUTHORIZED) {
-            throw ZitiAuthenticator.AuthException()
+            tokens = json.readTree(resp.body.string())
         }
-        if (resp.statusCode() != 200) {
-            throw Exception("unexpected refresh response $resp")
-        }
-
-        tokens = json.readTree(resp.body())
         val accessToken = tokens["access_token"]?.textValue()
             ?: throw Exception("Missing access token in OIDC response")
         val exp = OffsetDateTime.now().plusSeconds(tokens["expires_in"]?.longValue() ?: 600)
@@ -287,16 +288,16 @@ class InternalOIDC(val ep: String, ssl: SSLContext): ZitiAuthenticator, Logged b
     private fun loadConfig(): JsonNode {
         val url = URI.create(ep).resolve(DISCOVERY)
 
-        val request = HttpRequest.newBuilder(url)
-            .GET()
-            .build()
+        val request = Request.Builder().url(url.toString().toHttpUrl()).get().build()
 
-        val response = http.send(request, HttpResponse.BodyHandlers.ofString())
-        if (response.statusCode() != 200) {
-            throw Exception("Failed to get OIDC config: ${response.statusCode()}")
+        http.newCall(request).execute().use { response ->
+            if (response.code != 200) {
+                throw Exception("Failed to get OIDC config: ${response.code}")
+            }
+
+            val body = response.body.string()
+            v {"OIDC config response: $body"}
+            return ObjectMapper().readTree(body)
         }
-
-        v {"OIDC config response: ${response.body()}"}
-        return ObjectMapper().readTree(response.body())
     }
 }
