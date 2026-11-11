@@ -42,7 +42,7 @@ dependencies {
     implementation(libs.jackson.kotlin)
     // needed by the mapper for the generated edge models (edge-api only exposes them at runtime)
     implementation(libs.jackson.datatype)
-    implementation("org.openapitools:jackson-databind-nullable:0.2.12")
+    implementation(libs.jackson.databind.nullable)
 
     implementation(libs.tls.channel)
     implementation(libs.okhttp3)

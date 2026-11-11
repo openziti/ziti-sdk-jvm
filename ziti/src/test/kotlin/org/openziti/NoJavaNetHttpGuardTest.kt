@@ -16,6 +16,7 @@
 
 package org.openziti
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -24,11 +25,18 @@ import java.io.File
 // ApiException, which are built on it. The edge models (org.openziti.edge.model) are fine.
 class NoJavaNetHttpGuardTest {
 
-    private val banned = Regex("""java\.net\.http|org\.openziti\.edge\.(ApiClient|ApiException|api\.)""")
+    // a wildcard import of org.openziti.edge would let ApiClient and ApiException appear under their bare names
+    private val banned = Regex("""java\.net\.http|org\.openziti\.edge\.(ApiClient|ApiException|api\.|\*)""")
 
     private fun mainSources(): List<File> =
         listOf("src/main/kotlin", "src/main/java").map(::File).filter { it.isDirectory }
             .flatMap { dir -> dir.walkTopDown().filter { it.isFile && it.extension in setOf("kt", "java") }.toList() }
+
+    private fun isBanned(line: String): Boolean {
+        val code = line.trim()
+        val isComment = code.startsWith("//") || code.startsWith("*") || code.startsWith("/*")
+        return !isComment && banned.containsMatchIn(code.substringBefore("//"))
+    }
 
     @Test
     fun mainSourcesDoNotUseJavaNetHttp() {
@@ -38,13 +46,33 @@ class NoJavaNetHttpGuardTest {
 
         val offenders = sources.flatMap { file ->
             file.readLines().mapIndexedNotNull { i, line ->
-                val code = line.trim()
-                val isComment = code.startsWith("//") || code.startsWith("*") || code.startsWith("/*")
-                if (!isComment && banned.containsMatchIn(code.substringBefore("//"))) "${file.path}:${i + 1}: $code" else null
+                if (isBanned(line)) "${file.path}:${i + 1}: ${line.trim()}" else null
             }
         }
 
         assertTrue("java.net.http or the generated edge client used in main sources:\n" + offenders.joinToString("\n"), offenders.isEmpty())
+    }
+
+    @Test
+    fun guardFlagsTheGeneratedClientButNotTheModels() {
+        val flagged = listOf(
+            "import java.net.http.HttpClient",
+            "import org.openziti.edge.ApiClient",
+            "import org.openziti.edge.ApiException",
+            "import org.openziti.edge.api.ServiceApi",
+            "import org.openziti.edge.api.*",
+            // brings ApiClient and ApiException into scope under their bare names
+            "import org.openziti.edge.*",
+        )
+        val allowed = listOf(
+            "import org.openziti.edge.model.*",
+            "import org.openziti.edge.model.ServiceDetail",
+            "// built on java.net.http",
+            " * org.openziti.edge.ApiClient is not used",
+        )
+
+        assertEquals(emptyList<String>(), flagged.filterNot(::isBanned))
+        assertEquals(emptyList<String>(), allowed.filter(::isBanned))
     }
 
     // The edge-api jar still contains the generated client, which references java.net.http. R8 fails release
