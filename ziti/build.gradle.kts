@@ -39,6 +39,9 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.jackson.bind)
     implementation(libs.jackson.kotlin)
+    // needed by the mapper for the generated edge models (edge-api only exposes them at runtime)
+    implementation(libs.jackson.datatype)
+    implementation("org.openapitools:jackson-databind-nullable:0.2.12")
 
     implementation(libs.tls.channel)
     implementation(libs.okhttp3)
@@ -59,6 +62,8 @@ dependencies {
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlin.coroutines.test)
     testImplementation(libs.slf4j.simple)
+    testImplementation(libs.okhttp3.mockwebserver3)
+    testImplementation(libs.okhttp3.tls)
 }
 
 val generatedResourcesDir = "${layout.buildDirectory.get()}/generated-resources/main"

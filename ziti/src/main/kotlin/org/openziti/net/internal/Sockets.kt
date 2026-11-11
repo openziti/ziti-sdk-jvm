@@ -83,6 +83,9 @@ internal object Sockets : Logged by ZitiLog() {
                 = createSocket().apply { connect(InetSocketAddress(addr, port)) }
     }
 
+    // `provider` is only set by [init]; some entry points never call it
+    fun providerOrNull(): BypassProvider? = if (::provider.isInitialized) provider else null
+
     fun bypassSocketFactory(): SocketFactory = provider.getSocketFactory()
     fun bypassSSLSocketFactory(ssl: SSLContext): SSLSocketFactory = provider.getSSLSocketFactory(ssl)
 
