@@ -17,9 +17,11 @@
 package org.openziti.net.internal
 
 import java.io.InputStream
+import java.io.InterruptedIOException
 import java.io.OutputStream
 import java.net.*
 import java.nio.ByteBuffer
+import java.nio.channels.ClosedSelectorException
 import java.nio.channels.SelectionKey
 import java.nio.channels.Selector
 import java.nio.channels.SocketChannel
@@ -35,12 +37,17 @@ class SocketChannelSocket(val ch: SocketChannel): Socket(null as SocketImpl?) {
     private var outputShut = false
     private val sel: Selector
     private val selKey: SelectionKey
+    // Writers wait on a selector of their own: a reader can hold [sel] for as long as the peer is silent
+    // (with HTTP/2, one thread always waits for the next frame while others write).
+    private val writeSel: Selector
     constructor(): this(SocketChannel.open())
 
     init {
         ch.configureBlocking(false)
         sel = ch.provider().openSelector()
         selKey = ch.register(sel, SelectionKey.OP_CONNECT)
+        writeSel = ch.provider().openSelector()
+        ch.register(writeSel, SelectionKey.OP_WRITE)
     }
 
     override fun bind(bindpoint: SocketAddress?) {
@@ -52,19 +59,21 @@ class SocketChannelSocket(val ch: SocketChannel): Socket(null as SocketImpl?) {
             write(byteArrayOf(b.toByte()))
         }
 
+        // As with java.net.Socket, SO_TIMEOUT does not apply to writes: a write waits until the peer takes
+        // the data or the socket is closed. Callers that need a write timeout close the socket (OkHttp does).
         override fun write(b: ByteArray, off: Int, len: Int) {
             val buf = ByteBuffer.wrap(b, off, len)
-            val timeout = soTimeout
-            val start = System.currentTimeMillis()
-            while (buf.hasRemaining()) {
-                if (ch.write(buf) == 0) {
-                    val toRemaining = timeout - (System.currentTimeMillis() - start)
-                    if (toRemaining <= 0) {
-                        close()
-                        throw SocketTimeoutException()
+            synchronized(writeSel) {
+                while (buf.hasRemaining()) {
+                    if (ch.write(buf) == 0) {
+                        if (Thread.currentThread().isInterrupted) throw InterruptedIOException()
+                        try {
+                            writeSel.select()
+                            writeSel.selectedKeys().clear()
+                        } catch (_: ClosedSelectorException) {
+                            throw SocketException("Socket closed")
+                        }
                     }
-
-                    sel.select(toRemaining)
                 }
             }
         }
@@ -119,8 +128,10 @@ class SocketChannelSocket(val ch: SocketChannel): Socket(null as SocketImpl?) {
         }
     }
 
+    // closing the selectors also wakes the threads waiting in them
     override fun close() {
         sel.runCatching { close() }
+        writeSel.runCatching { close() }
         ch.runCatching { close() }
     }
 
