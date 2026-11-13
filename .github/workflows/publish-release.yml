@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       BUILD_NUMBER: ${{ github.GITHUB_RUN_NUMBER }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -43,3 +45,38 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
         run: ./gradlew -i -S publishToSonatype closeAndReleaseSonatypeStagingRepository
+      # Attach the signed -full jars to the release. This must stay right after the publish step and run no Gradle
+      # build: every Gradle invocation rebuilds the jars (the manifest carries a Build-Timestamp), so the jars on disk
+      # are only the ones that were just signed and published until another build runs.
+      - name: Attach -full jars to GitHub release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          jars=(*/build/libs/*-full.jar)
+          if [ ${#jars[@]} -eq 0 ]; then
+            echo "::error::no -full jars found in */build/libs"
+            exit 1
+          fi
+          assets=()
+          for jar in "${jars[@]}"; do
+            if [ ! -f "$jar.asc" ]; then
+              echo "::error::missing signature $jar.asc"
+              exit 1
+            fi
+            assets+=("$jar" "$jar.asc")
+          done
+          # retry transient failures; --clobber makes a repeated upload replace whatever a failed attempt left behind
+          for attempt in 1 2 3; do
+            if gh release upload "$TAG" "${assets[@]}" --clobber; then
+              exit 0
+            fi
+            echo "::warning::release upload attempt $attempt of 3 failed"
+            sleep $((attempt * 10))
+          done
+          echo "::error::could not upload the release assets after 3 attempts"
+          exit 1
